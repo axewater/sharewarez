@@ -1,0 +1,41 @@
+<!-- in templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <title>AceBoard</title>
+    {% block styles %}
+    <link rel="stylesheet" href="/static/css/newstyle.css">
+    {% endblock %}
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/themes/prism.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/prism.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+
+</head>
+<body>
+    <nav class="menu">
+        {% if current_user.is_authenticated %}
+
+            <a href="/settings_account" class="button-glass"><i class="fas fa-user-circle"></i> Account</a>
+            
+            {% if current_user.role == 'admin' %}
+                <a href="/admin_main" class="button-glass"><i class="fas fa-user-shield"></i> Admin</a>
+            {% endif %}
+        {% else %}
+            <a href="/login" class="button-glass"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <a href="/register" class="button-glass"><i class="fas fa-user-plus"></i> Register</a>
+        {% endif %}
+        <a href="/help" class="button-glass"><i class="fas fa-question-circle"></i> Help</a>
+        <a href="/logout" class="button-glass"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </nav>
+
+    {% block content %}{% endblock %}
+</body>
+
+
+</html>

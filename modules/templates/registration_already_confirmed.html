@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-base">
+    <div class="messages">
+        <div class="ai">
+            <div class="speech-bubble ai">
+                <h1>Already Confirmed</h1>
+                <p>Your account is already activated. You can log in and continue using our services.</p>
+                <a href="{{ url_for('main.login') }}" class="button-glass">Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

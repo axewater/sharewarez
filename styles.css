@@ -1,0 +1,168 @@
+body {
+    background-image: url('https://www.freepokerbankrolls.com/images/milky.jpg'); 
+    background-size: cover;
+    background-repeat: no-repeat;
+    color: white;
+    font-family: Arial, sans-serif;
+    overflow-x: hidden;
+}
+
+
+/* Navigation Menu */
+.menu {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 40px;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 20px;
+    width: 80%;
+    margin: 40px auto;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.list {
+    background: rgba(255, 255, 255, 0.1); /* Glass effect */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    overflow: hidden;
+    max-height: 500px; /* or desired max height */
+    transition: transform 0.2s;
+	width: 250px;
+	position: absolute;
+	margin: 1em;
+
+}
+
+@keyframes bounce {
+    0% { transform: translateY(-10px); }
+    50% { transform: translateY(10px); }
+    100% { transform: translateY(0); }
+}
+
+.list .name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.list-header {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    cursor: move; /* Indicates draggability */
+}
+
+.chatbot {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	max-height: 50px;
+
+}
+
+.chatbot span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+}
+
+.chatbot img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+.list {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px); /* Frosted glass effect */
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.list:hover {
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4), 0 0 5px rgba(255, 255, 255, 0.2);
+    transform: translateY(-5px);
+}
+
+.list-header {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    cursor: grab;
+	position: relative;
+}
+
+.list-header:active {
+    cursor: grabbing;
+}
+
+.list-header:before {
+    content: 'Drag me!';
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.7);
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    display: none;
+}
+
+.list:hover .list-header:before {
+    display: block;
+}
+
+
+.glass-btn {
+    padding: 10px 20px;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    font-size: 1rem;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Changes for smaller screens */
+@media (max-width: 600px) {
+    .grid {
+        width: 90%; 
+        margin: 20px auto;
+    }
+    .menu button {
+        margin: 5px 0; 
+        font-size: 0.8rem; 
+    }
+    .list {
+        width: 40%; 
+        margin: 0.5em auto;
+    }
+    .chatbot span {
+        font-size: 0.8rem;
+    }
+    .chatbot img {
+        width: 25px;
+        height: 25px;
+    }
+}
