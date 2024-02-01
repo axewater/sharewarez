@@ -1,25 +1,15 @@
 # modules/models.py
-import json, uuid
 from modules import db
 from sqlalchemy import Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import TypeDecorator, TEXT
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+import uuid, json
 from uuid import uuid4
 
-class ReleaseGroup(db.Model):
-    __tablename__ = 'filters'
-
-    id = db.Column(db.Integer, primary_key=True)
-    rlsgroup = db.Column(db.String, nullable=True)
-    rlsgroupcs = db.Column(db.String, nullable=True)
-
-    def __repr__(self):
-        return f"<ReleaseGroup id={self.id}, rlsgroup={self.rlsgroup}, rlsgroupcs={self.rlsgroupcs}>"
 
 class JSONEncodedDict(TypeDecorator):
-    """Enables JSON storage by encoding and decoding on the fly."""
     impl = TEXT
 
     def process_bind_param(self, value, dialect):
@@ -31,6 +21,18 @@ class JSONEncodedDict(TypeDecorator):
         if value is not None:
             value = json.loads(value)
         return value
+
+
+
+class ReleaseGroup(db.Model):
+    __tablename__ = 'filters'
+
+    id = db.Column(db.Integer, primary_key=True)
+    rlsgroup = db.Column(db.String, nullable=True)
+    rlsgroupcs = db.Column(db.String, nullable=True)
+
+    def __repr__(self):
+        return f"<ReleaseGroup id={self.id}, rlsgroup={self.rlsgroup}, rlsgroupcs={self.rlsgroupcs}>"
 
 
 class User(db.Model):
@@ -84,14 +86,11 @@ class Whitelist(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
 
 
-class Blacklist(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    banned_name = db.Column(db.String, unique=True, nullable=False)
-    
 class Game(db.Model):
     __tablename__ = 'games'
 
     id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(36), default=lambda: str(uuid.uuid4()), unique=True, nullable=False)  # Store UUID as string
     igdb_id = db.Column(db.Integer, nullable=True)
     name = db.Column(db.String, nullable=False)
     summary = db.Column(db.Text, nullable=True)
@@ -100,8 +99,19 @@ class Game(db.Model):
     game_engine = db.Column(db.String, nullable=True)
     release_date = db.Column(db.DateTime, nullable=True)
     video_urls = db.Column(JSONEncodedDict)
-    screenshots = db.Column(JSONEncodedDict)
-    covers = db.Column(JSONEncodedDict)
+    images = relationship("Image", backref="game", lazy='dynamic')
 
     def __repr__(self):
         return f"<Game id={self.id}, name={self.name}>"
+    
+class Image(db.Model):
+    __tablename__ = 'images'
+
+    id = db.Column(db.Integer, primary_key=True)
+    game_uuid = db.Column(db.String(36), db.ForeignKey('games.uuid'), nullable=False)  # Adjusted to String type
+    image_type = db.Column(db.String, nullable=False)  # 'screenshot' or 'cover' or 'thumbnail'
+    url = db.Column(db.String, nullable=False)  # igdb url
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Image id={self.id}, game_uuid={self.game_uuid}, image_type={self.image_type}, url={self.url}>"

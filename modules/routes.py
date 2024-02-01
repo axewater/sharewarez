@@ -15,12 +15,13 @@ from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
 from modules import db, mail
 from modules.forms import UserPasswordForm, UserDetailForm, EditProfileForm, NewsletterForm, WhitelistForm, EditUserForm, UserManagementForm, ScanFolderForm, IGDBApiForm
-from modules.models import User, Whitelist, Blacklist, ReleaseGroup, Game
+from modules.models import User, Whitelist, ReleaseGroup, Game, Image
 
 from functools import wraps
 from uuid import uuid4
 from datetime import datetime, timedelta
-from PIL import Image, ImageOps
+from PIL import Image as PILImage
+from PIL import ImageOps
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from authlib.jose import jwt
 from authlib.jose.errors import DecodeError
@@ -375,12 +376,12 @@ def settings_profile_edit():
             file.save(image_path)
 
             # Create square avatar
-            img = Image.open(image_path)
+            img = PILImage.open(image_path)
             img = square_image(img, 500)
             img.save(image_path)
 
             # Create square thumbnail
-            img = Image.open(image_path)
+            img = PILImage.open(image_path)
             img = square_image(img, 50)
             thumbnail_path = os.path.splitext(image_path)[0] + '_thumbnail' + os.path.splitext(image_path)[1]
             img.save(thumbnail_path)
@@ -625,12 +626,13 @@ def square_image(image, size):
 
     # If the image is not square, pad it with black bars
     if image.size[0] != size or image.size[1] != size:
-        new_image = Image.new('RGB', (size, size), color='black')
+        new_image = PILImage.new('RGB', (size, size), color='black')
         offset = ((size - image.size[0]) // 2, (size - image.size[1]) // 2)
         new_image.paste(image, offset)
         image = new_image
 
     return image
+
 
 
 def send_email(to, subject, template):
@@ -804,18 +806,15 @@ def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patt
 
     return game_names
 
-
-
 def retrieve_and_save_game(game_name):
     client_id = current_app.config['IGDB_CLIENT_ID']
-    client_secret = current_app.config['IGDB_CLIENT_SECRET']  # Ensure this is set in your config
+    client_secret = current_app.config['IGDB_CLIENT_SECRET']
 
-    # Check if the game already exists in the database
+    print(f"Checking if the game already exists in the database by name ({game_name}).")
     existing_game = Game.query.filter_by(name=game_name).first()
     if existing_game:
         print(f"Game '{game_name}' already exists in the database.")
         flash(f"Game '{game_name}' already exists in the database.")
-        
         return existing_game
 
     access_token = get_access_token(client_id, client_secret)
@@ -830,27 +829,52 @@ def retrieve_and_save_game(game_name):
     }
 
     body = f'fields name, summary, storyline, url, release_dates, videos, screenshots, cover; search "{game_name}"; limit 1;'
-    
+    print(f"API request prepared with body: {body}")
     try:
         response = requests.post(current_app.config['IGDB_API_ENDPOINT'], headers=headers, data=body)
-
-        # Print detailed response 
-        print("Status Code:", response.status_code)
-        print("Headers:", response.headers)
         response_json = response.json()
-        print("Response Body:", response_json)
         
         if response.status_code == 200 and response_json:
+            print("API request successful.")
+            game_data = response_json[0]
+            print("Game data:", game_data)
+            # Create new Game instance
             new_game = Game(
-                name=response_json[0]['name'],
-                summary=response_json[0].get('summary'),
-                storyline=response_json[0].get('storyline'),
-                url=response_json[0].get('url'),
+                igdb_id=game_data['id'],
+                name=game_data['name'],
+                summary=game_data.get('summary'),
+                storyline=game_data.get('storyline'),
+                url=game_data.get('url'),
+                video_urls={"videos": game_data.get('videos', [])},
             )
+            print("New game instance created:", new_game)
             db.session.add(new_game)
+            db.session.flush()
+
+            # Process cover image
+            if 'cover' in game_data:
+                print("Processing cover image...")
+                cover_image = Image(
+                    game_uuid=new_game.uuid,
+                    image_type='cover',
+                    url=str(game_data['cover'])  # Assuming you'll fetch actual URLs later
+                )
+                db.session.add(cover_image)
+
+            # Process screenshots
+            if 'screenshots' in game_data:
+                print("Processing screenshots...")
+                for screenshot_id in game_data['screenshots']:
+                    screenshot_image = Image(
+                        game_uuid=new_game.uuid,
+                        image_type='screenshot',
+                        url=str(screenshot_id)  # Assuming you'll fetch actual URLs later
+                    )
+                    db.session.add(screenshot_image)
+
             db.session.commit()
-            print("Game saved successfully.")
-            flash("Game saved successfully.")
+            print(f"Game and its images saved successfully with UUID: {new_game.uuid}.")
+            flash("Game and its images saved successfully.")
             return new_game
         else:
             print("No game data found for the given name or failed to retrieve data from IGDB API.")
@@ -864,8 +888,6 @@ def retrieve_and_save_game(game_name):
         print(f"An unexpected error occurred: {e}")
 
     return None
-
-
 
 
 @bp.route('/add_game/<game_name>')
