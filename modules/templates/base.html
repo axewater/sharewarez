@@ -25,6 +25,7 @@
             
             {% if current_user.role == 'admin' %}
                 <a href="/admin_main" class="button-glass"><i class="fas fa-user-shield"></i> Admin</a>
+                <a href="/beta" class="button-glass"><i class="fas fa-user-shield"></i> Beta</a>
             {% endif %}
         {% else %}
             <a href="/login" class="button-glass"><i class="fas fa-sign-in-alt"></i> Login</a>

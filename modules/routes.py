@@ -679,6 +679,69 @@ def beta():
     return render_template('admin_beta.html') 
 
 
+
+
+
+
+@bp.route('/add_game/<game_name>')
+def add_game(game_name):
+    game = retrieve_and_save_game(game_name)
+    if game:
+        return render_template('scan_add_game.html', game=game)
+    else:
+        flash("Game not found or API error occurred.", "error")
+        return redirect(url_for('main.scan_folder'))
+    
+    
+@bp.route('/api_debug', methods=['GET', 'POST'])
+def api_debug():
+    form = IGDBApiForm()
+    api_response = None  # Initialize variable to store API response
+
+    if form.validate_on_submit():
+        selected_endpoint = form.endpoint.data
+        query_params = form.query.data
+        api_response = make_igdb_api_request(selected_endpoint, query_params)
+        
+    return render_template('scan_apidebug.html', form=form, api_response=api_response)
+
+
+
+@bp.route('/scan_folder', methods=['GET', 'POST'])
+def scan_folder():
+    form = ScanFolderForm()
+    game_names_with_ids = None
+    if form.validate_on_submit():
+        if form.cancel.data:
+            return redirect(url_for('main.scan_folder'))
+        
+        folder_path = form.folder_path.data
+        print(f"Scanning folder: {folder_path}")
+
+        if os.path.exists(folder_path) and os.access(folder_path, os.R_OK):
+            print("Folder exists and is accessible.")
+
+            insensitive_patterns, sensitive_patterns = load_release_group_patterns()
+            game_names = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
+
+            game_names_with_ids = [{'name': name, 'id': i} for i, name in enumerate(game_names)]
+        else:
+            flash("Folder does not exist or cannot be accessed.", "error")
+            print("Folder does not exist or cannot be accessed.")
+
+    print("Game names with IDs:", game_names_with_ids)
+    return render_template('scan_folder.html', form=form, game_names_with_ids=game_names_with_ids)
+
+
+
+
+
+##########################################################################################
+##########################################################################################
+##########################################################################################
+
+
+
 def escape_special_characters(pattern):
     return re.escape(pattern)
 
@@ -746,37 +809,6 @@ def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
     return cleaned_name
 
 
-##########################################################################################
-##########################################################################################
-##########################################################################################
-
-
-@bp.route('/scan_folder', methods=['GET', 'POST'])
-def scan_folder():
-    form = ScanFolderForm()
-    game_names_with_ids = None
-    if form.validate_on_submit():
-        if form.cancel.data:
-            return redirect(url_for('main.scan_folder'))
-        
-        folder_path = form.folder_path.data
-        print(f"Scanning folder: {folder_path}")
-
-        if os.path.exists(folder_path) and os.access(folder_path, os.R_OK):
-            print("Folder exists and is accessible.")
-
-            insensitive_patterns, sensitive_patterns = load_release_group_patterns()
-            game_names = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
-
-            game_names_with_ids = [{'name': name, 'id': i} for i, name in enumerate(game_names)]
-        else:
-            flash("Folder does not exist or cannot be accessed.", "error")
-            print("Folder does not exist or cannot be accessed.")
-
-    print("Game names with IDs:", game_names_with_ids)
-    return render_template('scan_folder.html', form=form, game_names_with_ids=game_names_with_ids)
-
-
 
 
 def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns):    
@@ -807,9 +839,6 @@ def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patt
     return game_names
 
 def retrieve_and_save_game(game_name):
-    client_id = current_app.config['IGDB_CLIENT_ID']
-    client_secret = current_app.config['IGDB_CLIENT_SECRET']
-
     print(f"Checking if the game already exists in the database by name ({game_name}).")
     existing_game = Game.query.filter_by(name=game_name).first()
     if existing_game:
@@ -817,106 +846,84 @@ def retrieve_and_save_game(game_name):
         flash(f"Game '{game_name}' already exists in the database.")
         return existing_game
 
-    access_token = get_access_token(client_id, client_secret)
-    if not access_token:
-        print("Error: No access token.")
-        return
+    # Prepare the query
+    query_params = f'fields name, summary, storyline, url, release_dates, videos, screenshots, cover; search "{game_name}"; limit 1;'
+    # Endpoint URL
+    endpoint_url = current_app.config['IGDB_API_ENDPOINT']
 
-    headers = {
-        'Client-ID': client_id,
-        'Authorization': f"Bearer {access_token}",
-        'Accept': 'application/json'
-    }
+    # Use make_igdb_api_request to make the API request
+    response_json = make_igdb_api_request(endpoint_url, query_params)
+    
+    if 'error' not in response_json and response_json:
+        print("API request successful.")
+        game_data = response_json[0]
+        print("Game data:", game_data)
+        # Create new Game instance
+        new_game = Game(
+            igdb_id=game_data['id'],
+            name=game_data['name'],
+            summary=game_data.get('summary'),
+            storyline=game_data.get('storyline'),
+            url=game_data.get('url'),
+            video_urls={"videos": game_data.get('videos', [])},
+        )
+        print("New game instance created:", new_game)
+        db.session.add(new_game)
+        db.session.flush()
 
-    body = f'fields name, summary, storyline, url, release_dates, videos, screenshots, cover; search "{game_name}"; limit 1;'
-    print(f"API request prepared with body: {body}")
-    try:
-        response = requests.post(current_app.config['IGDB_API_ENDPOINT'], headers=headers, data=body)
-        response_json = response.json()
-        
-        if response.status_code == 200 and response_json:
-            print("API request successful.")
-            game_data = response_json[0]
-            print("Game data:", game_data)
-            # Create new Game instance
-            new_game = Game(
-                igdb_id=game_data['id'],
-                name=game_data['name'],
-                summary=game_data.get('summary'),
-                storyline=game_data.get('storyline'),
-                url=game_data.get('url'),
-                video_urls={"videos": game_data.get('videos', [])},
+        # Process cover image
+        if 'cover' in game_data:
+            print("Processing cover image...")
+            cover_image = Image(
+                game_uuid=new_game.uuid,
+                image_type='cover',
+                url=str(game_data['cover'])  # Update this logic as per your actual URL fetching mechanism
             )
-            print("New game instance created:", new_game)
-            db.session.add(new_game)
-            db.session.flush()
+            db.session.add(cover_image)
 
-            # Process cover image
-            if 'cover' in game_data:
-                print("Processing cover image...")
-                cover_image = Image(
-                    game_uuid=new_game.uuid,
-                    image_type='cover',
-                    url=str(game_data['cover'])  # Assuming you'll fetch actual URLs later
-                )
-                db.session.add(cover_image)
+        # Process screenshots
+        if 'screenshots' in game_data:
+            print("Processing screenshots...")
+            for screenshot in game_data['screenshots']:
+                # Retrieve the screenshot URL by querying the screenshot API endpoint
+                screenshot_query = f'fields url; where id={screenshot};'
+                screenshot_response = make_igdb_api_request('https://api.igdb.com/v4/screenshots', screenshot_query)
+                if screenshot_response and 'error' not in screenshot_response:
+                    screenshot_url = screenshot_response[0].get('url')
+                    if screenshot_url:
+                        # Define the path where you want to save the screenshot
+                        file_name = secure_filename(f"{new_game.name}_{screenshot}.jpg")  # or .png as appropriate
+                        save_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], file_name)
+                        download_image(screenshot_url, save_path)
+                        
+                        # Update the database record with the save_path instead of the screenshot ID
+                        screenshot_image = Image(
+                            game_uuid=new_game.uuid,
+                            image_type='screenshot',
+                            url=save_path  # Saving the path of the image on disk
+                        )
+                        db.session.add(screenshot_image)
+                    else:
+                        print(f"Screenshot URL not found for ID {screenshot}.")
+                else:
+                    print(f"Failed to retrieve URL for screenshot ID {screenshot}.")
 
-            # Process screenshots
-            if 'screenshots' in game_data:
-                print("Processing screenshots...")
-                for screenshot_id in game_data['screenshots']:
-                    screenshot_image = Image(
-                        game_uuid=new_game.uuid,
-                        image_type='screenshot',
-                        url=str(screenshot_id)  # Assuming you'll fetch actual URLs later
-                    )
-                    db.session.add(screenshot_image)
-
-            db.session.commit()
-            print(f"Game and its images saved successfully with UUID: {new_game.uuid}.")
-            flash("Game and its images saved successfully.")
-            return new_game
-        else:
-            print("No game data found for the given name or failed to retrieve data from IGDB API.")
-            flash("No game data found for the given name or failed to retrieve data from IGDB API.")
-            return None
-    except requests.RequestException as e:
-        print(f"Error during API request: {e}")
-    except ValueError as e:
-        print("Response Body is not JSON: ", response.text)
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-
-    return None
-
-
-@bp.route('/add_game/<game_name>')
-def add_game(game_name):
-    game = retrieve_and_save_game(game_name)
-    if game:
-        return render_template('scan_add_game.html', game=game)
+        # Remember to commit changes to the database after processing all screenshots
+        db.session.commit()
+        print(f"Game and its images saved successfully with UUID: {new_game.uuid}.")
+        flash("Game and its images saved successfully.")
+        return new_game
     else:
-        flash("Game not found or API error occurred.", "error")
-        return redirect(url_for('main.scan_folder'))
-    
-    
-@bp.route('/api_debug', methods=['GET', 'POST'])
-def api_debug():
-    form = IGDBApiForm()
-    api_response = None  # Initialize variable to store API response
-
-    if form.validate_on_submit():
-        selected_endpoint = form.endpoint.data
-        query_params = form.query.data
-        api_response = make_igdb_api_request(selected_endpoint, query_params)
-        
-    return render_template('scan_apidebug.html', form=form, api_response=api_response)
+        error_message = response_json.get('error', "No game data found for the given name or failed to retrieve data from IGDB API.")
+        print(error_message)
+        flash(error_message)
+        return None
 
 
 def make_igdb_api_request(endpoint_url, query_params):
     client_id = current_app.config['IGDB_CLIENT_ID']
     client_secret = current_app.config['IGDB_CLIENT_SECRET']
-    access_token = get_access_token(client_id, client_secret)  # Implement this function
+    access_token = get_access_token(client_id, client_secret) 
 
     if not access_token:
         return {"error": "Failed to retrieve access token"}
@@ -939,3 +946,11 @@ def make_igdb_api_request(endpoint_url, query_params):
 
     except Exception as e:
         return {"error": f"An unexpected error occurred: {e}"}
+
+def download_image(url, save_path):
+    if not url.startswith(('http://', 'https://')):
+        url = 'https:' + url  # Ensure the URL has the https:// scheme
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(save_path, 'wb') as f:
+            f.write(response.content)
