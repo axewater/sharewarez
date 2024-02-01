@@ -57,3 +57,15 @@ class UserManagementForm(FlaskForm):
     search = StringField('Search Users')
     submit = SubmitField('Submit')
     delete = SubmitField('Delete User')
+    
+class IGDBApiForm(FlaskForm):
+    endpoint = SelectField('Select API Endpoint', choices=[
+        ('https://api.igdb.com/v4/covers', 'Covers'),
+        ('https://api.igdb.com/v4/games', 'Games'),
+        ('https://api.igdb.com/v4/game_videos', 'Game Videos'),
+        ('https://api.igdb.com/v4/keywords', 'Keywords'),
+        ('https://api.igdb.com/v4/screenshots', 'Screenshots'),
+        ('https://api.igdb.com/v4/search', 'Search')
+    ], validators=[DataRequired()])
+    query = TextAreaField('Query', validators=[DataRequired()])
+    submit = SubmitField('Submit')

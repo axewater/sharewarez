@@ -1,0 +1,16 @@
+import os
+from datetime import timedelta
+
+class Config(object):
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'supersecretkeyzaresalty12345'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    MAIL_SERVER = 'smtp.yourisp.com'
+    MAIL_PORT = 25
+    MAIL_USE_TLS = False
+    MAIL_USERNAME = None
+    MAIL_PASSWORD = None
+    MAIL_DEFAULT_SENDER = 'admin@yourdomain.com'
+    REMEMBER_COOKIE_DURATION = timedelta(days=30)
+    INITIAL_WHITELIST = 'youradminemail@yourdomain.com'

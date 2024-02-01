@@ -14,8 +14,8 @@ from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
 from modules import db, mail
-from modules.forms import UserPasswordForm, UserDetailForm, EditProfileForm, NewsletterForm, WhitelistForm, EditUserForm, UserManagementForm, ScanFolderForm
-from modules.models import User, Whitelist, Blacklist, ReleaseGroup
+from modules.forms import UserPasswordForm, UserDetailForm, EditProfileForm, NewsletterForm, WhitelistForm, EditUserForm, UserManagementForm, ScanFolderForm, IGDBApiForm
+from modules.models import User, Whitelist, Blacklist, ReleaseGroup, Game
 
 from functools import wraps
 from uuid import uuid4
@@ -670,12 +670,20 @@ class RegistrationForm(FlaskForm):
 ########################################################################################
 ########################################################################################
 ########################################################################################
+
+
+@bp.route('/beta', methods=['GET'])
+def beta():
+    return render_template('admin_beta.html') 
+
+
+def escape_special_characters(pattern):
+    return re.escape(pattern)
+
 def load_release_group_patterns():
     try:
-        # Querying insensitive release group patterns from the database
         insensitive_patterns = ["-" + rg.rlsgroup for rg in ReleaseGroup.query.filter(ReleaseGroup.rlsgroup != None).all()]
         
-        # Querying case-sensitive and case-insensitive release group patterns based on rlsgroupcs
         sensitive_patterns = []
         for rg in ReleaseGroup.query.filter(ReleaseGroup.rlsgroupcs != None).all():
             pattern = rg.rlsgroupcs
@@ -685,70 +693,49 @@ def load_release_group_patterns():
             elif pattern.lower() == 'no':
                 sensitive_patterns.append((pattern, False))  # False indicates case insensitivity
         
-        # Print the loaded release group names for debugging
         print("Loaded release groups:", ", ".join(insensitive_patterns + [p[0] for p in sensitive_patterns]))
 
         return insensitive_patterns, sensitive_patterns
     except SQLAlchemyError as e:
-        # Print error message if there is a database access issue
         print(f"An error occurred while fetching release group patterns: {e}")
-        # Handle the error appropriately - for example, by logging it or sending a notification.
         return [], []
 
 
-@bp.route('/scan_folder', methods=['GET', 'POST'])
-def scan_folder():
-    form = ScanFolderForm()
-    game_names = None
-    if form.validate_on_submit():
-        if form.cancel.data:
-            return redirect(url_for('main.scan_folder'))
-        
-        folder_path = form.folder_path.data
-        print(f"Scanning folder: {folder_path}")  # Print the folder path being scanned
 
-        # Check if folder exists and is accessible
-        if os.path.exists(folder_path) and os.access(folder_path, os.R_OK):
-            print("Folder exists and is accessible.")  # Confirmation of folder access
+def get_access_token(client_id, client_secret):
+    url = "https://id.twitch.tv/oauth2/token"
+    params = {
+        'client_id': client_id,
+        'client_secret': client_secret,
+        'grant_type': 'client_credentials'
+    }
+    response = requests.post(url, params=params)
+    if response.status_code == 200:
+        return response.json()['access_token']
+    else:
+        print("Failed to obtain access token")
+        return None
 
-            # Loading release group patterns from the database
-            insensitive_patterns, sensitive_patterns = load_release_group_patterns()
-            
-            # Processing games in the folder
-            game_names = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
-        else:
-            flash("Folder does not exist or cannot be accessed.", "error")
-            print("Folder does not exist or cannot be accessed.")  # Print error for folder access
 
-    return render_template('scan_folder.html', form=form, game_names=game_names)
-
-def escape_special_characters(pattern):
-    # Escape special characters in the pattern for regex
-    return re.escape(pattern)
 
 def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
     print("DEBUGMESSAGE")
     original_filename = filename
 
-    # Remove case-insensitive patterns from the filename
     for pattern in insensitive_patterns:
         escaped_pattern = escape_special_characters(pattern)
         filename = re.sub(escaped_pattern, '', filename, flags=re.IGNORECASE)
         print(f"After removing insensitive pattern '{pattern}': {filename}")
 
-    # Remove sensitive patterns from the filename
     for pattern, is_case_sensitive in sensitive_patterns:
         escaped_pattern = escape_special_characters(pattern)
         if is_case_sensitive:
-            # Remove case-sensitive patterns with '-' prefix
             filename = re.sub(escaped_pattern, '', filename)
             print(f"After removing case-sensitive pattern '{pattern}': {filename}")
         else:
-            # Remove case-insensitive patterns without '-' prefix
             filename = re.sub(escaped_pattern, '', filename, flags=re.IGNORECASE)
             print(f"After removing case-insensitive pattern '{pattern}': {filename}")
 
-    # Replace underscores and periods with spaces and normalize spacing
     filename = re.sub(r'[_\.]', ' ', filename)
     cleaned_name = ' '.join(filename.split()).title()
 
@@ -756,34 +743,177 @@ def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
     
     return cleaned_name
 
+
+##########################################################################################
+##########################################################################################
+##########################################################################################
+
+
+@bp.route('/scan_folder', methods=['GET', 'POST'])
+def scan_folder():
+    form = ScanFolderForm()
+    game_names_with_ids = None
+    if form.validate_on_submit():
+        if form.cancel.data:
+            return redirect(url_for('main.scan_folder'))
+        
+        folder_path = form.folder_path.data
+        print(f"Scanning folder: {folder_path}")
+
+        if os.path.exists(folder_path) and os.access(folder_path, os.R_OK):
+            print("Folder exists and is accessible.")
+
+            insensitive_patterns, sensitive_patterns = load_release_group_patterns()
+            game_names = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
+
+            game_names_with_ids = [{'name': name, 'id': i} for i, name in enumerate(game_names)]
+        else:
+            flash("Folder does not exist or cannot be accessed.", "error")
+            print("Folder does not exist or cannot be accessed.")
+
+    print("Game names with IDs:", game_names_with_ids)
+    return render_template('scan_folder.html', form=form, game_names_with_ids=game_names_with_ids)
+
+
+
+
 def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns):    
     
-    print(f"Processing folder: {folder_path}")  # Print the folder being processed
+    print(f"Processing folder: {folder_path}")
 
-    # Check if the folder exists
     if not os.path.exists(folder_path):
         print(f"Error: The folder '{folder_path}' does not exist.")
+        flash("Error: The folder '{folder_path}' does not exist.")
         return []
 
-    # Check if we have read permissions for the folder
     if not os.access(folder_path, os.R_OK):
         print(f"Error: The folder '{folder_path}' is not readable.")
         return []
 
-    # Listing all items in the folder
     folder_contents = os.listdir(folder_path)
     print("Folder contents before filtering:", folder_contents)
 
     game_names = []
     for item in folder_contents:
         full_path = os.path.join(folder_path, item)
-        if os.path.isdir(full_path):  # Check if the item is a directory
+        if os.path.isdir(full_path):
             game_name = clean_game_name(item, insensitive_patterns, sensitive_patterns)
             game_names.append(game_name)
     
-    # Print the list of game names extracted
     print("Extracted game names:", game_names)
 
     return game_names
 
 
+
+def retrieve_and_save_game(game_name):
+    client_id = current_app.config['IGDB_CLIENT_ID']
+    client_secret = current_app.config['IGDB_CLIENT_SECRET']  # Ensure this is set in your config
+
+    # Check if the game already exists in the database
+    existing_game = Game.query.filter_by(name=game_name).first()
+    if existing_game:
+        print(f"Game '{game_name}' already exists in the database.")
+        flash(f"Game '{game_name}' already exists in the database.")
+        
+        return existing_game
+
+    access_token = get_access_token(client_id, client_secret)
+    if not access_token:
+        print("Error: No access token.")
+        return
+
+    headers = {
+        'Client-ID': client_id,
+        'Authorization': f"Bearer {access_token}",
+        'Accept': 'application/json'
+    }
+
+    body = f'fields name, summary, storyline, url, release_dates, videos, screenshots, cover; search "{game_name}"; limit 1;'
+    
+    try:
+        response = requests.post(current_app.config['IGDB_API_ENDPOINT'], headers=headers, data=body)
+
+        # Print detailed response 
+        print("Status Code:", response.status_code)
+        print("Headers:", response.headers)
+        response_json = response.json()
+        print("Response Body:", response_json)
+        
+        if response.status_code == 200 and response_json:
+            new_game = Game(
+                name=response_json[0]['name'],
+                summary=response_json[0].get('summary'),
+                storyline=response_json[0].get('storyline'),
+                url=response_json[0].get('url'),
+            )
+            db.session.add(new_game)
+            db.session.commit()
+            print("Game saved successfully.")
+            flash("Game saved successfully.")
+            return new_game
+        else:
+            print("No game data found for the given name or failed to retrieve data from IGDB API.")
+            flash("No game data found for the given name or failed to retrieve data from IGDB API.")
+            return None
+    except requests.RequestException as e:
+        print(f"Error during API request: {e}")
+    except ValueError as e:
+        print("Response Body is not JSON: ", response.text)
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
+    return None
+
+
+
+
+@bp.route('/add_game/<game_name>')
+def add_game(game_name):
+    game = retrieve_and_save_game(game_name)
+    if game:
+        return render_template('scan_add_game.html', game=game)
+    else:
+        flash("Game not found or API error occurred.", "error")
+        return redirect(url_for('main.scan_folder'))
+    
+    
+@bp.route('/api_debug', methods=['GET', 'POST'])
+def api_debug():
+    form = IGDBApiForm()
+    api_response = None  # Initialize variable to store API response
+
+    if form.validate_on_submit():
+        selected_endpoint = form.endpoint.data
+        query_params = form.query.data
+        api_response = make_igdb_api_request(selected_endpoint, query_params)
+        
+    return render_template('scan_apidebug.html', form=form, api_response=api_response)
+
+
+def make_igdb_api_request(endpoint_url, query_params):
+    client_id = current_app.config['IGDB_CLIENT_ID']
+    client_secret = current_app.config['IGDB_CLIENT_SECRET']
+    access_token = get_access_token(client_id, client_secret)  # Implement this function
+
+    if not access_token:
+        return {"error": "Failed to retrieve access token"}
+
+    headers = {
+        'Client-ID': client_id,
+        'Authorization': f"Bearer {access_token}"
+    }
+
+    try:
+        response = requests.post(endpoint_url, headers=headers, data=query_params)
+        response.raise_for_status()
+        return response.json()
+
+    except requests.RequestException as e:
+        return {"error": f"API Request failed: {e}"}
+
+    except ValueError:
+        return {"error": "Invalid JSON in response"}
+
+    except Exception as e:
+        return {"error": f"An unexpected error occurred: {e}"}

@@ -1,10 +1,11 @@
 # modules/models.py
+import json, uuid
 from modules import db
 from sqlalchemy import Table
 from sqlalchemy.orm import relationship
+from sqlalchemy.types import TypeDecorator, TEXT
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-import uuid
 from uuid import uuid4
 
 class ReleaseGroup(db.Model):
@@ -16,6 +17,20 @@ class ReleaseGroup(db.Model):
 
     def __repr__(self):
         return f"<ReleaseGroup id={self.id}, rlsgroup={self.rlsgroup}, rlsgroupcs={self.rlsgroupcs}>"
+
+class JSONEncodedDict(TypeDecorator):
+    """Enables JSON storage by encoding and decoding on the fly."""
+    impl = TEXT
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = json.dumps(value)
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            value = json.loads(value)
+        return value
 
 
 class User(db.Model):
@@ -73,112 +88,20 @@ class Blacklist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     banned_name = db.Column(db.String, unique=True, nullable=False)
     
-    
-    
-    # Character Model
-class Character(db.Model):
-    __tablename__ = 'characters'
+class Game(db.Model):
+    __tablename__ = 'games'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    name = db.Column(db.String(64), nullable=False)
-    level = db.Column(db.Integer, default=1)
-    experience = db.Column(db.Integer, default=0)
-    health = db.Column(db.Integer)
-    mana = db.Column(db.Integer)
-    strength = db.Column(db.Integer)
-    agility = db.Column(db.Integer)
-    intelligence = db.Column(db.Integer)
-    location = db.Column(db.String(128))
-    inventory = db.relationship('Inventory', backref='character', lazy=True)
+    igdb_id = db.Column(db.Integer, nullable=True)
+    name = db.Column(db.String, nullable=False)
+    summary = db.Column(db.Text, nullable=True)
+    storyline = db.Column(db.Text, nullable=True)
+    url = db.Column(db.String, nullable=True)
+    game_engine = db.Column(db.String, nullable=True)
+    release_date = db.Column(db.DateTime, nullable=True)
+    video_urls = db.Column(JSONEncodedDict)
+    screenshots = db.Column(JSONEncodedDict)
+    covers = db.Column(JSONEncodedDict)
 
     def __repr__(self):
-        return f"<Character id={self.id}, name={self.name}>"
-
-# Inventory Model
-class Inventory(db.Model):
-    __tablename__ = 'inventory'
-
-    id = db.Column(db.Integer, primary_key=True)
-    character_id = db.Column(db.Integer, db.ForeignKey('characters.id'), nullable=False)
-    item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)
-    quantity = db.Column(db.Integer, default=1)
-
-    def __repr__(self):
-        return f"<Inventory id={self.id}, item_id={self.item_id}, quantity={self.quantity}>"
-
-# Items Model
-class Item(db.Model):
-    __tablename__ = 'items'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128), nullable=False)
-    type = db.Column(db.String(64))
-    stats = db.Column(db.String(256))
-
-    def __repr__(self):
-        return f"<Item id={self.id}, name={self.name}>"
-
-# Monsters Model
-class Monster(db.Model):
-    __tablename__ = 'monsters'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128), nullable=False)
-    level = db.Column(db.Integer)
-    health = db.Column(db.Integer)
-    attack = db.Column(db.Integer)
-    defense = db.Column(db.Integer)
-    loot_table_id = db.Column(db.Integer, db.ForeignKey('loot_tables.id'))
-
-    def __repr__(self):
-        return f"<Monster id={self.id}, name={self.name}>"
-    
-# GameLevels Model
-class GameLevel(db.Model):
-    __tablename__ = 'game_levels'
-
-    id = db.Column(db.Integer, primary_key=True)
-    map_data = db.Column(db.Text, nullable=False)
-    difficulty = db.Column(db.Integer)
-
-    def __repr__(self):
-        return f"<GameLevel id={self.id}, difficulty={self.difficulty}>"
-
-# GameSessions Model
-class GameSession(db.Model):
-    __tablename__ = 'game_sessions'
-
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    character_id = db.Column(db.Integer, db.ForeignKey('characters.id'), nullable=False)
-    current_level_id = db.Column(db.Integer, db.ForeignKey('game_levels.id'))
-    session_data = db.Column(db.Text)
-
-    def __repr__(self):
-        return f"<GameSession id={self.id}, user_id={self.user_id}, character_id={self.character_id}>"
-
-# Spells/Skills Model
-class SpellSkill(db.Model):
-    __tablename__ = 'spells_skills'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128), nullable=False)
-    mana_cost = db.Column(db.Integer)
-    cooldown = db.Column(db.Integer)
-    effect = db.Column(db.String(256))
-
-    def __repr__(self):
-        return f"<SpellSkill id={self.id}, name={self.name}>"
-
-# LootTable Model
-class LootTable(db.Model):
-    __tablename__ = 'loot_tables'
-
-    id = db.Column(db.Integer, primary_key=True)
-    item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)
-    drop_chance = db.Column(db.Float)
-
-    def __repr__(self):
-        return f"<LootTable id={self.id}, item_id={self.item_id}, drop_chance={self.drop_chance}>"
-
+        return f"<Game id={self.id}, name={self.name}>"
