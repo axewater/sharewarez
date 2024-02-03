@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "settings_navbar.html" %}
+
+<div class="container-builder">
+        <div class="content-flash">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class="flashes">
+                {% for message in messages %}
+                <div class="flash">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+        </div>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ game.name }} Details</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>{{ game.name }}</h1>
+        {% if images %}
+            <div class="images">
+                {% for image in images %}
+                    <img src="{{ image.url }}" alt="{{ game.name }} Image" class="game-image">
+                {% endfor %}
+            </div>
+        {% endif %}
+        <p><strong>Summary:</strong> {{ game.summary or 'No summary available.' }}</p>
+        <p><strong>Storyline:</strong> {{ game.storyline or 'No storyline available.' }}</p>
+        <p><strong>Release Date:</strong> {{ game.release_date.strftime('%Y-%m-%d') if game.release_date else 'Not available' }}</p>
+        <p><strong>IGDB Link:</strong> <a href="{{ game.url }}" target="_blank">View on IGDB</a></p>
+        <!-- Add more fields as needed -->
+    </div>
+</body>
+</html>
+{% endblock %}

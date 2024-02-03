@@ -1,4 +1,20 @@
-<!DOCTYPE html>
+{% extends "base.html" %}
+
+{% block content %}
+{% include "settings_navbar.html" %}
+
+<div class="container-builder">
+        <div class="content-flash">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class="flashes">
+                {% for message in messages %}
+                <div class="flash">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+        </div>
 <html>
 <head>
     <title>Game Details</title>
@@ -21,3 +37,4 @@
     {% endif %}
 </body>
 </html>
+{% endblock %}

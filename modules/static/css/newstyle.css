@@ -1,6 +1,6 @@
 
 body {
-    background-image: url('/static/newstyle/starry.jpg'); 
+    background-image: url('/static/newstyle/gamebackdrop.png'); 
     background-size: cover;
     background-repeat: no-repeat;
 
@@ -124,6 +124,44 @@ body {
     margin: 5px;
 }
 
+
+
+
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+}
+
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.game-card {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+}
+
+.game-card img {
+    width: 100%;
+    height: auto;
+}
+
+.images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.game-image {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #ccc;
+}
 
 
 .container-base {
@@ -456,6 +494,24 @@ body {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
 }
+
+.glass-grid-panel {
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+}
+
 
 .glass-panel-text {
 

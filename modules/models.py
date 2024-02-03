@@ -8,7 +8,6 @@ from datetime import datetime
 import uuid, json
 from uuid import uuid4
 
-
 class JSONEncodedDict(TypeDecorator):
     impl = TEXT
 
@@ -23,6 +22,36 @@ class JSONEncodedDict(TypeDecorator):
         return value
 
 
+
+class Game(db.Model):
+    __tablename__ = 'games'
+
+    id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(36), default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    igdb_id = db.Column(db.Integer, nullable=True, unique=True)
+    name = db.Column(db.String, nullable=False)
+    summary = db.Column(db.Text, nullable=True)
+    storyline = db.Column(db.Text, nullable=True)
+    url = db.Column(db.String, nullable=True)
+    game_engine = db.Column(db.String, nullable=True)
+    release_date = db.Column(db.DateTime, nullable=True)
+    video_urls = db.Column(JSONEncodedDict)
+    images = relationship("Image", backref="game", lazy='dynamic')
+
+    def __repr__(self):
+        return f"<Game id={self.id}, name={self.name}>"
+    
+class Image(db.Model):
+    __tablename__ = 'images'
+
+    id = db.Column(db.Integer, primary_key=True)
+    game_uuid = db.Column(db.String(36), db.ForeignKey('games.uuid'), nullable=False)  # Adjusted to String type
+    image_type = db.Column(db.String, nullable=False)  # 'screenshot' or 'cover' or 'thumbnail'
+    url = db.Column(db.String, nullable=False)  # igdb url
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Image id={self.id}, game_uuid={self.game_uuid}, image_type={self.image_type}, url={self.url}>"
 
 class ReleaseGroup(db.Model):
     __tablename__ = 'filters'
@@ -85,33 +114,3 @@ class Whitelist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
 
-
-class Game(db.Model):
-    __tablename__ = 'games'
-
-    id = db.Column(db.Integer, primary_key=True)
-    uuid = db.Column(db.String(36), default=lambda: str(uuid.uuid4()), unique=True, nullable=False)  # Store UUID as string
-    igdb_id = db.Column(db.Integer, nullable=True)
-    name = db.Column(db.String, nullable=False)
-    summary = db.Column(db.Text, nullable=True)
-    storyline = db.Column(db.Text, nullable=True)
-    url = db.Column(db.String, nullable=True)
-    game_engine = db.Column(db.String, nullable=True)
-    release_date = db.Column(db.DateTime, nullable=True)
-    video_urls = db.Column(JSONEncodedDict)
-    images = relationship("Image", backref="game", lazy='dynamic')
-
-    def __repr__(self):
-        return f"<Game id={self.id}, name={self.name}>"
-    
-class Image(db.Model):
-    __tablename__ = 'images'
-
-    id = db.Column(db.Integer, primary_key=True)
-    game_uuid = db.Column(db.String(36), db.ForeignKey('games.uuid'), nullable=False)  # Adjusted to String type
-    image_type = db.Column(db.String, nullable=False)  # 'screenshot' or 'cover' or 'thumbnail'
-    url = db.Column(db.String, nullable=False)  # igdb url
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __repr__(self):
-        return f"<Image id={self.id}, game_uuid={self.game_uuid}, image_type={self.image_type}, url={self.url}>"

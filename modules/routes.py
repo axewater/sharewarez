@@ -25,17 +25,27 @@ from PIL import ImageOps
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from authlib.jose import jwt
 from authlib.jose.errors import DecodeError
-# from flask_migrate import Migrate
+import logging
+from logging.handlers import RotatingFileHandler
+import os
+
 
 bp = Blueprint('main', __name__)
 log_filename = "sharewarez.log"
 s = URLSafeTimedSerializer('YMecr3tK?IzzsSa@e!Zithpze') 
+
+
 
 # Initialization flag
 has_initialized_whitelist = False
 has_upgraded_admin = False
 
 has_initialized_setup = False
+
+# Define a simple form for CSRF protection
+class CsrfForm(FlaskForm):
+    pass 
+
 
 @bp.before_app_request
 def initial_setup():
@@ -685,6 +695,7 @@ def beta():
 
 @bp.route('/add_game/<game_name>')
 def add_game(game_name):
+    print(f"Adding game: {game_name}")
     game = retrieve_and_save_game(game_name)
     if game:
         return render_template('scan_add_game.html', game=game)
@@ -701,6 +712,7 @@ def api_debug():
     if form.validate_on_submit():
         selected_endpoint = form.endpoint.data
         query_params = form.query.data
+        print(f"Selected endpoint: {selected_endpoint} with query params: {query_params}")
         api_response = make_igdb_api_request(selected_endpoint, query_params)
         
     return render_template('scan_apidebug.html', form=form, api_response=api_response)
@@ -719,11 +731,10 @@ def scan_folder():
         print(f"Scanning folder: {folder_path}")
 
         if os.path.exists(folder_path) and os.access(folder_path, os.R_OK):
-            print("Folder exists and is accessible.")
+            print("Folder {folder_path} exists and is accessible.")
 
             insensitive_patterns, sensitive_patterns = load_release_group_patterns()
             game_names = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
-
             game_names_with_ids = [{'name': name, 'id': i} for i, name in enumerate(game_names)]
         else:
             flash("Folder does not exist or cannot be accessed.", "error")
@@ -733,14 +744,129 @@ def scan_folder():
     return render_template('scan_folder.html', form=form, game_names_with_ids=game_names_with_ids)
 
 
+@bp.route('/browse_games')
+def browse_games():
+    games = Game.query.all()  # Retrieve all games from the database
+    game_data = []
 
+    for game in games:
+        # For each game, find the cover image
+        cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
+        cover_url = cover_image.url if cover_image else None  # Use cover image URL if available
+
+        game_data.append({
+            'id': game.id,
+            'uuid': game.uuid,
+            'name': game.name,
+            'cover_url': cover_url,
+            'summary': game.summary,
+            'url': game.url
+        })
+
+    csrf_form = CsrfForm()  # Instantiate your CSRF form
+
+    return render_template('browse_games.html', games=game_data, form=csrf_form)    
+
+@bp.route('/game_details/<string:game_uuid>')  # Adjust the route as needed
+def game_details(game_uuid):
+    current_app.logger.info(f"Fetching game details for UUID: {game_uuid}")
+    
+    # Validate and convert game_uuid to a UUID object
+    try:
+        valid_uuid = uuid.UUID(game_uuid, version=4)
+    except ValueError:
+        # If the UUID is not valid, log the error and return a 404 response
+        current_app.logger.error(f"Invalid UUID format: {game_uuid}")
+        abort(404)
+
+    # Use the validated and converted UUID for querying
+    game = get_game_by_uuid(str(valid_uuid))  # Ensure to convert UUID back to string if necessary
+
+    
+    # Check if a game was found
+    if game:
+        # Prepare the game data for JSON response
+        game_data = {
+            "id": game.id,
+            "uuid": game.uuid,
+            "igdb_id": game.igdb_id,
+            "name": game.name,
+            "summary": game.summary,
+            "storyline": game.storyline,
+            "url": game.url,
+            "game_engine": game.game_engine,
+            "release_date": game.release_date.isoformat() if game.release_date else None,
+            "video_urls": game.video_urls,
+            "images": [{"id": img.id, "type": img.image_type, "url": img.url} for img in game.images.all()]
+        }
+        return render_template('game_details.html', game=game_data)
+    else:
+        return jsonify({"error": "Game not found"}), 404 
+
+@bp.route('/delete_game/<string:game_uuid>', methods=['POST'])
+def delete_game(game_uuid):
+    try:
+        valid_uuid = uuid.UUID(game_uuid, version=4)
+    except ValueError:
+        current_app.logger.error(f"Invalid UUID format: {game_uuid}")
+        abort(404)
+
+    game_uuid_str = str(valid_uuid)
+
+    try:
+        game_to_delete = Game.query.filter_by(uuid=game_uuid_str).first_or_404()
+        images_to_delete = Image.query.filter_by(game_uuid=game_uuid_str).all()
+
+        for image in images_to_delete:
+            # Assuming `url` includes `/static/images/`, adjust the path
+            relative_image_path = image.url.replace('/static/images/', '').strip("/")
+            image_file_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], relative_image_path)
+            image_file_path = os.path.normpath(image_file_path)  # Normalize the path
+
+            current_app.logger.info(f"Attempting to delete image file: {image_file_path}")
+
+            if os.path.exists(image_file_path):
+                os.remove(image_file_path)
+                current_app.logger.info(f"Deleted image file: {image_file_path}")
+            else:
+                current_app.logger.warning(f"Image file not found: {image_file_path}")
+
+            db.session.delete(image)
+
+        db.session.delete(game_to_delete)
+        db.session.commit()
+        flash('Game and its images have been deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f'Error deleting game with UUID {game_uuid_str}: {e}')
+        flash(f'Error deleting game: {e}', 'error')
+    
+    return redirect(url_for('main.browse_games'))
 
 
 ##########################################################################################
 ##########################################################################################
 ##########################################################################################
 
+def get_game_by_uuid(game_uuid):
+    print(f"Searching for game UUID: {game_uuid}")
 
+    game = Game.query.filter_by(uuid=game_uuid).first()
+    if game:
+
+        print(f"ID: {game.id}")
+        print(f"UUID: {game.uuid}")
+        print(f"IGDB ID: {game.igdb_id}")
+        print(f"Name: {game.name}")
+
+        images = game.images.all()
+        for img in images:
+            print(f"Image ID: {img.id}, Type: {img.image_type}, URL: {img.url}")
+        
+        return game
+    else:
+        print("Game not found")
+        return None
 
 def escape_special_characters(pattern):
     return re.escape(pattern)
@@ -777,6 +903,7 @@ def get_access_token(client_id, client_secret):
     response = requests.post(url, params=params)
     if response.status_code == 200:
         return response.json()['access_token']
+        print("Access token obtained successfully")
     else:
         print("Failed to obtain access token")
         return None
@@ -784,7 +911,7 @@ def get_access_token(client_id, client_secret):
 
 
 def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
-    print("DEBUGMESSAGE")
+    print(f"Original filename: {filename}")
     original_filename = filename
 
     for pattern in insensitive_patterns:
@@ -838,83 +965,105 @@ def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patt
 
     return game_names
 
+
+
+def create_game_instance(game_data):
+    new_game = Game(
+        igdb_id=game_data['id'],
+        name=game_data['name'],
+        summary=game_data.get('summary'),
+        storyline=game_data.get('storyline'),
+        url=game_data.get('url'),
+        video_urls={"videos": game_data.get('videos', [])},
+    )
+    print(f"Game {new_game.name}instance created with UUID: {new_game.uuid}.")
+    db.session.add(new_game)
+    db.session.flush()
+    return new_game
+def process_and_save_image(game_uuid, image_data, image_type='cover'):
+    url = None
+    save_path = None
+
+    if image_type == 'cover':
+        print(f"Processing cover image for game {game_uuid}.")
+        cover_query = f'fields url; where id={image_data};'
+        cover_response = make_igdb_api_request('https://api.igdb.com/v4/covers', cover_query)
+        print(f'Cover response: {cover_response}')
+        if cover_response and 'error' not in cover_response:
+            url = cover_response[0].get('url')
+            if not url:
+                print(f"Cover URL not found for ID {image_data}.")
+                return
+        else:
+            print(f"Failed to retrieve URL for cover ID {image_data}.")
+            return
+
+        # Download cover image
+        file_name = secure_filename(f"{game_uuid}_cover_{image_data}.jpg")  # Adjust extension if needed
+        save_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], file_name)
+        download_image(url, save_path)
+        print(f"Cover image saved to {save_path} for game {game_uuid} with UUID {image_data}.")
+
+    elif image_type == 'screenshot':
+        screenshot_query = f'fields url; where id={image_data};'
+        response = make_igdb_api_request('https://api.igdb.com/v4/screenshots', screenshot_query)
+        print(f'Screenshot response: {response}')
+        if response and 'error' not in response:
+            url = response[0].get('url')
+            if not url:
+                print(f"Screenshot URL not found for ID {image_data}.")
+                return
+            file_name = secure_filename(f"{game_uuid}_{image_data}.jpg")  # Adjust extension if needed
+            save_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], file_name)
+            download_image(url, save_path)
+            print(f"Screenshot image saved to {save_path} for game {game_uuid} with UUID {image_data}.")
+
+    # Create and add the image record to the database
+    image = Image(
+        game_uuid=game_uuid,
+        image_type=image_type,
+        url=file_name,  # Store only the filename in the database
+    )
+    print(f"Image record created for game {game_uuid} with UUID {image_data} and URL {url}.")
+    db.session.add(image)
+
 def retrieve_and_save_game(game_name):
-    print(f"Checking if the game already exists in the database by name ({game_name}).")
-    existing_game = Game.query.filter_by(name=game_name).first()
-    if existing_game:
-        print(f"Game '{game_name}' already exists in the database.")
-        flash(f"Game '{game_name}' already exists in the database.")
-        return existing_game
+    # Fetch game data from IGDB API
+    response_json = make_igdb_api_request(current_app.config['IGDB_API_ENDPOINT'],
+                                          f'fields id, name, summary, storyline, url, release_dates, videos, screenshots, cover; search "{game_name}"; limit 1;')
 
-    # Prepare the query
-    query_params = f'fields name, summary, storyline, url, release_dates, videos, screenshots, cover; search "{game_name}"; limit 1;'
-    # Endpoint URL
-    endpoint_url = current_app.config['IGDB_API_ENDPOINT']
-
-    # Use make_igdb_api_request to make the API request
-    response_json = make_igdb_api_request(endpoint_url, query_params)
-    
     if 'error' not in response_json and response_json:
-        print("API request successful.")
-        game_data = response_json[0]
-        print("Game data:", game_data)
-        # Create new Game instance
-        new_game = Game(
-            igdb_id=game_data['id'],
-            name=game_data['name'],
-            summary=game_data.get('summary'),
-            storyline=game_data.get('storyline'),
-            url=game_data.get('url'),
-            video_urls={"videos": game_data.get('videos', [])},
-        )
-        print("New game instance created:", new_game)
-        db.session.add(new_game)
-        db.session.flush()
+        # Extract igdb_id from the response
+        igdb_id = response_json[0].get('id')
 
-        # Process cover image
-        if 'cover' in game_data:
-            print("Processing cover image...")
-            cover_image = Image(
-                game_uuid=new_game.uuid,
-                image_type='cover',
-                url=str(game_data['cover'])  # Update this logic as per your actual URL fetching mechanism
-            )
-            db.session.add(cover_image)
+        # Check if a game with this igdb_id already exists
+        existing_game = check_existing_game_by_igdb_id(igdb_id)
+        if existing_game:
+            print(f"Game with IGDB ID {igdb_id} already exists in the database.")
+            flash(f"Game '{game_name}' already exists in the database.")
+            return existing_game
+        else:
+            # Create new game instance and process images if the game does not exist
+            new_game = create_game_instance(response_json[0])
 
-        # Process screenshots
-        if 'screenshots' in game_data:
-            print("Processing screenshots...")
-            for screenshot in game_data['screenshots']:
-                # Retrieve the screenshot URL by querying the screenshot API endpoint
-                screenshot_query = f'fields url; where id={screenshot};'
-                screenshot_response = make_igdb_api_request('https://api.igdb.com/v4/screenshots', screenshot_query)
-                if screenshot_response and 'error' not in screenshot_response:
-                    screenshot_url = screenshot_response[0].get('url')
-                    if screenshot_url:
-                        # Define the path where you want to save the screenshot
-                        file_name = secure_filename(f"{new_game.name}_{screenshot}.jpg")  # or .png as appropriate
-                        save_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], file_name)
-                        download_image(screenshot_url, save_path)
-                        
-                        # Update the database record with the save_path instead of the screenshot ID
-                        screenshot_image = Image(
-                            game_uuid=new_game.uuid,
-                            image_type='screenshot',
-                            url=save_path  # Saving the path of the image on disk
-                        )
-                        db.session.add(screenshot_image)
-                    else:
-                        print(f"Screenshot URL not found for ID {screenshot}.")
-                else:
-                    print(f"Failed to retrieve URL for screenshot ID {screenshot}.")
+            if 'cover' in response_json[0]:
+                print(f"Cover: {response_json[0]['cover']}")
+                process_and_save_image(new_game.uuid, response_json[0]['cover'], 'cover')
+            
+            for screenshot_id in response_json[0].get('screenshots', []):
+                process_and_save_image(new_game.uuid, screenshot_id, 'screenshot')
 
-        # Remember to commit changes to the database after processing all screenshots
-        db.session.commit()
-        print(f"Game and its images saved successfully with UUID: {new_game.uuid}.")
-        flash("Game and its images saved successfully.")
-        return new_game
+            try:
+                db.session.commit()
+                print(f"Game and its images saved successfully with UUID: {new_game.uuid}.")
+                flash("Game and its images saved successfully.")
+            except IntegrityError as e:
+                db.session.rollback()
+                print(f"Failed to save game due to a database error: {e}")
+                flash("Failed to save game due to a duplicate entry.")
+            return new_game
     else:
-        error_message = response_json.get('error', "No game data found for the given name or failed to retrieve data from IGDB API.")
+        error_message = "No game data found for the given name or failed to retrieve data from IGDB API."
         print(error_message)
         flash(error_message)
         return None
@@ -934,6 +1083,7 @@ def make_igdb_api_request(endpoint_url, query_params):
     }
 
     try:
+        print(f"Making API request to {endpoint_url} with query params: {query_params}")
         response = requests.post(endpoint_url, headers=headers, data=query_params)
         response.raise_for_status()
         return response.json()
@@ -950,7 +1100,19 @@ def make_igdb_api_request(endpoint_url, query_params):
 def download_image(url, save_path):
     if not url.startswith(('http://', 'https://')):
         url = 'https:' + url  # Ensure the URL has the https:// scheme
+
+    # Replace thumbnail URL part with the original size identifier
+    url = url.replace('/t_thumb/', '/t_original/')
+
+    print(f"Downloading image from {url} to {save_path}.")
     response = requests.get(url)
     if response.status_code == 200:
+        print(f"Image downloaded successfully to {save_path}.")
         with open(save_path, 'wb') as f:
             f.write(response.content)
+    else:
+        print(f"Failed to download the image. Status Code: {response.status_code}")
+        
+        
+def check_existing_game_by_igdb_id(igdb_id):
+    return Game.query.filter_by(igdb_id=igdb_id).first()
