@@ -1,8 +1,11 @@
 # modules/routes.py
+import shutil
 import traceback
+from threading import Thread
 import ast, uuid, json, random, requests, html, os, re
 from config import Config
 from flask import Flask, render_template, flash, redirect, url_for, request, Blueprint, jsonify, session, abort, current_app, send_from_directory
+from flask import copy_current_request_context
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_wtf import FlaskForm
 from flask_mail import Message as MailMessage
@@ -15,7 +18,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
 from modules import db, mail
 from modules.forms import UserPasswordForm, UserDetailForm, EditProfileForm, NewsletterForm, WhitelistForm, EditUserForm, UserManagementForm, ScanFolderForm, IGDBApiForm
-from modules.models import User, Whitelist, ReleaseGroup, Game, Image
+from modules.models import User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest
 
 from functools import wraps
 from uuid import uuid4
@@ -690,14 +693,29 @@ def beta():
 
 
 
-
-
-
 @bp.route('/add_game/<game_name>')
 def add_game(game_name):
     print(f"Adding game: {game_name}")
-    game = retrieve_and_save_game(game_name)
+
+    # Retrieve the full disk path from the session
+    full_disk_path = session.get('game_paths', {}).get(game_name)
+    
+    if not full_disk_path:
+        flash("Could not find the game's disk path.", "error")
+        return redirect(url_for('main.scan_folder'))
+    
+    # Attempt to add the game with the provided name and disk path
+    game = retrieve_and_save_game(game_name, full_disk_path)
     if game:
+        # If the game is successfully added, remove its path from the session
+        if game_name in session.get('game_paths', {}):
+            del session['game_paths'][game_name]
+            
+            # If there are no more games left in the session, clear the entire 'game_paths' entry
+            if not session['game_paths']:
+                del session['game_paths']
+        
+        flash("Game added successfully.", "success")
         return render_template('scan_add_game.html', game=game)
     else:
         flash("Game not found or API error occurred.", "error")
@@ -717,12 +735,12 @@ def api_debug():
         
     return render_template('scan_apidebug.html', form=form, api_response=api_response)
 
-
-
 @bp.route('/scan_folder', methods=['GET', 'POST'])
 def scan_folder():
     form = ScanFolderForm()
+    # Initialize game_names_with_ids with a default value
     game_names_with_ids = None
+    
     if form.validate_on_submit():
         if form.cancel.data:
             return redirect(url_for('main.scan_folder'))
@@ -731,17 +749,28 @@ def scan_folder():
         print(f"Scanning folder: {folder_path}")
 
         if os.path.exists(folder_path) and os.access(folder_path, os.R_OK):
-            print("Folder {folder_path} exists and is accessible.")
+            print("Folder exists and is accessible.")
 
+            # Assuming load_release_group_patterns and clean_game_name are defined elsewhere
             insensitive_patterns, sensitive_patterns = load_release_group_patterns()
-            game_names = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
-            game_names_with_ids = [{'name': name, 'id': i} for i, name in enumerate(game_names)]
+            
+            # Now get_game_names_from_folder returns a list of dicts with names and full paths
+            games_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
+            
+            # Update the session with this new structure
+            session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
+            print("Session updated with game paths.")
+            
+            # Define game_names_with_ids here after ensuring folder is accessible and games are found
+            game_names_with_ids = [{'name': game['name'], 'id': i} for i, game in enumerate(games_with_paths)]
         else:
             flash("Folder does not exist or cannot be accessed.", "error")
             print("Folder does not exist or cannot be accessed.")
+            # It's already initialized to None at the top, so it's safe even if this branch is hit
 
     print("Game names with IDs:", game_names_with_ids)
     return render_template('scan_folder.html', form=form, game_names_with_ids=game_names_with_ids)
+
 
 
 @bp.route('/browse_games')
@@ -769,7 +798,7 @@ def browse_games():
 
 @bp.route('/game_details/<string:game_uuid>')  # Adjust the route as needed
 def game_details(game_uuid):
-    current_app.logger.info(f"Fetching game details for UUID: {game_uuid}")
+    print(f"Fetching game details for UUID: {game_uuid}")
     
     # Validate and convert game_uuid to a UUID object
     try:
@@ -794,7 +823,7 @@ def game_details(game_uuid):
             "summary": game.summary,
             "storyline": game.storyline,
             "url": game.url,
-            "game_engine": game.game_engine,
+            "full_disk_path": game.full_disk_path,
             "release_date": game.release_date.isoformat() if game.release_date else None,
             "video_urls": game.video_urls,
             "images": [{"id": img.id, "type": img.image_type, "url": img.url} for img in game.images.all()]
@@ -842,6 +871,47 @@ def delete_game(game_uuid):
         flash(f'Error deleting game: {e}', 'error')
     
     return redirect(url_for('main.browse_games'))
+
+@bp.route('/download_game/<game_uuid>', methods=['GET'])
+@login_required
+def download_game(game_uuid):
+    game = Game.query.filter_by(uuid=game_uuid).first_or_404()
+
+    # Check if there's already an active download request for this user
+    active_request = DownloadRequest.query.filter_by(user_id=current_user.id, status='processing').first()
+    if active_request:
+        flash(f"You already have an active download request for {active_request.game.name}. Please wait until it's completed.")
+        return redirect(url_for('main.browse_games'))
+
+    # Create a new download request with status 'processing'
+    new_request = DownloadRequest(user_id=current_user.id, game_uuid=game.uuid, status='processing') 
+    db.session.add(new_request)
+    db.session.commit()
+
+    # Copy the current request context to use the correct app instance
+    @copy_current_request_context
+    def thread_function():
+        zip_game(new_request.id, current_app._get_current_object())
+
+    thread = Thread(target=thread_function)
+    thread.start()
+
+    flash("Your download request is being processed. You will be notified when the download is ready.")
+    return redirect(url_for('main.browse_games'))
+
+
+@bp.route('/download_zip/<download_id>')
+@login_required
+def download_zip(download_id):
+    download_request = DownloadRequest.query.filter_by(id=download_id, user_id=current_user.id).first_or_404()
+    
+    if download_request.status != 'available':
+        flash("The requested download is not ready yet.")
+        return redirect(url_for('main.browse_games'))
+    
+    return send_from_directory(directory=os.path.dirname(download_request.zip_file_path),
+                               filename=os.path.basename(download_request.zip_file_path),
+                               as_attachment=True)
 
 
 ##########################################################################################
@@ -893,6 +963,8 @@ def load_release_group_patterns():
 
 
 
+
+
 def get_access_token(client_id, client_secret):
     url = "https://id.twitch.tv/oauth2/token"
     params = {
@@ -935,39 +1007,28 @@ def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
     
     return cleaned_name
 
-
-
-
-def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns):    
-    
+def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns):
     print(f"Processing folder: {folder_path}")
-
-    if not os.path.exists(folder_path):
-        print(f"Error: The folder '{folder_path}' does not exist.")
-        flash("Error: The folder '{folder_path}' does not exist.")
-        return []
-
-    if not os.access(folder_path, os.R_OK):
-        print(f"Error: The folder '{folder_path}' is not readable.")
+    if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
+        print(f"Error: The folder '{folder_path}' does not exist or is not readable.")
+        flash(f"Error: The folder '{folder_path}' does not exist or is not readable.")
         return []
 
     folder_contents = os.listdir(folder_path)
     print("Folder contents before filtering:", folder_contents)
 
-    game_names = []
+    game_names_with_paths = []
     for item in folder_contents:
         full_path = os.path.join(folder_path, item)
         if os.path.isdir(full_path):
             game_name = clean_game_name(item, insensitive_patterns, sensitive_patterns)
-            game_names.append(game_name)
-    
-    print("Extracted game names:", game_names)
+            game_names_with_paths.append({'name': game_name, 'full_path': full_path})
 
-    return game_names
-
+    print("Extracted game names with paths:", game_names_with_paths)
+    return game_names_with_paths
 
 
-def create_game_instance(game_data):
+def create_game_instance(game_data, full_disk_path):
     new_game = Game(
         igdb_id=game_data['id'],
         name=game_data['name'],
@@ -975,11 +1036,14 @@ def create_game_instance(game_data):
         storyline=game_data.get('storyline'),
         url=game_data.get('url'),
         video_urls={"videos": game_data.get('videos', [])},
+        full_disk_path=full_disk_path  # Include the full disk path here
     )
-    print(f"Game {new_game.name}instance created with UUID: {new_game.uuid}.")
+    print(f"Game {new_game.name} instance created with UUID: {new_game.uuid}.")
     db.session.add(new_game)
     db.session.flush()
     return new_game
+
+
 def process_and_save_image(game_uuid, image_data, image_type='cover'):
     url = None
     save_path = None
@@ -1026,8 +1090,8 @@ def process_and_save_image(game_uuid, image_data, image_type='cover'):
     )
     print(f"Image record created for game {game_uuid} with UUID {image_data} and URL {url}.")
     db.session.add(image)
-
-def retrieve_and_save_game(game_name):
+    
+def retrieve_and_save_game(game_name, full_disk_path):
     # Fetch game data from IGDB API
     response_json = make_igdb_api_request(current_app.config['IGDB_API_ENDPOINT'],
                                           f'fields id, name, summary, storyline, url, release_dates, videos, screenshots, cover; search "{game_name}"; limit 1;')
@@ -1044,7 +1108,8 @@ def retrieve_and_save_game(game_name):
             return existing_game
         else:
             # Create new game instance and process images if the game does not exist
-            new_game = create_game_instance(response_json[0])
+            # Note the inclusion of full_disk_path as a parameter to create_game_instance
+            new_game = create_game_instance(response_json[0], full_disk_path)
 
             if 'cover' in response_json[0]:
                 print(f"Cover: {response_json[0]['cover']}")
@@ -1112,7 +1177,37 @@ def download_image(url, save_path):
             f.write(response.content)
     else:
         print(f"Failed to download the image. Status Code: {response.status_code}")
+
+def zip_game(download_request_id, app):
+    with app.app_context():
+        download_request = DownloadRequest.query.get(download_request_id)
+        game = download_request.game
         
+        if not game:
+            print(f"No game found for DownloadRequest ID: {download_request_id}")
+            return
+        
+        zip_save_path = app.config['ZIP_SAVE_PATH']
+        output_zip_base = os.path.join(zip_save_path, game.uuid)
+        source_folder = game.full_disk_path
+        
+        if not os.path.exists(source_folder):
+            print(f"Source folder does not exist: {source_folder}")
+            return
+        
+        try:
+            
+            output_zip = shutil.make_archive(output_zip_base, 'zip', source_folder)
+            print(f"Archive created at {output_zip}")
+                        
+            download_request.status = 'available'
+            download_request.zip_file_path = output_zip
+            download_request.completion_time = datetime.utcnow()
+            db.session.commit()
+        except Exception as e:
+            print(f"An error occurred while zipping: {e}")
+            # Handle error, possibly set the download request to a failure status
+   
         
 def check_existing_game_by_igdb_id(igdb_id):
     return Game.query.filter_by(igdb_id=igdb_id).first()

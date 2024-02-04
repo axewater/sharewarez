@@ -17,6 +17,7 @@
         </div>
 <html>
 <head>
+    <div class="glass-panel-scanfolder">
     <title>Game Details</title>
     <!-- Add necessary CSS or JS files -->
 </head>
@@ -30,11 +31,12 @@
             <p><strong>URL:</strong> <a href="{{ game.url }}" target="_blank">{{ game.url }}</a></p>
             <!-- Add more fields as necessary -->
         </div>
-        <a href="{{ url_for('main.scan_folder') }}" class="btn btn-primary">Back to Scan Folder</a>
+        <a href="{{ url_for('main.scan_folder') }}" class="button-glass">Back to Scan Folder</a>
     {% else %}
         <p>No game details to display.</p>
-        <a href="{{ url_for('main.scan_folder') }}" class="btn btn-primary">Back to Scan Folder</a>
+        <a href="{{ url_for('main.scan_folder') }}" class="button-glass">Back to Scan Folder</a>
     {% endif %}
 </body>
 </html>
+</div>
 {% endblock %}

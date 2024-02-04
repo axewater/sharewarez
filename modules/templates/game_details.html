@@ -1,42 +1,49 @@
 {% extends "base.html" %}
 
 {% block content %}
-{% include "settings_navbar.html" %}
+
 
 <div class="container-builder">
-        <div class="content-flash">
-            {% with messages = get_flashed_messages() %}
-            {% if messages %}
-            <div class="flashes">
-                {% for message in messages %}
-                <div class="flash">{{ message }}</div>
-                {% endfor %}
-            </div>
-            {% endif %}
-            {% endwith %}
+    <div class="content-flash">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="flashes">
+            {% for message in messages %}
+            <div class="flash">{{ message }}</div>
+            {% endfor %}
         </div>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>{{ game.name }} Details</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    <div class="container">
-        <h1>{{ game.name }}</h1>
-        {% if images %}
-            <div class="images">
-                {% for image in images %}
-                    <img src="{{ image.url }}" alt="{{ game.name }} Image" class="game-image">
-                {% endfor %}
-            </div>
         {% endif %}
-        <p><strong>Summary:</strong> {{ game.summary or 'No summary available.' }}</p>
-        <p><strong>Storyline:</strong> {{ game.storyline or 'No storyline available.' }}</p>
-        <p><strong>Release Date:</strong> {{ game.release_date.strftime('%Y-%m-%d') if game.release_date else 'Not available' }}</p>
-        <p><strong>IGDB Link:</strong> <a href="{{ game.url }}" target="_blank">View on IGDB</a></p>
-        <!-- Add more fields as needed -->
+        {% endwith %}
     </div>
-</body>
-</html>
+    <html>
+    <head>
+        <title>{{ game.name }} Details</title>
+    </head>
+    <body>
+        <div class="glass-panel-scanfolder">
+            <h1>{{ game.name }}</h1>
+            <p><strong>Summary:</strong> {{ game.summary or 'No summary available.' }}</p>
+            <p><strong>Storyline:</strong> {{ game.storyline or 'No storyline available.' }}</p>
+            <p><strong>Release Date:</strong> {{ game.release_date.strftime('%Y-%m-%d') if game.release_date else 'Not available' }}</p>
+            <p><a href="{{ game.url }}" target="_blank" class="button-glass">View on IGDB</a></p>
+            
+            <!-- Add more fields as needed -->
+            {% if game.images %}
+                <div class="images">
+                    {% for image in game.images %}
+                    {% if image.type == 'cover' %}
+                        <img src="{{ url_for('static', filename='images/' + image.url) }}" alt="{{ game.name }} Image" class="game-image cover-image">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='images/' + image.url) }}" alt="{{ game.name }} Image" class="game-image screenshot-image">
+                    {% endif %}
+                {% endfor %}
+                
+                
+
+                </div>
+            {% endif %}
+
+        </div>
+    </body>
+    </html>
 {% endblock %}

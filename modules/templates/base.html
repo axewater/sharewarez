@@ -20,18 +20,21 @@
 <body>
     <nav class="menu">
         {% if current_user.is_authenticated %}
-
-            <a href="/settings_account" class="button-glass"><i class="fas fa-user-circle"></i> Account</a>
+        <a href="{{ url_for('main.browse_games') }}" class="button-glass">Games Library</a>
+        <a href="{{ url_for('main.scan_folder') }}" class="button-glass">Games Scanner</a>
+        
+        
             
             {% if current_user.role == 'admin' %}
-                <a href="/admin_main" class="button-glass"><i class="fas fa-user-shield"></i> Admin</a>
-                <a href="/beta" class="button-glass"><i class="fas fa-user-shield"></i> Beta</a>
+                <a href="/admin_main" class="button-glass"><i class="fas fa-user-shield"></i>Admin Panel</a>
+                
             {% endif %}
+            <a href="/settings_account" class="button-glass"><i class="fas fa-user-circle"></i> Account</a>
         {% else %}
             <a href="/login" class="button-glass"><i class="fas fa-sign-in-alt"></i> Login</a>
             <a href="/register" class="button-glass"><i class="fas fa-user-plus"></i> Register</a>
         {% endif %}
-        <a href="/help" class="button-glass"><i class="fas fa-question-circle"></i> Help</a>
+        
         <a href="/logout" class="button-glass"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </nav>
 

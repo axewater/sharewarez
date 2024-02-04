@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-{% include "settings_navbar.html" %}
+
 
 <div class="container-builder">
         <div class="content-flash">
@@ -25,7 +25,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Game Library</h1>
+        <div class="breadcrumbs">Game Library</div>
         <div class="glass-grid-panel">
             <div class="game-grid">
                 {% for game in games %}
@@ -36,12 +36,15 @@
                             {% else %}
                                 <img src="{{ url_for('static', filename='default_cover.jpg') }}" alt="Default Cover Image">
                             {% endif %}
-                            <h2>{{ game.name }}</h2>
+                            <div class="button-glass">{{ game.name }}</div>
                         </a>
                         <p>{{ game.summary|truncate(120) }}</p>
                         <form action="{{ url_for('main.delete_game', game_uuid=game.uuid) }}" method="post" onsubmit="return confirmDeletion('{{ game.uuid }}');">
                             {{ form.csrf_token }}
-                            <input type="submit" value="Delete">
+                            <input type="submit" value="Delete" class="button-glass">
+                        </form>
+                        <form action="{{ url_for('main.download_game', game_uuid=game.uuid) }}" method="get">
+                            <input type="submit" value="Download" class="button-glass">
                         </form>
                     </div>
                 {% endfor %}
@@ -53,15 +56,12 @@
 {% endblock %}
 
 <script>
-    function confirmDeletion(gameUuid) {
-        const userConfirmed = confirm("Are you sure you want to delete this game and all its images?");
-        
-        if (userConfirmed) {
-            // If the user confirms, allow the form submission to proceed
-            return true;
-        } else {
-            // If the user does not confirm, prevent the form submission
-            return false;
-        }
-    }
-</script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('form[action*="delete_game"]').forEach(form => {
+            form.onsubmit = function() {
+                return confirm("Are you sure you want to delete this game and all its images?");
+            };
+        });
+    });
+    </script>
+    

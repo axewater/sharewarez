@@ -33,10 +33,11 @@ class Game(db.Model):
     summary = db.Column(db.Text, nullable=True)
     storyline = db.Column(db.Text, nullable=True)
     url = db.Column(db.String, nullable=True)
-    game_engine = db.Column(db.String, nullable=True)
+    full_disk_path = db.Column(db.String, nullable=True)
     release_date = db.Column(db.DateTime, nullable=True)
     video_urls = db.Column(JSONEncodedDict)
     images = relationship("Image", backref="game", lazy='dynamic')
+    download_requests = db.relationship('DownloadRequest', back_populates='game', lazy='dynamic', cascade='delete')
 
     def __repr__(self):
         return f"<Game id={self.id}, name={self.name}>"
@@ -106,6 +107,20 @@ class User(db.Model):
 
     def __repr__(self):
         return f"<User id={self.id}, name={self.name}, email={self.email}>"
+
+class DownloadRequest(db.Model):
+    __tablename__ = 'download_requests'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    game_uuid = db.Column(db.String(36), db.ForeignKey('games.uuid', ondelete='CASCADE'), nullable=False)
+    status = db.Column(db.String(50), default='pending')
+    zip_file_path = db.Column(db.String, nullable=True)
+    request_time = db.Column(db.DateTime, default=datetime.utcnow)
+    completion_time = db.Column(db.DateTime, nullable=True)
+
+    # Relationship (optional, depending on your SQLAlchemy version and requirements)
+    game = db.relationship('Game', foreign_keys=[game_uuid], back_populates='download_requests')
 
 
 class Whitelist(db.Model):
