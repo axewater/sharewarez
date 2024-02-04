@@ -914,6 +914,16 @@ def download_zip(download_id):
                                as_attachment=True)
 
 
+@bp.route('/check_download_status/<game_uuid>')
+@login_required
+def check_download_status(game_uuid):
+    download_request = DownloadRequest.query.filter_by(game_uuid=game_uuid, user_id=current_user.id).first()
+    if download_request:
+        return jsonify({'status': download_request.status, 'downloadId': download_request.id})
+    return jsonify({'status': 'error'}), 404
+
+
+
 ##########################################################################################
 ##########################################################################################
 ##########################################################################################

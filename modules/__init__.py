@@ -17,6 +17,7 @@ from logging.handlers import RotatingFileHandler
 db = SQLAlchemy()
 login_manager = LoginManager()
 mail = Mail()
+from flask_apscheduler import APScheduler
 
 def create_app():
     global s
