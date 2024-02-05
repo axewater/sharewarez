@@ -3,7 +3,18 @@
 {% block content %}
 
 
-<div class="container-builder">
+
+<html>
+
+    
+<head>
+    <meta charset="UTF-8">
+    <title>Browse Games</title>
+    
+</head>
+<body>
+    <script src="{{ url_for('static', filename='js/game_downloads.js') }}"></script>
+    <div class="container-builder">
         <div class="content-flash">
             {% with messages = get_flashed_messages() %}
             {% if messages %}
@@ -15,15 +26,7 @@
             {% endif %}
             {% endwith %}
         </div>
-<html>
-
-    
-<head>
-    <meta charset="UTF-8">
-    <title>Browse Games</title>
-    
-</head>
-<body>
+        
     <div class="container">
         <div class="breadcrumbs">Game Library</div>
         <div class="glass-grid-panel">
@@ -34,14 +37,14 @@
                             {% if game.cover_url %}
                                 <img src="{{ url_for('static', filename='images/' ~ game.cover_url) }}" alt="Cover Image">
                             {% else %}
-                                <img src="{{ url_for('static', filename='default_cover.jpg') }}" alt="Default Cover Image">
+                                <img src="{{ url_for('static', filename='images/default_cover.jpg') }}" alt="Default Cover Image">
                             {% endif %}
                             <div class="button-glass">{{ game.name }}</div>
                         </a>
                         <p>{{ game.summary|truncate(120) }}</p>
                         <form action="{{ url_for('main.delete_game', game_uuid=game.uuid) }}" method="post" onsubmit="return confirmDeletion('{{ game.uuid }}');">
                             {{ form.csrf_token }}
-                            <input type="submit" value="Delete" class="button-glass">
+                            <input type="submit" value="Remove" class="button-glass">
                         </form>
                         <form action="{{ url_for('main.download_game', game_uuid=game.uuid) }}" method="get" class="download-form">
                             <input type="submit" value="Download" class="button-glass" data-game-uuid="{{ game.uuid }}">
@@ -58,40 +61,3 @@
 </html>
 {% endblock %}
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle the download form submission to start polling
-    document.querySelectorAll('.download-form').forEach(form => {
-        form.onsubmit = function(e) {
-            e.preventDefault(); // Prevent form submission
-            const gameUuid = this.querySelector('input[type="submit"]').getAttribute('data-game-uuid');
-            const statusDiv = document.getElementById(`download-status-${gameUuid}`);
-            statusDiv.innerHTML = 'Processing download...';
-            startPolling(gameUuid);
-        };
-    });
-});
-
-function startPolling(gameUuid) {
-    const statusDiv = document.getElementById(`download-status-${gameUuid}`);
-    const intervalId = setInterval(() => {
-        fetch(`/check_download_status/${gameUuid}`)
-            .then(response => response.json())
-            .then(data => {
-                if(data.status === 'available') {
-                    clearInterval(intervalId); // Stop polling
-                    statusDiv.innerHTML = `<a href="/download_zip/${data.downloadId}" class="button-glass">Download Ready</a>`;
-                } else if(data.status === 'processing') {
-                    // Update status, keep polling
-                    statusDiv.innerHTML = 'Your download is being processed...';
-                }
-            }).catch(error => {
-                console.error('Error:', error);
-                statusDiv.innerHTML = 'Error checking download status.';
-                clearInterval(intervalId);
-            });
-    }, 5000); // Poll every 5 seconds
-}
-</script>
-        
-    

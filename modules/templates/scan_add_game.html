@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-{% include "settings_navbar.html" %}
+{% include "games_add_navbar.html" %}
 
 <div class="container-builder">
         <div class="content-flash">
@@ -19,7 +19,7 @@
 <head>
     <div class="glass-panel-scanfolder">
     <title>Game Details</title>
-    <!-- Add necessary CSS or JS files -->
+    
 </head>
 <body>
     <h1>Game Details</h1>
@@ -29,12 +29,14 @@
             <p><strong>Summary:</strong> {{ game.summary or 'No summary available' }}</p>
             <p><strong>Storyline:</strong> {{ game.storyline or 'No storyline available' }}</p>
             <p><strong>URL:</strong> <a href="{{ game.url }}" target="_blank">{{ game.url }}</a></p>
-            <!-- Add more fields as necessary -->
+            
         </div>
-        <a href="{{ url_for('main.scan_folder') }}" class="button-glass">Back to Scan Folder</a>
+        <a href="{{ url_for('main.scan_folder') }}" class="button-glass">Folder Scanner</a>
+        <a href="{{ url_for('main.browse_games') }}" class="button-glass">Open Library</a>
     {% else %}
         <p>No game details to display.</p>
-        <a href="{{ url_for('main.scan_folder') }}" class="button-glass">Back to Scan Folder</a>
+        <a href="{{ url_for('main.scan_folder') }}" class="button-glass">Folder Scanner</a>
+        <a href="{{ url_for('main.browse_games') }}" class="button-glass">Open Library</a>
     {% endif %}
 </body>
 </html>

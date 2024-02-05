@@ -17,7 +17,7 @@ from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
 from modules import db, mail
-from modules.forms import UserPasswordForm, UserDetailForm, EditProfileForm, NewsletterForm, WhitelistForm, EditUserForm, UserManagementForm, ScanFolderForm, IGDBApiForm
+from modules.forms import UserPasswordForm, UserDetailForm, EditProfileForm, NewsletterForm, WhitelistForm, EditUserForm, UserManagementForm, ScanFolderForm, IGDBApiForm, ClearDownloadRequestsForm, CsrfProtectForm, AddGameForm
 from modules.models import User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest
 
 from functools import wraps
@@ -67,10 +67,10 @@ def initial_setup():
             print("Default email added to Whitelist.")
     except IntegrityError:
         db.session.rollback()  # Rollback in case of an integrity error
-        current_app.logger.error('Default email already exists in the Whitelist.')
+        print('Default email already exists in the Whitelist.')
     except SQLAlchemyError as e:
         db.session.rollback()  # Rollback in case of other database errors
-        current_app.logger.error(f'An error occurred while adding the default email to the Whitelist: {e}')
+        print(f'An error occurred while adding the default email to the Whitelist: {e}')
 
     # Upgrade first user to admin
     try:
@@ -85,10 +85,10 @@ def initial_setup():
             print("User with ID 1 already has admin role.")
     except IntegrityError:
         db.session.rollback()
-        current_app.logger.error('An error occurred while trying to upgrade the user to admin.')
+        print('An error occurred while trying to upgrade the user to admin.')
     except SQLAlchemyError as e:
         db.session.rollback()
-        current_app.logger.error(f'An error occurred while upgrading the user to admin: {e}')
+        print(f'An error occurred while upgrading the user to admin: {e}')
 
 
 @bp.route('/', methods=['GET', 'POST'])
@@ -469,15 +469,14 @@ def account_pw():
 
     return render_template('settings_password.html', title='Change Password', form=form, user=user)
 
-@bp.route('/admin_main')
+@bp.route('/admin/base')
 @login_required
 def admin_main():
     print("ADMIN MAIN: Request method:", request.method)
-    return render_template('admin_main.html')
+    return render_template('admin/base.html')
 
 
-
-@bp.route('/admin_newsletter', methods=['GET', 'POST'])
+@bp.route('/admin/newsletter', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def newsletter():
@@ -487,9 +486,10 @@ def newsletter():
     if form.validate_on_submit():
         recipients = form.recipients.data.split(',')
         print(f"ADMIN NEWSLETTER: Recipient list : {recipients}")
-        msg = MailMessage(form.subject.data)
+        
+        msg = MailMessage(form.subject.data, sender=current_app.config['MAIL_DEFAULT_SENDER'])
         msg.body = form.content.data
-        msg.sender = 'personasuperchat@gmail.com'
+        
         msg.recipients = recipients
         try:
             print(f"ADMIN NEWSLETTER: Newsletter sent")
@@ -498,9 +498,10 @@ def newsletter():
         except Exception as e:
             flash(str(e), 'error')
         return redirect(url_for('main.newsletter'))
-    return render_template('admin_newsletter.html', title='Newsletter', form=form, users=users)
+    return render_template('admin/newsletter.html', title='Newsletter', form=form, users=users)
 
-@bp.route('/admin_whitelist', methods=['GET', 'POST'])
+
+@bp.route('/admin/whitelist', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def whitelist():
@@ -517,7 +518,7 @@ def whitelist():
             flash('The email is already in the whitelist!', 'danger')
         return redirect(url_for('main.whitelist'))
     whitelist = Whitelist.query.all()
-    return render_template('admin_whitelist.html', title='Whitelist', whitelist=whitelist, form=form)
+    return render_template('admin/whitelist.html', title='Whitelist', whitelist=whitelist, form=form)
 
 
 @bp.route('/get_user/<int:user_id>', methods=['GET'])
@@ -542,7 +543,7 @@ def get_user(user_id):
         return jsonify({'error': 'User not found'}), 404
 
 
-@bp.route('/admin_usrmgr', methods=['GET', 'POST'])
+@bp.route('/admin/usrmgr', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def usermanager():
@@ -616,7 +617,7 @@ def usermanager():
     else:
         form.user_id.data = 3
 
-    return render_template('admin_usrmgr.html', form=form, users=users_query)
+    return render_template('admin/usrmgr.html', form=form, users=users_query)
 
 
 def _authenticate_and_redirect(username, password):
@@ -687,39 +688,11 @@ class RegistrationForm(FlaskForm):
 ########################################################################################
 
 
-@bp.route('/beta', methods=['GET'])
+@bp.route('/admin/beta', methods=['GET'])
 def beta():
-    return render_template('admin_beta.html') 
+    return render_template('admin/beta.html') 
 
 
-
-@bp.route('/add_game/<game_name>')
-def add_game(game_name):
-    print(f"Adding game: {game_name}")
-
-    # Retrieve the full disk path from the session
-    full_disk_path = session.get('game_paths', {}).get(game_name)
-    
-    if not full_disk_path:
-        flash("Could not find the game's disk path.", "error")
-        return redirect(url_for('main.scan_folder'))
-    
-    # Attempt to add the game with the provided name and disk path
-    game = retrieve_and_save_game(game_name, full_disk_path)
-    if game:
-        # If the game is successfully added, remove its path from the session
-        if game_name in session.get('game_paths', {}):
-            del session['game_paths'][game_name]
-            
-            # If there are no more games left in the session, clear the entire 'game_paths' entry
-            if not session['game_paths']:
-                del session['game_paths']
-        
-        flash("Game added successfully.", "success")
-        return render_template('scan_add_game.html', game=game)
-    else:
-        flash("Game not found or API error occurred.", "error")
-        return redirect(url_for('main.scan_folder'))
     
     
 @bp.route('/api_debug', methods=['GET', 'POST'])
@@ -734,6 +707,23 @@ def api_debug():
         api_response = make_igdb_api_request(selected_endpoint, query_params)
         
     return render_template('scan_apidebug.html', form=form, api_response=api_response)
+
+
+@bp.route('/check_igdb_id')
+def check_igdb_id():
+    igdb_id = request.args.get('igdb_id', type=int)
+    if igdb_id is None:
+        return jsonify({'message': 'Invalid request', 'available': False}), 400
+
+    game_exists = check_existing_game_by_igdb_id(igdb_id) is not None
+    return jsonify({'available': not game_exists})
+
+
+@bp.route('/check_path_availability', methods=['GET'])
+def check_path_availability():
+    full_disk_path = request.args.get('full_disk_path', '')
+    is_available = os.path.exists(full_disk_path)
+    return jsonify({'available': is_available})
 
 @bp.route('/scan_folder', methods=['GET', 'POST'])
 def scan_folder():
@@ -773,6 +763,60 @@ def scan_folder():
 
 
 
+@bp.route('/add_game/<game_name>')
+def add_game(game_name):
+    print(f"Adding game: {game_name}")
+
+    # Retrieve the full disk path from the session
+    full_disk_path = session.get('game_paths', {}).get(game_name)
+    
+    if not full_disk_path:
+        flash("Could not find the game's disk path.", "error")
+        return redirect(url_for('main.scan_folder'))
+    
+    # Attempt to add the game with the provided name and disk path
+    game = retrieve_and_save_game(game_name, full_disk_path)
+    if game:
+        # If the game is successfully added, remove its path from the session
+        if game_name in session.get('game_paths', {}):
+            del session['game_paths'][game_name]
+            
+            # If there are no more games left in the session, clear the entire 'game_paths' entry
+            if not session['game_paths']:
+                del session['game_paths']
+        
+        flash("Game added successfully.", "success")
+        return render_template('scan_add_game.html', game=game)
+    else:
+        flash("Game not found or API error occurred.", "error")
+        return redirect(url_for('main.scan_folder'))
+    
+    
+@bp.route('/add_game_manual', methods=['GET', 'POST'])
+def add_game_manual():
+    form = AddGameForm()
+    if form.validate_on_submit():
+        if check_existing_game_by_igdb_id(form.igdb_id.data):
+            flash('A game with this IGDB ID already exists.', 'error')
+            return render_template('add_game_manual.html', form=form)
+        
+        # Proceed with creating a new Game instance and saving it
+        new_game = Game(
+            igdb_id=form.igdb_id.data,
+            name=form.name.data,
+            summary=form.summary.data,
+            storyline=form.storyline.data,
+            url=form.url.data,
+            full_disk_path=form.full_disk_path.data,
+            video_urls={"videos": [form.video_urls.data]} if form.video_urls.data else {}
+        )
+        db.session.add(new_game)
+        db.session.commit()
+        flash('Game added successfully.', 'success')
+        return redirect(url_for('.browse_games'))  # Redirect to the game browsing page
+
+    return render_template('add_game_manual.html', form=form)
+
 @bp.route('/browse_games')
 def browse_games():
     games = Game.query.all()  # Retrieve all games from the database
@@ -805,7 +849,7 @@ def game_details(game_uuid):
         valid_uuid = uuid.UUID(game_uuid, version=4)
     except ValueError:
         # If the UUID is not valid, log the error and return a 404 response
-        current_app.logger.error(f"Invalid UUID format: {game_uuid}")
+        print(f"Invalid UUID format: {game_uuid}")
         abort(404)
 
     # Use the validated and converted UUID for querying
@@ -837,7 +881,7 @@ def delete_game(game_uuid):
     try:
         valid_uuid = uuid.UUID(game_uuid, version=4)
     except ValueError:
-        current_app.logger.error(f"Invalid UUID format: {game_uuid}")
+        print(f"Invalid UUID format: {game_uuid}")
         abort(404)
 
     game_uuid_str = str(valid_uuid)
@@ -867,7 +911,7 @@ def delete_game(game_uuid):
         flash('Game and its images have been deleted successfully.', 'success')
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f'Error deleting game with UUID {game_uuid_str}: {e}')
+        print(f'Error deleting game with UUID {game_uuid_str}: {e}')
         flash(f'Error deleting game: {e}', 'error')
     
     return redirect(url_for('main.browse_games'))
@@ -875,15 +919,18 @@ def delete_game(game_uuid):
 @bp.route('/download_game/<game_uuid>', methods=['GET'])
 @login_required
 def download_game(game_uuid):
+    print(f"Downloading game with UUID: {game_uuid}")
     game = Game.query.filter_by(uuid=game_uuid).first_or_404()
-
+    print(f"Game found: {game}")
     # Check if there's already an active download request for this user
+    print(f"Checking if there's already an active download request for user {current_user.id}: {DownloadRequest.query.filter_by(user_id=current_user.id, status='processing').first()}")
     active_request = DownloadRequest.query.filter_by(user_id=current_user.id, status='processing').first()
     if active_request:
         flash(f"You already have an active download request for {active_request.game.name}. Please wait until it's completed.")
         return redirect(url_for('main.browse_games'))
 
     # Create a new download request with status 'processing'
+    print(f"Creating a new download request for user {current_user.id}: {DownloadRequest.query.filter_by(user_id=current_user.id, status='processing').first()}")
     new_request = DownloadRequest(user_id=current_user.id, game_uuid=game.uuid, status='processing') 
     db.session.add(new_request)
     db.session.commit()
@@ -891,11 +938,12 @@ def download_game(game_uuid):
     # Copy the current request context to use the correct app instance
     @copy_current_request_context
     def thread_function():
+        print(f"Thread function started for download request {new_request.id}")
         zip_game(new_request.id, current_app._get_current_object())
 
     thread = Thread(target=thread_function)
     thread.start()
-
+    
     flash("Your download request is being processed. You will be notified when the download is ready.")
     return redirect(url_for('main.browse_games'))
 
@@ -903,25 +951,128 @@ def download_game(game_uuid):
 @bp.route('/download_zip/<download_id>')
 @login_required
 def download_zip(download_id):
+    print(f"Downloading zip with ID: {download_id}")
     download_request = DownloadRequest.query.filter_by(id=download_id, user_id=current_user.id).first_or_404()
     
     if download_request.status != 'available':
         flash("The requested download is not ready yet.")
         return redirect(url_for('main.browse_games'))
+
+    relative_path = download_request.zip_file_path
+    absolute_path = os.path.join(current_app.static_folder, relative_path)
     
-    return send_from_directory(directory=os.path.dirname(download_request.zip_file_path),
-                               filename=os.path.basename(download_request.zip_file_path),
-                               as_attachment=True)
+    if not os.path.exists(absolute_path):
+        flash("Error: File does not exist.")
+        return redirect(url_for('main.browse_games'))
+
+    print(f"Found download request available: {download_request}")
+
+    try:
+        
+        directory = os.path.dirname(absolute_path)
+        filename = os.path.basename(absolute_path)
+        # Serve the file
+        print(f"Sending file: {directory}/{filename} to user {current_user.id} for download")
+        return send_from_directory(directory, filename, as_attachment=True)
+    except Exception as e:
+        flash("An error occurred while trying to serve the file.")
+        print(f"Error: {e}") 
+        return redirect(url_for('main.browse_games'))
 
 
 @bp.route('/check_download_status/<game_uuid>')
 @login_required
 def check_download_status(game_uuid):
+    print(f"Requested check for game_uuid: {game_uuid}")
+    
+    # Debug: print the current user ID and the game_uuid to ensure they are correct
+    print(f"Current user ID: {current_user.id}, Game UUID: {game_uuid}")
+    
+    # Attempt to fetch all download requests for debug purposes
+    all_requests_for_user = DownloadRequest.query.filter_by(user_id=current_user.id).all()
+    print(f"All download requests for user: {all_requests_for_user}")
+    
     download_request = DownloadRequest.query.filter_by(game_uuid=game_uuid, user_id=current_user.id).first()
+    
     if download_request:
+        print(f"Found download request: {download_request}")
         return jsonify({'status': download_request.status, 'downloadId': download_request.id})
+    else:
+        print("No matching download request found.")
     return jsonify({'status': 'error'}), 404
 
+
+
+@bp.route('/admin/clear-downloads', methods=['GET', 'POST'])
+@admin_required
+def clear_downloads():
+    print("Route: /admin/clear-downloads")
+    form = ClearDownloadRequestsForm()
+    if form.validate_on_submit():
+        # Delete all DownloadRequest records
+        print("Deleting all download requests")
+        try:
+            DownloadRequest.query.filter(DownloadRequest.status == 'processing').delete()
+            
+            db.session.commit()
+            flash('All processing downloads have been cleared.', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred: {e}', 'danger')
+        return redirect(url_for('main.clear_downloads'))
+
+    download_requests = DownloadRequest.query.all()
+    return render_template('admin/clear_downloads.html', form=form, download_requests=download_requests)
+
+
+@bp.route('/downloads')
+@login_required
+def downloads():
+    user_id = current_user.id
+    download_requests = DownloadRequest.query.filter_by(user_id=user_id).all()
+    form = CsrfProtectForm()
+    return render_template('downloads.html', download_requests=download_requests, form=form)
+
+
+@bp.route('/delete_download/<int:download_id>', methods=['POST'])
+@login_required
+def delete_download(download_id):
+    download_request = DownloadRequest.query.filter_by(id=download_id, user_id=current_user.id).first_or_404()
+    if download_request.zip_file_path and os.path.exists(download_request.zip_file_path):
+        try:
+            os.remove(download_request.zip_file_path)
+            db.session.delete(download_request)
+            db.session.commit()
+            flash('Download deleted successfully.', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred: {e}', 'danger')
+    else:
+        db.session.delete(download_request)
+        db.session.commit()
+        flash('Download request deleted successfully.', 'success')
+
+    return redirect(url_for('main.downloads'))
+
+@bp.route('/search_igdb_by_id')
+def search_igdb_by_id():
+    igdb_id = request.args.get('igdb_id')
+    if not igdb_id:
+        return jsonify({"error": "IGDB ID is required"}), 400
+
+    endpoint_url = "https://api.igdb.com/v4/games"  # Adjust with the correct endpoint if necessary
+    query_params = f'fields name,summary,url; where id = {igdb_id};'
+
+    response = make_igdb_api_request(endpoint_url, query_params)
+    if "error" in response:
+        return jsonify({"error": response["error"]}), 500
+
+    if response:
+        # Assuming the response is a list of games, and you're interested in the first one
+        game_data = response[0] if response else {}
+        return jsonify(game_data)
+    else:
+        return jsonify({"error": "Game not found"}), 404
 
 
 ##########################################################################################
@@ -1062,7 +1213,7 @@ def process_and_save_image(game_uuid, image_data, image_type='cover'):
         print(f"Processing cover image for game {game_uuid}.")
         cover_query = f'fields url; where id={image_data};'
         cover_response = make_igdb_api_request('https://api.igdb.com/v4/covers', cover_query)
-        print(f'Cover response: {cover_response}')
+        #print(f'Cover response: {cover_response}')
         if cover_response and 'error' not in cover_response:
             url = cover_response[0].get('url')
             if not url:
@@ -1076,12 +1227,12 @@ def process_and_save_image(game_uuid, image_data, image_type='cover'):
         file_name = secure_filename(f"{game_uuid}_cover_{image_data}.jpg")  # Adjust extension if needed
         save_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], file_name)
         download_image(url, save_path)
-        print(f"Cover image saved to {save_path} for game {game_uuid} with UUID {image_data}.")
+        # print(f"Cover image saved to {save_path} for game {game_uuid} with UUID {image_data}.")
 
     elif image_type == 'screenshot':
         screenshot_query = f'fields url; where id={image_data};'
         response = make_igdb_api_request('https://api.igdb.com/v4/screenshots', screenshot_query)
-        print(f'Screenshot response: {response}')
+        # print(f'Screenshot response: {response}')
         if response and 'error' not in response:
             url = response[0].get('url')
             if not url:
@@ -1090,7 +1241,7 @@ def process_and_save_image(game_uuid, image_data, image_type='cover'):
             file_name = secure_filename(f"{game_uuid}_{image_data}.jpg")  # Adjust extension if needed
             save_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], file_name)
             download_image(url, save_path)
-            print(f"Screenshot image saved to {save_path} for game {game_uuid} with UUID {image_data}.")
+            # print(f"Screenshot image saved to {save_path} for game {game_uuid} with UUID {image_data}.")
 
     # Create and add the image record to the database
     image = Image(
@@ -1098,7 +1249,7 @@ def process_and_save_image(game_uuid, image_data, image_type='cover'):
         image_type=image_type,
         url=file_name,  # Store only the filename in the database
     )
-    print(f"Image record created for game {game_uuid} with UUID {image_data} and URL {url}.")
+    #print(f"Image record created for game {game_uuid} with UUID {image_data} and URL {url}.")
     db.session.add(image)
     
 def retrieve_and_save_game(game_name, full_disk_path):
@@ -1122,7 +1273,7 @@ def retrieve_and_save_game(game_name, full_disk_path):
             new_game = create_game_instance(response_json[0], full_disk_path)
 
             if 'cover' in response_json[0]:
-                print(f"Cover: {response_json[0]['cover']}")
+                # print(f"Cover: {response_json[0]['cover']}")
                 process_and_save_image(new_game.uuid, response_json[0]['cover'], 'cover')
             
             for screenshot_id in response_json[0].get('screenshots', []):
@@ -1179,10 +1330,10 @@ def download_image(url, save_path):
     # Replace thumbnail URL part with the original size identifier
     url = url.replace('/t_thumb/', '/t_original/')
 
-    print(f"Downloading image from {url} to {save_path}.")
+    print(f"Downloading image from {url}.")
     response = requests.get(url)
     if response.status_code == 200:
-        print(f"Image downloaded successfully to {save_path}.")
+        # print(f"Image downloaded successfully to {save_path}.")
         with open(save_path, 'wb') as f:
             f.write(response.content)
     else:
@@ -1192,7 +1343,7 @@ def zip_game(download_request_id, app):
     with app.app_context():
         download_request = DownloadRequest.query.get(download_request_id)
         game = download_request.game
-        
+        print(f"Zipping game: {game.name}")
         if not game:
             print(f"No game found for DownloadRequest ID: {download_request_id}")
             return
@@ -1206,17 +1357,23 @@ def zip_game(download_request_id, app):
             return
         
         try:
-            
+            print(f"Zipping game folder: {source_folder} to {output_zip_base}.")
             output_zip = shutil.make_archive(output_zip_base, 'zip', source_folder)
             print(f"Archive created at {output_zip}")
                         
             download_request.status = 'available'
             download_request.zip_file_path = output_zip
             download_request.completion_time = datetime.utcnow()
+            print(f"Download request updated: {download_request}")
             db.session.commit()
         except Exception as e:
-            print(f"An error occurred while zipping: {e}")
-            # Handle error, possibly set the download request to a failure status
+            error_message = str(e)
+            print(f"An error occurred while zipping: {error_message}")
+
+            download_request.status = 'failed'
+            download_request.zip_file_path = error_message
+            db.session.commit()
+            print(f"Failed to zip game for DownloadRequest ID: {download_request_id}, Error: {error_message}")
    
         
 def check_existing_game_by_igdb_id(igdb_id):

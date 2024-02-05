@@ -15,18 +15,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/prism.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+    
 
 </head>
 <body>
     <nav class="menu">
         {% if current_user.is_authenticated %}
-        <a href="{{ url_for('main.browse_games') }}" class="button-glass">Games Library</a>
-        <a href="{{ url_for('main.scan_folder') }}" class="button-glass">Games Scanner</a>
+        <a href="{{ url_for('main.browse_games') }}" class="button-glass">Library</a>
+        
+        <a href="{{ url_for('main.downloads') }}" class="button-glass">Downloads</a>
         
         
             
             {% if current_user.role == 'admin' %}
-                <a href="/admin_main" class="button-glass"><i class="fas fa-user-shield"></i>Admin Panel</a>
+                <a href="/admin/base" class="button-glass"><i class="fas fa-user-shield"></i>Administration</a>
                 
             {% endif %}
             <a href="/settings_account" class="button-glass"><i class="fas fa-user-circle"></i> Account</a>

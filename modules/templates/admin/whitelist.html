@@ -1,0 +1,36 @@
+<!-- templates/whitelist.html -->
+{% extends "base.html" %}
+{% block content %}
+
+{% include "admin/navbar.html" %}
+<div class="container-builder">
+    <h1>Email Whitelisting</h1><br>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul class=flashes>
+        {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+    <form method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.email.label }}<br>
+            {{ form.email(size=30, class="input-glass") }}<br>
+            {% for error in form.email.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit(class="button-glass") }}</p>
+    </form>
+
+    <ul>
+    {% for entry in whitelist %}
+        <li>{{ entry.email }}</li>
+    {% endfor %}
+    </ul>
+
+</div>
+{% endblock %}
