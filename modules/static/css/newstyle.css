@@ -426,6 +426,19 @@ body {
     border: 2px solid red;
 }
 
+.search-result-item {
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    padding: 5px;
+    margin-bottom: 2px;
+}
+
+.search-result-item:hover {
+    transform: translateY(-2px);
+    background-color: lightgreen;
+}
+
+
 .glass-panel-addgame {
     background-color: hsl(207, 19%, 55%);
     display: flex;

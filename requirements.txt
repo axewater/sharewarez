@@ -21,3 +21,4 @@ WTForms==3.0.1
 flask_migrate
 authlib
 Flask-APScheduler
+wtforms-sqlalchemy

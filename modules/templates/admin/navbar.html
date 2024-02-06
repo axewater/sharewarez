@@ -1,8 +1,8 @@
 <!-- in templates/admin_navbar.html -->
 
 <div class="container-settings-menubuttons">
-    <button type="button" class="button-glass" onclick="window.location.href='/admin/usrmgr'">Library manager</button>
-    <a href="{{ url_for('main.scan_folder') }}" class="button-glass">Add Games</a>
+    
+    <a href="{{ url_for('main.scan_folder') }}" class="button-glass">Library manager</a>
     <button type="button" class="button-glass" onclick="window.location.href='/admin/usrmgr'">User manager</button>
     <button type="button" class="button-glass" onclick="window.location.href='/admin/clear-downloads'">Downloads manager</button>
     <button type="button" class="button-glass" onclick="window.location.href='/admin/whitelist'">Whitelist manager</button>
