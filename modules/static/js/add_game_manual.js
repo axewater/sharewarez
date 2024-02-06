@@ -113,7 +113,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 .catch(error => console.error('Error:', error));
         }
     });
-
+    document.querySelector('#search-igdb').addEventListener('click', function() {
+        const gameName = document.querySelector('#name').value;
+        if (gameName) {
+            fetch(`/search_igdb_by_name?name=${encodeURIComponent(gameName)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const resultsContainer = document.querySelector('#search-results');
+                    resultsContainer.innerHTML = ''; // Clear previous results
+                    if (data.results && data.results.length > 0) {
+                        data.results.forEach(game => {
+                            const resultItem = document.createElement('div');
+                            resultItem.className = 'search-result-item';
+                            resultItem.textContent = game.name; // Customize display as needed
+                            resultItem.addEventListener('click', function() {
+                                // Fill form fields with selected game's data
+                                document.querySelector('#igdb_id').value = game.id;
+                                document.querySelector('#name').value = game.name;
+                                // Add other fields as necessary
+                            });
+                            resultsContainer.appendChild(resultItem);
+                        });
+                    } else {
+                        resultsContainer.textContent = 'No results found';
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    });
+    
     // Initialize form validation and feedback for existing functionality
     checkFieldsAndToggleSubmit();
 });

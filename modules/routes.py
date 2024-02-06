@@ -1074,6 +1074,22 @@ def search_igdb_by_id():
     else:
         return jsonify({"error": "Game not found"}), 404
 
+@bp.route('/search_igdb_by_name')
+def search_igdb_by_name():
+    game_name = request.args.get('name')
+    if game_name:
+        query_params = {
+            'search': game_name,
+            'fields': 'id,name,cover.url,summary,release_dates.date,platforms.name,genres.name',
+            'limit': 10  # Limit to first 10 results
+        }
+        results = make_igdb_api_request('https://api.igdb.com/v4/games', query_params)
+        if 'error' not in results:
+            return jsonify({'results': results})
+        else:
+            return jsonify({'error': results['error']})
+    return jsonify({'error': 'No game name provided'})
+
 
 ##########################################################################################
 ##########################################################################################
