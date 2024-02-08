@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const igdbIdInput = document.querySelector('#igdb_id');
     const fullPathInput = document.querySelector('#full_disk_path');
     const nameInput = document.querySelector('#name');
-    const urlInput = document.querySelector('#url'); // Added URL input selector
+    const urlInput = document.querySelector('#url');
     const submitButton = document.querySelector('button[type="submit"]');
     const igdbIdFeedback = document.querySelector('#igdb_id_feedback');
     const fullPathFeedback = document.createElement('small');
@@ -49,6 +49,21 @@ document.addEventListener('DOMContentLoaded', function() {
         element.textContent = message;
         element.className = isSuccess ? 'form-text text-success' : 'form-text text-danger';
     }
+    function triggerClickOnEnter(event, button) {
+        if (event.keyCode === 13) {
+            event.preventDefault();
+            button.click();
+        }
+    }
+    
+    igdbIdInput.addEventListener('keypress', function(event) {
+        triggerClickOnEnter(event, document.querySelector('#search-igdb-btn'));
+    });
+
+    
+    nameInput.addEventListener('keypress', function(event) {
+        triggerClickOnEnter(event, document.querySelector('#search-igdb'));
+    });
 
     document.querySelector('#search-igdb-btn').addEventListener('click', function() {
         const igdbId = igdbIdInput.value;
@@ -59,16 +74,37 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data.error) {
                         console.error('Error:', data.error);
                     } else {
+                        
                         nameInput.value = data.name;
                         document.querySelector('#summary').value = data.summary;
                         document.querySelector('#storyline').value = data.storyline || '';
-                        urlInput.value = data.url || ''; // Now populating URL field
+                        urlInput.value = data.url || '';
+    
+                        const statusSelect = document.querySelector('#status');
+                        if (statusSelect) {
+                            statusSelect.value = data.status || '';
+                        }
+    
+                        const categorySelect = document.querySelector('#category');
+                        if (categorySelect) {
+                            categorySelect.value = data.category || '';
+                        }
+    
+                        const genresOptions = document.querySelectorAll('#genres option');
+                        genresOptions.forEach(option => {
+                            if (data.genres && data.genres.includes(option.text)) {
+                                option.selected = true;
+                            }
+                        });
+    
+                        
                         checkFieldsAndToggleSubmit();
                     }
                 })
                 .catch(error => console.error('Error:', error));
         }
     });
+    
 
         document.querySelector('#search-igdb').addEventListener('click', function() {
         const gameName = nameInput.value;

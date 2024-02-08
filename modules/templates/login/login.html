@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-base">
+    <div class="ai">
+        {% if current_user.is_authenticated %}
+        <div class="container-builder">Welcome back, {{ current_user.name }}!</div>
+        {% else %}
+        <h1></h1>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flashes">
+            {% for message in messages %}
+                <div class="flash">{{ message }}</div>
+            {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <div class="container-base">
+                <div class="container-builder">
+                    <h1 class="logo">AceBoard</h1>
+You can register for an account if your email has been whitelisted
+                </div>
+            </div>
+            <div class="container-builder">
+                <form action="/login" method="post">
+                    <label for="username">Username:</label><br>
+                    <input type="text" class="input-glass" id="username" name="username"><br>
+                    <label for="password">Password:</label><br>
+                    <input type="password" class="input-glass" id="password" name="password"><br>
+                    <div class="container-base">
+                        <input type="submit" value="LOGIN" class="button-glass">
+                        <a href="/register" class="button-glass">REGISTER</a>
+                        <a href="{{ url_for('main.reset_password_request') }}" class="button-glass">Forgot Password?</a>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,34 @@
+<!-- in templates/settings_account.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+{% include "settings/settings_navbar.html" %}
+
+<div class="container-builder">
+        <div class="content-flash">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class="flashes">
+                {% for message in messages %}
+                <div class="flash">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+        </div>
+    <div class="glass-panel-text">
+    <h2>My Account</h2>
+    <br>
+    <form id="user-detail-form" method="POST">
+  {{ form.csrf_token }}
+
+    <p>Created: {{ user.created.strftime('%Y-%m-%d') }}</p>
+    <p>Subscription: {{ user.role }}</p>
+
+    <input type="submit" class="button-glass" value="Save">
+    <button class="button-glass" onclick="location.reload()">Cancel</button>
+    </form>
+</div>
+
+{% endblock %}

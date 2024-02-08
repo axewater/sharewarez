@@ -413,6 +413,16 @@ body {
     text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.9)
 }
 
+.group-game-details {
+    display: flex;
+    flex-direction: row;
+}
+
+.glass-panel-gamedetails-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
 
 .glass-panel-scanfolder-fg {
     background-color: hsl(207, 22%, 36%);
@@ -420,6 +430,28 @@ body {
     flex-direction: column;
     border-radius: 15px;
     padding: 5px;
+}
+
+
+.glass-panel-addgame {
+    background-color: hsl(207, 19%, 55%);
+    display: flex;
+    flex-direction: column;
+    border-radius: 15px;
+    padding: 15px;
+    width: 1000px;
+    margin: 25px;
+}
+
+.group-images-gamedetails {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.images-game-details {
+    width: 400px;
+
 }
 
 .invalid-input {
@@ -438,16 +470,6 @@ body {
     background-color: lightgreen;
 }
 
-
-.glass-panel-addgame {
-    background-color: hsl(207, 19%, 55%);
-    display: flex;
-    flex-direction: column;
-    border-radius: 15px;
-    padding: 15px;
-    width: 640px;
-    margin: 25px;
-}
 
 .glass-grid-panel {
     display: flex;

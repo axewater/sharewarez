@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<div class="container-builder">
+    <div class="content-flash">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="flashes">
+            {% for message in messages %}
+            <div class="flash">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+    </div>
+    <html>
+    <head>
+        <title>{{ game.name }} Details</title>
+    </head>
+    <body>
+        <div class="glass-panel-gamedetails">
+            <h1>{{ game.name }}</h1>
+    <p><strong>Summary:</strong> {{ game.summary or 'No summary available.' }}</p>
+    <p><strong>Storyline:</strong> {{ game.storyline or 'No storyline available.' }}</p>
+    
+    <div class="glass-panel-gamedetails-row">
+        <p><strong>First Release Date:</strong> {{ game.first_release_date }}</p>
+        <p><strong>Status:</strong> {{ game.status }}</p>
+        <p><strong>Category:</strong> {{ game.category }}</p>
+        <p><strong>Rating:</strong> {{ game.rating or 'Not rated' }}</p>
+        <p><strong>Aggregated Rating:</strong> {{ game.aggregated_rating or 'Not rated' }}</p>
+        <p><strong>Genres:</strong> {{ ', '.join(game.genres) }}</p>
+    </div>
+
+    <div class="glass-panel-gamedetails-row">
+        <p><strong>Game Modes:</strong> {{ ', '.join(game.game_modes) }}</p>
+        <p><strong>Themes:</strong> {{ ', '.join(game.themes) }}</p>
+        <p><strong>Platforms:</strong> {{ ', '.join(game.platforms) }}</p>
+        <p><strong>Player Perspectives:</strong> {{ ', '.join(game.player_perspectives) }}</p>
+        <p><strong>Developer:</strong> {{ game.developer }}</p>
+        <p><strong>Publisher:</strong> {{ game.publisher }}</p>
+    </div>
+
+    <div class="group-images-gamedetails">
+        <!-- Display Images -->
+        {% if game.images %}
+        <div class="images-game-details">
+            {% for image in game.images %}
+            <img src="{{ url_for('static', filename='images/' + image.url) }}" alt="{{ game.name }} Image" class="game-image">
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    <!-- Display Video URLs if available -->
+    {% if game.video_urls %}
+    <div class="videos">
+        {% for video_url in game.video_urls %}
+        <video controls>
+            <source src="{{ video_url }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <p><a href="{{ game.url }}" target="_blank" class="button">View on IGDB</a></p>
+</div>
+{% endblock %}

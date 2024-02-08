@@ -64,12 +64,15 @@ class UserManagementForm(FlaskForm):
     
 class IGDBApiForm(FlaskForm):
     endpoint = SelectField('Select API Endpoint', choices=[
-        ('https://api.igdb.com/v4/covers', 'Covers'),
+
         ('https://api.igdb.com/v4/games', 'Games'),
+        ('https://api.igdb.com/v4/search', 'Search'),
+        ('https://api.igdb.com/v4/screenshots', 'Screenshots'),
+        ('https://api.igdb.com/v4/covers', 'Covers'),
         ('https://api.igdb.com/v4/game_videos', 'Game Videos'),
         ('https://api.igdb.com/v4/keywords', 'Keywords'),
-        ('https://api.igdb.com/v4/screenshots', 'Screenshots'),
-        ('https://api.igdb.com/v4/search', 'Search')
+        ('https://api.igdb.com/v4/involved_companies', 'InvolvedCompanies')
+
     ], validators=[DataRequired()])
     query = TextAreaField('Query', validators=[DataRequired()])
     submit = SubmitField('Submit')
@@ -89,12 +92,12 @@ class AddGameForm(FlaskForm):
     status = SelectField('Status', choices=[(choice.name, choice.value) for choice in Status], coerce=str, validators=[Optional()])
     category = SelectField('Category', choices=[(choice.name, choice.value) for choice in Category], coerce=str, validators=[Optional()])
     genres = QuerySelectMultipleField('Genres', query_factory=genre_choices, get_label='name', widget=ListWidget(prefix_label=False), option_widget=CheckboxInput())
-    game_modes = QuerySelectMultipleField('Game Modes', query_factory=game_mode_choices, get_label='name')
-    themes = QuerySelectMultipleField('Themes', query_factory=theme_choices, get_label='name')
-    platforms = QuerySelectMultipleField('Platforms', query_factory=platform_choices, get_label='name')
-    player_perspectives = QuerySelectMultipleField('Player Perspectives', query_factory=player_perspective_choices, get_label='name')
-    developer = QuerySelectMultipleField('Developer', query_factory=developer_choices, get_label='name')  # Assuming single developer, adjust if necessary
-    publisher = QuerySelectMultipleField('Publisher', query_factory=publisher_choices, get_label='name')  # Assuming single publisher, adjust if necessary
+    game_modes = QuerySelectMultipleField('Game Modes', query_factory=game_mode_choices, get_label='name', widget=ListWidget(prefix_label=False), option_widget=CheckboxInput())
+    themes = QuerySelectMultipleField('Themes', query_factory=theme_choices, get_label='name', widget=ListWidget(prefix_label=False), option_widget=CheckboxInput())
+    platforms = QuerySelectMultipleField('Platforms', query_factory=platform_choices, get_label='name', widget=ListWidget(prefix_label=False), option_widget=CheckboxInput())
+    player_perspectives = QuerySelectMultipleField('Player Perspectives', query_factory=player_perspective_choices, get_label='name', widget=ListWidget(prefix_label=False), option_widget=CheckboxInput())
+    developer = QuerySelectMultipleField('Developer', query_factory=developer_choices, get_label='name')
+    publisher = QuerySelectMultipleField('Publisher', query_factory=publisher_choices, get_label='name')
 
     submit = SubmitField('Save')    
     

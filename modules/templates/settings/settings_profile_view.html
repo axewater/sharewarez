@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "settings/settings_navbar.html" %}
+<div class="container-builder">
+        <div class="content-flash">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class="flashes">
+                {% for message in messages %}
+                <div class="flash">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+        </div>
+<h2>User Profile</h2>
+    <div class="profile_avatar">
+        <p>
+            <img src="{{ url_for('static', filename=current_user.avatarpath) }}" alt="User Avatar">
+        </p>
+    </div>
+    <div class="glass-panel-text">
+        <p>
+            <strong>Name: </strong>{{ current_user.name }}
+        </p>
+        <p>
+            <strong>Email: </strong>{{ current_user.email }}
+        </p>
+
+        <p>
+            <strong>About: </strong>{{ current_user.about }}
+        </p>
+        <p>
+           <br>
+            <a href="{{ url_for('main.settings_profile_edit') }}" class="button-glass">Edit Profile</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -59,17 +59,17 @@ def initial_setup():
 
     # Initialize whitelist
     try:
-        if not Whitelist.query.first():  # Check if the Whitelist table is empty
-            default_email = Config.INITIAL_WHITELIST  # Get the default email from config
+        if not Whitelist.query.first():
+            default_email = Config.INITIAL_WHITELIST
             default_whitelist = Whitelist(email=default_email)
             db.session.add(default_whitelist)
             db.session.commit()
             print("Default email added to Whitelist.")
     except IntegrityError:
-        db.session.rollback()  # Rollback in case of an integrity error
+        db.session.rollback()
         print('Default email already exists in the Whitelist.')
     except SQLAlchemyError as e:
-        db.session.rollback()  # Rollback in case of other database errors
+        db.session.rollback()
         print(f'An error occurred while adding the default email to the Whitelist: {e}')
 
     # Upgrade first user to admin
@@ -129,7 +129,7 @@ def login():
 
         return _authenticate_and_redirect(username, password)
 
-    return render_template('login.html', title='Log In')
+    return render_template('login/login.html', title='Log In')
 
 
 
@@ -138,18 +138,18 @@ def confirm_email(token):
     try:
         email = s.loads(token, salt='email-confirm', max_age=900)  # 15 minutes
     except SignatureExpired:
-        return render_template('confirmation_expired.html'), 400
+        return render_template('login/confirmation_expired.html'), 400
     except BadSignature:
-        return render_template('confirmation_invalid.html'), 400
+        return render_template('login/confirmation_invalid.html'), 400
 
     user = User.query.filter_by(email=email).first_or_404()
     if user.is_email_verified:
-        return render_template('registration_already_confirmed.html')
+        return render_template('login/registration_already_confirmed.html')
     else:
         user.is_email_verified = True
         db.session.add(user)
         db.session.commit()
-        return render_template('confirmation_success.html')
+        return render_template('login/confirmation_success.html')
 
 
 @bp.route('/reset_password_request', methods=['GET', 'POST'])
@@ -172,7 +172,7 @@ def reset_password_request():
         flash('Check your email for the instructions to reset your password')
         return redirect(url_for('main.login'))
 
-    return render_template('reset_password_request.html')
+    return render_template('login/reset_password_request.html')
 
 
 @bp.route('/reset_password/<token>', methods=['GET', 'POST'])
@@ -197,7 +197,7 @@ def reset_password(token):
         flash('Your password has been reset.')
         return redirect(url_for('main.login'))
 
-    return render_template('reset_password.html', token=token)
+    return render_template('login/reset_password.html', token=token)
 
 
 def admin_required(f):
@@ -256,7 +256,7 @@ def delete_avatar(avatar_path):
 @bp.route('/help')
 def privacy():
     print("Route: /help")
-    return render_template('help.html')
+    return render_template('site/help.html')
 
 
 @bp.route('/register', methods=['GET', 'POST'])
@@ -319,7 +319,7 @@ def register():
             # Send verification email
             token = user.email_verification_token
             confirm_url = url_for('main.confirm_email', token=token, _external=True)
-            html = render_template('registration_activate.html', confirm_url=confirm_url)
+            html = render_template('login/registration_activate.html', confirm_url=confirm_url)
             subject = "Please confirm your email"
             send_email(user.email, subject, html)
 
@@ -330,14 +330,14 @@ def register():
             print(f"IntegrityError occurred: {e}")
             flash('An error occurred while registering. Please try again.')
 
-    return render_template('registration.html', title='Register', form=form)
+    return render_template('login/registration.html', title='Register', form=form)
 
 
 @bp.route('/restricted')
 @login_required
 def restricted():
     print("Route: /restricted")
-    return render_template('restricted_area.html', title='Restricted Area')
+    return render_template('site/restricted_area.html', title='Restricted Area')
 
 
 @bp.route('/logout')
@@ -370,7 +370,7 @@ def account():
 
         return redirect(url_for('main.account'))
 
-    return render_template('settings_account.html', title='Account', form=form, user=user)
+    return render_template('settings/settings_account.html', title='Account', form=form, user=user)
 
 @bp.route('/settings_profile_edit', methods=['GET', 'POST'])
 @login_required
@@ -438,13 +438,13 @@ def settings_profile_edit():
             print(f"Error in field '{getattr(form, field).label.text}': {error}")
             flash(f"Error in field '{getattr(form, field).label.text}': {error}", 'error')
 
-    return render_template('settings_profile_edit.html', form=form, avatarpath=current_user.avatarpath)
+    return render_template('settings/settings_profile_edit.html', form=form, avatarpath=current_user.avatarpath)
 
 @bp.route('/settings_profile_view', methods=['GET'])
 @login_required
 def settings_profile_view():
     print("Route: Settings profile view")
-    return render_template('settings_profile_view.html')
+    return render_template('settings/settings_profile_view.html')
 
 
 @bp.route('/settings_password', methods=['GET', 'POST'])
@@ -467,7 +467,7 @@ def account_pw():
             print('An error occurred while changing the password:', str(e))
             flash('An error occurred. Please try again.', 'error')
 
-    return render_template('settings_password.html', title='Change Password', form=form, user=user)
+    return render_template('settings/settings_password.html', title='Change Password', form=form, user=user)
 
 @bp.route('/admin/base')
 @login_required
@@ -662,7 +662,7 @@ def send_password_reset_email(user_email, token):
     reset_url = url_for('main.reset_password', token=token, _external=True)
     msg = MailMessage(
         'Password Reset Request',
-        sender='halliday@pleasewaitloading.com',  # Replace with your actual sender email
+        sender='halliday@sharewarez.pleasewaitloading.com',  # Replace with your actual sender email
         recipients=[user_email],
         body=f'Please click on the link to reset your password: {reset_url}'
     )
@@ -706,7 +706,7 @@ def api_debug():
         print(f"Selected endpoint: {selected_endpoint} with query params: {query_params}")
         api_response = make_igdb_api_request(selected_endpoint, query_params)
         
-    return render_template('scan_apidebug.html', form=form, api_response=api_response)
+    return render_template('games/scan_apidebug.html', form=form, api_response=api_response)
 
 
 @bp.route('/check_igdb_id')
@@ -759,7 +759,7 @@ def scan_folder():
             # It's already initialized to None at the top, so it's safe even if this branch is hit
 
     print("Game names with IDs:", game_names_with_ids)
-    return render_template('scan_folder.html', form=form, game_names_with_ids=game_names_with_ids)
+    return render_template('games/scan_folder.html', form=form, game_names_with_ids=game_names_with_ids)
 
 
 
@@ -786,7 +786,7 @@ def add_game(game_name):
                 del session['game_paths']
         
         flash("Game added successfully.", "success")
-        return render_template('scan_add_game.html', game=game)
+        return render_template('games/scan_add_game.html', game=game)
     else:
         flash("Game not found or API error occurred.", "error")
         return redirect(url_for('main.scan_folder'))
@@ -798,7 +798,7 @@ def add_game_manual():
     if form.validate_on_submit():
         if check_existing_game_by_igdb_id(form.igdb_id.data):
             flash('A game with this IGDB ID already exists.', 'error')
-            return render_template('add_game_manual.html', form=form)
+            return render_template('games/manual_game_add.html', form=form)
         
         new_game = Game(
             igdb_id=form.igdb_id.data,
@@ -826,7 +826,7 @@ def add_game_manual():
         flash('Game added successfully.', 'success')
         return redirect(url_for('.browse_games'))
 
-    return render_template('add_game_manual.html', form=form)
+    return render_template('games/manual_game_add.html', form=form)
 
 @bp.route('/browse_games')
 def browse_games():
@@ -849,7 +849,7 @@ def browse_games():
 
     csrf_form = CsrfForm()
 
-    return render_template('browse_games.html', games=game_data, form=csrf_form)    
+    return render_template('games/library_browser.html', games=game_data, form=csrf_form)    
 
 @bp.route('/game_details/<string:game_uuid>')
 def game_details(game_uuid):
@@ -858,7 +858,6 @@ def game_details(game_uuid):
     try:
         valid_uuid = uuid.UUID(game_uuid, version=4)
     except ValueError:
-
         print(f"Invalid UUID format: {game_uuid}")
         abort(404)
 
@@ -872,14 +871,35 @@ def game_details(game_uuid):
             "name": game.name,
             "summary": game.summary,
             "storyline": game.storyline,
+            "aggregated_rating": game.aggregated_rating,
+            "aggregated_rating_count": game.aggregated_rating_count,
+            "cover": game.cover,
+            "first_release_date": game.first_release_date.strftime('%Y-%m-%d') if game.first_release_date else 'Not available',
+            "rating": game.rating,
+            "rating_count": game.rating_count,
+            "slug": game.slug,
+            "status": game.status.value if game.status else 'Not available',
+            "category": game.category.value if game.category else 'Not available',
+            "total_rating": game.total_rating,
+            "total_rating_count": game.total_rating_count,
+            "url_igdb": game.url_igdb,
             "url": game.url,
-            "full_disk_path": game.full_disk_path,
             "video_urls": game.video_urls,
-            "images": [{"id": img.id, "type": img.image_type, "url": img.url} for img in game.images.all()]
+            "full_disk_path": game.full_disk_path,
+            "images": [{"id": img.id, "type": img.image_type, "url": img.url} for img in game.images.all()],
+            "genres": [genre.name for genre in game.genres],
+            "game_modes": [mode.name for mode in game.game_modes],
+            "themes": [theme.name for theme in game.themes],
+            "platforms": [platform.name for platform in game.platforms],
+            "player_perspectives": [perspective.name for perspective in game.player_perspectives],
+            "developer": game.developer.name if game.developer else 'Not available',
+            "publisher": game.publisher.name if game.publisher else 'Not available',
+            "multiplayer_modes": [mode.name for mode in game.multiplayer_modes]
         }
-        return render_template('game_details.html', game=game_data)
+        return render_template('games/games_details.html', game=game_data)
     else:
-        return jsonify({"error": "Game not found"}), 404 
+        return jsonify({"error": "Game not found"}), 404
+
 
 @bp.route('/delete_game/<string:game_uuid>', methods=['POST'])
 def delete_game(game_uuid):
@@ -901,7 +921,7 @@ def delete_game(game_uuid):
             image_file_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], relative_image_path)
             image_file_path = os.path.normpath(image_file_path)
 
-            current_app.logger.info(f"Attempting to delete image file: {image_file_path}")
+            #print(f"Attempting to delete image file: {image_file_path}")
 
             if os.path.exists(image_file_path):
                 os.remove(image_file_path)
@@ -1035,7 +1055,7 @@ def downloads():
     user_id = current_user.id
     download_requests = DownloadRequest.query.filter_by(user_id=user_id).all()
     form = CsrfProtectForm()
-    return render_template('downloads.html', download_requests=download_requests, form=form)
+    return render_template('games/downloads_manager.html', download_requests=download_requests, form=form)
 
 
 @bp.route('/delete_download/<int:download_id>', methods=['POST'])
@@ -1458,7 +1478,8 @@ def make_igdb_api_request(endpoint_url, query_params):
         print(f"Making API request to {endpoint_url} with query params: {query_params}")
         response = requests.post(endpoint_url, headers=headers, data=query_params)
         response.raise_for_status()
-        print(f"API request successful: {response.json()}")
+        data = response.json()
+        print(f"API request successful: {json.dumps(data, indent=4)}")
         return response.json()
 
     except requests.RequestException as e:

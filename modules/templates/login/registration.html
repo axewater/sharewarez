@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<html>
+<head>
+    <title>Registration</title>
+    <link rel="stylesheet" href="/static/css/newstyle.css">
+</head>
+<body>
+    <div class="container-base">
+
+                <div class="container-builder">
+                    <div class="speech-bubble">Register here!</div>
+
+                    {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                    <div class="flashes">
+                        {% for message in messages %}
+                        <div class="flash">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+
+                    <form action="/register" method="post">
+                        {{ form.csrf_token }}
+                        <div class="form-group">
+                            {{ form.username.label }}
+                            {{ form.username(class_="input-glass") }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.email.label }}
+                            {{ form.email(class_="input-glass") }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.password.label }}
+                            {{ form.password(class_="input-glass") }}
+                        </div>
+                        <input type="submit" value="Register" class="button-glass">
+                    </form>
+                </div>
+        </div>
+    </div>
+</body>
+{% endblock %}

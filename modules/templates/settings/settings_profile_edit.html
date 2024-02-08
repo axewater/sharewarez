@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "settings/settings_navbar.html" %}
+<div class="container-builder">
+        <div class="content-flash">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class="flashes">
+                {% for message in messages %}
+                <div class="flash">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+        </div>
+<h2>Edit Profile</h2>
+    <div class="profile_avatar">
+        
+            <img src="{{ url_for('static', filename=avatarpath) }}" alt="User Avatar">
+        
+    </div>
+    <div class="profile_avatar_thumb">
+        {% set thumbnail_path = avatarpath | replace('.', '_thumbnail.') %}
+        <img src="{{ url_for('static', filename=thumbnail_path) if thumbnail_path else url_for('static', filename='nothumbnail.jpg') }}" alt="User Thumbnail" width="50" height="50">
+    </div>
+    <div class="profile_data">
+        <form method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            <p>
+                {{ form.avatar.label }}<br>
+                {{ form.avatar(class="button-glass") }}
+            </p>
+
+    </div>
+    <input class="button-glass" type="submit" value="Save Profile">
+    </form>
+</div>
+{% endblock %}
