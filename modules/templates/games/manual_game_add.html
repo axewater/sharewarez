@@ -104,7 +104,7 @@
 
             <div class="group-game-details">
 
-                <div class="form-group">
+                <div class="form-group" id="genres-container">
                     <label>Genres</label>
                     {% for subfield in form.genres %}
                     <div class="checkbox">
@@ -114,33 +114,39 @@
                     {% endfor %}
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" id="gamemodes-container">
                     <label>Game Modes</label>
                     {% for subfield in form.game_modes %}
                         <div class="checkbox">
-                            {{ subfield }} {{ subfield.label.text }}
+                            <input type="checkbox" id="game_mode_{{ loop.index0 }}" name="{{ subfield.name }}" value="{{ subfield.data }}" class="form-check-input">
+                            <label for="game_mode_{{ loop.index0 }}" class="form-check-label">{{ subfield.label.text }}</label>
                         </div>
                     {% endfor %}
                 </div>
-                <div class="form-group">
+                
+                <div class="form-group" id="themes-container">
                     <label>Themes</label>
                     {% for subfield in form.themes %}
                         <div class="checkbox">
-                            {{ subfield }} {{ subfield.label.text }}
+                            <input type="checkbox" id="theme_{{ loop.index0 }}" name="{{ subfield.name }}" value="{{ subfield.data }}" class="form-check-input">
+                            <label for="theme_{{ loop.index0 }}" class="form-check-label">{{ subfield.label.text }}</label>
                         </div>
                     {% endfor %}
                 </div>
+                
 
-                <div class="form-group">
+                <div class="form-group" id="platforms-container">
                     <label>Platforms</label>
                     {% for subfield in form.platforms %}
                         <div class="checkbox">
-                            {{ subfield }} {{ subfield.label.text }}
+                            <input type="checkbox" id="platform_{{ loop.index0 }}" name="{{ subfield.name }}" value="{{ subfield.data }}" class="form-check-input">
+                            <label for="platform_{{ loop.index0 }}" class="form-check-label">{{ subfield.label.text }}</label>
                         </div>
                     {% endfor %}
                 </div>
+                
             
-                <div class="form-group">
+                <div class="form-group" id="perspectives-container">
                     <label>Player Perspectives</label>
                     {% for subfield in form.player_perspectives %}
                         <div class="checkbox">
@@ -149,12 +155,12 @@
                     {% endfor %}
                 </div>
             </div>
-            <div class="form-group">
+            <div class="form-group" id="developer-container">
                 <label for="developer">Developer</label>
                 {{ form.developer(class="form-control") }}
             </div>
             
-            <div class="form-group">
+            <div class="form-group" id="publisher-container">
                 <label for="publisher">Publisher</label>
                 {{ form.publisher(class="form-control") }}
             </div>

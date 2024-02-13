@@ -33,6 +33,99 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function updateFormWithGameData(gameData) {
+        // Update genres
+        const genreCheckboxes = document.querySelectorAll('#genres-container .form-check-input');
+        
+        genreCheckboxes.forEach(checkbox => {
+            
+            const checkboxLabel = checkbox.nextElementSibling ? checkbox.nextElementSibling.textContent.trim().toLowerCase() : "";
+            const isGenreMatched = gameData.genres.some(genre => genre.name.toLowerCase() === checkboxLabel);
+            
+            
+            if (isGenreMatched) {
+                checkbox.checked = true;
+            } else {
+                checkbox.checked = false;
+            }
+        });
+
+        // Update game modes
+        const gameModeCheckboxes = document.querySelectorAll('#gamemodes-container input[type="checkbox"]');
+        console.log("Found game mode checkboxes: ", gameModeCheckboxes.length);
+        
+        gameModeCheckboxes.forEach((checkbox) => {
+            // Assuming the next sibling of the checkbox is its label
+            const checkboxLabel = checkbox.nextElementSibling ? checkbox.nextElementSibling.textContent.trim().toLowerCase() : "";
+            console.log(`Checkbox label: "${checkboxLabel}"`);
+        
+            // Adjust the comparison logic as needed to account for any data discrepancies
+            const isGameModeMatched = gameData.game_modes.some(mode => mode.name.toLowerCase() === checkboxLabel);
+        
+            console.log(`Is game mode matched? ${isGameModeMatched}`);
+            checkbox.checked = isGameModeMatched;
+        });
+        
+
+
+
+        // Update themes
+        const themeCheckboxes = document.querySelectorAll('#themes-container .form-check-input');
+        themeCheckboxes.forEach(checkbox => {
+            const label = document.querySelector(`label[for="${checkbox.id}"]`);
+            const labelText = label ? label.textContent.trim() : "";
+            if (gameData.themes.some(theme => theme.name === labelText)) {
+                checkbox.checked = true;
+            } else {
+                checkbox.checked = false;
+            }
+        });
+
+
+        // Update platforms
+        const platformCheckboxes = document.querySelectorAll('#platforms-container .form-check-input');
+        platformCheckboxes.forEach(checkbox => {
+            const label = document.querySelector(`label[for="${checkbox.id}"]`);
+            const labelText = label ? label.textContent.trim() : "";
+            if (gameData.platforms.some(platform => platform.name === labelText)) {
+                checkbox.checked = true;
+            } else {
+                checkbox.checked = false;
+            }
+        });
+
+
+        // Update player perspectives
+        const perspectiveCheckboxes = document.querySelectorAll('#player_perspectives .form-check-input');
+        perspectiveCheckboxes.forEach(checkbox => {
+            if (gameData.player_perspectives.some(perspective => perspective.name === checkbox.nextSibling.textContent)) {
+                checkbox.checked = true;
+            }
+        });
+
+        // Assuming Developer and Publisher are single selects and you're managing IDs or names
+        // Update Developer - Adjust this part based on your actual field setup
+        const developerSelect = document.querySelector('#developer');
+        if (developerSelect && gameData.developer) {
+            const optionToSelect = Array.from(developerSelect.options).find(option => option.textContent === gameData.developer.name);
+            if (optionToSelect) {
+                developerSelect.value = optionToSelect.value;
+            }
+        }
+
+        // Update Publisher - Adjust this part based on your actual field setup
+        const publisherSelect = document.querySelector('#publisher');
+        if (publisherSelect && gameData.publisher) {
+            const optionToSelect = Array.from(publisherSelect.options).find(option => option.textContent === gameData.publisher.name);
+            if (optionToSelect) {
+                publisherSelect.value = optionToSelect.value;
+            }
+        }
+    }
+
+
+
+
     function checkFieldsAndToggleSubmit() {
         const igdbIdIsValid = igdbIdInput.value.trim().length > 0 && /^\d+$/.test(igdbIdInput.value);
         const fullPathIsValid = fullPathInput.value.trim().length > 0;
@@ -71,10 +164,12 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch(`/search_igdb_by_id?igdb_id=${igdbId}`)
                 .then(response => response.json())
                 .then(data => {
+                    console.log("API Response (IGDB id Search):", data);
+                    
                     if (data.error) {
                         console.error('Error:', data.error);
                     } else {
-                        
+                        updateFormWithGameData(data); // Call the new function with the game data
                         nameInput.value = data.name;
                         document.querySelector('#summary').value = data.summary;
                         document.querySelector('#storyline').value = data.storyline || '';
@@ -113,9 +208,10 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch(`/search_igdb_by_name?name=${encodeURIComponent(gameName)}`)
                 .then(response => response.json())
                 .then(data => {
-                    console.log("API Response (IGDB Search):", data);
+                    console.log("API Response (IGDB name Search):", data);
                     const resultsContainer = document.querySelector('#search-results');
                     resultsContainer.innerHTML = ''; 
+                    updateFormWithGameData(data); // Call the new function with the game data
 
                     if (data.results && data.results.length > 0) {
                         data.results.forEach(game => {

@@ -1089,7 +1089,7 @@ def search_igdb_by_id():
     query_params = f"""
         fields name, summary, cover.url, summary, url, release_dates.date, platforms.name, genres.name, themes.name, game_modes.name, 
                screenshots.url, videos.video_id, first_release_date, aggregated_rating,
-               aggregated_rating_count, rating, rating_count, slug, status, category, total_rating,
+               aggregated_rating_count, rating, rating_count, status, category, total_rating,
                total_rating_count;
         where id = {igdb_id};
     """
@@ -1321,7 +1321,7 @@ def process_and_save_image(game_uuid, image_data, image_type='cover'):
     
 def retrieve_and_save_game(game_name, full_disk_path):
 
-    print(f"Fetching game data for {game_name} with full disk path {full_disk_path}.")
+    print(f"retrieve_and_save data for {game_name} with full disk path {full_disk_path}.")
     response_json = make_igdb_api_request(current_app.config['IGDB_API_ENDPOINT'],
         f"""fields id, name, cover, summary, url, release_dates.date, platforms.name, genres.name, themes.name, game_modes.name,
                    screenshots, videos.video_id, first_release_date, aggregated_rating, involved_companies,
