@@ -1,6 +1,6 @@
 # forms.py
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, SelectField, BooleanField, SubmitField, PasswordField, TextAreaField, RadioField, FloatField, DateTimeField
+from wtforms import StringField, IntegerField, SelectField, BooleanField, SubmitField, PasswordField, TextAreaField, RadioField, FloatField, DateTimeField, ValidationError, HiddenField
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from wtforms.validators import DataRequired, Length, Optional, NumberRange, Regexp, URL,Email
 from wtforms.widgets import TextInput
@@ -8,6 +8,34 @@ from wtforms_sqlalchemy.fields import QuerySelectMultipleField
 from wtforms.widgets import ListWidget, CheckboxInput
 from wtforms.fields import URLField, DateField
 from modules.models import Status, Category, genre_choices, game_mode_choices, theme_choices, platform_choices, player_perspective_choices, developer_choices, publisher_choices
+from urllib.parse import urlparse
+
+def comma_separated_urls(form, field):
+    if field.data:
+        urls = field.data.split(',')
+        for url in urls:
+            parsed_url = urlparse(url.strip())
+            if not (parsed_url.scheme and parsed_url.netloc):
+                raise ValidationError('Invalid URL.')
+
+
+class UpdateUnmatchedFolderForm(FlaskForm):
+    folder_id = HiddenField('Folder ID', validators=[DataRequired()])
+    new_status = HiddenField('New Status', default='Ignore')
+    submit = SubmitField('Ignore')
+
+class LoginForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Login')
+    
+class ResetPasswordRequestForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Request Password Reset')
+
+class AutoScanForm(FlaskForm):
+    folder_path = StringField('Folder Path', validators=[DataRequired()])
+    submit = SubmitField('AutoScan')
 
 class WhitelistForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
@@ -86,7 +114,7 @@ class AddGameForm(FlaskForm):
     storyline = TextAreaField('Storyline', validators=[Optional()])
     url = StringField('URL', validators=[Optional(), URL()])
     full_disk_path = StringField('Full Disk Path', validators=[DataRequired()], widget=TextInput())
-    video_urls = StringField('Video URLs', validators=[Optional(), URL()])
+    video_urls = StringField('Video URLs', validators=[Optional(), comma_separated_urls])
     aggregated_rating = FloatField('Aggregated Rating', validators=[Optional()])
     first_release_date = DateField('First Release Date', format='%Y-%m-%d', validators=[Optional()])
     status = SelectField('Status', choices=[(choice.name, choice.value) for choice in Status], coerce=str, validators=[Optional()])
@@ -96,8 +124,8 @@ class AddGameForm(FlaskForm):
     themes = QuerySelectMultipleField('Themes', query_factory=theme_choices, get_label='name', widget=ListWidget(prefix_label=False), option_widget=CheckboxInput())
     platforms = QuerySelectMultipleField('Platforms', query_factory=platform_choices, get_label='name', widget=ListWidget(prefix_label=False), option_widget=CheckboxInput())
     player_perspectives = QuerySelectMultipleField('Player Perspectives', query_factory=player_perspective_choices, get_label='name', widget=ListWidget(prefix_label=False), option_widget=CheckboxInput())
-    developer = QuerySelectMultipleField('Developer', query_factory=developer_choices, get_label='name')
-    publisher = QuerySelectMultipleField('Publisher', query_factory=publisher_choices, get_label='name')
+    developer = StringField('Developer', validators=[Optional()])
+    publisher = StringField('Publisher', validators=[Optional()])
 
     submit = SubmitField('Save')    
     
@@ -106,3 +134,17 @@ class ClearDownloadRequestsForm(FlaskForm):
     
 class CsrfProtectForm(FlaskForm):
     pass
+
+class CsrfForm(FlaskForm):
+    pass 
+
+class ReleaseGroupForm(FlaskForm):
+    rlsgroup = StringField('Release Group', validators=[DataRequired()])
+    rlsgroupcs = SelectField('Case-Sensitive Release Group', choices=[('no', 'No'), ('yes', 'Yes')], default='no')
+    submit = SubmitField('Add')
+    
+class RegistrationForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
+    submit = SubmitField('Register')

@@ -19,12 +19,13 @@
 
             <div class="container-base">
                 <div class="container-builder">
-                    <h1 class="logo">AceBoard</h1>
+                    <h1 class="logo">ShareWareZ</h1>
 You can register for an account if your email has been whitelisted
                 </div>
             </div>
             <div class="container-builder">
                 <form action="/login" method="post">
+                    {{ form.hidden_tag() }}
                     <label for="username">Username:</label><br>
                     <input type="text" class="input-glass" id="username" name="username"><br>
                     <label for="password">Password:</label><br>
@@ -33,9 +34,9 @@ You can register for an account if your email has been whitelisted
                         <input type="submit" value="LOGIN" class="button-glass">
                         <a href="/register" class="button-glass">REGISTER</a>
                         <a href="{{ url_for('main.reset_password_request') }}" class="button-glass">Forgot Password?</a>
-
                     </div>
                 </form>
+                
             </div>
         </div>
     </div>

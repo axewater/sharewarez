@@ -7,8 +7,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitButton = document.querySelector('button[type="submit"]');
     const igdbIdFeedback = document.querySelector('#igdb_id_feedback');
     const fullPathFeedback = document.createElement('small');
-    const developerInput = document.querySelector('#developer');
-    const publisherInput = document.querySelector('#publisher');
     fullPathFeedback.id = 'full_disk_path_feedback';
     fullPathInput.parentNode.insertBefore(fullPathFeedback, fullPathInput.nextSibling);
 
@@ -19,7 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function updateButtonState(isDisabled) {
-        console.log(`Update submit button state: ${isDisabled ? 'Disabled' : 'Enabled'}`);
         submitButton.disabled = isDisabled;
         if (isDisabled) {
             $(submitButton).tooltip('enable');
@@ -39,123 +36,90 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateFormWithGameData(gameData) {
         // Update genres
         const genreCheckboxes = document.querySelectorAll('#genres-container .form-check-input');
+        
         genreCheckboxes.forEach(checkbox => {
+            
             const checkboxLabel = checkbox.nextElementSibling ? checkbox.nextElementSibling.textContent.trim().toLowerCase() : "";
-            // Check if genres exist in gameData and then if current genre matches any of those genres
-            const isGenreMatched = gameData.genres ? gameData.genres.some(genre => genre.name.toLowerCase() === checkboxLabel) : false;
-            checkbox.checked = isGenreMatched;
+            const isGenreMatched = gameData.genres.some(genre => genre.name.toLowerCase() === checkboxLabel);
+            
+            
+            if (isGenreMatched) {
+                checkbox.checked = true;
+            } else {
+                checkbox.checked = false;
+            }
         });
-    
+
         // Update game modes
         const gameModeCheckboxes = document.querySelectorAll('#gamemodes-container input[type="checkbox"]');
+        console.log("Found game mode checkboxes: ", gameModeCheckboxes.length);
+        
         gameModeCheckboxes.forEach((checkbox) => {
+            // Assuming the next sibling of the checkbox is its label
             const checkboxLabel = checkbox.nextElementSibling ? checkbox.nextElementSibling.textContent.trim().toLowerCase() : "";
-            // Check if game_modes exist in gameData and then if current game mode matches any of those game modes
-            const isGameModeMatched = gameData.game_modes ? gameData.game_modes.some(mode => mode.name.toLowerCase() === checkboxLabel) : false;
+            console.log(`Checkbox label: "${checkboxLabel}"`);
+        
+            // Adjust the comparison logic as needed to account for any data discrepancies
+            const isGameModeMatched = gameData.game_modes.some(mode => mode.name.toLowerCase() === checkboxLabel);
+        
+            console.log(`Is game mode matched? ${isGameModeMatched}`);
             checkbox.checked = isGameModeMatched;
         });
-    
+        
+
+
+
         // Update themes
         const themeCheckboxes = document.querySelectorAll('#themes-container .form-check-input');
         themeCheckboxes.forEach(checkbox => {
             const label = document.querySelector(`label[for="${checkbox.id}"]`);
             const labelText = label ? label.textContent.trim() : "";
-            // Check if themes exist in gameData and then if current theme matches any of those themes
-            const isThemeMatched = gameData.themes ? gameData.themes.some(theme => theme.name === labelText) : false;
-            checkbox.checked = isThemeMatched;
+            if (gameData.themes.some(theme => theme.name === labelText)) {
+                checkbox.checked = true;
+            } else {
+                checkbox.checked = false;
+            }
         });
-    
+
+
         // Update platforms
         const platformCheckboxes = document.querySelectorAll('#platforms-container .form-check-input');
         platformCheckboxes.forEach(checkbox => {
             const label = document.querySelector(`label[for="${checkbox.id}"]`);
             const labelText = label ? label.textContent.trim() : "";
-            // Check if platforms exist in gameData and then if current platform matches any of those platforms
-            const isPlatformMatched = gameData.platforms ? gameData.platforms.some(platform => platform.name === labelText) : false;
-            checkbox.checked = isPlatformMatched;
+            if (gameData.platforms.some(platform => platform.name === labelText)) {
+                checkbox.checked = true;
+            } else {
+                checkbox.checked = false;
+            }
         });
 
 
         // Update player perspectives
-        const perspectiveCheckboxes = document.querySelectorAll('#perspectives-container input[type="checkbox"]');
-        console.log("Found perspective checkboxes: ", perspectiveCheckboxes.length);
+        const perspectiveCheckboxes = document.querySelectorAll('#player_perspectives .form-check-input');
         perspectiveCheckboxes.forEach(checkbox => {
-            // Since the label text is directly after the checkbox, we use the checkbox ID to match the label text.
-            const labelText = checkbox.nextSibling.textContent.trim();
-            // Check if player_perspectives exist in gameData and then if current perspective matches any of those perspectives
-            const isPerspectiveMatched = gameData.player_perspectives ? gameData.player_perspectives.some(perspective => perspective.name === labelText) : false;
-            checkbox.checked = isPerspectiveMatched;
+            if (gameData.player_perspectives.some(perspective => perspective.name === checkbox.nextSibling.textContent)) {
+                checkbox.checked = true;
+            }
         });
 
-
-
-
-        // Assuming gameData.involved_companies is an array of company IDs
-        if (gameData.involved_companies && gameData.involved_companies.length > 0) {
-            // Map each companyId to a fetch promise
-            const companyFetchPromises = gameData.involved_companies.map(companyId =>
-                fetch(`/api/get_company_role?game_igdb_id=${gameData.id}&company_id=${companyId}`)
-                    .then(response => response.json())
-            );
-
-            // Wait for all fetch promises to resolve
-            Promise.all(companyFetchPromises)
-                .then(results => {
-                    // Flags to check if we found any developer or publisher
-                    let foundDeveloper = false;
-                    let foundPublisher = false;
-
-                    results.forEach(data => {
-                        if (data.error) {
-                            console.error('Error:', data.error);
-                        } else {
-                            // Check the role and update the corresponding field
-                            if (data.role === 'Developer') {
-                                const developerInput = document.querySelector('#developer');
-                                developerInput.value = data.company_name;
-                                foundDeveloper = true;
-                            } else if (data.role === 'Publisher') {
-                                const publisherInput = document.querySelector('#publisher');
-                                publisherInput.value = data.company_name;
-                                foundPublisher = true;
-                            }
-                        }
-                    });
-
-                    // Set to 'Not Found' if no developer or publisher was found
-                    if (!foundDeveloper) {
-                        document.querySelector('#developer').value = 'Not Found';
-                    }
-                    if (!foundPublisher) {
-                        document.querySelector('#publisher').value = 'Not Found';
-                    }
-                })
-                .catch(error => console.error('Error processing company roles:', error));
-        } else {
-            // If no involved companies, set developer and publisher to 'Not Found'
-            document.querySelector('#developer').value = 'Not Found';
-            document.querySelector('#publisher').value = 'Not Found';
+        // Assuming Developer and Publisher are single selects and you're managing IDs or names
+        // Update Developer - Adjust this part based on your actual field setup
+        const developerSelect = document.querySelector('#developer');
+        if (developerSelect && gameData.developer) {
+            const optionToSelect = Array.from(developerSelect.options).find(option => option.textContent === gameData.developer.name);
+            if (optionToSelect) {
+                developerSelect.value = optionToSelect.value;
+            }
         }
 
-
-        // Update for video URLs
-        const videoURLsInput = document.querySelector('#video_urls');
-        if (gameData.videos && gameData.videos.length > 0) {
-            // Form the YouTube URLs and join them with commas, ensuring they start with https://
-            const videoURLs = gameData.videos.map(video => {
-                // Check if video.url is defined to avoid TypeError
-                if (video.url) {
-                    let url = video.url;
-                    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                        url = 'https://' + url; // Prepend https:// if no scheme is present
-                    }
-                    return url;
-                }
-                return ''; // Return an empty string or a placeholder URL if video.url is undefined
-            }).filter(url => url !== '').join(','); // Filter out any empty strings to avoid invalid URLs in the list
-            videoURLsInput.value = videoURLs; // Populate the input field with corrected YouTube URLs
-        } else {
-            videoURLsInput.value = ''; // Clear the field if there are no videos
+        // Update Publisher - Adjust this part based on your actual field setup
+        const publisherSelect = document.querySelector('#publisher');
+        if (publisherSelect && gameData.publisher) {
+            const optionToSelect = Array.from(publisherSelect.options).find(option => option.textContent === gameData.publisher.name);
+            if (optionToSelect) {
+                publisherSelect.value = optionToSelect.value;
+            }
         }
     }
 
@@ -205,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data.error) {
                         console.error('Error:', data.error);
                     } else {
-                        updateFormWithGameData(data);
+                        updateFormWithGameData(data); // Call the new function with the game data
                         nameInput.value = data.name;
                         document.querySelector('#summary').value = data.summary;
                         document.querySelector('#storyline').value = data.storyline || '';
@@ -237,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
 
-    document.querySelector('#search-igdb').addEventListener('click', function() {
+        document.querySelector('#search-igdb').addEventListener('click', function() {
         const gameName = nameInput.value;
         console.log(`Initiating IGDB search for name: ${gameName}`);
         if (gameName) {
@@ -246,55 +210,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(data => {
                     console.log("API Response (IGDB name Search):", data);
                     const resultsContainer = document.querySelector('#search-results');
-                    resultsContainer.innerHTML = '';
+                    resultsContainer.innerHTML = ''; 
+                    updateFormWithGameData(data); // Call the new function with the game data
+
                     if (data.results && data.results.length > 0) {
                         data.results.forEach(game => {
                             const resultItem = document.createElement('div');
                             resultItem.className = 'search-result-item';
-                            
-                            // Initialize the img element early to ensure order
-                            const img = document.createElement('img');
-                            img.alt = 'Cover Image';
-                            img.style.width = '50px'; // Adjust size as needed
-                            img.style.height = 'auto';
-                            img.style.marginRight = '10px'; // Spacing between image and text
-    
-                            // Fetch the cover thumbnail URL
-                            fetch(`/api/get_cover_thumbnail?igdb_id=${game.id}`)
-                            .then(response => response.json())
-                            .then(coverData => {
-                                if (!coverData.error && coverData.cover_url) {
-                                    img.src = coverData.cover_url;
-                                } else {
-                                    // Use a fallback image if cover URL not found
-                                    img.src = '/static/newstyle/nocoverfound.png';
-                                }
-                                // Prepend the img element regardless of fetch outcome
-                                resultItem.prepend(img);
-                            })
-                            .catch(error => {
-                                console.error('Error fetching cover thumbnail:', error);
-                                img.src = '/static/newstyle/nocoverfound.png'; // Fallback if fetch fails
-                                resultItem.prepend(img);
-                            });
-                            
-                            // Append game name text
-                            const textNode = document.createTextNode(game.name);
-                            resultItem.appendChild(textNode);
-    
+                            resultItem.textContent = game.name;
                             resultItem.addEventListener('click', function() {
-                                // Update form with game data upon selection
-                                updateFormWithGameData(game);
-    
                                 igdbIdInput.value = game.id;
                                 nameInput.value = game.name;
                                 document.querySelector('#summary').value = game.summary || '';
                                 document.querySelector('#storyline').value = game.storyline || '';
                                 document.querySelector('#url').value = game.url || '';
+                                urlInput.value = game.url || '';
                                 checkFieldsAndToggleSubmit();
-                                resultsContainer.innerHTML = ''; // Clear results after selection
+                                resultsContainer.innerHTML = '';
                             });
-    
                             resultsContainer.appendChild(resultItem);
                         });
                     } else {
@@ -306,9 +239,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         }
     });
-    
-    
-    
 
     igdbIdInput.addEventListener('input', function() {
         this.value = this.value.replace(/\D/g, '');
@@ -359,24 +289,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
     });
-
-    submitButton.addEventListener('click', function() {
-        console.log("Form submission initiated.");
-        try {
-            // Printing form data before submission
-            const formData = {
-                igdbId: igdbIdInput.value,
-                fullPath: fullPathInput.value,
-                name: nameInput.value,
-                url: urlInput.value
-            };
-            console.log("Form data:", formData);
-        } catch (error) {
-            console.error("Error preparing form data for submission:", error);
-        }
-    });
-
-
 
     checkFieldsAndToggleSubmit();
     console.log("Ready to add a game!.");

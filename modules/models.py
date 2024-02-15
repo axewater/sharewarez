@@ -11,19 +11,27 @@ from uuid import uuid4
 
 from enum import Enum as PyEnum
 
-
-
 class JSONEncodedDict(TypeDecorator):
     impl = TEXT
 
     def process_bind_param(self, value, dialect):
         if value is not None:
-            value = json.dumps(value)
+            try:
+                return json.dumps(value)
+            except (TypeError, ValueError) as e:
+                print(f"Error serializing JSON: {e}")
+                # Optionally, return None or some default value
+                return None
         return value
 
     def process_result_value(self, value, dialect):
         if value is not None:
-            value = json.loads(value)
+            try:
+                return json.loads(value)
+            except (TypeError, ValueError) as e:
+                print(f"Error deserializing JSON: {e}")
+                # Return a default value to ensure the application can continue
+                return {}
         return value
 
 
@@ -336,4 +344,29 @@ def developer_choices():
 
 def publisher_choices():
     return Publisher.query.all()
+
+
+from sqlalchemy.dialects.sqlite import TEXT as SQLite_TEXT
+
+class ScanJob(db.Model):
+    __tablename__ = 'scan_jobs'
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    folders = db.Column(JSONEncodedDict)
+    content_type = db.Column(db.Enum('Games', name='content_type_enum'))
+    schedule = db.Column(db.Enum('8_hours', '24_hours', '48_hours', name='schedule_enum'))
+    is_enabled = db.Column(db.Boolean, default=True)
+    status = db.Column(db.Enum('Scheduled', 'Running', 'Completed', 'Failed', name='status_enum'))
+    last_run = db.Column(db.DateTime, nullable=True)
+    next_run = db.Column(db.DateTime, nullable=True)
+
+class UnmatchedFolder(db.Model):
+    __tablename__ = 'unmatched_folders'
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    scan_job_id = db.Column(db.String(36), db.ForeignKey('scan_jobs.id'))
+    folder_path = db.Column(db.String)
+    failed_time = db.Column(db.DateTime)
+    content_type = db.Column(db.Enum('Games', name='unmatched_folder_content_type_enum'))
+    status = db.Column(db.Enum('Pending', 'Ignore', name='unmatched_folder_status_enum'))
+
+    
 

@@ -1,0 +1,57 @@
+<!-- templates/games/scan_auto_folder.html -->
+{% extends "base.html" %}
+
+{% block content %}
+
+{% include "/admin/navbar.html" %}
+{% include "games/games_add_navbar.html" %}
+
+<div class="glass-panel-scanfolder">
+    <h2>Full automatic folder scanner</h2>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.folder_path.label }}
+            {{ form.folder_path(class="form-control") }}
+            {% if form.folder_path.errors %}
+                {% for error in form.folder_path.errors %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn btn-primary", id="autoscan-button") }}
+        </div>
+    </form>
+    <a href="{{ url_for('main.scan_jobs_manager') }}" class="btn btn-secondary" id="running-jobs-button" style="display: none;">Running Jobs</a>
+</div>
+After pressing autoscan, you can check scan progress in SCAN JOB MANAGER
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+    function checkScanStatus() {
+        fetch("{{ url_for('main.check_scan_status') }}")
+        .then(response => response.json())
+        .then(data => {
+            const autoscanButton = document.getElementById('autoscan-button');
+            const runningJobsButton = document.getElementById('running-jobs-button');
+            if (data.is_active) {
+                autoscanButton.disabled = true;
+                runningJobsButton.style.display = 'block';
+            } else {
+                autoscanButton.disabled = false;
+                runningJobsButton.style.display = 'none';
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Check status every 5 seconds. Adjust the interval as needed.
+    setInterval(checkScanStatus, 5000);
+
+    // Also check status immediately when the page loads.
+    checkScanStatus();
+});
+</script>
+{% endblock %}

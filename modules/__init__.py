@@ -1,19 +1,17 @@
-import sys
-import os
-from flask_mail import Mail, Message as MailMessage
+#/modules/__init__.py
+import sys, os, re
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+from flask_mail import Mail, Message as MailMessage
 from flask import Flask, Markup
 from flask_wtf.csrf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import Config
-
-import re
 from flask_migrate import Migrate
-import logging
-from logging.handlers import RotatingFileHandler
+from modules.routes_site import site_bp
+# import logging
+# from logging.handlers import RotatingFileHandler
 
 
 db = SQLAlchemy()
@@ -27,10 +25,7 @@ def create_app():
     app.config.from_object(Config)
     csrf = CSRFProtect(app)
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/avatars_users')
-    
-
     db.init_app(app)
-    # migrate = Migrate(app, db)
     login_manager.init_app(app)
     mail.init_app(app)
     login_manager.login_view = 'main.index'
@@ -44,12 +39,9 @@ def create_app():
         from . import routes, models
         db.create_all()
         insert_default_release_groups()
-
-
-
     app.register_blueprint(routes.bp)
+    app.register_blueprint(site_bp)
     return app
-
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -90,4 +82,3 @@ def insert_default_release_groups():
             db.session.add(new_group)
     db.session.commit()
 
-# Make sure this is called after db.create_all() within app.app_context()

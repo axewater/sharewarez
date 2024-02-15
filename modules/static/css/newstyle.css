@@ -1,6 +1,6 @@
 
 body {
-    background-image: url('/static/newstyle/gamebackdrop2.png'); 
+    background-image: url('/static/newstyle/1.jpg'); 
     background-size: cover;
     background-repeat: no-repeat;
 
@@ -362,6 +362,36 @@ body {
 
 }
 
+.glass-panel-unmatchedfolder {
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+    gap: 1px;
+    align-items: left;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 75%;
+
+}
+
+
+.glass-filter-editor {
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+    gap: 1px;
+    align-items: left;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 75%;
+
+}
 .game-entry {
     display: flex;
     justify-content: space-between;
@@ -439,9 +469,17 @@ body {
     flex-direction: column;
     border-radius: 15px;
     padding: 15px;
-    width: 1000px;
+    
+    max-width: 700px;
     margin: 25px;
 }
+
+.glass-panel-addgame-top {
+    display: flex;
+    flex-direction: row;
+    gap: 300px;
+}
+
 
 .group-images-gamedetails {
     display: flex;

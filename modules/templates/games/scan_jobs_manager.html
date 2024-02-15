@@ -1,0 +1,34 @@
+<!-- templates/scan_jobs_manager.html -->
+{% extends "base.html" %}
+
+{% block content %}
+
+{% include "/admin/navbar.html" %}
+{% include "games/games_add_navbar.html" %}
+
+<div class="glass-panel-scanfolder">
+    <h2>Scan Jobs</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Folders</th>
+                <th>Status</th>
+                <th>Last Run</th>
+                <th>Next Run</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+            <tr>
+                <td>{{ job.id }}</td>
+                <td>{{ job.folders }}</td>
+                <td>{{ job.status }}</td>
+                <td>{{ job.last_run }}</td>
+                <td>{{ job.next_run }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

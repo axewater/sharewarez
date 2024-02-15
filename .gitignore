@@ -2,3 +2,9 @@ config.py
 .env
 app.db
 instance/app.db
+/logs/*
+/logs
+/modules/static/zips/
+/modules/static/zips/*
+/modules/static/images/
+/modules/static/images/*

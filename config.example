@@ -2,15 +2,20 @@ import os
 from datetime import timedelta
 
 class Config(object):
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'supersecretkeyzaresalty12345'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or '1111222232334434545455666778898fhdesuilv'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-    MAIL_SERVER = 'smtp.yourisp.com'
+    IMAGE_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/images')
+    ZIP_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/zips')
+    MAIL_SERVER = 'mail.myisp.com'
     MAIL_PORT = 25
     MAIL_USE_TLS = False
     MAIL_USERNAME = None
     MAIL_PASSWORD = None
-    MAIL_DEFAULT_SENDER = 'admin@yourdomain.com'
+    MAIL_DEFAULT_SENDER = 'admin@warezsite.com'
     REMEMBER_COOKIE_DURATION = timedelta(days=30)
-    INITIAL_WHITELIST = 'youradminemail@yourdomain.com'
+    INITIAL_WHITELIST = 'putyouradminemailhere@gmail.com'
+    IGDB_CLIENT_ID = 'get this from igdb'
+    IGDB_CLIENT_SECRET = 'get this from igdb'
+    IGDB_API_ENDPOINT = 'https://api.igdb.com/v4/games'
+    SCHEDULER_API_ENABLED = True

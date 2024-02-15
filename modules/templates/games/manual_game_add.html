@@ -17,15 +17,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if from_unmatched %}
+    <title>Edit Unmatched Folder Entry</title>
+    {% else %}
     <title>Add Game Manually</title>
+    {% endif %}
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script> 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 <body>
     <div class="glass-panel-addgame">
-        <h2>Add Game Manually</h2>
+
+        
         <form method="POST" action="">
+            <div class="glass-panel-addgame-top">
+                {% if from_unmatched %}
+                <h2>Edit Unmatched Folder Entry</h2>
+                {% else %}
+                <h2>Add Game Manually</h2>
+                {% endif %}
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
             {{ form.hidden_tag() }}
             <div class="form-group">
                 <label for="name">IGDB ID#</label>
@@ -98,7 +112,7 @@
                 {{ form.status(class="form-control") }}
             </div>
             <div class="form-group">
-                <label for="category">Category</label>
+                <label for="category">Release Type</label>
                 {{ form.category(class="form-control") }}
             </div>
 
@@ -157,15 +171,16 @@
             </div>
             <div class="form-group" id="developer-container">
                 <label for="developer">Developer</label>
-                {{ form.developer(class="form-control") }}
+                <input type="text" id="developer" name="developer" value="{{ form.developer.data }}">
             </div>
             
             <div class="form-group" id="publisher-container">
                 <label for="publisher">Publisher</label>
-                {{ form.publisher(class="form-control") }}
+                <input type="text" id="publisher" name="publisher" value="{{ form.publisher.data }}">
             </div>
+            
                         
-            <button type="submit" class="btn btn-primary">Save</button>
+
         </form>
     </div>
     {% block scripts %}

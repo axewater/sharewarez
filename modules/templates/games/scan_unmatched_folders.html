@@ -1,0 +1,47 @@
+<!-- templates/unmatched_folders.html -->
+{% extends "base.html" %}
+
+{% block content %}
+{% include "/admin/navbar.html" %}
+{% include "games/games_add_navbar.html" %}
+<div class="glass-panel-unmatchedfolder">
+    <h2>Unmatched Folders</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Folder Path</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+            {% for folder in folders %}
+            <tr>
+                
+                    <td>{{ folder.folder_path }}</td>
+                    <td>{{ folder.status }}</td>
+                
+                <td>
+                    
+                    <form method="post" action="{{ url_for('main.update_unmatched_folder_status') }}">
+                        <input type="hidden" name="folder_id" value="{{ folder.id }}">
+                        <input type="hidden" name="new_status" value="Ignore">
+                        {{ form.csrf_token }}
+                        <input type="submit" class="button-glass" value="Ignore">
+                    </form>
+                    <!-- New Edit Form -->
+                    <form action="{{ url_for('main.add_game_manual') }}" method="GET" style="display: inline;">
+                        <input type="hidden" name="full_disk_path" value="{{ folder.folder_path }}">
+                        <input type="hidden" name="from_unmatched" value="true">
+                        <input type="submit" class="button-glass" value="Edit">
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+</div>
+{% endblock %}
