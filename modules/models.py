@@ -167,7 +167,7 @@ class Game(db.Model):
     total_rating_count = db.Column(db.Integer)
     url_igdb = db.Column(db.String)
     url = db.Column(db.String)
-    video_urls = db.Column(JSONEncodedDict)
+    video_urls = db.Column(db.String, nullable=True)
     full_disk_path = db.Column(db.String, nullable=True)
     images = db.relationship("Image", backref="game", lazy='dynamic')
     genres = db.relationship('Genre', secondary=game_genre_association, back_populates='games')
@@ -181,7 +181,7 @@ class Game(db.Model):
     publisher_id = db.Column(db.Integer, db.ForeignKey('publishers.id'), nullable=True)
     download_requests = db.relationship('DownloadRequest', back_populates='game', lazy='dynamic', cascade='delete')
     multiplayer_modes = db.relationship("MultiplayerMode", secondary=game_multiplayer_mode_association, back_populates="games")    
-    
+    size = db.Column(db.Float, nullable=True)
 
     def __repr__(self):
         return f"<Game id={self.id}, name={self.name}>"

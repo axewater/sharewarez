@@ -7,9 +7,11 @@ from flask import copy_current_request_context
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_wtf import FlaskForm
 from flask_mail import Message as MailMessage
+from flask_cors import cross_origin
 from wtforms import StringField, PasswordField, SubmitField, FieldList, BooleanField
 from wtforms.validators import DataRequired, Email, Length
 from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
+from sqlalchemy.orm import joinedload
 from sqlalchemy import func, Integer, Text, case
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
@@ -31,15 +33,14 @@ from modules.forms import (
     ReleaseGroupForm, RegistrationForm, CsrfForm
 )
 from modules.models import (
-    User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, category_mapping, 
-    status_mapping, player_perspective_mapping, Platform, Genre, Publisher, Developer, 
-    Theme, GameMode, MultiplayerMode, PlayerPerspective, ScanJob, UnmatchedFolder
+    User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, 
+    Platform, Genre, Theme, GameMode, MultiplayerMode, PlayerPerspective
 )
 from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
     get_game_by_uuid, escape_special_characters, enumerate_companies, make_igdb_api_request, load_release_group_patterns, check_existing_game_by_igdb_id,
-    log_unmatched_folder, get_game_names_from_folder, clean_game_name, get_cover_thumbnail_url, get_access_token, scan_and_add_games, get_game_names_from_folder,
-    zip_game, directory_scan_task
+    log_unmatched_folder, get_game_names_from_folder, clean_game_name, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_folder,
+    zip_game, retrieve_and_save_game, format_size
 )
 
 
@@ -68,57 +69,60 @@ def initial_setup():
             print("Default email added to Whitelist.")
     except IntegrityError:
         db.session.rollback()
-        print('Default email already exists in the Whitelist.')
+        print('Default email already exists in Whitelist.')
     except SQLAlchemyError as e:
         db.session.rollback()
-        print(f'An error occurred while adding the default email to the Whitelist: {e}')
+        print(f'error adding default email to Whitelist: {e}')
 
     # Upgrade first user to admin
     try:
         user = User.query.get(1)
         if user and user.role != 'admin':
             user.role = 'admin'
+            user.is_email_verified = True
             db.session.commit()
-            print(f"User '{user.name}' (ID: 1) has been upgraded to admin.")
+            print(f"User '{user.name}' (ID: 1) upgraded to admin.")
         elif not user:
             print("No user with ID 1 found in the database.")
         else:
             print("User with ID 1 already has admin role.")
     except IntegrityError:
         db.session.rollback()
-        print('An error occurred while trying to upgrade the user to admin.')
+        print('error while trying to upgrade user to admin.')
     except SQLAlchemyError as e:
         db.session.rollback()
-        print(f'An error occurred while upgrading the user to admin: {e}')
+        print(f'error upgrading user to admin: {e}')
 
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('main.restricted'))
+        return redirect(url_for('site.restricted'))
 
     print("Route: /login")
     form = LoginForm()
-    if request.method == 'POST':
-        
-        if form.validate_on_submit():
-            username = form.username.data
-            password = form.password.data
-            user = User.query.filter_by(name=username).first()
+    if request.method == 'POST' and form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+        user = User.query.filter_by(name=username).first()
 
-        if user and not user.is_email_verified:
-            flash('Your account is not activated, check your email.', 'warning')
+        if user:
+            if not user.is_email_verified:
+                flash('Your account is not activated, check your email.', 'warning')
+                return redirect(url_for('main.login'))
+
+            if not user.state:
+                flash('Your account has been banned.', 'error')
+                print(f"Error: Attempted login to disabled account - User: {username}")
+                return redirect(url_for('main.login'))
+
+            return _authenticate_and_redirect(username, password)
+        else:
+            flash('Invalid username or password.', 'error')
             return redirect(url_for('main.login'))
-
-        # Check if the user's account is disabled
-        if user and not user.state:
-            flash('Your account has been banned.', 'error')
-            print(f"Error: Attempted login to disabled account - User: {username}")
-            return redirect(url_for('main.login'))
-
-        return _authenticate_and_redirect(username, password)
 
     return render_template('login/login.html', form=form)
+
 
 
 
@@ -140,11 +144,11 @@ def register():
                 return redirect(url_for('main.register'))
             whitelist = Whitelist.query.filter_by(email=email_address).first()
             if not whitelist:
-                print(f"Debug: No matching whitelist entry found for - {email_address}")
+                # print(f"Debug: No matching whitelist entry found for - {email_address}")
                 flash('Your email is not whitelisted.')
                 return redirect(url_for('main.register'))
 
-            print(f"Debug: Whitelist entry found - {whitelist.email}")
+            # print(f"Debug: Whitelist entry found - {whitelist.email}")
 
             existing_user = User.query.filter_by(name=form.username.data).first()
             if existing_user is not None:
@@ -152,7 +156,6 @@ def register():
                 flash('User already exists. Please Log in.')
                 return redirect(url_for('main.register'))
 
-            # Generate UUID and check for uniqueness
             user_uuid = str(uuid4())
             existing_uuid = User.query.filter_by(user_id=user_uuid).first()
             if existing_uuid is not None:
@@ -160,7 +163,6 @@ def register():
                 flash('An error occurred while registering. Please try again.')
                 return redirect(url_for('main.register'))
 
-            # Create a new User object with role set to a default value (e.g., 'user')
             user = User(
                 user_id=user_uuid,
                 name=form.username.data,
@@ -174,7 +176,7 @@ def register():
             user.set_password(form.password.data)
             db.session.add(user)
             db.session.commit()
-            # Send verification email
+            # verification email
             token = user.email_verification_token
             confirm_url = url_for('main.confirm_email', token=token, _external=True)
             html = render_template('login/registration_activate.html', confirm_url=confirm_url)
@@ -182,11 +184,11 @@ def register():
             send_email(user.email, subject, html)
 
             flash('A confirmation email has been sent via email.', 'success')
-            return redirect(url_for('main.index'))
+            return redirect(url_for('site.index'))
         except IntegrityError as e:
             db.session.rollback()
             print(f"IntegrityError occurred: {e}")
-            flash('An error occurred while registering. Please try again.')
+            flash('error while registering. Please try again.')
 
     return render_template('login/registration.html', title='Register', form=form)
 
@@ -268,15 +270,15 @@ def reset_password(token):
 @bp.route('/api/current_user_role', methods=['GET'])
 @login_required
 def get_current_user_role():
-    print("Route: /api/current_user_role")
+    print(f"Route: /api/current_user_role - {current_user.role}")
     return jsonify({'role': current_user.role}), 200
 
 
 @bp.route('/api/check_username', methods=['POST'])
 @login_required
 def check_username():
-    print("Route: /api/check_username")
-    data = request.get_json()  # Get the JSON data from the request
+    print(F"Route: /api/check_username - {current_user.name} - {current_user.role}")
+    data = request.get_json()
     username = data.get('username')
 
     if not username:
@@ -290,15 +292,14 @@ def check_username():
 @bp.route('/delete_avatar/<path:avatar_path>', methods=['POST'])
 @login_required
 def delete_avatar(avatar_path):
-    print("Route: /delete_avatar")
-    print("avatar_path:", avatar_path)
-
+    
     full_avatar_path = os.path.join(current_app.static_folder, avatar_path)
-    print("full_avatar_path:", full_avatar_path)
+    print(f"Route: /delete_avatar {full_avatar_path}")
 
     if os.path.exists(full_avatar_path):
         os.remove(full_avatar_path)
         flash(f'Avatar image {full_avatar_path} deleted successfully!')
+        print(f"Avatar image {full_avatar_path} deleted successfully!")
     else:
         flash(f'Avatar image {full_avatar_path} not found.')
 
@@ -416,12 +417,12 @@ def settings_profile_view():
 @login_required
 def account_pw():
     form = UserPasswordForm()
-    print("Request method:", request.method)  # Debug line
+    # print("Request method:", request.method)  # Debug line
     user = User.query.get(current_user.id)
 
     if form.validate_on_submit():
         try:
-            print("Form data:", form.data)  # Debug line
+            # print("Form data:", form.data)  # Debug line
             user.set_password(form.password.data)
             db.session.commit()
             flash('Password changed successfully!', 'success')
@@ -566,34 +567,40 @@ def get_user(user_id):
 
 
 
-######################            basic site above                  ####################
-######################            basic site above                  ####################
-######################            basic site above                  ####################
 
+######################            basic site above                  ####################
+######################            basic site above                  ####################
+######################            basic site above                  ####################
 
 
 
 @bp.route('/browse_games')
+@login_required
 def browse_games():
-    games = Game.query.all()
+    print(f"Route: /browse_games user_id: {current_user.name}")
+    games = Game.query.options(joinedload(Game.genres)).all()
     game_data = []
-
+      
     for game in games:
         cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
-        cover_url = cover_image.url if cover_image else None 
-
+        cover_url = cover_image.url if cover_image else None
+        genres = [genre.name for genre in game.genres]
+        game_size_formatted = format_size(game.size)  # Assuming game.size exists and is valid
+     
         game_data.append({
             'id': game.id,
             'uuid': game.uuid,
             'name': game.name,
             'cover_url': cover_url,
             'summary': game.summary,
-            'url': game.url
+            'url': game.url,
+            'size': game_size_formatted,
+            'genres': genres
         })
 
     csrf_form = CsrfForm()
 
-    return render_template('games/library_browser.html', games=game_data, form=csrf_form)    
+    return render_template('games/library_browser.html', games=game_data, form=csrf_form)
 
 
 
@@ -601,6 +608,7 @@ def browse_games():
 @login_required
 def downloads():
     user_id = current_user.id
+    print(f"Route: /downloads user_id: {user_id}")
     download_requests = DownloadRequest.query.filter_by(user_id=user_id).all()
     form = CsrfProtectForm()
     return render_template('games/downloads_manager.html', download_requests=download_requests, form=form)
@@ -610,6 +618,8 @@ def downloads():
 
 
 @bp.route('/scan_manual_folder', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def scan_folder():
     form = ScanFolderForm()
     game_names_with_ids = None
@@ -629,7 +639,7 @@ def scan_folder():
             games_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
             
             session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
-            print("Session updated with game paths.")
+            # print("Session updated with game paths.")
             
             game_names_with_ids = [{'name': game['name'], 'id': i} for i, game in enumerate(games_with_paths)]
         else:
@@ -637,8 +647,8 @@ def scan_folder():
             print("Folder does not exist or cannot be accessed.")
             
 
-    print("Game names with IDs:", game_names_with_ids)
-    return render_template('games/scan_manual_folder.html', form=form, game_names_with_ids=game_names_with_ids)
+    # print("Game names with IDs:", game_names_with_ids)
+    return render_template('scan/scan_manual_folder.html', form=form, game_names_with_ids=game_names_with_ids)
 
 
 
@@ -659,12 +669,14 @@ def scan_auto_folder():
         flash('Auto-scan started for folder: ' + folder_path, 'info')
         return redirect(url_for('main.scan_auto_folder'))
     
-    return render_template('games/scan_auto_folder.html', form=form)
+    return render_template('scan/scan_auto_folder.html', form=form)
 
 
 
     
 @bp.route('/api_debug', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def api_debug():
     form = IGDBApiForm()
     api_response = None  # Initialize variable to store API response
@@ -675,14 +687,16 @@ def api_debug():
         print(f"Selected endpoint: {selected_endpoint} with query params: {query_params}")
         api_response = make_igdb_api_request(selected_endpoint, query_params)
         
-    return render_template('games/scan_apidebug.html', form=form, api_response=api_response)
+    return render_template('scan/scan_apidebug.html', form=form, api_response=api_response)
 
 
 
 
 @bp.route('/add_game/<game_name>')
+@login_required
+@admin_required
 def add_game(game_name):
-    print(f"Adding game: {game_name}")
+    # print(f"Adding game: {game_name}")
 
     full_disk_path = session.get('game_paths', {}).get(game_name)
     
@@ -699,15 +713,18 @@ def add_game(game_name):
                 del session['game_paths']
         
         flash("Game added successfully.", "success")
-        return render_template('games/scan_add_game.html', game=game)
+        print(f"Game {game_name} added successfully.")
+        return render_template('scan/scan_add_game.html', game=game)
     else:
         flash("Game not found or API error occurred.", "error")
         return redirect(url_for('main.scan_folder'))
 
 
 @bp.route('/add_game_manual', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def add_game_manual():
-    print(f"Received {request.method} request")
+    # print(f"Received {request.method} request")
     full_disk_path = request.args.get('full_disk_path', None)
     from_unmatched = request.args.get('from_unmatched', 'false') == 'true'  # Detect origin
     game_name = os.path.basename(full_disk_path) if full_disk_path else ''
@@ -718,13 +735,13 @@ def add_game_manual():
         form.full_disk_path.data = full_disk_path
         form.name.data = game_name
     if request.method == 'POST':
-        print("POST parameters received:", form.data)  # Log POST parameters
+        # print("POST parameters received:", form.data)  # Log POST parameters
         if form.validate_on_submit():
             if check_existing_game_by_igdb_id(form.igdb_id.data):
                 flash('A game with this IGDB ID already exists.', 'error')
                 print(f"IGDB ID {form.igdb_id.data} already exists.")
                 return render_template('games/manual_game_add.html', form=form)
-            print("Form data:", form.data)
+            # print("Form data:", form.data)
             
             # Create new_game instance
             new_game = Game(
@@ -737,7 +754,7 @@ def add_game_manual():
                 category=form.category.data,
                 status=form.status.data,
                 first_release_date=form.first_release_date.data,
-                video_urls={"videos": [form.video_urls.data]} if form.video_urls.data else {}
+                video_urls=form.video_urls.data 
             )
             new_game.genres = form.genres.data
             new_game.game_modes = form.game_modes.data
@@ -762,7 +779,7 @@ def add_game_manual():
                     db.session.flush()
                 new_game.publisher = publisher
 
-            print("New game:", new_game)
+            # print("New game:", new_game)
             try:
                 db.session.add(new_game)
                 db.session.commit()
@@ -773,6 +790,7 @@ def add_game_manual():
                         print("Deleted unmatched folder:", unmatched_folder)
                         db.session.commit()
                 flash('Game added successfully.', 'success')
+                print(f"add_game_manual Game: {game_name} added by user {current_user.username}.")
                 if from_unmatched:
                     return redirect(url_for('main.unmatched_folders'))
                 else:
@@ -783,7 +801,46 @@ def add_game_manual():
                 flash('An error occurred while adding the game. Please try again.', 'error')
         else:
             print(f"Form validation failed: {form.errors}")
-    return render_template('games/manual_game_add.html', form=form, from_unmatched=from_unmatched)
+    return render_template('games/manual_game_add.html', form=form, from_unmatched=from_unmatched, action="add")
+
+@bp.route('/game_edit/<game_uuid>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def game_edit(game_uuid):
+    # print(f"Received {request.method} request for game {game_uuid}")
+    game = Game.query.filter_by(uuid=game_uuid).first_or_404()
+    form = AddGameForm(obj=game)  # Pre-populate the form with the game's current data
+    
+    if form.validate_on_submit():
+        # print(f"Game editor Form data: {form.data}")
+        game.igdb_id = form.igdb_id.data
+        game.name = form.name.data
+        game.summary = form.summary.data
+        game.storyline = form.storyline.data
+        game.url = form.url.data
+        game.full_disk_path = form.full_disk_path.data
+        game.video_urls = form.video_urls.data         
+        game.aggregated_rating = form.aggregated_rating.data
+        game.first_release_date = form.first_release_date.data
+        game.status = form.status.data
+        game.category = form.category.data
+        # Update relationships like genres, game_modes, etc. This might require clearing the existing list and adding new items.
+        # Similar logic for developer and publisher fields, considering potential need to create new Developer or Publisher instances.
+        print(f"game editor is saving these video_urls: {form.video_urls.data}")
+        try:
+            # print("game editor Committing changes to the database...")
+            db.session.commit()
+            # print("game editor Changes committed to the database.")
+            flash('Game updated successfully.', 'success')
+            return redirect(url_for('main.browse_games'))
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            flash('An error occurred while updating the game. Please try again.', 'error')
+
+    print(f"Form validation failed: {form.errors}")
+    # For GET requests or if form validation fails
+    return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, action="edit")
+
 
 
 @bp.route('/auto_scan_games_folder', methods=['POST'])
@@ -813,20 +870,77 @@ def scan_games_folder():
 def scan_jobs_manager():
     print("Route: /scan_jobs_manager")
     jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
-    print("Jobs: ", jobs)
-    return render_template('games/scan_jobs_manager.html', jobs=jobs)
+    form = CsrfProtectForm()  # Instantiate the form
+    return render_template('scan/scan_jobs_manager.html', jobs=jobs, form=form)
+
+@bp.route('/delete_scan_job/<job_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_scan_job(job_id):
+    job = ScanJob.query.get_or_404(job_id)
+    db.session.delete(job)
+    db.session.commit()
+    flash('Scan job deleted successfully.', 'success')
+    return redirect(url_for('main.scan_jobs_manager'))
+
+@bp.route('/clear_all_scan_jobs', methods=['POST'])
+@login_required
+@admin_required
+def clear_all_scan_jobs():
+    db.session.query(ScanJob).delete()
+    db.session.commit()
+    flash('All scan jobs cleared successfully.', 'success')
+    return redirect(url_for('main.scan_jobs_manager'))
 
 @bp.route('/unmatched_folders')
 @login_required
 @admin_required
 def unmatched_folders():
-    folders = UnmatchedFolder.query.all()  # Fetch all folders
+    folders = UnmatchedFolder.query.all()
     form = UpdateUnmatchedFolderForm()
-    return render_template('games/scan_unmatched_folders.html', folders=folders, form=form)
+    return render_template('scan/scan_unmatched_folders.html', folders=folders, form=form)
 
+@bp.route('/delete_all_unmatched_folders', methods=['POST'])
+@login_required
+@admin_required
+def delete_all_unmatched_folders():
+    try:
+        UnmatchedFolder.query.delete()  # Deletes all unmatched folder records
+        db.session.commit()
+        flash('All unmatched folders deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while deleting unmatched folders.', 'error')
+        print(e)  # For debugging
+    return redirect(url_for('main.unmatched_folders'))
+
+
+
+@bp.route('/update_unmatched_folder_status', methods=['POST'])
+@login_required
+@admin_required
+def update_unmatched_folder_status():
+    folder_id = request.form.get('folder_id')
+    new_status = request.form.get('new_status')
+
+    folder = UnmatchedFolder.query.filter_by(id=folder_id).first()
+    if folder:
+        folder.status = new_status
+        try:
+            db.session.commit()
+            print(f'Folder {folder_id} status updated successfully.', 'success')
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            flash(f'Error updating folder status: {str(e)}', 'error')
+    else:
+        flash('Folder not found.', 'error')
+
+    return redirect(url_for('main.unmatched_folders'))
 
 
 @bp.route('/admin/edit_filters', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def edit_filters():
     form = ReleaseGroupForm()
     if form.validate_on_submit():
@@ -839,6 +953,8 @@ def edit_filters():
     return render_template('admin/edit_filters.html', form=form, groups=groups)
 
 @bp.route('/delete_filter/<int:id>', methods=['GET'])
+@login_required
+@admin_required
 def delete_filter(id):
     group_to_delete = ReleaseGroup.query.get_or_404(id)
     db.session.delete(group_to_delete)
@@ -848,6 +964,7 @@ def delete_filter(id):
 
 
 @bp.route('/check_path_availability', methods=['GET'])
+@login_required
 def check_path_availability():
     full_disk_path = request.args.get('full_disk_path', '')
     is_available = os.path.exists(full_disk_path)
@@ -856,6 +973,7 @@ def check_path_availability():
 
 
 @bp.route('/check_igdb_id')
+@login_required
 def check_igdb_id():
     igdb_id = request.args.get('igdb_id', type=int)
     if igdb_id is None:
@@ -866,8 +984,10 @@ def check_igdb_id():
 
 
 @bp.route('/game_details/<string:game_uuid>')
+@login_required
 def game_details(game_uuid):
     print(f"Fetching game details for UUID: {game_uuid}")
+    csrf_form = CsrfProtectForm
     
     try:
         valid_uuid = uuid.UUID(game_uuid, version=4)
@@ -908,9 +1028,10 @@ def game_details(game_uuid):
             "player_perspectives": [perspective.name for perspective in game.player_perspectives],
             "developer": game.developer.name if game.developer else 'Not available',
             "publisher": game.publisher.name if game.publisher else 'Not available',
-            "multiplayer_modes": [mode.name for mode in game.multiplayer_modes]
+            "multiplayer_modes": [mode.name for mode in game.multiplayer_modes],
+            "size": format_size(game.size)
         }
-        return render_template('games/games_details.html', game=game_data)
+        return render_template('games/games_details.html', game=game_data, form=csrf_form)
     else:
         return jsonify({"error": "Game not found"}), 404
 
@@ -971,6 +1092,54 @@ def delete_game(game_uuid):
     
     return redirect(url_for('main.browse_games'))
 
+
+@bp.route('/admin/delete_library')
+@login_required  # Ensure only authenticated users can access this route
+@admin_required  # Optional: Create an admin_required decorator if you need to restrict access to admin users
+def delete_library():
+    try:
+        game_count = Game.query.count()  # Counts the number of games in the database
+        form = CsrfForm()
+    except Exception as e:
+        print(f"Error fetching game count: {e}")
+        flash("Failed to fetch game count.", "error")
+        return redirect(url_for('main.index'))  # Redirect to a safe page if there's an error
+
+    return render_template('admin/delete_library.html', game_count=game_count, form=form)
+
+@bp.route('/delete_all_games', methods=['POST'])
+@login_required  # Ensure only authenticated users can perform this action
+@admin_required  # Optional: Restrict this action to admin users only
+def delete_all_games():
+    try:
+        games_to_delete = Game.query.all()
+        for game in games_to_delete:
+            images_to_delete = Image.query.filter_by(game_uuid=game.uuid).all()
+
+            for image in images_to_delete:
+                relative_image_path = image.url.replace('/static/images/', '').strip("/")
+                image_file_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], relative_image_path)
+                image_file_path = os.path.normpath(image_file_path)
+
+                if os.path.exists(image_file_path):
+                    os.remove(image_file_path)
+                    print(f"Deleted image file: {image_file_path}")
+
+                db.session.delete(image)
+
+            db.session.delete(game)
+        
+        db.session.commit()
+        flash('All games and their images have been deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        print(f'Error deleting all games: {e}')
+        flash(f'Error deleting all games: {e}', 'error')
+    
+    return redirect(url_for('main.browse_games'))
+
+
+
 @bp.route('/download_game/<game_uuid>', methods=['GET'])
 @login_required
 def download_game(game_uuid):
@@ -982,7 +1151,7 @@ def download_game(game_uuid):
     active_request = DownloadRequest.query.filter_by(user_id=current_user.id, status='processing').first()
     if active_request:
         flash(f"You already have an active download request for {active_request.game.name}. Please wait until it's completed.")
-        return redirect(url_for('main.browse_games'))
+        return redirect(url_for('main.downloads'))
 
 
     print(f"Creating a new download request for user {current_user.id}: {DownloadRequest.query.filter_by(user_id=current_user.id, status='processing').first()}")
@@ -1000,7 +1169,7 @@ def download_game(game_uuid):
     thread.start()
     
     flash("Your download request is being processed. You will be notified when the download is ready.")
-    return redirect(url_for('main.browse_games'))
+    return redirect(url_for('main.downloads'))
 
 
 @bp.route('/download_zip/<download_id>')
@@ -1098,6 +1267,14 @@ def delete_download(download_id):
     return redirect(url_for('main.downloads'))
 
 
+@bp.route('/api/game_screenshots/<game_uuid>')
+@login_required
+def game_screenshots(game_uuid):
+    screenshots = Image.query.filter_by(game_uuid=game_uuid, image_type='screenshot').all()
+    screenshot_urls = [url_for('static', filename=f'images/{screenshot.url}') for screenshot in screenshots]
+    return jsonify(screenshot_urls)
+
+
 @bp.route('/api/get_company_role', methods=['GET'])
 def get_company_role():
     game_igdb_id = request.args.get('game_igdb_id')
@@ -1110,7 +1287,7 @@ def get_company_role():
 
 
     try:
-        print(f"Requested company role for Game IGDB ID: {game_igdb_id} and Company ID: {company_id}")
+        # print(f"Requested company role for Game IGDB ID: {game_igdb_id} and Company ID: {company_id}")
         
 
         response_json = make_igdb_api_request(
@@ -1131,7 +1308,7 @@ def get_company_role():
             elif company_data.get('publisher', False):
                 role = 'Publisher'
 
-            print(f"Company {company_name} role: {role}")
+            # print(f"Company {company_name} role: {role}")
             return jsonify({
                 'game_igdb_id': game_igdb_id,
                 'company_id': company_id,
@@ -1148,6 +1325,7 @@ def get_company_role():
 
 
 @bp.route('/api/get_cover_thumbnail', methods=['GET'])
+@login_required
 def get_cover_thumbnail():
     igdb_id = request.args.get('igdb_id', default=None, type=str)
     if igdb_id is None or not igdb_id.isdigit():
@@ -1160,6 +1338,7 @@ def get_cover_thumbnail():
 
 
 @bp.route('/search_igdb_by_id')
+@login_required
 def search_igdb_by_id():
     igdb_id = request.args.get('igdb_id')
     if not igdb_id:
@@ -1186,6 +1365,7 @@ def search_igdb_by_id():
 
 
 @bp.route('/search_igdb_by_name')
+@login_required
 def search_igdb_by_name():
     game_name = request.args.get('name')
     if game_name:
@@ -1205,28 +1385,6 @@ def search_igdb_by_name():
             return jsonify({'error': results['error']})
     return jsonify({'error': 'No game name provided'})
 
-
-
-@bp.route('/update_unmatched_folder_status', methods=['POST'])
-@login_required
-@admin_required
-def update_unmatched_folder_status():
-    folder_id = request.form.get('folder_id')
-    new_status = request.form.get('new_status')
-
-    folder = UnmatchedFolder.query.filter_by(id=folder_id).first()
-    if folder:
-        folder.status = new_status
-        try:
-            db.session.commit()
-            print(f'Folder {folder_id} status updated successfully.', 'success')
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            flash(f'Error updating folder status: {str(e)}', 'error')
-    else:
-        flash('Folder not found.', 'error')
-
-    return redirect(url_for('main.unmatched_folders'))
 
 @bp.route('/check_scan_status', methods=['GET'])
 @login_required

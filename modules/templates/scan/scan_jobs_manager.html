@@ -3,11 +3,13 @@
 
 {% block content %}
 
-{% include "/admin/navbar.html" %}
-{% include "games/games_add_navbar.html" %}
 
 <div class="glass-panel-scanfolder">
     <h2>Scan Jobs</h2>
+    <form action="{{ url_for('main.clear_all_scan_jobs') }}" method="post">
+        {{ form.csrf_token }}
+        <input type="submit" value="Clear All" class="btn btn-danger" onclick="return confirm('Delete ALL jobs?');">
+    </form>
     <table class="table">
         <thead>
             <tr>
@@ -16,6 +18,7 @@
                 <th>Status</th>
                 <th>Last Run</th>
                 <th>Next Run</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -26,6 +29,12 @@
                 <td>{{ job.status }}</td>
                 <td>{{ job.last_run }}</td>
                 <td>{{ job.next_run }}</td>
+                <td>
+                    <form action="{{ url_for('main.delete_scan_job', job_id=job.id) }}" method="post">
+                        {{ form.csrf_token }}
+                        <input type="submit" value="Delete" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this scan job?');">
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

@@ -10,6 +10,7 @@ from flask_login import LoginManager
 from config import Config
 from flask_migrate import Migrate
 from modules.routes_site import site_bp
+from modules.filters import setup_filters
 # import logging
 # from logging.handlers import RotatingFileHandler
 
@@ -41,15 +42,13 @@ def create_app():
         insert_default_release_groups()
     app.register_blueprint(routes.bp)
     app.register_blueprint(site_bp)
+    setup_filters(app)
     return app
 
-@login_manager.user_loader
-def load_user(user_id):
-    from modules.models import User
-    return User.query.get(int(user_id))
+
 
 def insert_default_release_groups():
-    from .models import ReleaseGroup
+    from modules.models import ReleaseGroup
     default_release_groups = [
     {'rlsgroup': 'RAZOR', 'rlsgroupcs': 'no'},
     {'rlsgroup': 'FLT', 'rlsgroupcs': 'no'},
@@ -69,16 +68,36 @@ def insert_default_release_groups():
     {'rlsgroup': 'GOG', 'rlsgroupcs': 'no'}, 
     {'rlsgroup': 'RUNE', 'rlsgroupcs': 'no'},
     {'rlsgroup': 'Empress', 'rlsgroupcs': 'no'},
-    {'rlsgroup': 'Deviance', 'rlsgroupcs': 'no'},
-        # Add more entries as needed
+    {'rlsgroup': 'AlcoholClone', 'rlsgroupcs': 'no'},
+    {'rlsgroup': 'DARKZER0', 'rlsgroupcs': 'no'},
+    {'rlsgroup': 'EMPRESS+Mr_Goldberg', 'rlsgroupcs': 'no'},
+    {'rlsgroup': 'ENGLISH-TL', 'rlsgroupcs': 'no'},
+    {'rlsgroup': 'ENLIGHT', 'rlsgroupcs': 'no'},
+    {'rlsgroup': 'FANiSO', 'rlsgroupcs': 'no'},
+    {'rlsgroup': 'FitGirl.Repack', 'rlsgroupcs': 'no'},
+    {'rlsgroup': 'FitGirl', 'rlsgroupcs': 'no'},
+    {'rlsgroup': 'I_KnoW', 'rlsgroupcs': 'no'},
+    {'rlsgroup': 'PROPER-CLONECD', 'rlsgroupcs': 'no'},
+    {'rlsgroup': 'Razor1911', 'rlsgroupcs': 'no'},
+    {'rlsgroup': 'TENOKE', 'rlsgroupcs': 'no'},
+    {'rlsgroup': 'ZER0', 'rlsgroupcs': 'no'},
+       
     ]
 
     existing_groups = ReleaseGroup.query.with_entities(ReleaseGroup.rlsgroup).all()
-    existing_group_names = {group.rlsgroup for group in existing_groups}  # Set comprehension for faster lookup
+    existing_group_names = {group.rlsgroup for group in existing_groups}
 
     for group in default_release_groups:
         if group['rlsgroup'] not in existing_group_names:
             new_group = ReleaseGroup(rlsgroup=group['rlsgroup'], rlsgroupcs=group['rlsgroupcs'])
             db.session.add(new_group)
     db.session.commit()
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    from modules.models import User
+    return User.query.get(int(user_id))
+
+
 

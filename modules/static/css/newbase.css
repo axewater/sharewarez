@@ -1,0 +1,153 @@
+.sidebar {
+    height: 100%;
+    width: 175px; /* Width of sidebar when expanded */
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    padding-left: 10px;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s; /* Smooth transition for collapsing and expanding */
+    padding-top: 20px;
+}
+
+.sidebar.collapsed {
+    width: 80px; /* Adjust to the size just enough for icons when collapsed */
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: flex-end; /* Aligns the toggle button to the right */
+    padding: 10px; /* Adjust as needed */
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    position: relative;
+    padding: 10px 15px;
+    text-decoration: none !important;
+    font-size: 18px;
+    color: #ddd;
+    transition: font-size 0.3s ease; /* Ensure transition applies to font-size changes */
+}
+
+
+.sidebar-link i {
+    min-width: 25px; /* Ensure icons align nicely */
+}
+
+.sidebar-link .link-text {
+    display: inline-block;
+    margin-left: 10px;
+    transition: opacity 0.5s ease, visibility 0.5s; /* Apply transition to opacity and visibility */
+    opacity: 1; /* Full opacity when sidebar is expanded */
+}
+
+.sidebar-link::after {
+    content: attr(title);
+    position: absolute;
+    white-space: nowrap;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(125%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px;
+    border-radius: 5px;
+    display: none;
+    z-index: 1;
+}
+
+
+/* Style for sidebar links */
+.sidebar-link, .sidebar-sublink {
+    transition: font-size 0.3s ease; /* Smooth transition for font-size */
+}
+
+.sidebar-link:hover, .sidebar-sublink:hover {
+    
+}
+
+.toggle-sidebar {
+    background: none;
+    border: none;
+    color: #ddd;
+    cursor: pointer;
+    font-size: 24px;
+    display: inline-block;
+    padding: 10px;
+}
+
+
+#content {
+    transition: margin-left .5s;
+    padding: 20px;
+    margin-left: 175px;
+}
+
+#content.collapsed {
+    margin-left: 80px;
+}
+
+.icon-chevron {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+
+.icon-chevron {
+    transform: rotate(180deg);
+}
+
+
+.sidebar.collapsed .icon-chevron {
+    transform: rotate(0deg);
+}
+
+.sidebar.collapsed .sidebar-link::after {
+    display: none;
+}
+
+.sidebar.collapsed .link-text {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    width: 0;
+    overflow: hidden;
+    display: inline-block;
+    visibility: hidden;
+    margin-left: 0; 
+}
+
+.sidebar-sublink {
+    display: block;
+    color: #ddd;
+    padding: 8px 15px;
+    font-size: 14px;
+    text-decoration: none !important;
+    margin-left: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar-sublink:hover {
+    background-color: #333;
+}
+
+/* Optional: Style for further nested sublinks, if you want them to have distinct styling */
+.sidebar-sublink .sidebar-sublink {
+    margin-left: 40px; /* Further indent for nested sublinks */
+    font-size: 13px; /* Even smaller font size for deeper nested links */
+}
+
+.submenu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-out;
+}
+
+.sidebar-link.has-submenu.open + .submenu {
+    max-height: 500px; /* Adjust as needed based on your content */
+    transition: max-height 0.5s ease-in;
+}

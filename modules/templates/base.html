@@ -6,41 +6,110 @@
     <meta charset="utf-8">
     <title>Sharewarez</title>
     {% block styles %}
-    <link rel="stylesheet" href="/static/css/newstyle.css">
-    {% endblock %}
-    
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/themes/prism.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.27.0/prism.min.js"></script>
-    <link rel=“stylesheet” href=“https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css”/>
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">    <link rel="stylesheet" href="/static/css/newstyle.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 
+    <link rel="stylesheet" href="/static/css/newbase.css">
+    {% endblock %}
 </head>
 <body>
-    <nav class="menu">
-        {% if current_user.is_authenticated %}
-        <a href="{{ url_for('main.browse_games') }}" class="button-glass">Library</a>
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <button id="toggleSidebar" class="toggle-sidebar">
+                <i class="icon-chevron">&gt;</i>
+            </button>
+        </div>
+        <div class="sidebar-menu">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('main.browse_games') }}" class="sidebar-link"><i class="fas fa-gamepad"></i><span class="link-text">Library</span></a>
+                <a href="{{ url_for('main.downloads') }}" class="sidebar-link"><i class="fas fa-download"></i><span class="link-text">Downloads</span></a>
         
-        <a href="{{ url_for('main.downloads') }}" class="button-glass">Downloads</a>
+                {% if current_user.role == 'admin' %}
+                    <a href="#" class="sidebar-link has-submenu"><i class="fas fa-cogs"></i><span class="link-text">Settings</span></a>
+                    <div class="submenu">
+                        <a href="{{ url_for('main.scan_auto_folder') }}" class="sidebar-sublink"><span class="link-text">Folder Scanner</span></a>
+                        <a href="{{ url_for('main.scan_folder') }}" class="sidebar-sublink"><span class="link-text">Manual Scanner</span></a>
+                        <a href="{{ url_for('main.scan_jobs_manager') }}" class="sidebar-sublink"><span class="link-text">Scanjob Manager</span></a>
+                        <a href="{{ url_for('main.unmatched_folders') }}" class="sidebar-sublink"><span class="link-text">Unmatched Folders</span></a>
+                        <a href="{{ url_for('main.delete_library') }}" class="sidebar-sublink"><span class="link-text">Delete Library</span></a>
+                        <a href="{{ url_for('main.api_debug') }}" class="sidebar-sublink"><span class="link-text">API Debugger</span></a>
+                        <a href="{{ url_for('main.usermanager') }}" class="sidebar-sublink"><span class="link-text">User Manager</span></a>
+                        <a href="{{ url_for('main.edit_filters') }}" class="sidebar-sublink"><span class="link-text">Filters Manager</span></a>
+                        <a href="{{ url_for('main.whitelist') }}" class="sidebar-sublink"><span class="link-text">Whitelist Manager</span></a>
+                        <a href="{{ url_for('main.clear_downloads') }}" class="sidebar-sublink"><span class="link-text">Downloads Manager</span></a>
+                        <a href="{{ url_for('main.newsletter') }}" class="sidebar-sublink"><span class="link-text">Newsletter</span></a>
+                    </div>
         
+                {% endif %}
         
-            
-            {% if current_user.role == 'admin' %}
-                <a href="/admin/base" class="button-glass"><i class="fas fa-user-shield"></i>Administration</a>
-                
+                <a href="#" class="sidebar-link has-submenu"><i class="fas fa-user-circle"></i><span class="link-text">Account</span></a>
+                <div class="submenu">
+                    <a href="{{ url_for('main.account_pw') }}" class="sidebar-sublink"><span class="link-text">Password</span></a>
+                    <a href="{{ url_for('main.settings_profile_view') }}" class="sidebar-sublink"><span class="link-text">Profile</span></a>
+                </div>
+                <a href="{{ url_for('site.helpfaq') }}" class="sidebar-link"><i class="fas fa-question-circle"></i><span class="link-text">Help</span></a>
+                <a href="{{ url_for('site.logout') }}" class="sidebar-link"><i class="fas fa-sign-out-alt"></i><span class="link-text">Logout</span></a>
+            {% else %}
+                <a href="{{ url_for('main.login') }}" class="sidebar-link"><i class="fas fa-sign-in-alt"></i><span class="link-text">Login</span></a>
+                <a href="{{ url_for('main.register') }}" class="sidebar-link"><i class="fas fa-user-plus"></i><span class="link-text">Register</span></a>
             {% endif %}
-            <a href="/settings_account" class="button-glass"><i class="fas fa-user-circle"></i> Account</a>
-        {% else %}
-            <a href="/login" class="button-glass"><i class="fas fa-sign-in-alt"></i> Login</a>
-            <a href="/register" class="button-glass"><i class="fas fa-user-plus"></i> Register</a>
-        {% endif %}
+        </div>
         
-        <a href="/logout" class="button-glass"><i class="fas fa-sign-out-alt"></i> Logout</a>
-    </nav>
+        
+    </div>
+    <div id="content">
+        {% block content %}{% endblock %}
+    </div>
 
-    {% block content %}{% endblock %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Function to close all submenus
+        function closeAllSubmenus() {
+            document.querySelectorAll('.submenu').forEach(submenu => {
+                submenu.style.display = 'none';
+            });
+            document.querySelectorAll('.has-submenu').forEach(item => {
+                item.classList.remove('open');
+            });
+        }
+    
+        // Initially close all submenus
+        closeAllSubmenus();
+    
+        // Toggle for main sidebar
+        document.getElementById("toggleSidebar").addEventListener("click", function() {
+            document.getElementById("sidebar").classList.toggle("collapsed");
+            document.getElementById("content").classList.toggle("collapsed");
+            // Close all open submenus when collapsing the sidebar
+            closeAllSubmenus();
+        });
+    
+        // Toggle for submenus
+        document.querySelectorAll('.sidebar-link.has-submenu').forEach(item => {
+            item.addEventListener('click', function(e) {
+                // Close all submenus first, if you want to keep only one submenu open at a time
+                closeAllSubmenus();
+                
+                // Prevent default link behavior
+                e.preventDefault();
+    
+                // This part toggles the submenu visibility
+                let nextElement = this.nextElementSibling;
+                if (nextElement && nextElement.classList.contains('submenu')) {
+                    // Toggle the 'open' class for the clicked item only
+                    this.classList.toggle('open');
+                    nextElement.style.display = nextElement.style.display === 'block' ? 'none' : 'block';
+                }
+    
+                // Stop propagation to prevent affecting parent items
+                e.stopPropagation();
+            });
+        });
+    });
+    
+</script>
+
+
 </body>
-
-
-</html>

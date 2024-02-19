@@ -1,10 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-{% include "/admin/navbar.html" %}
-{% include "games/games_add_navbar.html" %}
 
-<div class="container-builder">
+
+<div class="glass-panel-scanfolder">
         <div class="content-flash">
             {% with messages = get_flashed_messages() %}
             {% if messages %}

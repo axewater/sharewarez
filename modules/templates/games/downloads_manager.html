@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-{% include "/admin/navbar.html" %}
-{% include "games/games_add_navbar.html" %}
+
 
 <div class="container-builder">
     <div class="content-flash">
@@ -19,41 +18,42 @@
 <html lang="en">
 <div class="glass-grid-panel">
 <head>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <meta charset="UTF-8">
     <title>My Downloads</title>
 </head>
 <body>
     <h2>My Downloads</h2>
-    <table class="table-downloads">
-        <thead>
-            <tr>
-                <th>Game Name</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for download in download_requests %}
-            <tr data-game-uuid="{{ download.game.uuid }}">
-                <td><span class="game-cell">{{ download.game.name }}</span></td>
-                <td class="status-cell"><span class="status-value">{{ download.status }}</span></td>
-                <td class="actions-cell">
-                    {% if download.status == 'available' %}
-                    <a href="{{ url_for('main.download_zip', download_id=download.id) }}" class="btn btn-primary">Download</a>
-                    <!-- Delete form -->
-                    <form action="{{ url_for('main.delete_download', download_id=download.id) }}" method="post" style="display: inline;">
-                        {{ form.csrf_token }}
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        
-        
-    </table>
+    <div class="table-downloads-container">
+        <table class="table-downloads">
+            <thead>
+                <tr>
+                    <th>Game Name</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for download in download_requests %}
+                <tr data-game-uuid="{{ download.game.uuid }}">
+                    <td><span class="game-cell">{{ download.game.name }}</span></td>
+                    <td class="status-cell"><span class="status-value">{{ download.status }}</span></td>
+                    <td class="actions-cell">
+                        {% if download.status == 'available' %}
+                        <a href="{{ url_for('main.download_zip', download_id=download.id) }}" class="btn btn-primary">Download</a>
+                        <!-- Delete form -->
+                        <form action="{{ url_for('main.delete_download', download_id=download.id) }}" method="post" style="display: inline;">
+                            {{ form.csrf_token }}
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            
+            
+        </table>
+    </div>
     {{ form.csrf_token }}
 </div>
 <script>

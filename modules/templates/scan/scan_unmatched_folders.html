@@ -2,12 +2,15 @@
 {% extends "base.html" %}
 
 {% block content %}
-{% include "/admin/navbar.html" %}
-{% include "games/games_add_navbar.html" %}
+
 <div class="glass-panel-unmatchedfolder">
     <h2>Unmatched Folders</h2>
     <table class="table">
         <thead>
+            <form action="{{ url_for('main.delete_all_unmatched_folders') }}" method="post">
+                {{ form.csrf_token }}
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete all unmatched folders? This cannot be undone.');">Delete All</button>
+            </form>
             <tr>
                 <th>Folder Path</th>
                 <th>Status</th>

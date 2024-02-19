@@ -1,0 +1,352 @@
+.glass-panel-gamecard {
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 900px;
+    
+}
+
+
+
+.game-card-topq {
+    display: flex;
+    flex-direction: row;
+}
+
+.game-card-meta {
+    display: flex;
+    flex-direction: column;
+
+    color: #efeaea;
+    background-color: rgb(66, 64, 60);
+    text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 10px;
+    
+}
+
+.game-card-weblinks {
+    display: flex;
+    flex-direction: row;
+    background-color: #403b3b;
+    border-radius: 15px;
+    padding: 15px;
+
+    border: 1px solid black;
+}
+
+
+.game-name {
+    flex-grow: 1;
+    margin-left: 15px;
+}
+
+
+.game-card-gamename {
+    display: flex;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    width: 800px;
+  }
+  
+
+
+.game-card-size {
+    border: 1px solid #ccc;
+    font-size: small;
+
+    border-radius: 10px;
+}
+
+.game-card-q1 {
+    display: block;
+    justify-content: flex-start;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 400px;
+    margin: 10px;
+}
+
+.game-card-q2 {
+    display: flex;
+    flex-direction: column;
+    width: 500px;
+    margin: 10px;
+}
+
+
+
+.game-card-text-summary {
+    background-color: #bcb5b5;
+    color: #000;
+    
+    border-radius: 15px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    font-size: 17px;
+    line-height: 1.2;
+    border: 1px solid black;
+    text-align: justify;
+}
+
+
+.game-card-labels {
+    color: #efeaea;
+    text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.9);
+    font-size: 18px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+.summary-modal {
+    display: none;
+    position: fixed;
+    z-index: 2; /* Ensure this is above other content but adjust as needed */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.summary-modal-content {
+    background-color: #100f0f;
+    margin: 25% auto;
+    padding: 40px;
+    border: 1px solid #888;
+    width: 75%;
+    border-radius: 15px;
+    line-height: 1.3;
+    font-size: larger;
+    text-align: justify;
+
+
+}
+
+.summary-close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.summary-close:hover,
+.summary-close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+
+
+.images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.game-image {
+    width: 100%;
+    height: auto;
+    border: 1px solid #ccc;
+}
+
+.game-card-coverimage {
+    display: block;
+
+    border-radius: 15px;
+    width: 100%;
+    margin-bottom: 10px;
+
+}
+
+.game-card-coverimage img {
+    box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    border-radius: 15px;
+    border: 1px solid #080707;
+
+}
+
+
+
+.screenshot-browser-image {
+    transition: transform 0.2s ease;
+}
+
+.screenshot-browser-image:hover {
+    transform: scale(1.05);
+}
+
+.rating-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    margin-bottom: 5px;
+    border-radius: 5px;
+  }
+  
+.rating-bar {
+    height: 25px;
+    max-width: 100px;
+    border-radius: 5px;
+    background: linear-gradient(to right, red, yellow, green);
+    margin-left: 10px;
+    margin-right: 10px;
+}
+  
+.game-card-chips-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0px;
+}
+
+.chip {
+    display: inline-block;
+    padding: 5px 10px;
+    margin-top: 5px;
+    margin-right: 5px;
+    background-color: #3c332c;
+    border-radius: 25px;
+    text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.9);
+    text-size: 112px;
+    border: 1px solid black;
+}
+  
+.chip-size {
+    display: inline-block;
+    padding: 5px 10px;
+    padding-top: 10px;
+    margin-top: 5px;
+    margin-right: 5px;
+    background-color: #3c332c;
+    border-radius: 15px;
+    text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.9);
+    text-size: 100px;
+    border: 1px solid black;
+}
+.flex-row-horiz {
+
+    display: flex;
+    flex-direction: row;
+}
+
+
+.flex-col-vertic {
+
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* Screenshot Gallery */
+.screenshot-gallery {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 10px 0;
+}
+
+.screenshot-image {
+    width: 160px;
+    height: 90px;
+    transition: transform 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.screenshot-image:hover {
+    transform: scale(1.1);
+}
+
+/* Videos Row */
+.game-videos-row {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 20px 0;
+}
+
+.game-video {
+    flex: 0 0 auto;
+    width: 560px;
+    height: 315px;
+}
+
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 60%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.9);
+}
+
+.mySlides {
+    display: none;
+}
+
+.modal-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    position: relative;
+    margin: auto;
+    padding: 0;
+    width: 90%;
+    background-color: #080e1d;
+    
+}
+
+.close {
+    color: white;
+    position: absolute;
+    top: 10px;
+    right: 25px;
+    font-size: 35px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Next & previous buttons */
+.prev, .next {
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    width: auto;
+    padding: 16px;
+    margin-top: -50px;
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+    border-radius: 0 3px 3px 0;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Position the "next button" to the right */
+.next {
+    right: 0;
+    border-radius: 3px 0 0 3px;
+}
+
+/* On hover, add a black background color with a little bit see-through */
+.prev:hover, .next:hover {
+    background-color: rgba(0,0,0,0.8);
+}

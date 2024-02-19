@@ -9,14 +9,7 @@ from wtforms.widgets import ListWidget, CheckboxInput
 from wtforms.fields import URLField, DateField
 from modules.models import Status, Category, genre_choices, game_mode_choices, theme_choices, platform_choices, player_perspective_choices, developer_choices, publisher_choices
 from urllib.parse import urlparse
-
-def comma_separated_urls(form, field):
-    if field.data:
-        urls = field.data.split(',')
-        for url in urls:
-            parsed_url = urlparse(url.strip())
-            if not (parsed_url.scheme and parsed_url.netloc):
-                raise ValidationError('Invalid URL.')
+from modules.utilities import comma_separated_urls
 
 
 class UpdateUnmatchedFolderForm(FlaskForm):

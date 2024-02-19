@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-{% include "/admin/navbar.html" %}
-{% include "games/games_add_navbar.html" %}
+
 <div class="content-flash">
     {% with messages = get_flashed_messages() %}
     {% if messages %}
@@ -17,7 +16,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% if from_unmatched %}
+    {% if action == "edit" %}
+    <title>Edit Game Entry</title>
+    {% elif from_unmatched %}
     <title>Edit Unmatched Folder Entry</title>
     {% else %}
     <title>Add Game Manually</title>
@@ -33,11 +34,15 @@
         
         <form method="POST" action="">
             <div class="glass-panel-addgame-top">
-                {% if from_unmatched %}
+                
+                {% if action == "edit" %}
+                <h2>Edit Game Entry</h2>
+                {% elif from_unmatched %}
                 <h2>Edit Unmatched Folder Entry</h2>
                 {% else %}
                 <h2>Add Game Manually</h2>
                 {% endif %}
+                
                 <button type="submit" class="btn btn-primary">Save</button>
             </div>
             {{ form.hidden_tag() }}
@@ -106,7 +111,15 @@
             <div class="form-group">
                 <label for="video_urls">Video URLs</label>
                 {{ form.video_urls(class="form-control") }}
+                {% if form.video_urls.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.video_urls.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
+            
             <div class="form-group">
                 <label for="status">Status</label>
                 {{ form.status(class="form-control") }}

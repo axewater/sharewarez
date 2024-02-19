@@ -1,15 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!DOCTYPE html>
-<html>
 <head>
     <meta charset="UTF-8">
     <title>Browse Games</title>
 </head>
 <body>
     <script src="{{ url_for('static', filename='js/library_browser.js') }}"></script>
-    <div class="container-builder">
+    
         <div class="content-flash">
             {% with messages = get_flashed_messages() %}
                 {% if messages %}
@@ -22,41 +20,34 @@
             {% endwith %}
         </div>
         
-        <div class="container">
+        <div class="glass-panel">
             <div class="breadcrumbs">Game Library</div>
-            <div class="glass-grid-panel">
-                <div class="game-grid">
-                    {% for game in games %}
-                        <div class="game-card">
-                            <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">
-                                {% if game.cover_url %}
-                                    <img src="{{ url_for('static', filename='images/' ~ game.cover_url) }}" alt="Cover Image">
-                                {% else %}
-                                    <img src="{{ url_for('static', filename='newstyle/default_cover.jpg') }}" alt="Default Cover Image">
-                                {% endif %}
-                                <div class="button-glass">{{ game.name|default('No Name Available', true) }}</div>
-                            </a>
-                            <p>{{ game.summary|default('No summary available', true)|truncate(120) }}</p>
-                            
-                            <form action="{{ url_for('main.download_game', game_uuid=game.uuid) }}" method="get" class="download-form">
-                                <input type="submit" value="Download" class="button-glass" data-game-uuid="{{ game.uuid }}">
-                                {{ form.csrf_token }}
-                            </form>
-                            <form action="{{ url_for('main.refresh_game_images', game_uuid=game.uuid) }}" method="post" onsubmit="return confirm('Refresh images for {{ game.name|default('this game', true) }}?');">                                
-                                <input type="submit" value="Refresh" class="button-glass" onclick="return confirm('Refresh images for this game?');">
-                                {{ form.csrf_token }}
-                            </form>
-                            <form action="{{ url_for('main.delete_game', game_uuid=game.uuid) }}" method="post" onsubmit="return confirmDeletion('{{ game.name|default('this game', true) }}');">
-                                {{ form.csrf_token }}
-                                <input type="submit" value="Remove" class="button-glass">
-                            </form>
-                            <div id="download-status-{{ game.uuid }}" class="download-status"></div>
-                        </div>
-                    {% endfor %}
+
+
+<head>
+    <title>Browse Games</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/library_browser.css') }}">
+</head>
+<body>
+    <div class="game-library-container">
+        {% for game in games %}
+        <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
+                {% if game.cover_url %}
+                    <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">
+                        <img src="{{ url_for('static', filename='images/' ~ game.cover_url) }}" alt="{{ game.name }}" class="game-cover">
+                    </a>
+                {% else %}
+                <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">
+                    <img src="{{ url_for('static', filename='newstyle/default_cover.jpg') }}" alt="Default Cover Image" class="game-cover">
+                </a>
+                {% endif %}
+                <div id="details-{{ game.uuid }}" class="popup-game-details hidden">
+                    <!-- Details and screenshots will be injected here by JavaScript -->
                 </div>
             </div>
-        </div>
+        {% endfor %}
     </div>
+    
 </body>
 </html>
 {% endblock %}

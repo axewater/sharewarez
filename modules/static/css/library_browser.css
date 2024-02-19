@@ -1,0 +1,113 @@
+.game-library-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    
+}
+
+.game-card {
+    position: relative;
+    cursor: pointer;
+}
+
+.game-cover {
+    width: 100%;
+    height: auto;
+    transition: transform 0.3s ease;
+}
+
+
+.game-cover:hover {
+    transform: scale(1.05);
+}
+
+.game-card:hover .game-cover {
+    transform: scale(1.05);
+}
+
+
+
+.popup-game-details {
+    position: absolute;
+    left: 105%; 
+    top: -2%;
+    width: 260px;
+    z-index: 20;
+    background: #2a2c35;
+    padding: 10px 14px;
+    animation: fadein 0.5s;
+    display: none;
+    /* Removed left positioning here to allow dynamic adjustment in JS */
+}
+
+
+
+.popup-game-details img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #000000;
+}
+
+.popup-game-details:not(.hidden) {
+    display: block;
+}
+
+
+.game-info-box {
+
+    background: #2a2c35;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    animation: fadein 0.5s;
+    height: 95%;
+}
+
+.game-name {
+    font-size: 1.2rem;
+    color: #ffffff;
+
+}
+
+.game-name, .game-size, .game-genres {
+    margin-bottom: 5px;
+    margin-left: 0px;
+}
+
+.chip {
+    display: inline-block;
+    padding: 0 15px;
+    height: 25px;
+    font-size: 0.8rem;
+    line-height: 25px;
+    border-radius: 25px;
+    background-color: #4a4e69;
+    color: #ffffff;
+    margin: 2px;
+    white-space: nowrap;
+}
+
+.file-size-chip {
+    background-color: #6272a4;
+    max-width: 25%;
+    margin-bottom: 10px;
+}
+
+.breadcrumbs {
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin: 10px;
+    text-align: center;
+}
+
+
+.hidden {
+    display: none;
+}
+
+@keyframes fadein {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+

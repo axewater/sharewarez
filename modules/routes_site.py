@@ -5,7 +5,7 @@ import os
 site_bp = Blueprint('site', __name__)
 
 @site_bp.route('/help')
-def privacy():
+def helpfaq():
     print("Route: /help")
     return render_template('site/help.html')
 

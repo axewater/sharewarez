@@ -7,12 +7,18 @@ from flask_mail import Message as MailMessage
 from datetime import datetime
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
-from modules.models import User, Game, Developer, Publisher, Game, DownloadRequest, PlayerPerspective, Image
+from modules.models import (
+    User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, Platform, Genre, Publisher, Developer, 
+    Theme, GameMode, MultiplayerMode, PlayerPerspective, ScanJob, UnmatchedFolder, category_mapping, status_mapping, player_perspective_mapping
+)
 from modules import db, mail
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 from PIL import Image as PILImage
 from PIL import ImageOps
 from datetime import datetime
+from wtforms.validators import ValidationError
+
 
 
 def _authenticate_and_redirect(username, password):
@@ -40,28 +46,7 @@ def admin_required(f):
 
 
 
-def directory_scan_task(folder_path):
-    with app.app_context():
-        print(f"Starting directory scan for: {folder_path}")
-        
-        insensitive_patterns, sensitive_patterns = load_release_group_patterns()
-        game_names_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
-
-        for game_info in game_names_with_paths:
-            game_name = game_info['name']
-            full_disk_path = game_info['full_path']
-            print(f"Processing: {game_name} in {full_disk_path}")
-
-
-            game_added_successfully = retrieve_and_save_game(game_name, full_disk_path)
-            if game_added_successfully:
-                print(f"Game {game_name} added successfully.")
-            else:
-                print(f"Failed to process {game_name}, adding to failed list.")
-
-
-
-def create_game_instance(game_data, full_disk_path):
+def create_game_instance(game_data, full_disk_path, folder_size_mb):
             
     category_id = game_data.get('category')
     category_enum = category_mapping.get(category_id, None)
@@ -69,7 +54,12 @@ def create_game_instance(game_data, full_disk_path):
     status_enum = status_mapping.get(status_id, None)
     player_perspective_id = game_data.get('player_perspective')
     player_perspective_enum = player_perspective_mapping.get(player_perspective_id, None)
-    
+    # Convert video IDs to YouTube URLs and concatenate into a comma-separated string
+    if 'videos' in game_data:
+        video_urls = [f"https://www.youtube.com/watch?v={video['video_id']}" for video in game_data['videos']]
+        videos_comma_separated = ','.join(video_urls)
+    else:
+        videos_comma_separated = ""
     new_game = Game(
         igdb_id=game_data['id'],
         name=game_data['name'],
@@ -86,25 +76,25 @@ def create_game_instance(game_data, full_disk_path):
         category=category_enum,
         total_rating=game_data.get('total_rating'),
         total_rating_count=game_data.get('total_rating_count'),
-        video_urls={"videos": game_data.get('videos', [])},
-        full_disk_path=full_disk_path
+        video_urls=videos_comma_separated,
+        full_disk_path=full_disk_path,
+        size=folder_size_mb
     )
     
     db.session.add(new_game)
     db.session.flush()
-    print(f"Game {new_game.name} instance created with UUID: {new_game.uuid}.")
     return new_game
 
 
 def process_and_save_image(game_uuid, image_data, image_type='cover'):
     url = None
     save_path = None
-    print(f"Processing and saving {image_type} image for game {game_uuid} with UUID {image_data}.")
+    # print(f"Processing and saving {image_type} image for game {game_uuid} with UUID {image_data}.")
     if image_type == 'cover':
-        print(f"Processing cover image for game {game_uuid}.")
+        # print(f"Processing cover image for game {game_uuid}.")
         cover_query = f'fields url; where id={image_data};'
         cover_response = make_igdb_api_request('https://api.igdb.com/v4/covers', cover_query)
-        print(f'Cover response: {cover_response}')
+        # print(f'Cover response: {cover_response}')
         if cover_response and 'error' not in cover_response:
             url = cover_response[0].get('url')
             if not url:
@@ -138,11 +128,10 @@ def process_and_save_image(game_uuid, image_data, image_type='cover'):
     db.session.add(image)
     
 def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
-    print(f"retrieve_and_save data for {game_name} with full disk path {full_disk_path}.")
+    print(f"retrieve_and_save_game for {game_name} with full disk path {full_disk_path}.")
     existing_game_by_path = Game.query.filter_by(full_disk_path=full_disk_path).first()
     if existing_game_by_path:
         print(f"Game already exists in the database with full disk path: {full_disk_path}. Skipping.")
-        flash(f"Game '{game_name}' already exists in the database. Skipping.")
         return existing_game_by_path 
 
     response_json = make_igdb_api_request(current_app.config['IGDB_API_ENDPOINT'],
@@ -152,7 +141,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
                    total_rating_count;
             search "{game_name}"; limit 1;
         """)
-
+    # print(f"retrieve_and_save Response JSON: {response_json}")
     if 'error' not in response_json and response_json:
 
         igdb_id = response_json[0].get('id')
@@ -164,8 +153,10 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
             flash(f"Game '{game_name}' already exists in the database.")
             return existing_game
         else:
-
-            new_game = create_game_instance(response_json[0], full_disk_path)
+            print(f"Calculating folder size for {full_disk_path}.")
+            folder_size_mb = get_folder_size_in_mb(full_disk_path)
+            print(f"Folder size for {full_disk_path}: {folder_size_mb} MB.")
+            new_game = create_game_instance(game_data=response_json[0], full_disk_path=full_disk_path, folder_size_mb=folder_size_mb)
             if 'genres' in response_json[0]:
                 for genre_data in response_json[0]['genres']:
                     genre_name = genre_data['name']
@@ -178,7 +169,6 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
             if 'involved_companies' in response_json[0]:
                 involved_company_ids = response_json[0]['involved_companies']
                 if involved_company_ids:
-                    print(f"Enumerating companies for game {game_name}.")
                     enumerate_companies(new_game, new_game.igdb_id, involved_company_ids)
                 else:
                     print("No involved companies found for this game.")
@@ -207,8 +197,6 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
                         db.session.flush()
 
                     new_game.game_modes.append(game_mode)
-                    print(f"Game mode {game_mode_name} added to game {new_game.name}.")
-
 
             if 'platforms' in response_json[0]:
                 for platform_data in response_json[0]['platforms']:
@@ -228,6 +216,12 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
                         db.session.add(perspective)
                     new_game.player_perspectives.append(perspective)
                     
+            if 'videos' in response_json[0]:
+                video_urls = [f"https://www.youtube.com/embed/{video['video_id']}" for video in response_json[0]['videos']]
+                videos_comma_separated = ','.join(video_urls)
+                new_game.video_urls = videos_comma_separated
+
+            
             if 'cover' in response_json[0]:
                 process_and_save_image(new_game.uuid, response_json[0]['cover'], 'cover')
             
@@ -235,24 +229,34 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
                 process_and_save_image(new_game.uuid, screenshot_id, 'screenshot')
             
             try:
+                for column in new_game.__table__.columns:
+                    attr = getattr(new_game, column.name)
+
                 db.session.commit()
-                print(f"Game and its images saved successfully : {new_game.name}.")
+                print(f"retrieve_and_save_game Game and its images saved successfully : {new_game.name}.")
                 flash("Game and its images saved successfully.")
             except IntegrityError as e:
                 db.session.rollback()
-                print(f"Failed to save game due to a database error: {e}")
+                print(f"retrieve_and_save_game Failed to save game due to a database error: {e}")
                 flash("Failed to save game due to a duplicate entry.")
             return new_game
     else:
         if scan_job_id:
-            log_unmatched_folder(scan_job_id, full_disk_path)
-        print(f"Failed to find game: {game_name} using IGDB API.")
+            print(f"PLACEHOLDER retrieve_and_save_game Scan job ID: {scan_job_id}")
+        print(f"retrieve_and_save_game Failed to find game: {game_name} using IGDB API.")
         error_message = "No game data found for the given name or failed to retrieve data from IGDB API."
-        print(error_message)
+        # print(error_message)
         flash(error_message)
         return None
 
-
+def get_folder_size_in_mb(folder_path):
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(folder_path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            if os.path.exists(fp):
+                total_size += os.path.getsize(fp)
+    return total_size / (1024 * 1024)
 
 def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
     #print(f"Enumerating companies for game with IGDB ID {igdb_game_id}.")
@@ -272,7 +276,7 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
         is_publisher = company.get('publisher', False)
 
         if is_developer:
-            print(f"Company {company_name} is a developer.")
+            # print(f"Company {company_name} is a developer.")
             developer = Developer.query.filter_by(name=company_name).first()
             if not developer:
                 developer = Developer(name=company_name)
@@ -332,7 +336,7 @@ def download_image(url, save_path):
     
     url = url.replace('/t_thumb/', '/t_original/')
 
-    print(f"Downloading image from {url}.")
+    # print(f"Downloading image from {url}.")
     response = requests.get(url)
     if response.status_code == 200:
         # print(f"Image downloaded successfully to {save_path}.")
@@ -382,38 +386,30 @@ def check_existing_game_by_igdb_id(igdb_id):
     return Game.query.filter_by(igdb_id=igdb_id).first()
 
 
+
 def log_unmatched_folder(scan_job_id, folder_path):
-    unmatched_folder = UnmatchedFolder(
-        scan_job_id=scan_job_id,
-        folder_path=folder_path,
-        failed_time=datetime.utcnow(),
-        content_type='Games',
-        status='Pending'
-    )
-    db.session.add(unmatched_folder)
-    db.session.commit()
+    # Check if there's already an unmatched folder logged for this specific folder path, regardless of the scan job ID
+    existing_unmatched_folder = UnmatchedFolder.query.filter_by(folder_path=folder_path).first()
 
-
-
-def load_release_group_patterns():
-    try:
-        insensitive_patterns = ["-" + rg.rlsgroup for rg in ReleaseGroup.query.filter(ReleaseGroup.rlsgroup != None).all()]
-        
-        sensitive_patterns = []
-        for rg in ReleaseGroup.query.filter(ReleaseGroup.rlsgroupcs != None).all():
-            pattern = rg.rlsgroupcs
-            if pattern.lower() == 'yes':
-                pattern = "-" + pattern  # Add '-' prefix for case-sensitive patterns
-                sensitive_patterns.append((pattern, True))  # True indicates case sensitivity
-            elif pattern.lower() == 'no':
-                sensitive_patterns.append((pattern, False))  # False indicates case insensitivity
-        
-        print("Loaded release groups:", ", ".join(insensitive_patterns + [p[0] for p in sensitive_patterns]))
-
-        return insensitive_patterns, sensitive_patterns
-    except SQLAlchemyError as e:
-        print(f"An error occurred while fetching release group patterns: {e}")
-        return [], []
+    if existing_unmatched_folder is None:
+        # No existing log for this folder path, proceed to log it
+        unmatched_folder = UnmatchedFolder(
+            folder_path=folder_path,
+            failed_time=datetime.utcnow(),
+            content_type='Games',
+            status='Pending'
+        )
+        try:
+            db.session.add(unmatched_folder)
+            db.session.commit()
+            print(f"Logged unmatched folder: {folder_path}")
+        except IntegrityError:
+            # Handle any potential IntegrityError (e.g., concurrent write attempt)
+            db.session.rollback()
+            print(f"Failed to log unmatched folder due to a database error: {folder_path}")
+    else:
+        # An unmatched folder log already exists for this path, skip logging
+        print(f"Unmatched folder already logged for: {folder_path}. Skipping.")
 
 
 
@@ -501,7 +497,7 @@ def get_access_token(client_id, client_secret):
     response = requests.post(url, params=params)
     if response.status_code == 200:
         return response.json()['access_token']
-        print("Access token obtained successfully")
+        # print("Access token obtained successfully")
     else:
         print("Failed to obtain access token")
         return None
@@ -531,48 +527,6 @@ def get_cover_thumbnail_url(igdb_id):
 
     return None
 
-def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
-    original_filename = filename
-
-    for pattern in insensitive_patterns:
-        escaped_pattern = escape_special_characters(pattern)
-        filename = re.sub(escaped_pattern, '', filename, flags=re.IGNORECASE)
-
-    for pattern, is_case_sensitive in sensitive_patterns:
-        escaped_pattern = escape_special_characters(pattern)
-        if is_case_sensitive:
-            filename = re.sub(escaped_pattern, '', filename)
-        else:
-            filename = re.sub(escaped_pattern, '', filename, flags=re.IGNORECASE)
-
-    filename = re.sub(r'[_\.]', ' ', filename)
-    cleaned_name = ' '.join(filename.split()).title()
-
-    
-    return cleaned_name
-
-def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns):
-    print(f"Processing folder: {folder_path}")
-    if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
-        print(f"Error: The folder '{folder_path}' does not exist or is not readable.")
-        flash(f"Error: The folder '{folder_path}' does not exist or is not readable.")
-        return []
-
-    folder_contents = os.listdir(folder_path)
-    print("Folder contents before filtering:", folder_contents)
-
-    game_names_with_paths = []
-    for item in folder_contents:
-        full_path = os.path.join(folder_path, item)
-        if os.path.isdir(full_path):
-            game_name = clean_game_name(item, insensitive_patterns, sensitive_patterns)
-            game_names_with_paths.append({'name': game_name, 'full_path': full_path})
-
-    print("Extracted game names with paths:", game_names_with_paths)
-    return game_names_with_paths
-
-
-
 def scan_and_add_games(folder_path):
     print(f"Starting scan for games in folder: {folder_path}")
     if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
@@ -582,41 +536,204 @@ def scan_and_add_games(folder_path):
     insensitive_patterns, sensitive_patterns = load_release_group_patterns()
     
     game_names_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
-    # Create new ScanJob entry
-    scan_job_entry = ScanJob(folders={folder_path:True}, content_type='Games',
-                             status='Running', is_enabled=True, last_run=datetime.now())
+    
+    scan_job_entry = ScanJob(folders={folder_path:True}, content_type='Games', status='Running', is_enabled=True, last_run=datetime.now())
     try:
         db.session.add(scan_job_entry)
         db.session.commit()
     except SQLAlchemyError as e:
         print(f"Failed to add ScanJob: {str(e)}")
         return
+    
     scan_job_id = scan_job_entry.id
     for game_info in game_names_with_paths:
         game_name = game_info['name']
         full_disk_path = game_info['full_path']
-        print(f"Processing game: {game_name} at {full_disk_path}")
-        existing_game = Game.query.filter_by(full_disk_path=full_disk_path).first()
-        if existing_game:
-            print(f"Game already exists in database: {game_name} at {full_disk_path}")
-            continue
-
-        game = retrieve_and_save_game(game_name, full_disk_path, scan_job_id)
-        if game:
-            print(f"Game {game_name} added successfully.")
+        
+        # Attempt to process the game with fallback logic
+        success = process_game_with_fallback(game_name, full_disk_path, scan_job_id)
+        if success:
+            pass
         else:
-            print(f"Failed to add game {game_name}.")
-    # After processing all games
+            print(f"Failed to add game {game_name} after fallback attempts.")
+
     scan_job_entry.status = 'Completed'
-    # scan_job_entry.next_run = calculate_next_run_time()  # Define this function based on your scheduling logic
+    print(f"Scan completed for folder: {folder_path} with ScanJob ID: {scan_job_id}")
     try:
         db.session.commit()
     except SQLAlchemyError as e:
         print(f"Failed to update ScanJob status: {str(e)}")
+        
+def process_game_with_fallback(game_name, full_disk_path, scan_job_id):
+    # Check if the game exists before attempting fallback logic
+    existing_game = Game.query.filter_by(full_disk_path=full_disk_path).first()
+    if existing_game:
+        print(f"Game already exists in database: {game_name} at {full_disk_path}")
+        return True  # Returning True because the game is already in the database, hence no need to add
+
+    # If game does not exist, proceed with adding it, including fallback logic
+    if not try_add_game(game_name, full_disk_path, scan_job_id, check_exists=False):  # Note the check_exists parameter
+        parts = game_name.split()
+        for i in range(len(parts) - 1, 1, -1):  # Adjusted to stop when only one word is left
+            fallback_name = ' '.join(parts[:i])
+            if try_add_game(fallback_name, full_disk_path, scan_job_id, check_exists=False):
+                return True
+    else:
+        return True  # Initial try was successful
+    log_unmatched_folder(scan_job_id, full_disk_path)
+    return False  # All fallback attempts failed
+
+def try_add_game(game_name, full_disk_path, scan_job_id, check_exists=True):
+    """
+    Attempt to add a game to the database. Now includes a check_exists flag to skip redundant checks.
+    """
+    if check_exists:
+        existing_game = Game.query.filter_by(full_disk_path=full_disk_path).first()
+        if existing_game:
+            print(f"Game already exists in database: {game_name} at {full_disk_path}")
+            return False
+
+    # Process of adding the game remains unchanged
+    game = retrieve_and_save_game(game_name, full_disk_path, scan_job_id)
+    return game is not None
+
+def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns):
+    print(f"Processing folder: {folder_path}")
+    if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
+        print(f"Error: The folder '{folder_path}' does not exist or is not readable.")
+        flash(f"Error: The folder '{folder_path}' does not exist or is not readable.")
+        return []
+
+    folder_contents = os.listdir(folder_path)
+    # print("Folder contents before filtering:", folder_contents)
+
+    game_names_with_paths = []
+    for item in folder_contents:
+        full_path = os.path.join(folder_path, item)
+        if os.path.isdir(full_path):
+            game_name = clean_game_name(item, insensitive_patterns, sensitive_patterns)
+            game_names_with_paths.append({'name': game_name, 'full_path': full_path})
+
+    # print("Extracted game names with paths:", game_names_with_paths)
+    return game_names_with_paths
+
+
+
+import re
+
+def escape_special_characters(pattern):
+    """Escape special characters in the pattern to prevent regex errors."""
+    return re.escape(pattern)
+
+
+    
+
+
+def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
+    # Step 1: Normalize separators for release group processing
+    # Replace underscores and dots with spaces for easier pattern matching
+    # Note: This step assumes dots not part of essential abbreviations or numeric versions are separators
+    filename = re.sub(r'(?<!\b[A-Z])\.(?![A-Z]\b)|_', ' ', filename)
+
+    # Step 2: Remove known release group patterns
+    for pattern in insensitive_patterns:
+        escaped_pattern = escape_special_characters(pattern)
+        filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename, flags=re.IGNORECASE)
+
+    for pattern, is_case_sensitive in sensitive_patterns:
+        escaped_pattern = escape_special_characters(pattern)
+        if is_case_sensitive:
+            filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename)
+        else:
+            filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename, flags=re.IGNORECASE)
+
+    # Step 3: Additional cleanup for version numbers, DLC mentions, etc.
+    filename = re.sub(r'\bv\d+(\.\d+)*', '', filename)  # Version numbers
+    filename = re.sub(r'Build\.\d+', '', filename)      # Build numbers
+    filename = re.sub(r'(\+|\-)\d+DLCs?', '', filename, flags=re.IGNORECASE)  # DLC mentions
+    filename = re.sub(r'Repack|Edition|Remastered|Remake|Proper|Dodi', '', filename, flags=re.IGNORECASE)
+
+    # Step 4: Normalize whitespace and re-title
+    filename = re.sub(r'\s+', ' ', filename).strip()
+    cleaned_name = ' '.join(filename.split()).title()
+
+    return cleaned_name
+
+
+from sqlalchemy.exc import SQLAlchemyError
+
+def load_release_group_patterns():
+    try:
+        # Assuming ReleaseGroup is a model that contains release group information
+        # Fetching insensitive patterns (not case-sensitive)
+        insensitive_patterns = [
+            "-" + rg.rlsgroup for rg in ReleaseGroup.query.filter(ReleaseGroup.rlsgroup != None).all()
+        ] + [
+            "." + rg.rlsgroup for rg in ReleaseGroup.query.filter(ReleaseGroup.rlsgroup != None).all()
+        ]
+        
+        # Initializing list for sensitive patterns (case-sensitive)
+        sensitive_patterns = []
+        for rg in ReleaseGroup.query.filter(ReleaseGroup.rlsgroupcs != None).all():
+            pattern = rg.rlsgroupcs
+            is_case_sensitive = False
+            if pattern.lower() == 'yes':
+                is_case_sensitive = True
+                pattern = "-" + rg.rlsgroup  # Assume the pattern needs to be prefixed for sensitive matches
+                sensitive_patterns.append((pattern, is_case_sensitive))
+                pattern = "." + rg.rlsgroup  # Adding period-prefixed pattern as well
+                sensitive_patterns.append((pattern, is_case_sensitive))
+            elif pattern.lower() == 'no':
+                pattern = "-" + rg.rlsgroup
+                sensitive_patterns.append((pattern, is_case_sensitive))
+                pattern = "." + rg.rlsgroup  # Adding period-prefixed pattern for insensitivity
+                sensitive_patterns.append((pattern, is_case_sensitive))
+        
+        # print("Loaded release groups:", ", ".join(insensitive_patterns + [p[0] for p in sensitive_patterns]))
+
+        return insensitive_patterns, sensitive_patterns
+    except SQLAlchemyError as e:
+        print(f"An error occurred while fetching release group patterns: {e}")
+        return [], []
+
+def format_size(size_in_mb):
+    if size_in_mb >= 1024:
+        size_in_gb = size_in_mb / 1024
+        return f"{size_in_gb:.2f} GB"
+    else:
+        return f"{size_in_mb} MB"
+
+
+
+def comma_separated_urls(form, field):
+    # print(f"comma_separated_urls: {field.data}")
+    urls = field.data.split(',')
+    url_pattern = re.compile(
+        r'^(https?:\/\/)?(www\.)?youtube\.com\/embed\/[\w-]+$'
+    )
+    for url in urls:
+        if not url_pattern.match(url.strip()):
+            raise ValidationError('One or more URLs are invalid. Please provide valid YouTube embed URLs.')
 
 
 
 
+# def directory_scan_task(folder_path):
+#     with app.app_context():
+#         print(f"directory_scan_task Started: {folder_path} by {current_user.name} (id: {current_user.id})")
+#         
+#         insensitive_patterns, sensitive_patterns = load_release_group_patterns()
+#         game_names_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
+# 
+#         for game_info in game_names_with_paths:
+#             game_name = game_info['name']
+#             full_disk_path = game_info['full_path']
+#             print(f"directory_scan_task Processing: {game_name} in {full_disk_path}")
+#             game_added_successfully = retrieve_and_save_game(game_name, full_disk_path)
+#             if game_added_successfully:
+#                 print(f"directory_scan_task Game: {game_name} added successfully.")
+#             else:
+#                 print(f"directory_scan_task Failed to process {game_name}, adding to failed list.")
 
 # def run_scheduled_tasks():
 #     while True:
