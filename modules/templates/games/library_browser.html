@@ -1,3 +1,4 @@
+<!-- in templates/games/library_browser.html -->
 {% extends "base.html" %}
 
 {% block content %}
@@ -27,12 +28,18 @@
 <head>
     <title>Browse Games</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/library_browser.css') }}">
+    <script src="{{ url_for('static', filename='js/popup_menu.js') }}"></script>
+
 </head>
 <body>
     <div class="game-library-container">
         {% for game in games %}
         <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
-                {% if game.cover_url %}
+            <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
+            {% with game_uuid=game.uuid, game_url=game.url %}
+            {% include 'games/popup_menu.html' %}
+            {% endwith %}
+            {% if game.cover_url %}
                     <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">
                         <img src="{{ url_for('static', filename='images/' ~ game.cover_url) }}" alt="{{ game.name }}" class="game-cover">
                     </a>

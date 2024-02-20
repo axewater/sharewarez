@@ -1,0 +1,27 @@
+<!-- in templates/games/popup_menu.html -->
+
+<div id="popupMenu-{{ game_uuid }}" class="popup-menu" style="display: none;">
+    <form action="{{ url_for('main.download_game', game_uuid=game_uuid) }}" method="get" class="menu-item">
+        {{ form.csrf_token }}
+        <button type="submit" class="menu-button">Download</button>
+    </form>
+
+    <form action="{{ url_for('main.game_edit', game_uuid=game_uuid) }}" method="get" class="menu-item">
+        {{ form.csrf_token }}
+        <button type="submit" class="menu-button">Edit Details</button>
+    </form>
+
+    <form action="{{ url_for('main.refresh_game_images', game_uuid=game_uuid) }}" method="post" class="menu-item">
+        {{ form.csrf_token }}
+        <button type="submit" class="menu-button">Refresh Images</button>
+    </form>
+    <div class="menu-item">
+        <button type="button" class="menu-button delete-game" data-game-uuid="{{ game_uuid }}">Remove Game</button>
+    </div>
+    <!-- Open IGDB Page does not need CSRF protection as it's a GET request to an external site -->
+    <div class="menu-item">
+        {% if game.url %}
+        <a href="{{ game.url }}" target="_blank" class="menu-button" style="text-decoration: none; color: inherit;">Open IGDB Page</a>
+        {% endif %}
+    </div>
+</div>

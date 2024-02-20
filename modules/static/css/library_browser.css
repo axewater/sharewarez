@@ -8,6 +8,7 @@
 .game-card {
     position: relative;
     cursor: pointer;
+    transition: transform 0.3s ease; 
 }
 
 .game-cover {
@@ -18,21 +19,43 @@
 
 
 .game-cover:hover {
-    transform: scale(1.05);
+
 }
 
-.game-card:hover .game-cover {
+.game-card:hover  {
     transform: scale(1.05);
+    z-index: 10;
+}
+
+.button-glass-hamburger {
+    position: absolute;
+    top: 10px; /* Adjust as needed */
+    left: 10px; /* Adjust as needed */
+    z-index: 11; /* Ensure this is above the .game-cover's z-index during hover */
+    background-color: rgba(128, 128, 128, 0.7); /* Grey background with some transparency */
+    border-radius: 50%; /* Makes it circular */
+    padding: 0px 5px; /* Adjust size as needed */
+    border: none; /* Removes default button border */
+    cursor: pointer;
 }
 
 
+
+.button-glass-hamburger:hover {
+    background-color: rgba(128, 128, 128, 0.9); /* Slightly darker on hover */
+}
+
+.button-glass-hamburger i {
+    color: white; /* Ensure icon is visible against the grey background */
+    
+}
 
 .popup-game-details {
     position: absolute;
     left: 105%; 
-    top: -2%;
+    top: 15%;
     width: 260px;
-    z-index: 20;
+    z-index: 15;
     background: #2a2c35;
     padding: 10px 14px;
     animation: fadein 0.5s;

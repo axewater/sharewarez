@@ -1,3 +1,4 @@
+<!-- in templates/games/games_details.html -->
 {% extends "base.html" %}
 {% block content %}
 
@@ -18,6 +19,7 @@
         
         <head>
             <link rel="stylesheet" href="{{ url_for('static', filename='css/game_details.css') }}">
+            <script src="{{ url_for('static', filename='js/popup_menu.js') }}"></script>
 
             <title>{{ game.name or 'Game Details' }}</title>
         </head>
@@ -37,12 +39,14 @@
 
                     
                     <div class="game-card-text-summary">
-                        {% if game.summary|length > 350 %}
+                        {% if game.summary and game.summary|length > 350 %}
                             <span class="summary-short">{{ game.summary[:350] }}...</span>
                             <a href="#" class="read-more-link">Read More</a>
                             <span class="summary-full" style="display: none;">{{ game.summary }}</span>
-                        {% else %}
+                        {% elif game.summary %}
                             <span>{{ game.summary }}</span>
+                        {% else %}
+                            <span>Summary Not Available</span>
                         {% endif %}
                     </div>
                     
@@ -51,30 +55,14 @@
 
                 <div class="game-card-q2">
                     <div class="game-card-meta">
-                        <button id="menuButton" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
-                        <div id="popupMenu" class="popup-menu" style="display: none;">
-                            <form action="{{ url_for('main.download_game', game_uuid=game.uuid) }}" method="post" class="menu-item">
-                                {{ form.csrf_token }}
-                                <button type="submit" class="menu-button">Download</button>
-                            </form>
-                        
-                            <form action="{{ url_for('main.game_edit', game_uuid=game.uuid) }}" method="post" class="menu-item">
-                                {{ form.csrf_token }}
-                                <button type="submit" class="menu-button">Edit Details</button>
-                            </form>
-                        
-                            <form action="{{ url_for('main.refresh_game_images', game_uuid=game.uuid) }}" method="post" class="menu-item">
-                                {{ form.csrf_token }}
-                                <button type="submit" class="menu-button">Refresh Images</button>
-                            </form>
-                        
-                            <!-- Open IGDB Page does not need CSRF protection as it's a GET request to an external site -->
-                            {% if game.url %}
-                            <a href="{{ game.url }}" target="_blank" class="menu-item" style="color: white; margin-left: 10px;">Open IGDB Page </a>
-                            {% endif %}
-                        </div>
+                        <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
+
+                            {% with game_uuid=game.uuid, game_url=game.url %}
+                            {% include 'games/popup_menu.html' %}
+                            {% endwith %}
+
                         <div class="rating-container">
-                            <div class="game-card-labels">
+                            <div class="game-card-labels-rating">
                                 <a href="{{ game.url }}" class="igdb-link">IGDB</a>
                             </div>
                             {% if game.rating %}
@@ -82,7 +70,7 @@
                             {% else %}
                                 <div class="emptyrating">Not rated</div>
                             {% endif %}
-                            <div class="game-card-labels">
+                            <div class="game-card-labels-rating">
                                 Other:
                             </div>
                             {% if game.aggregated_rating %}
@@ -195,21 +183,7 @@
         
                 <script>
 
-                document.addEventListener('DOMContentLoaded', function() {
-                    var menuButton = document.getElementById('menuButton');
-                    var popupMenu = document.getElementById('popupMenu');
-                
-                    menuButton.addEventListener('click', function() {
-                        popupMenu.style.display = popupMenu.style.display === 'block' ? 'none' : 'block';
-                    });
-                
-                    // Optional: Close the popup menu if the user clicks outside of it
-                    window.addEventListener('click', function(event) {
-                        if (!menuButton.contains(event.target) && !popupMenu.contains(event.target)) {
-                            popupMenu.style.display = 'none';
-                        }
-                    });
-                });
+
 
                         
                 function openModal() {
@@ -248,12 +222,16 @@
                     // Only if readMoreLink exists
                     if (readMoreLink) {
                         var summarySpan = document.querySelector('.summary-close');
-                        var fullSummary = document.querySelector('.summary-full').textContent;
+                        var fullSummary = document.querySelector('.summary-full');
                         
-                        readMoreLink.onclick = function() {
-                            summaryModal.style.display = "block";
-                            document.querySelector('.summary-modal-text').textContent = fullSummary;
-                            return false;
+                        if (fullSummary) {
+                            fullSummary = fullSummary.textContent;
+                            
+                            readMoreLink.onclick = function() {
+                                summaryModal.style.display = "block";
+                                document.querySelector('.summary-modal-text').textContent = fullSummary;
+                                return false;
+                            }
                         }
                 
                         summarySpan.onclick = function() {

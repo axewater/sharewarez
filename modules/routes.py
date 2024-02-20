@@ -1053,6 +1053,8 @@ def refresh_game_images(game_uuid):
 
 
 @bp.route('/delete_game/<string:game_uuid>', methods=['POST'])
+@login_required
+@admin_required
 def delete_game(game_uuid):
     try:
         valid_uuid = uuid.UUID(game_uuid, version=4)
@@ -1091,6 +1093,54 @@ def delete_game(game_uuid):
         flash(f'Error deleting game: {e}', 'error')
     
     return redirect(url_for('main.browse_games'))
+
+@bp.route('/remove_game/<string:game_uuid>', methods=['POST'])
+@login_required
+@admin_required
+def remove_game(game_uuid):
+    print(f"Removing game with UUID: {game_uuid}")
+    try:
+        valid_uuid = uuid.UUID(game_uuid, version=4)
+        print(f"Valid UUID format: {valid_uuid}")
+    except ValueError:
+        print(f"Invalid UUID format: {game_uuid}")
+        return jsonify({'error': 'Invalid or missing game UUID'}), 400
+
+    game_uuid_str = str(valid_uuid)
+    print(f"UUID String: {game_uuid_str}")
+
+    try:
+        game_to_delete = Game.query.filter_by(uuid=game_uuid_str).first_or_404()
+        print(f"Game to delete: {game_to_delete}")
+
+        images_to_delete = Image.query.filter_by(game_uuid=game_uuid_str).all()
+        print(f"Images to delete: {images_to_delete}")
+
+        for image in images_to_delete:
+            relative_image_path = image.url.replace('/static/images/', '').strip("/")
+            image_file_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], relative_image_path)
+            image_file_path = os.path.normpath(image_file_path)
+
+            if os.path.exists(image_file_path):
+                os.remove(image_file_path)
+                print(f"Deleted image file: {image_file_path}")
+            else:
+                print(f"Image file not found: {image_file_path}")
+
+            db.session.delete(image)
+
+        db.session.delete(game_to_delete)
+        db.session.commit()
+        print('Game and its images have been deleted successfully.')
+
+        flash('Game and its images have been deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        print(f'Error deleting game with UUID {game_uuid_str}: {e}')
+        flash(f'Error deleting game: {e}', 'error')
+        return jsonify({'error': f'Error deleting game: {e}'}), 500
+
+    return jsonify({'message': 'Game and its images have been deleted successfully.'}), 200
 
 
 @bp.route('/admin/delete_library')

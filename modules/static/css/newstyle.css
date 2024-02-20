@@ -635,8 +635,15 @@ body {
     display: block;
     padding: 8px;
     text-decoration: none;
-    color: black;
+    color: white; /* Consider changing this to #ddd to match your button color */
+    cursor: pointer; /* Ensure cursor changes to pointer to indicate clickability */
 }
+
+.menu-item:hover, .menu-item button:hover, .menu-item a:hover {
+    background-color: #505563; /* Unified hover effect */
+}
+
+
 
 .menu-item:hover {
     background-color: #505563;
@@ -656,7 +663,22 @@ body {
     background-color: #333;
 }
 
+.menu-item button, .menu-item a {
+    background: none;
+    border: none;
+    color: #ddd; /* Ensure text color is consistent */
+    cursor: pointer;
+    padding: 8px 15px; /* Adjust padding if necessary */
+    width: 100%;
+    text-align: left;
+    display: block; /* Ensure link takes up the full space of its container for consistent appearance and click area */
+    text-decoration: none; /* Remove underline from links */
+}
 
+.menu-item a {
+    color: inherit; /* Make sure the link color matches the surrounding text color */
+    text-decoration: none; /* Ensures no underline */
+}
 
 .animated-entry {
     animation: slideIn 1s ease-out forwards;

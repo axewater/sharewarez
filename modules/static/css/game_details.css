@@ -8,7 +8,7 @@
     margin: 20px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 900px;
-    
+    min-height: 80vh; 
 }
 
 
@@ -16,6 +16,7 @@
 .game-card-topq {
     display: flex;
     flex-direction: row;
+    height: 730px; 
 }
 
 .game-card-meta {
@@ -28,6 +29,7 @@
     padding: 20px;
     border-radius: 15px;
     margin-bottom: 10px;
+    line-height: normal;
     
 }
 
@@ -37,8 +39,9 @@
     background-color: #403b3b;
     border-radius: 15px;
     padding: 15px;
-
     border: 1px solid black;
+    margin-top: auto;
+    margin-bottom: 10px;
 }
 
 
@@ -78,6 +81,8 @@
     flex-direction: column;
     width: 500px;
     margin: 10px;
+    justify-content: space-between;
+    height: 100%;
 }
 
 
@@ -102,9 +107,20 @@
     color: #efeaea;
     text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.9);
     font-size: 18px;
+    margin-bottom: 2px;
+    margin-top: 15px;
+    margin-right: 15px;
+}
+
+.game-card-labels-rating {
+    color: #efeaea;
+    text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.9);
+    font-size: 18px;
     margin-bottom: 5px;
     margin-top: 5px;
 }
+
+
 
 .summary-modal {
     display: none;
@@ -179,13 +195,6 @@
 
 
 
-.screenshot-browser-image {
-    transition: transform 0.2s ease;
-}
-
-.screenshot-browser-image:hover {
-    transform: scale(1.05);
-}
 
 .rating-container {
     display: flex;
