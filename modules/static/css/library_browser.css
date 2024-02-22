@@ -34,7 +34,7 @@
     z-index: 11; /* Ensure this is above the .game-cover's z-index during hover */
     background-color: rgba(128, 128, 128, 0.7); /* Grey background with some transparency */
     border-radius: 50%; /* Makes it circular */
-    padding: 0px 5px; /* Adjust size as needed */
+    padding: 1px 2px; /* Adjust size as needed */
     border: none; /* Removes default button border */
     cursor: pointer;
 }
@@ -52,15 +52,13 @@
 
 .popup-game-details {
     position: absolute;
-    left: 105%; 
-    top: 15%;
+    top: 0%;
     width: 260px;
-    z-index: 15;
+    z-index: 100;
     background: #2a2c35;
-    padding: 10px 14px;
+    padding: 15px 15px;
     animation: fadein 0.5s;
     display: none;
-    /* Removed left positioning here to allow dynamic adjustment in JS */
 }
 
 

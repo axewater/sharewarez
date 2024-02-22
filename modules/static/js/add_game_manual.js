@@ -30,15 +30,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function validateField(inputElement, isValid) {
         if (isValid) {
+            console.log(`${inputElement.id} is valid`);
             inputElement.classList.remove('invalid-input');
         } else {
+            console.log(`${inputElement.id} is invalid`);
             inputElement.classList.add('invalid-input');
         }
     }
 
     function updateFormWithGameData(gameData) {
+        console.log("Received game data:", gameData); // Print out the gameData object
         // Update genres
         const genreCheckboxes = document.querySelectorAll('#genres-container .form-check-input');
+        console.log("Genres:", genreCheckboxes);
         genreCheckboxes.forEach(checkbox => {
             const checkboxLabel = checkbox.nextElementSibling ? checkbox.nextElementSibling.textContent.trim().toLowerCase() : "";
             // Check if genres exist in gameData and then if current genre matches any of those genres

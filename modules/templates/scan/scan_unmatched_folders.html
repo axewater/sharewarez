@@ -31,13 +31,13 @@
                         <input type="hidden" name="folder_id" value="{{ folder.id }}">
                         <input type="hidden" name="new_status" value="Ignore">
                         {{ form.csrf_token }}
-                        <input type="submit" class="button-glass" value="Ignore">
+                        <input type="submit" class="button" value="Ignore">
                     </form>
                     <!-- New Edit Form -->
                     <form action="{{ url_for('main.add_game_manual') }}" method="GET" style="display: inline;">
                         <input type="hidden" name="full_disk_path" value="{{ folder.folder_path }}">
                         <input type="hidden" name="from_unmatched" value="true">
-                        <input type="submit" class="button-glass" value="Edit">
+                        <input type="submit" class="button" value="Edit">
                     </form>
                 </td>
             </tr>

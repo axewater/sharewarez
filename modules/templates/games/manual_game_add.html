@@ -23,10 +23,7 @@
     {% else %}
     <title>Add Game Manually</title>
     {% endif %}
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script> 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  
 </head>
 <body>
     <div class="glass-panel-addgame">
@@ -144,10 +141,10 @@
                 <div class="form-group" id="gamemodes-container">
                     <label>Game Modes</label>
                     {% for subfield in form.game_modes %}
-                        <div class="checkbox">
-                            <input type="checkbox" id="game_mode_{{ loop.index0 }}" name="{{ subfield.name }}" value="{{ subfield.data }}" class="form-check-input">
-                            <label for="game_mode_{{ loop.index0 }}" class="form-check-label">{{ subfield.label.text }}</label>
-                        </div>
+                    <div class="checkbox">
+                        {{ subfield(class="form-check-input") }}
+                        {{ subfield.label(class="form-check-label") }}
+                    </div>
                     {% endfor %}
                 </div>
                 
@@ -155,8 +152,8 @@
                     <label>Themes</label>
                     {% for subfield in form.themes %}
                         <div class="checkbox">
-                            <input type="checkbox" id="theme_{{ loop.index0 }}" name="{{ subfield.name }}" value="{{ subfield.data }}" class="form-check-input">
-                            <label for="theme_{{ loop.index0 }}" class="form-check-label">{{ subfield.label.text }}</label>
+                            {{ subfield(class="form-check-input") }}
+                            {{ subfield.label(class="form-check-label") }}
                         </div>
                     {% endfor %}
                 </div>
@@ -166,8 +163,8 @@
                     <label>Platforms</label>
                     {% for subfield in form.platforms %}
                         <div class="checkbox">
-                            <input type="checkbox" id="platform_{{ loop.index0 }}" name="{{ subfield.name }}" value="{{ subfield.data }}" class="form-check-input">
-                            <label for="platform_{{ loop.index0 }}" class="form-check-label">{{ subfield.label.text }}</label>
+                            {{ subfield(class="form-check-input") }}
+                            {{ subfield.label(class="form-check-label") }}
                         </div>
                     {% endfor %}
                 </div>

@@ -40,7 +40,7 @@ from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
     get_game_by_uuid, escape_special_characters, enumerate_companies, make_igdb_api_request, load_release_group_patterns, check_existing_game_by_igdb_id,
     log_unmatched_folder, get_game_names_from_folder, clean_game_name, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_folder,
-    zip_game, retrieve_and_save_game, format_size
+    zip_game, retrieve_and_save_game, format_size, delete_game_images
 )
 
 
@@ -790,7 +790,7 @@ def add_game_manual():
                         print("Deleted unmatched folder:", unmatched_folder)
                         db.session.commit()
                 flash('Game added successfully.', 'success')
-                print(f"add_game_manual Game: {game_name} added by user {current_user.username}.")
+                print(f"add_game_manual Game: {game_name} added by user {current_user.name}.")
                 if from_unmatched:
                     return redirect(url_for('main.unmatched_folders'))
                 else:
@@ -803,6 +803,7 @@ def add_game_manual():
             print(f"Form validation failed: {form.errors}")
     return render_template('games/manual_game_add.html', form=form, from_unmatched=from_unmatched, action="add")
 
+
 @bp.route('/game_edit/<game_uuid>', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -812,7 +813,6 @@ def game_edit(game_uuid):
     form = AddGameForm(obj=game)  # Pre-populate the form with the game's current data
     
     if form.validate_on_submit():
-        # print(f"Game editor Form data: {form.data}")
         game.igdb_id = form.igdb_id.data
         game.name = form.name.data
         game.summary = form.summary.data
@@ -824,22 +824,114 @@ def game_edit(game_uuid):
         game.first_release_date = form.first_release_date.data
         game.status = form.status.data
         game.category = form.category.data
-        # Update relationships like genres, game_modes, etc. This might require clearing the existing list and adding new items.
-        # Similar logic for developer and publisher fields, considering potential need to create new Developer or Publisher instances.
-        print(f"game editor is saving these video_urls: {form.video_urls.data}")
+        # Handling Developer
+        developer_name = form.developer.data
+        if developer_name:
+            developer = Developer.query.filter_by(name=developer_name).first()
+            if not developer:
+                developer = Developer(name=developer_name)
+                db.session.add(developer)
+                db.session.flush()
+            game.developer = developer
+
+        # Handling Publisher
+        publisher_name = form.publisher.data
+        if publisher_name:
+            publisher = Publisher.query.filter_by(name=publisher_name).first()
+            if not publisher:
+                publisher = Publisher(name=publisher_name)
+                db.session.add(publisher)
+                db.session.flush()
+            game.publisher = publisher
+
+        # Update many-to-many relationships
+        game.genres = form.genres.data
+        game.game_modes = form.game_modes.data
+        game.themes = form.themes.data
+        game.platforms = form.platforms.data
+        game.player_perspectives = form.player_perspectives.data
+
+        # print(f"game editor is saving these video_urls: {form.video_urls.data}")
         try:
-            # print("game editor Committing changes to the database...")
             db.session.commit()
-            # print("game editor Changes committed to the database.")
             flash('Game updated successfully.', 'success')
+            flash('Triggering image update')
+            
+
+            @copy_current_request_context
+            def refresh_images_in_thread():
+                refresh_images_in_background(game_uuid)
+
+            # Start the background process for refreshing images
+            thread = Thread(target=refresh_images_in_thread)
+            thread.start()
+            print(f"Refresh images thread started for game UUID: {game_uuid}")
+                    
             return redirect(url_for('main.browse_games'))
         except SQLAlchemyError as e:
             db.session.rollback()
             flash('An error occurred while updating the game. Please try again.', 'error')
 
-    print(f"Form validation failed: {form.errors}")
+    if request.method == 'POST':
+        print(f"Form validation failed: {form.errors}")
+
     # For GET requests or if form validation fails
     return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, action="edit")
+
+@bp.route('/edit_game_images/<game_uuid>', methods=['GET'])
+@login_required
+def edit_game_images(game_uuid):
+    game = Game.query.filter_by(uuid=game_uuid).first_or_404()
+    images = Image.query.filter_by(game_uuid=game_uuid).all()
+    return render_template('games/edit_game_images.html', game=game, images=images)
+
+@bp.route('/upload_image/<game_uuid>', methods=['POST'])
+@login_required
+def upload_image(game_uuid):
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+    if file:
+        filename = secure_filename(file.filename)
+        save_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], filename)
+        file.save(save_path)
+        # Save file info to DB
+        new_image = Image(game_uuid=game_uuid, image_type='screenshot', url=filename)
+        db.session.add(new_image)
+        db.session.commit()
+    return jsonify({'message': 'File uploaded successfully', 'url': url_for('static', filename=f'images/{filename}'), 'image_id': new_image.id})
+
+
+bp.route('/delete_image', methods=['POST'])
+@login_required
+@admin_required
+def delete_image():
+    try:
+        data = request.get_json()
+        if not data or 'image_id' not in data:
+            return jsonify({'error': 'Invalid request. Missing image_id parameter'}), 400
+        
+        image_id = data['image_id']
+        image = Image.query.get(image_id)
+        if not image:
+            return jsonify({'error': 'Image not found'}), 404
+
+        # Delete image file from disk
+        image_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], image.url)
+        if os.path.exists(image_path):
+            os.remove(image_path)
+
+        # Delete image record from database
+        db.session.delete(image)
+        db.session.commit()
+
+        return jsonify({'message': 'Image deleted successfully'})
+    except Exception as e:
+        # Log the error for debugging purposes
+        print(f"Error deleting image: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred while deleting the image'}), 500
 
 
 
@@ -987,7 +1079,7 @@ def check_igdb_id():
 @login_required
 def game_details(game_uuid):
     print(f"Fetching game details for UUID: {game_uuid}")
-    csrf_form = CsrfProtectForm
+    csrf_form = CsrfForm
     
     try:
         valid_uuid = uuid.UUID(game_uuid, version=4)
@@ -1065,28 +1157,12 @@ def delete_game(game_uuid):
     game_uuid_str = str(valid_uuid)
 
     try:
-        game_to_delete = Game.query.filter_by(uuid=game_uuid_str).first_or_404()
-        images_to_delete = Image.query.filter_by(game_uuid=game_uuid_str).all()
-
-        for image in images_to_delete:
-            
-            relative_image_path = image.url.replace('/static/images/', '').strip("/")
-            image_file_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], relative_image_path)
-            image_file_path = os.path.normpath(image_file_path)
-
-            #print(f"Attempting to delete image file: {image_file_path}")
-
-            if os.path.exists(image_file_path):
-                os.remove(image_file_path)
-                print(f"Deleted image file: {image_file_path}")
-            else:
-                print(f"Image file not found: {image_file_path}")
-
-            db.session.delete(image)
-
+        delete_game_images(game_uuid)
+        game_to_delete = Game.query.filter_by(uuid=game_uuid).first_or_404()
         db.session.delete(game_to_delete)
         db.session.commit()
         flash('Game and its images have been deleted successfully.', 'success')
+        print(f'Deleted game with UUID: {game_uuid_str}')
     except Exception as e:
         db.session.rollback()
         print(f'Error deleting game with UUID {game_uuid_str}: {e}')

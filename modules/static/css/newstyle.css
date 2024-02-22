@@ -321,6 +321,10 @@ body {
  margin: 10px;
 }
 
+.group-game-details {
+    display: flex;
+    flex-direction: row;
+}
 
 .role-container {
     display: flex;
@@ -410,6 +414,9 @@ body {
     margin-top: 5px;
 }
 
+.image-editor-image img{
+    width: 300px;
+}
 
 
 

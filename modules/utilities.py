@@ -426,6 +426,7 @@ def refresh_images_in_background(game_uuid):
                     where id = {game.igdb_id}; limit 1;""")
 
             if 'error' not in response_json and response_json:
+                delete_game_images(game_uuid)
                 cover_data = response_json[0].get('cover')
                 if cover_data:
                     process_and_save_image(game.uuid, cover_data['id'], image_type='cover')
@@ -442,6 +443,38 @@ def refresh_images_in_background(game_uuid):
         except Exception as e:
             db.session.rollback()
             flash(f"Failed to refresh game images: {str(e)}", "error")
+            
+            
+def delete_game_images(game_uuid):
+    with current_app.app_context():
+        game = Game.query.filter_by(uuid=game_uuid).first()
+        if not game:
+            print("Game not found for image deletion.")
+            return
+
+        # Assuming Game model has a relationship to an Image model where images are stored
+        game_to_delete = Game.query.filter_by(uuid=game_uuid).first_or_404()
+        images_to_delete = Image.query.filter_by(game_uuid=game_uuid).all()
+
+        for image in images_to_delete:
+            
+            relative_image_path = image.url.replace('/static/images/', '').strip("/")
+            image_file_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], relative_image_path)
+            image_file_path = os.path.normpath(image_file_path)
+
+            #print(f"Attempting to delete image file: {image_file_path}")
+
+            if os.path.exists(image_file_path):
+                os.remove(image_file_path)
+                print(f"Deleted image file: {image_file_path}")
+            else:
+                print(f"Image file not found: {image_file_path}")
+
+            db.session.delete(image)
+        
+        db.session.commit()
+        print("All associated images have been deleted.")
+
 
 def square_image(image, size):
     image.thumbnail((size, size))
