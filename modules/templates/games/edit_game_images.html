@@ -1,10 +1,8 @@
 <!-- edit_game_images.html -->
 {% extends "base.html" %}
-
 {% block content %}
 
-
-<div class="container-builder">
+<div id="flash-messages">
     <div class="content-flash">
         {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -16,30 +14,52 @@
         {% endif %}
         {% endwith %}
     </div>
+</div>
 <html>
-<head>
-    <title>Edit Game Images</title>
-    <!-- Include any necessary CSS here -->
-</head>
-<body>
-    <h1>Edit Images for Game: {{ game.name }}</h1>
-    <div id="image-list">
-        {% for image in images %}
-        <div class="image-editor-image" id="image-{{ image.id }}">
-            <img src="{{ url_for('static', filename='images/' + image.url) }}" alt="Image">
-            <button onclick="deleteImage({{ image.id }})">Delete</button>
+    <head>
+        <title>Edit Game Images</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/edit_game_images.css') }}">
+    </head>
+
+    <body>
+        <h3>Edit Images for Game: </h3>
+        <h2>{{ game.name }}</h2>
+        <div class="glass-panel-image-editor-cover">
+            <h3>Cover Image</h3>
+            <div id="cover-image-editor" class="image-editor-image">
+                {% if cover_image %}
+                    <img src="{{ url_for('static', filename='images/' + cover_image.url) }}" alt="Cover Image">
+                    <button onclick="deleteImage({{ cover_image.id }})">Delete Cover Image</button>
+                {% else %}
+                    <img src="{{ url_for('static', filename='images/default_cover.jpg') }}" alt="Default Cover Image">
+                {% endif %}
+            </div>
+            <div class="glass-panel-image-editor-upload">
+                <input type="file" id="cover-image-input">
+            </div>
         </div>
-        {% endfor %}
-    </div>
-    <div id="upload-area" data-game-uuid="{{ game.uuid }}">Drag and Drop Images Here</div>
-    <input type="file" id="file-input" multiple>
-    <script>
-        var gameUuid = "{{ game.uuid }}"; // Assuming you're using a templating engine like Jinja2 with Flask
-        </script>
-    <script src="{{ url_for('static', filename='js/edit_game_images.js') }}"></script>
-    <button id="upload-button">Upload</button>
-
-
-</body>
+        <div class="glass-panel-image-editor">
+            <div id="image-editor-list" class="image-editor-list">
+                {% for image in images %}
+                <div class="image-editor-image" id="image-{{ image.id }}">
+                    <button onclick="deleteImage({{ image.id }})">Delete</button>
+                    <img src="{{ url_for('static', filename='images/' + image.url) }}" alt="Image">
+                    
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="glass-panel-image-editor-upload">
+            <h3>Upload Screenshot(s)</h3>
+            <div id="upload-area" data-game-uuid="{{ game.uuid }}">Drag and Drop Images Here</div>
+            <input type="file" id="file-input" multiple>
+            <script>
+                var gameUuid = "{{ game.uuid }}";
+                </script>
+            <script src="{{ url_for('static', filename='js/edit_game_images.js') }}"></script>
+            <button id="upload-button">Upload</button>
+        </div>
+    </body>
 </html>
+
 {% endblock %}

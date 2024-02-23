@@ -10,6 +10,11 @@
         {{ form.csrf_token }}
         <button type="submit" class="menu-button">Edit Details</button>
     </form>
+    
+    <form action="{{ url_for('main.edit_game_images', game_uuid=game_uuid) }}" method="get" class="menu-item">
+        {{ form.csrf_token }}
+        <button type="submit" class="menu-button">Edit Images</button>
+    </form>
 
     <form action="{{ url_for('main.refresh_game_images', game_uuid=game_uuid) }}" method="post" class="menu-item">
         {{ form.csrf_token }}

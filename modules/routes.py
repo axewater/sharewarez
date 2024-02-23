@@ -878,36 +878,96 @@ def game_edit(game_uuid):
     # For GET requests or if form validation fails
     return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, action="edit")
 
+
 @bp.route('/edit_game_images/<game_uuid>', methods=['GET'])
-@login_required
 def edit_game_images(game_uuid):
     game = Game.query.filter_by(uuid=game_uuid).first_or_404()
-    images = Image.query.filter_by(game_uuid=game_uuid).all()
-    return render_template('games/edit_game_images.html', game=game, images=images)
+    cover_image = Image.query.filter_by(game_uuid=game_uuid, image_type='cover').first()
+    screenshots = Image.query.filter_by(game_uuid=game_uuid, image_type='screenshot').all()
+    return render_template('games/edit_game_images.html', game=game, cover_image=cover_image, images=screenshots)
+
 
 @bp.route('/upload_image/<game_uuid>', methods=['POST'])
-@login_required
 def upload_image(game_uuid):
+    print(f"Uploading image for game {game_uuid}")
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
+
     file = request.files['file']
+    image_type = request.form.get('image_type', 'screenshot')  # Default to 'screenshot' if not provided
+
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
-    if file:
-        filename = secure_filename(file.filename)
-        save_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], filename)
-        file.save(save_path)
-        # Save file info to DB
-        new_image = Image(game_uuid=game_uuid, image_type='screenshot', url=filename)
-        db.session.add(new_image)
-        db.session.commit()
-    return jsonify({'message': 'File uploaded successfully', 'url': url_for('static', filename=f'images/{filename}'), 'image_id': new_image.id})
 
+    # Validate file extension and content type
+    allowed_extensions = {'jpg', 'jpeg', 'png'}
+    filename = secure_filename(file.filename)
+    file_extension = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
 
-bp.route('/delete_image', methods=['POST'])
-@login_required
-@admin_required
+    if file_extension not in allowed_extensions:
+        return jsonify({'error': 'Only JPG and PNG files are allowed'}), 400
+
+    # Further validate the file's data to ensure it's a valid image
+    try:
+        img = PILImage.open(file)
+        img.verify()  # Verify that it is, in fact, an image
+        img = PILImage.open(file)  # Re-open the image for processing
+    except (IOError, SyntaxError):
+        return jsonify({'error': 'Invalid image data'}), 400
+
+    file.seek(0)  # Seek to the beginning of the file after verifying
+    max_width, max_height = 1200, 1600
+    if image_type == 'cover':
+        # Resize the image if it exceeds the maximum dimensions
+        if img.width > max_width or img.height > max_height:
+            img.thumbnail((max_width, max_height), PILImage.ANTIALIAS)
+    file.seek(0) 
+    # Efficient file size check
+    if file.content_length > 3 * 1024 * 1024:  # 3MB in bytes
+        return jsonify({'error': 'File size exceeds the 3MB limit'}), 400
+
+    # Handle cover image logic
+    if image_type == 'cover':
+        # Check if a cover image already exists
+        existing_cover = Image.query.filter_by(game_uuid=game_uuid, image_type='cover').first()
+        if existing_cover:
+            # If exists, delete the old cover image file and record
+            old_cover_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], existing_cover.url)
+            if os.path.exists(old_cover_path):
+                os.remove(old_cover_path)
+            db.session.delete(existing_cover)
+            db.session.commit()
+
+    
+    short_uuid = str(uuid.uuid4())[:8]
+    if image_type == 'cover':
+        unique_identifier = str(uuid.uuid4())[:8]
+        filename = f"{game_uuid}_cover_{unique_identifier}.{file_extension}"
+    else:
+        unique_identifier = datetime.now().strftime('%Y%m%d%H%M%S')
+        short_uuid = str(uuid.uuid4())[:8]
+        filename = f"{game_uuid}_{unique_identifier}_{short_uuid}.{file_extension}"
+    save_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], filename)
+
+    file.save(save_path)
+    print(f"File saved to: {save_path}")
+    new_image = Image(game_uuid=game_uuid, image_type=image_type, url=filename)
+
+    db.session.add(new_image)
+    db.session.commit()
+    print(f"File saved to DB with ID: {new_image.id}")
+
+    flash('Image(s) uploaded successfully', 'success')
+    return jsonify({
+        'message': 'File uploaded successfully',
+        'url': url_for('static', filename=f'images/{filename}'),
+        'flash': 'Image uploaded successfully!',
+        'image_id': new_image.id
+    })
+
+@bp.route('/delete_image', methods=['POST'])
 def delete_image():
+    print(request.json)
     try:
         data = request.get_json()
         if not data or 'image_id' not in data:
@@ -921,6 +981,7 @@ def delete_image():
         # Delete image file from disk
         image_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], image.url)
         if os.path.exists(image_path):
+            print(f"Deleting image file: {image_path}")
             os.remove(image_path)
 
         # Delete image record from database
