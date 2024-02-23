@@ -17,7 +17,6 @@
     transition: transform 0.3s ease;
 }
 
-
 .game-cover:hover {
 
 }
@@ -110,8 +109,9 @@
 
 .file-size-chip {
     background-color: #6272a4;
-    max-width: 25%;
+    max-width: 50%;
     margin-bottom: 10px;
+
 }
 
 .breadcrumbs {

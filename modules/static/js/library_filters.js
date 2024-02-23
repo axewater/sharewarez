@@ -41,7 +41,26 @@ $(document).ready(function() {
         });
     }
 
-    // Adjusted function to populate themes from the API
+    function populatePlayerPerspectives() {
+        $.ajax({
+            url: '/api/player_perspectives', // Adjust according to your Flask app's URL structure
+            method: 'GET',
+            success: function(perspectives) {
+                var perspectiveSelect = $('#playerPerspectiveSelect');
+                perspectives.forEach(function(perspective) {
+                    perspectiveSelect.append($('<option>', {
+                        value: perspective.name,
+                        text: perspective.name
+                    }));
+                });
+            },
+            error: function(xhr, status, error) {
+                console.error("Error fetching player perspectives:", error);
+            }
+        });
+    }
+
+
     function populateThemes() {
         $.ajax({
             url: '/api/themes', // Make sure this URL matches your Flask route for themes
@@ -139,6 +158,7 @@ $(document).ready(function() {
     populateGenres();
     populateThemes();
     populateGameModes();
+    populatePlayerPerspectives();
 
     $('#filterForm').on('submit', function(e) {
         e.preventDefault();

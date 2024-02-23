@@ -591,6 +591,12 @@ def get_game_modes():
     game_modes_list = [{'id': game_mode.id, 'name': game_mode.name} for game_mode in game_modes]
     return jsonify(game_modes_list)
 
+@bp.route('/api/player_perspectives')
+def get_player_perspectives():
+    perspectives = PlayerPerspective.query.all()
+    perspectives_list = [{'id': perspective.id, 'name': perspective.name} for perspective in perspectives]
+    return jsonify(perspectives_list)
+
 
 @bp.route('/library')
 @login_required
@@ -637,7 +643,7 @@ def get_games(page=1, per_page=20, **filters):
         cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
         cover_url = cover_image.url if cover_image else None
         genres = [genre.name for genre in game.genres]
-        game_size_formatted = "N/A"  # Implement your size formatting logic here
+        game_size_formatted = format_size(game.size)
 
         game_data.append({
             'id': game.id,

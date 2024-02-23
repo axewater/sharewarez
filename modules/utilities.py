@@ -734,8 +734,7 @@ def format_size(size_in_mb):
         size_in_gb = size_in_mb / 1024
         return f"{size_in_gb:.2f} GB"
     else:
-        return f"{size_in_mb} MB"
-
+        return f"{int(size_in_mb)} MB"
 
 
 def comma_separated_urls(form, field):
