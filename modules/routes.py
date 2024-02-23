@@ -574,24 +574,29 @@ def get_user(user_id):
 
 
 @bp.route('/api/genres')
+@login_required
 def get_genres():
     genres = Genre.query.all()
     genres_list = [{'id': genre.id, 'name': genre.name} for genre in genres]
     return jsonify(genres_list)
 
 @bp.route('/api/themes')
+@login_required
+
 def get_themes():
     themes = Theme.query.all()
     themes_list = [{'id': theme.id, 'name': theme.name} for theme in themes]
     return jsonify(themes_list)
 
 @bp.route('/api/game_modes')
+@login_required
 def get_game_modes():
     game_modes = GameMode.query.all()
     game_modes_list = [{'id': game_mode.id, 'name': game_mode.name} for game_mode in game_modes]
     return jsonify(game_modes_list)
 
 @bp.route('/api/player_perspectives')
+@login_required
 def get_player_perspectives():
     perspectives = PlayerPerspective.query.all()
     perspectives_list = [{'id': perspective.id, 'name': perspective.name} for perspective in perspectives]
@@ -701,8 +706,7 @@ def browse_games():
         cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
         cover_url = cover_image.url if cover_image else url_for('static', filename='newstyle/default_cover.jpg')
         genres = [genre.name for genre in game.genres]
-        game_size_formatted = "N/A"  # Replace with actual size formatting logic if available
-
+        game_size_formatted = format_size(game.size)
         game_data.append({
             'id': game.id,
             'uuid': game.uuid,
@@ -997,6 +1001,8 @@ def game_edit(game_uuid):
 
 
 @bp.route('/edit_game_images/<game_uuid>', methods=['GET'])
+@login_required
+@admin_required
 def edit_game_images(game_uuid):
     game = Game.query.filter_by(uuid=game_uuid).first_or_404()
     cover_image = Image.query.filter_by(game_uuid=game_uuid, image_type='cover').first()
@@ -1005,6 +1011,8 @@ def edit_game_images(game_uuid):
 
 
 @bp.route('/upload_image/<game_uuid>', methods=['POST'])
+@login_required
+@admin_required
 def upload_image(game_uuid):
     print(f"Uploading image for game {game_uuid}")
     if 'file' not in request.files:
@@ -1083,6 +1091,8 @@ def upload_image(game_uuid):
     })
 
 @bp.route('/delete_image', methods=['POST'])
+@login_required
+@admin_required
 def delete_image():
     print(request.json)
     try:
@@ -1398,22 +1408,22 @@ def remove_game(game_uuid):
 
 
 @bp.route('/admin/delete_library')
-@login_required  # Ensure only authenticated users can access this route
-@admin_required  # Optional: Create an admin_required decorator if you need to restrict access to admin users
+@login_required
+@admin_required
 def delete_library():
     try:
-        game_count = Game.query.count()  # Counts the number of games in the database
+        game_count = Game.query.count()
         form = CsrfForm()
     except Exception as e:
         print(f"Error fetching game count: {e}")
         flash("Failed to fetch game count.", "error")
-        return redirect(url_for('main.index'))  # Redirect to a safe page if there's an error
+        return redirect(url_for('main.index'))
 
     return render_template('admin/delete_library.html', game_count=game_count, form=form)
 
 @bp.route('/delete_all_games', methods=['POST'])
-@login_required  # Ensure only authenticated users can perform this action
-@admin_required  # Optional: Restrict this action to admin users only
+@login_required
+@admin_required
 def delete_all_games():
     try:
         games_to_delete = Game.query.all()
@@ -1580,6 +1590,7 @@ def game_screenshots(game_uuid):
 
 
 @bp.route('/api/get_company_role', methods=['GET'])
+@login_required
 def get_company_role():
     game_igdb_id = request.args.get('game_igdb_id')
     company_id = request.args.get('company_id')

@@ -42,7 +42,7 @@ function clearSlideshowForGameUuid(gameUuid) {
 }
 
 const showDetailsDebounced = debounce(function(element, gameUuid) {
-    console.log(`Game size: ${element.dataset.size}`);
+    
     const detailsDiv = document.getElementById(`details-${gameUuid}`);
     if (!detailsDiv) {
         return;
@@ -143,3 +143,4 @@ function hideDetails() {
         details.classList.add('hidden');
     });
 }
+

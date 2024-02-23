@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(() => {
                 console.log('Game deleted successfully');
-                window.location.href = '/browse_games';
+                window.location.href = '/library';
             })
             .catch(error => {
                 console.error('There has been a problem with your fetch operation:', error);
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Close popup menus when clicking anywhere else on the window
     window.addEventListener('click', function() {
-        console.log('Window clicked');
+        
         document.querySelectorAll('.popup-menu').forEach(function(menu) {
             menu.style.display = 'none';
         });

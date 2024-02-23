@@ -8,7 +8,8 @@
 </head>
 <body>
     <script src="{{ url_for('static', filename='js/library_browser.js') }}"></script>
-    
+    <script src="{{ url_for('static', filename='js/library_pagination.js') }}"></script>
+
         <div class="content-flash">
             {% with messages = get_flashed_messages() %}
                 {% if messages %}
@@ -24,7 +25,23 @@
 
         <div class="glass-panel">
             <div class="breadcrumbs">Game Library</div>
-
+            <!-- Pagination Controls -->
+            <nav aria-label="Page navigation" class="text-center">
+              <ul class="pagination">
+                <li class="page-item">
+                  <a class="page-link" href="#" aria-label="Previous" id="prevPage">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
+                </li>
+                <li class="page-item"><span class="page-link" id="currentPageInfo">Loading...</span></li>
+                <li class="page-item">
+                  <a class="page-link" href="#" aria-label="Next" id="nextPage">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+            
 
 <head>
     <title>Browse Games</title>
