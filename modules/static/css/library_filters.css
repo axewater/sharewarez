@@ -5,50 +5,7 @@
     
 }
 
-.game-card {
-    position: relative;
-    cursor: pointer;
-    transition: transform 0.3s ease; 
-}
 
-.game-cover {
-    width: 100%;
-    height: auto;
-    transition: transform 0.3s ease;
-}
-
-
-.game-cover:hover {
-
-}
-
-.game-card:hover  {
-    transform: scale(1.05);
-    z-index: 10;
-}
-
-.button-glass-hamburger {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 11;
-    background-color: rgba(128, 128, 128, 0.7);
-    border-radius: 50%;
-    padding: 1px 6px;
-    border: none;
-    cursor: pointer;
-}
-
-
-
-.button-glass-hamburger:hover {
-    background-color: rgba(213, 210, 210, 0.9); /* Slightly darker on hover */
-}
-
-.button-glass-hamburger i {
-    color: white; /* Ensure icon is visible against the grey background */
-    
-}
 
 .popup-game-details {
     position: absolute;

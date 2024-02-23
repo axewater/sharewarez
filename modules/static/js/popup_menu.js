@@ -1,63 +1,72 @@
 document.addEventListener('DOMContentLoaded', function() {
-        // Retrieve CSRF token from meta tag
+    
     var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    document.querySelectorAll('.delete-game').forEach(button => {
-        button.addEventListener('click', function(event) {
-            event.stopPropagation(); // Prevent the click from being immediately closed by window event
-            const gameUuid = this.getAttribute('data-game-uuid');
-            console.log(`Deleting game UUID: ${gameUuid}`); // Log the game UUID for debugging
+    // Adjusted for dynamic content using event delegation
+    document.body.addEventListener('click', function(event) {
+        if (event.target.classList.contains('delete-game')) {
+            event.stopPropagation();
+            const gameUuid = event.target.getAttribute('data-game-uuid');
+            console.log(`Deleting game UUID: ${gameUuid}`);
 
             fetch(`/delete_game/${gameUuid}`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': csrfToken
                 },
-                body: {} // Since your Flask route might not explicitly require a request body, this is just a placeholder
+                body: {}
             })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok.');
                 }
-                return response.text(); // Assuming the response is not JSON but a redirect or simple message
+                return response.text();
             })
             .then(() => {
                 console.log('Game deleted successfully');
-                window.location.href = '/browse_games'; // Redirect to the browse games page or handle as needed
+                window.location.href = '/browse_games';
             })
             .catch(error => {
                 console.error('There has been a problem with your fetch operation:', error);
             });
-        });
+        }
     });
+    
 
-    var menuButtons = document.querySelectorAll('[id^="menuButton-"]');
-    menuButtons.forEach(function(button) {
-        
-        var uuid = button.id.replace('menuButton-', '');
-        var popupMenu = document.getElementById('popupMenu-' + uuid);
-
-        button.addEventListener('click', function(event) {
-            console.log('Menu button clicked'); // Log when menu button is clicked
-            event.stopPropagation(); // Prevent the click from being immediately closed by window event
-            
-            // Close all popup menus before opening the clicked one
+    document.body.addEventListener('click', function(event) {
+        // Check if the click is on the menu button or any of its descendants
+        var clickedElement = event.target.closest('[id^="menuButton-"]');
+        if (clickedElement) {
+            console.log('Menu button or its child clicked');
+            event.stopPropagation();
+    
+            var uuid = clickedElement.id.replace('menuButton-', '');
+            var popupMenu = document.getElementById('popupMenu-' + uuid);
+    
+            // Toggle the display of the popup menu for the clicked button
             document.querySelectorAll('.popup-menu').forEach(function(menu) {
-                if (menu.id !== 'popupMenu-' + uuid) { // Check if it's not the menu to open
+                if (menu.id !== 'popupMenu-' + uuid) {
                     menu.style.display = 'none';
                 }
             });
-
-            // Toggle the display of the clicked menu
+    
             popupMenu.style.display = popupMenu.style.display === 'block' ? 'none' : 'block';
-        });
-    });
+        }
+    })
 
-    // Close the popup menus if the user clicks outside of them
+
+    // Close popup menus when clicking anywhere else on the window
     window.addEventListener('click', function() {
-        console.log('Window clicked'); // Log when window is clicked
+        console.log('Window clicked');
         document.querySelectorAll('.popup-menu').forEach(function(menu) {
             menu.style.display = 'none';
         });
+    });
+
+    // Prevent menu close when clicking inside the menu
+    document.body.addEventListener('click', function(event) {
+        if (event.target.closest('.popup-menu')) {
+            event.stopPropagation();
+        }
     });
 });

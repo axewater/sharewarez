@@ -573,20 +573,72 @@ def get_user(user_id):
 ######################            basic site above                  ####################
 
 
+@bp.route('/api/genres')
+def get_genres():
+    genres = Genre.query.all()
+    genres_list = [{'id': genre.id, 'name': genre.name} for genre in genres]
+    return jsonify(genres_list)
 
-@bp.route('/browse_games')
+@bp.route('/api/themes')
+def get_themes():
+    themes = Theme.query.all()
+    themes_list = [{'id': theme.id, 'name': theme.name} for theme in themes]
+    return jsonify(themes_list)
+
+@bp.route('/api/game_modes')
+def get_game_modes():
+    game_modes = GameMode.query.all()
+    game_modes_list = [{'id': game_mode.id, 'name': game_mode.name} for game_mode in game_modes]
+    return jsonify(game_modes_list)
+
+
+@bp.route('/library')
 @login_required
-def browse_games():
-    print(f"Route: /browse_games user_id: {current_user.name}")
-    games = Game.query.options(joinedload(Game.genres)).all()
+def library():
+
+    # Default to the first page with 20 games per page
+    game_data, total, pages, current_page = get_games()
+    
+    # You can modify this to pass additional context for rendering filters, etc.
+    context = {
+        'games': game_data,
+        'total': total,
+        'pages': pages,
+        'current_page': current_page
+        # Add other necessary context variables for filters
+    }
+    csrf_form = CsrfForm()
+
+    return render_template('games/library_browser.html', game_data=game_data, form=csrf_form, **context)
+
+def get_games(page=1, per_page=20, **filters):
+    query = Game.query.options(joinedload(Game.genres))
+
+    # Apply filters based on the provided arguments
+    if filters.get('category'):
+        query = query.filter(Game.category.has(Category.name == filters['category']))
+    if filters.get('genre'):
+        query = query.filter(Game.genres.any(Genre.name == filters['genre']))
+    if filters.get('rating') is not None:
+        query = query.filter(Game.rating >= filters['rating'])
+    if filters.get('game_mode'):
+        query = query.filter(Game.game_modes.any(GameMode.name == filters['game_mode']))
+    if filters.get('player_perspective'):
+        query = query.filter(Game.player_perspectives.any(PlayerPerspective.name == filters['player_perspective']))
+    if filters.get('theme'):
+        query = query.filter(Game.themes.any(Theme.name == filters['theme']))
+
+    # Pagination
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    games = pagination.items
+
     game_data = []
-      
     for game in games:
         cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
         cover_url = cover_image.url if cover_image else None
         genres = [genre.name for genre in game.genres]
-        game_size_formatted = format_size(game.size)  # Assuming game.size exists and is valid
-     
+        game_size_formatted = "N/A"  # Implement your size formatting logic here
+
         game_data.append({
             'id': game.id,
             'uuid': game.uuid,
@@ -598,11 +650,70 @@ def browse_games():
             'genres': genres
         })
 
-    csrf_form = CsrfForm()
-
-    return render_template('games/library_browser.html', games=game_data, form=csrf_form)
+    return game_data, pagination.total, pagination.pages, page
 
 
+
+@bp.route('/browse_games')
+@login_required
+def browse_games():
+    print("bg Filters received:", request.args)
+
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    
+    # Filters
+    category = request.args.get('category')
+    genre = request.args.get('genre')
+    rating = request.args.get('rating', type=int)
+    game_mode = request.args.get('game_mode')
+    player_perspective = request.args.get('player_perspective')
+    theme = request.args.get('theme')
+
+    query = Game.query.options(joinedload(Game.genres))
+
+    if category:
+        query = query.filter(Game.category.has(Category.name == category))
+    if genre:
+        query = query.filter(Game.genres.any(Genre.name == genre))
+    if rating is not None:  # Check if rating is not None since 0 is a valid rating but falsy
+        query = query.filter(Game.rating >= rating)
+    if game_mode:
+        query = query.filter(Game.game_modes.any(GameMode.name == game_mode))
+    if player_perspective:
+        query = query.filter(Game.player_perspectives.any(PlayerPerspective.name == player_perspective))
+    if theme:
+        query = query.filter(Game.themes.any(Theme.name == theme))
+    
+    # Pagination
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    games = pagination.items
+
+    game_data = []  # Initialize game_data as an empty list before appending
+
+    for game in games:
+        cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
+        cover_url = cover_image.url if cover_image else url_for('static', filename='newstyle/default_cover.jpg')
+        genres = [genre.name for genre in game.genres]
+        game_size_formatted = "N/A"  # Replace with actual size formatting logic if available
+
+        game_data.append({
+            'id': game.id,
+            'uuid': game.uuid,
+            'name': game.name,
+            'cover_url': cover_url,
+            'summary': game.summary,
+            'url': game.url,
+            'size': game_size_formatted,
+            'genres': genres
+        })
+
+    return jsonify({
+        'games': game_data,
+        'total': pagination.total,
+        'pages': pagination.pages,
+        'current_page': page
+    })
 
 @bp.route('/downloads')
 @login_required
@@ -794,7 +905,7 @@ def add_game_manual():
                 if from_unmatched:
                     return redirect(url_for('main.unmatched_folders'))
                 else:
-                    return redirect(url_for('main.browse_games'))
+                    return redirect(url_for('main.library'))
             except SQLAlchemyError as e:
                 db.session.rollback()
                 print(f"Error saving the game to the database: {e}")
@@ -867,7 +978,7 @@ def game_edit(game_uuid):
             thread.start()
             print(f"Refresh images thread started for game UUID: {game_uuid}")
                     
-            return redirect(url_for('main.browse_games'))
+            return redirect(url_for('main.library'))
         except SQLAlchemyError as e:
             db.session.rollback()
             flash('An error occurred while updating the game. Please try again.', 'error')
@@ -1202,7 +1313,7 @@ def refresh_game_images(game_uuid):
     thread.start()
     print(f"Refresh images thread started for game UUID: {game_uuid}")
     flash("Game images refresh process started.", "info")
-    return redirect(url_for('main.browse_games'))
+    return redirect(url_for('main.library'))
 
 
 @bp.route('/delete_game/<string:game_uuid>', methods=['POST'])
@@ -1229,7 +1340,7 @@ def delete_game(game_uuid):
         print(f'Error deleting game with UUID {game_uuid_str}: {e}')
         flash(f'Error deleting game: {e}', 'error')
     
-    return redirect(url_for('main.browse_games'))
+    return redirect(url_for('main.library'))
 
 @bp.route('/remove_game/<string:game_uuid>', methods=['POST'])
 @login_required
@@ -1323,7 +1434,7 @@ def delete_all_games():
         print(f'Error deleting all games: {e}')
         flash(f'Error deleting all games: {e}', 'error')
     
-    return redirect(url_for('main.browse_games'))
+    return redirect(url_for('main.library'))
 
 
 
@@ -1367,14 +1478,14 @@ def download_zip(download_id):
     
     if download_request.status != 'available':
         flash("The requested download is not ready yet.")
-        return redirect(url_for('main.browse_games'))
+        return redirect(url_for('main.library'))
 
     relative_path = download_request.zip_file_path
     absolute_path = os.path.join(current_app.static_folder, relative_path)
     
     if not os.path.exists(absolute_path):
         flash("Error: File does not exist.")
-        return redirect(url_for('main.browse_games'))
+        return redirect(url_for('main.library'))
 
     print(f"Found download request available: {download_request}")
 
@@ -1388,7 +1499,7 @@ def download_zip(download_id):
     except Exception as e:
         flash("An error occurred while trying to serve the file.")
         print(f"Error: {e}") 
-        return redirect(url_for('main.browse_games'))
+        return redirect(url_for('main.library'))
 
 
 @bp.route('/check_download_status/<game_uuid>')

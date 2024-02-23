@@ -20,7 +20,8 @@
                 {% endif %}
             {% endwith %}
         </div>
-        
+
+
         <div class="glass-panel">
             <div class="breadcrumbs">Game Library</div>
 
@@ -32,7 +33,7 @@
 
 </head>
 <body>
-    <div class="game-library-container">
+    <div class="game-library-container" id="gamesContainer">
         {% for game in games %}
         <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
             <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
@@ -51,7 +52,7 @@
                 <div id="details-{{ game.uuid }}" class="popup-game-details hidden">
                     <!-- Details and screenshots will be injected here by JavaScript -->
                 </div>
-            </div>
+        </div>
         {% endfor %}
     </div>
     

@@ -11,7 +11,22 @@
     min-height: 80vh; 
 }
 
+.button-glass-hamburger {
+    width: 30px;
+    height: 30px;
+    background-color: rgba(176, 173, 173, 0.7);
+    border-radius: 50%;
+    padding: 1px 2px;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 5px;
+}
 
+
+.button-glass-hamburger:hover {
+    background-color: rgba(218, 217, 217, 0.9); /* Slightly darker on hover */
+
+}
 
 .game-card-topq {
     display: flex;
@@ -219,7 +234,7 @@
     margin: 0px;
 }
 
-.chip {
+.chip-detailspage {
     display: inline-block;
     padding: 5px 10px;
     margin-top: 5px;

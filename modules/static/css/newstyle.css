@@ -624,15 +624,6 @@ body {
 }
 
 
-.button-glass-hamburger {
-    background: none;
-    border: none;
-    color: #ddd;
-    cursor: pointer;
-    padding: 8px 15px;
-    width: 10%;
-
-}
 
 .menu-item {
     display: block;

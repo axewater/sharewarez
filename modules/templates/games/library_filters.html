@@ -1,0 +1,45 @@
+<!-- in templates/games/library_filters.html -->
+
+<script src="{{ url_for('static', filename='js/library_filters.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/library_filters.css') }}">
+
+<div id="library-filters">
+    <form id="filterForm">
+
+      <div class="form-group">
+        <label for="genreSelect">Genre</label>
+        <select class="form-control" id="genreSelect">
+          <option value="">All Genres</option>
+          <!-- Genres will be populated here -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="themeSelect">Theme</label>
+        <select class="form-control" id="themeSelect">
+          <option value="">All Themes</option>
+          <!-- Themes will be populated here -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="gameModeSelect">Game Mode</label>
+        <select class="form-control" id="gameModeSelect">
+          <option value="">All Game Modes</option>
+          <!-- Game Modes will be populated here -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="playerPerspectiveSelect">Player Perspective</label>
+        <select class="form-control" id="playerPerspectiveSelect">
+          <option value="">All Perspectives</option>
+          <!-- Perspectives will be populated here -->
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="ratingSlider">Rating: <span id="ratingValue">0</span></label>
+        <input type="range" class="form-control-range" id="ratingSlider" min="0" max="100" value="0">
+      </div>
+      <button type="submit" class="btn btn-primary">Apply Filters</button>
+    </form>
+  </div>
+  
