@@ -1296,7 +1296,7 @@ def check_igdb_id():
 @login_required
 def game_details(game_uuid):
     print(f"Fetching game details for UUID: {game_uuid}")
-    csrf_form = CsrfForm
+    csrf_form = CsrfForm()
     
     try:
         valid_uuid = uuid.UUID(game_uuid, version=4)
