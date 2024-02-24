@@ -1,6 +1,6 @@
 .sidebar {
     height: 100%;
-    width: 175px; /* Width of sidebar when expanded */
+    width: 200px; /* Width of sidebar when expanded */
     position: fixed;
     z-index: 1;
     top: 0;

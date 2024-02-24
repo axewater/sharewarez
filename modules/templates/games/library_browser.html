@@ -5,74 +5,92 @@
 <head>
     <meta charset="UTF-8">
     <title>Browse Games</title>
-</head>
-<body>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/library_browser.css') }}">
+    <script src="{{ url_for('static', filename='js/popup_menu.js') }}"></script>
     <script src="{{ url_for('static', filename='js/library_browser.js') }}"></script>
     <script src="{{ url_for('static', filename='js/library_pagination.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/library_search.js') }}"></script>
+</head>
+<body>
+    <div class="content-flash">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flashes">
+                    {% for message in messages %}
+                        <div class="flash">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+    <div class="glass-panel">
 
-        <div class="content-flash">
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    <div class="flashes">
-                        {% for message in messages %}
-                            <div class="flash">{{ message }}</div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            {% endwith %}
+
+        <!-- Search Modal -->
+        <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title" id="searchModalLabel">Search</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+                <div class="modal-body">
+                <input type="text" class="form-control" id="searchInput" placeholder="Start typing...">
+                <div id="searchResults"></div>
+                </div>
+            </div>
+            </div>
         </div>
-
-
-        <div class="glass-panel">
-            <div class="breadcrumbs">Game Library</div>
-            <!-- Pagination Controls -->
+  
+        <div class="breadcrumbs"></div>
+        <!-- Pagination Controls -->
+        <div class="container-pagination">
             <nav aria-label="Page navigation" class="text-center">
-              <ul class="pagination">
+                <ul class="pagination">
                 <li class="page-item">
-                  <a class="page-link" href="#" aria-label="Previous" id="prevPage">
+                    <a class="page-link" href="#" aria-label="Previous" id="prevPage">
                     <span aria-hidden="true">&laquo;</span>
-                  </a>
+                    </a>
                 </li>
                 <li class="page-item"><span class="page-link" id="currentPageInfo">Loading...</span></li>
                 <li class="page-item">
-                  <a class="page-link" href="#" aria-label="Next" id="nextPage">
+                    <a class="page-link" href="#" aria-label="Next" id="nextPage">
                     <span aria-hidden="true">&raquo;</span>
-                  </a>
-                </li>
-              </ul>
-            </nav>
-            
-
-<head>
-    <title>Browse Games</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/library_browser.css') }}">
-    <script src="{{ url_for('static', filename='js/popup_menu.js') }}"></script>
-
-</head>
-<body>
-    <div class="game-library-container" id="gamesContainer">
-        {% for game in games %}
-        <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
-            <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
-            {% with game_uuid=game.uuid, game_url=game.url %}
-            {% include 'games/popup_menu.html' %}
-            {% endwith %}
-            {% if game.cover_url %}
-                    <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">
-                        <img src="{{ url_for('static', filename='images/' ~ game.cover_url) }}" alt="{{ game.name }}" class="game-cover">
                     </a>
-                {% else %}
-                <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">
-                    <img src="{{ url_for('static', filename='newstyle/default_cover.jpg') }}" alt="Default Cover Image" class="game-cover">
-                </a>
-                {% endif %}
-                <div id="details-{{ game.uuid }}" class="popup-game-details hidden">
-                    <!-- Details and screenshots will be injected here by JavaScript -->
-                </div>
+                </li>
+                </ul>
+            </nav>
         </div>
-        {% endfor %}
+        <div class="game-library-container" id="gamesContainer">
+            {% for game in games %}
+            <div class="game-card-container">
+                <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
+                    <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger" style="z-index: 6;"><i class="fas fa-bars"></i></button>
+                    {% with game_uuid=game.uuid, game_url=game.url %}
+                    {% include 'games/popup_menu.html' %}
+                    {% endwith %}
+                    {% if game.cover_url %}
+                    <div class="game-cover">
+        
+                        <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">
+                            <img src="{{ url_for('static', filename='images/' ~ game.cover_url) }}" alt="{{ game.name }}" class="game-cover">
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">
+                            <img src="{{ url_for('static', filename='newstyle/default_cover.jpg') }}" alt="Default Cover Image" class="game-cover">
+                        </a>
+                        {% endif %}
+                        <div id="details-{{ game.uuid }}" class="popup-game-details hidden">
+                            <!-- Details and screenshots will be injected here by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
-    
 </body>
 </html>
 {% endblock %}

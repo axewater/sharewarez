@@ -244,6 +244,8 @@
     text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.9);
     text-size: 112px;
     border: 1px solid black;
+    text-decoration: none;
+    color: white;
 }
   
 .chip-size {

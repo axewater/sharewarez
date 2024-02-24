@@ -80,25 +80,28 @@
                             {% endif %}
                         </div>
                         
-                        {% macro list_items(items, label) %}
-                            <div class="game-card-labels">
-                                {{ label }}:
-                            </div>
-                            <div class="game-card-chips-list">
-                                {% if items %}
-                                    {% for item in items %}
-                                        <li class="chip-detailspage">{{ item }}</li>
-                                    {% endfor %}
-                                {% else %}
-                                    <p>N/A</p>
-                                {% endif %}
-                            </div>
+                        {% macro list_items(items, label, filter_type) %}
+                        <div class="game-card-labels">
+                            {{ label }}:
+                        </div>
+                        <div class="game-card-chips-list">
+                            {% if items %}
+                                {% for item in items %}
+                                    <!-- Updated part: wrap items in a link -->
+                                    <a href="{{ url_for('main.library', **{filter_type: item}) }}" class="chip-detailspage">{{ item }}</a>
+                                {% endfor %}
+                            {% else %}
+                                <p>N/A</p>
+                            {% endif %}
+                        </div>
                         {% endmacro %}
+                    
 
-                        {{ list_items(game.genres, "Genres") }}
-                        {{ list_items(game.themes, "Themes") }}
-                        {{ list_items(game.game_modes, "Game Modes") }}
-                        {{ list_items(game.player_perspectives, "Player Perspectives") }}
+                        {{ list_items(game.genres, "Genres", "genre") }}
+                        {{ list_items(game.themes, "Themes", "theme") }}
+                        {{ list_items(game.game_modes, "Game Modes", "game_mode") }}
+                        {{ list_items(game.player_perspectives, "Player Perspectives", "player_perspective") }}
+                        
 
                         <div class="flex-row-horiz">
                             {% macro detail_item(label, value) %}

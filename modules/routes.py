@@ -606,21 +606,40 @@ def get_player_perspectives():
 @bp.route('/library')
 @login_required
 def library():
+    # Extract filters from request arguments
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    genre = request.args.get('genre')
+    rating = request.args.get('rating', type=int)
+    game_mode = request.args.get('game_mode')
+    player_perspective = request.args.get('player_perspective')
+    theme = request.args.get('theme')
+    print(f"Filters: {genre}, {rating}, {game_mode}, {player_perspective}, {theme}")
+    # Pass extracted filters to get_games
+    filters = {
+        'genre': genre,
+        'rating': rating,
+        'game_mode': game_mode,
+        'player_perspective': player_perspective,
+        'theme': theme
+    }
+    # Filter out None values
+    filters = {k: v for k, v in filters.items() if v is not None}
 
-    # Default to the first page with 20 games per page
-    game_data, total, pages, current_page = get_games()
+    game_data, total, pages, current_page = get_games(page, per_page, **filters)
+    print(f'Total: {total}, Pages: {pages}, Current Page: {current_page}')
     
     # You can modify this to pass additional context for rendering filters, etc.
     context = {
         'games': game_data,
         'total': total,
         'pages': pages,
-        'current_page': current_page
+        'current_page': current_page,
         # Add other necessary context variables for filters
+        'form': CsrfForm()  # Assuming you're still using this for CSRF protection
     }
-    csrf_form = CsrfForm()
 
-    return render_template('games/library_browser.html', game_data=game_data, form=csrf_form, **context)
+    return render_template('games/library_browser.html', **context)
 
 def get_games(page=1, per_page=20, **filters):
     query = Game.query.options(joinedload(Game.genres))
@@ -667,8 +686,6 @@ def get_games(page=1, per_page=20, **filters):
 @bp.route('/browse_games')
 @login_required
 def browse_games():
-    print("bg Filters received:", request.args)
-
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
     
@@ -723,6 +740,21 @@ def browse_games():
         'pages': pagination.pages,
         'current_page': page
     })
+
+@bp.route('/api/search')
+def search():
+    query = request.args.get('query', '')
+    if query:
+        # Perform a case-insensitive search for games matching the query
+        games = Game.query.filter(Game.name.ilike(f'%{query}%')).all()
+        # Convert the game objects to a list of dictionaries to make them JSON serializable
+        results = [{'id': game.id, 'name': game.name, 'summary': game.summary} for game in games]
+        print(f'Search results for "{query}": {results}')
+    else:
+        results = []
+
+    return jsonify(results)
+
 
 @bp.route('/downloads')
 @login_required

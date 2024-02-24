@@ -2,27 +2,33 @@ $(document).ready(function() {
   var currentPage = 1;
   var totalPages = 0;
 
-  function populateGenres() {
-      $.ajax({
-          url: '/api/genres',
-          method: 'GET',
-          success: function(response) {
-              var genreSelect = $('#genreSelect');
-              genreSelect.empty().append($('<option>', { value: '', text: 'All Genres' }));
-              response.forEach(function(genre) {
-                  genreSelect.append($('<option>', {
-                      value: genre.name,
-                      text: genre.name
-                  }));
-              });
-          },
-          error: function(xhr, status, error) {
-              console.error("Error fetching genres:", error);
-          }
-      });
+  function populateGenres(callback) {
+    $.ajax({
+        url: '/api/genres',
+        method: 'GET',
+        success: function(response) {
+            var genreSelect = $('#genreSelect');
+            genreSelect.empty().append($('<option>', { value: '', text: 'All Genres' }));
+            response.forEach(function(genre) {
+                genreSelect.append($('<option>', {
+                    value: genre.name,
+                    text: genre.name
+                }));
+            });
+            if (typeof callback === "function") callback();
+        },
+        error: function(xhr, status, error) {
+            console.error("Error fetching genres:", error);
+        }
+    }).done(function() {
+      var initialParams = getUrlParams();
+      if (initialParams.genre) {
+        $('#genreSelect').val(initialParams.genre);
+      }
+    });
   }
 
-  function populateGameModes() {
+  function populateGameModes(callback) {
       $.ajax({
           url: '/api/game_modes',
           method: 'GET',
@@ -35,14 +41,20 @@ $(document).ready(function() {
                       text: gameMode.name
                   }));
               });
+              if (typeof callback === "function") callback();
           },
           error: function(xhr, status, error) {
               console.error("Error fetching game modes:", error);
           }
+    }).done(function() {
+        var initialParams = getUrlParams();
+        if (initialParams.genre) {
+            $('#gameModeSelect').val(initialParams.gameMode);
+        }
       });
   }
 
-  function populatePlayerPerspectives() {
+  function populatePlayerPerspectives(callback) {
       $.ajax({
           url: '/api/player_perspectives',
           method: 'GET',
@@ -55,6 +67,7 @@ $(document).ready(function() {
                       text: perspective.name
                   }));
               });
+              if (typeof callback === "function") callback();
           },
           error: function(xhr, status, error) {
               console.error("Error fetching player perspectives:", error);
@@ -62,7 +75,7 @@ $(document).ready(function() {
       });
   }
 
-  function populateThemes() {
+  function populateThemes(callback) {
       $.ajax({
           url: '/api/themes',
           method: 'GET',
@@ -75,6 +88,7 @@ $(document).ready(function() {
                       text: theme.name
                   }));
               });
+              if (typeof callback === "function") callback();
           },
           error: function(xhr, status, error) {
               console.error("Error fetching themes:", error);
@@ -82,34 +96,49 @@ $(document).ready(function() {
       });
   }
 
-  function fetchFilteredGames(page) {
-      page = page || 1; // Default to page 1 if not specified
-      var filters = {
-          page: page,
-          per_page: 20,
-          category: $('#categorySelect').val(),
-          genre: $('#genreSelect').val(),
-          gameMode: $('#gameModeSelect').val(),
-          playerPerspective: $('#playerPerspectiveSelect').val(),
-          theme: $('#themeSelect').val(),
-          rating: $('#ratingSlider').val(),
-      };
+  function getUrlParams() {
+    var params = {};
+    var queryString = window.location.search.substring(1);
+    var vars = queryString.split('&');
+    vars.forEach(function(param) {
+      var pair = param.split('=');
+      if (pair[0] && pair[1]) {
+        params[pair[0]] = decodeURIComponent(pair[1].replace(/\+/g, ' '));
+      }
+    });
+    return params;
+  }
 
-      $.ajax({
-          url: '/browse_games',
-          data: filters,
-          method: 'GET',
-          success: function(response) {
-              totalPages = response.pages;
-              currentPage = response.current_page;
-              $('#currentPageInfo').text(currentPage + '/' + totalPages);
-              updateGamesContainer(response.games);
-              updatePaginationControls();
-          },
-          error: function(xhr, status, error) {
-              console.error("AJAX error:", error);
-          }
-      });
+  function fetchFilteredGames(page) {
+    var urlParams = getUrlParams(); // Get URL parameters
+    page = page || urlParams.page || 1; // Use URL parameter for page if available
+    var filters = {
+      page: page,
+      per_page: 20,
+      category: $('#categorySelect').val() || urlParams.category,
+      genre: $('#genreSelect').val() || urlParams.genre,
+      gameMode: $('#gameModeSelect').val() || urlParams.gameMode,
+      playerPerspective: $('#playerPerspectiveSelect').val() || urlParams.playerPerspective,
+      theme: $('#themeSelect').val() || urlParams.theme,
+      rating: $('#ratingSlider').val() || urlParams.rating,
+    };
+
+    // AJAX request using filters, including those from URL parameters
+    $.ajax({
+      url: '/browse_games',
+      data: filters,
+      method: 'GET',
+      success: function(response) {
+        totalPages = response.pages;
+        currentPage = response.current_page;
+        $('#currentPageInfo').text(currentPage + '/' + totalPages);
+        updateGamesContainer(response.games);
+        updatePaginationControls();
+      },
+      error: function(xhr, status, error) {
+        console.error("AJAX error:", error);
+      }
+    });
   }
 
   function updateGamesContainer(games) {
@@ -132,14 +161,18 @@ $(document).ready(function() {
     var popupMenuHtml = createPopupMenuHtml(game); // Ensure this function generates the correct HTML for your popup menu
 
     var gameCardHtml = `
-    <div class="game-card" onmouseover="showDetails(this, '${game.uuid}')" onmouseout="hideDetails()" data-name="${game.name}" data-size="${game.size}" data-genres="${genres}">
-        <button id="menuButton-${game.uuid}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
-        ${popupMenuHtml}
-        <a href="/game_details/${game.uuid}">
-            <img src="${fullCoverUrl}" alt="${game.name}" class="game-cover">
-        </a>
-        <div id="details-${game.uuid}" class="popup-game-details hidden">
-            <!-- Details and screenshots will be injected here by JavaScript -->
+    <div class="game-card-container">
+        <div class="game-card" onmouseover="showDetails(this, '${game.uuid}')" onmouseout="hideDetails()" data-name="${game.name}" data-size="${game.size}" data-genres="${genres}">
+            <button id="menuButton-${game.uuid}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
+            ${popupMenuHtml}
+            <a href="/game_details/${game.uuid}">
+            <div class="game-cover">
+                <img src="${fullCoverUrl}" alt="${game.name}" class="game-cover">
+                </a>
+            </div>
+            <div id="details-${game.uuid}" class="popup-game-details hidden">
+                <!-- Details and screenshots will be injected here by JavaScript -->
+            </div>
         </div>
     </div>
     `;
@@ -207,6 +240,26 @@ function createPopupMenuHtml(game) {
   $('#ratingSlider').on('input', function() {
       $('#ratingValue').text($(this).val());
   });
+
+
+  var initialParams = getUrlParams();
+    if (initialParams.genre) {
+    $('#genreSelect').val(initialParams.genre);
+  }
+  var initialParams = getUrlParams();
+    if (initialParams.theme) {
+    $('#themeSelect').val(initialParams.theme);
+  }
+  var initialParams = getUrlParams();
+    if (initialParams.gameMode) {
+    $('#gameModeSelect').val(initialParams.gameMode);
+  }
+  var initialParams = getUrlParams();
+    if (initialParams.playerPerspective) {
+    $('#playerPerspectiveSelect').val(initialParams.playerPerspective);
+  }
+
+ 
 
   // Initialize filter dropdowns and fetch games on load
   populateGenres();
