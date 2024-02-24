@@ -19,10 +19,25 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5); /* Adjust color and opacity as needed */
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
 
+.popup-game-details {
+    position: absolute;
+    top: 0%;
+    width: 260px;
+    z-index: 5;
+    background: #2a2c35;
+    padding: 15px 15px;
+    animation: fadein 0.5s;
+    display: none;
+    border-radius: 5px;
+}
+
+.screenshot-slide img {
+    border-radius: 5px;
+}
 
 .popup-game-details img {
     max-width: 100%;

@@ -27,7 +27,7 @@
     box-shadow: 5px 5px 9px rgba(0, 0, 0, 0.7);
     transition: transform 0.3s ease, box-shadow 0.3s ease; 
     border: 1px solid rgb(49, 49, 49);
- 
+    border-radius: 5px;
 }
 
 
@@ -44,13 +44,13 @@
     background-repeat: no-repeat;
     background-size: 800px 100%;
     visibility: hidden;
-    opacity: 1; /* Set initial opacity to 0 */
+    opacity: 1;
 }
 
 .game-card:hover .game-cover::before {
     animation: shimmerAnimation 1s linear forwards;
     visibility: visible;
-    opacity: 1; /* Ensure the element is fully visible on hover */
+    opacity: 1;
     pointer-events: none;
 }
 
@@ -71,25 +71,9 @@
     }
     100% {
         background-position: 1000px 0;
-        opacity: 0; /* Ensure it fades out at the end */
+        opacity: 0;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 .search-result {
     padding: 5px;
@@ -104,29 +88,28 @@
 .pagination .page-link {
     padding-left: 3.8rem;
     padding-right: 3.8rem;
-    background-color: #343a40; /* Dark background */
-    color: #ffffff; /* White text */
-    border: 1px solid #343a40; /* Dark border to match the background */
+    background-color: #343a40;
+    color: #ffffff;
+    border: 1px solid #343a40;
 }
 
-/* Style for the active page link */
+
 .pagination .page-link.active,
 .pagination .page-item.active .page-link {
-    background-color: #707b85; /* Slightly lighter dark background for active */
-    border-color: #495057; /* Matching border color */
+    background-color: #707b85;
+    border-color: #495057;
 }
 
-/* Style for hover state */
+
 .pagination .page-link:hover {
-    background-color: #495057; /* Slightly lighter dark background for hover */
-    border-color: #495057; /* Matching border color */
+    background-color: #495057; 
+    border-color: #495057;
 }
 
-/* Style for disabled state */
 .pagination .page-item.disabled .page-link {
-    color: #6c757d; /* Gray text for disabled */
-    background-color: #343a40; /* Maintain dark background for disabled */
-    border-color: #343a40; /* Matching border color for disabled */
+    color: #6c757d;
+    background-color: #343a40;
+    border-color: #343a40;
 }
 
 
@@ -141,43 +124,22 @@
     padding: 1px 6px;
     border: none;
     cursor: pointer;
-    opacity: 0; /* Make it fully transparent initially */
+    opacity: 0;
     transition: opacity 0.3s ease;
 }
 
 
 
 .button-glass-hamburger:hover {
-    background-color: rgba(213, 210, 210, 0.9); /* Slightly darker on hover */
+    background-color: rgba(213, 210, 210, 0.9);
 }
 
 .button-glass-hamburger i {
-    color: white; /* Ensure icon is visible against the grey background */
+    color: white;
     
 }
 
-.popup-game-details {
-    position: absolute;
-    top: 0%;
-    width: 260px;
-    z-index: 5;
-    background: #2a2c35;
-    padding: 15px 15px;
-    animation: fadein 0.5s;
-    display: none;
-}
 
-
-
-.popup-game-details img {
-    max-width: 100%;
-    height: auto;
-    border: 1px solid #000000;
-}
-
-.popup-game-details:not(.hidden) {
-    display: block;
-}
 
 
 .game-info-box {

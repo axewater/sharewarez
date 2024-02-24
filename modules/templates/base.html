@@ -70,7 +70,6 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Function to close all submenus
         function closeAllSubmenus() {
             document.querySelectorAll('.submenu').forEach(submenu => {
                 submenu.style.display = 'none';
@@ -80,35 +79,26 @@
             });
         }
     
-        // Initially close all submenus
         closeAllSubmenus();
     
-        // Toggle for main sidebar
         document.getElementById("toggleSidebar").addEventListener("click", function() {
             document.getElementById("sidebar").classList.toggle("collapsed");
             document.getElementById("content").classList.toggle("collapsed");
-            // Close all open submenus when collapsing the sidebar
             closeAllSubmenus();
         });
     
-        // Toggle for submenus
         document.querySelectorAll('.sidebar-link.has-submenu').forEach(item => {
             item.addEventListener('click', function(e) {
-                // Close all submenus first, if you want to keep only one submenu open at a time
                 closeAllSubmenus();
                 
-                // Prevent default link behavior
                 e.preventDefault();
     
-                // This part toggles the submenu visibility
                 let nextElement = this.nextElementSibling;
                 if (nextElement && nextElement.classList.contains('submenu')) {
-                    // Toggle the 'open' class for the clicked item only
                     this.classList.toggle('open');
                     nextElement.style.display = nextElement.style.display === 'block' ? 'none' : 'block';
                 }
     
-                // Stop propagation to prevent affecting parent items
                 e.stopPropagation();
             });
         });
