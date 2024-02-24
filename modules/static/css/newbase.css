@@ -10,7 +10,9 @@
     overflow-x: hidden;
     transition: 0.5s;
     padding-top: 20px;
-    padding-right: 7px;
+    padding-right: 17px;
+    margin-right: 5px;
+    background: linear-gradient(to right, rgba(17, 17, 17, 0.9) 95%, rgba(17, 17, 17, 0));
 }
 
 .sidebar.collapsed {

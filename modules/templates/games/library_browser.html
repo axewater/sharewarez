@@ -84,8 +84,26 @@
                             <!-- Details and screenshots will be injected here by JavaScript -->
                         </div>
                 </div>
+            
             </div>
             {% endfor %}
+        </div>
+        <div class="container-pagination">
+            <nav aria-label="Page navigation" class="text-center">
+                <ul class="pagination pagination-style">
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Previous" id="prevPage">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item"><span class="page-link" id="currentPageInfo">Loading...</span></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Next" id="nextPage">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </div>
 </body>

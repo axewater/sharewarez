@@ -97,6 +97,11 @@
     text-align: center;
 }
 
+.search-result.selected {
+    background-color: #007bff;
+    color: white;
+}
+
 
 .hidden {
     display: none;

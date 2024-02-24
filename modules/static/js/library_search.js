@@ -1,4 +1,6 @@
 $(document).ready(function() {
+    var selectedIndex = -1; // No selection initially
+
     $(document).on('keypress', function(e) {
         if (!$("input, textarea").is(":focus")) {
             $('#searchModal').modal('show');
@@ -18,6 +20,25 @@ $(document).ready(function() {
         console.log(`Search query: ${query}`);
     });
 
+    $('#searchInput').on('keydown', function(e) {
+        var resultsCount = $('#searchResults .search-result').length;
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault(); // Prevent the cursor from moving in the input field
+            selectedIndex = (selectedIndex + 1) % resultsCount;
+            updateSelection();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault(); // Prevent the cursor from moving in the input field
+            selectedIndex = (selectedIndex - 1 + resultsCount) % resultsCount;
+            updateSelection();
+        } else if (e.key === 'Enter') {
+            e.preventDefault(); // Prevent form submission
+            if (selectedIndex >= 0) {
+                $('#searchResults .search-result').eq(selectedIndex).click();
+            }
+        }
+    });
+    
 
     $('#searchResults').on('click', '.search-result', function() {
         console.log("Search result clicked");
@@ -26,6 +47,12 @@ $(document).ready(function() {
         window.location.href = '/game_details/' + gameUuid;
     });
 });
+
+function updateSelection() {
+    $('#searchResults .search-result').removeClass('selected')
+        .eq(selectedIndex).addClass('selected')
+        .focus(); // Optionally, focus the selected result for accessibility
+}
 
 function fetchSearchResults(query) {
     if (query.length < 2) { // Minimum query length
@@ -45,6 +72,7 @@ function fetchSearchResults(query) {
                 return `<div class="search-result" data-game-uuid="${item.uuid}" tabindex="0">${item.name}</div>`;
             }).join('');
             $('#searchResults').html(html);
+            selectedIndex = -1; 
         },
         error: function(xhr, status, error) {
             console.error("Search error:", error);
