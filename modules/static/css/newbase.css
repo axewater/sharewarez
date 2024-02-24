@@ -1,6 +1,6 @@
 .sidebar {
     height: 100%;
-    width: 200px; /* Width of sidebar when expanded */
+    width: 200px; 
     position: fixed;
     z-index: 1;
     top: 0;
@@ -8,19 +8,19 @@
     padding-left: 10px;
     background-color: #111;
     overflow-x: hidden;
-    transition: 0.5s; /* Smooth transition for collapsing and expanding */
+    transition: 0.5s;
     padding-top: 20px;
     padding-right: 7px;
 }
 
 .sidebar.collapsed {
-    width: 80px; /* Adjust to the size just enough for icons when collapsed */
+    width: 80px; 
 }
 
 .sidebar-header {
     display: flex;
-    justify-content: flex-end; /* Aligns the toggle button to the right */
-    padding: 10px; /* Adjust as needed */
+    justify-content: flex-end; 
+    padding: 10px; 
 }
 
 .sidebar-link {
@@ -32,19 +32,19 @@
     text-decoration: none !important;
     font-size: 18px;
     color: #ddd;
-    transition: font-size 0.3s ease; /* Ensure transition applies to font-size changes */
+    transition: font-size 0.3s ease; 
 }
 
 
 .sidebar-link i {
-    min-width: 25px; /* Ensure icons align nicely */
+    min-width: 25px; 
 }
 
 .sidebar-link .link-text {
     display: inline-block;
     margin-left: 10px;
-    transition: opacity 0.5s ease, visibility 0.5s; /* Apply transition to opacity and visibility */
-    opacity: 1; /* Full opacity when sidebar is expanded */
+    transition: opacity 0.5s ease, visibility 0.5s; 
+    opacity: 1;
 }
 
 .sidebar-link::after {
@@ -63,9 +63,8 @@
 }
 
 
-/* Style for sidebar links */
 .sidebar-link, .sidebar-sublink {
-    transition: font-size 0.3s ease; /* Smooth transition for font-size */
+    transition: font-size 0.3s ease;
 }
 
 .sidebar-link:hover, .sidebar-sublink:hover {
@@ -136,10 +135,9 @@
     background-color: #333;
 }
 
-/* Optional: Style for further nested sublinks, if you want them to have distinct styling */
 .sidebar-sublink .sidebar-sublink {
-    margin-left: 40px; /* Further indent for nested sublinks */
-    font-size: 13px; /* Even smaller font size for deeper nested links */
+    margin-left: 40px;
+    font-size: 13px;
 }
 
 .submenu {
@@ -149,6 +147,6 @@
 }
 
 .sidebar-link.has-submenu.open + .submenu {
-    max-height: 500px; /* Adjust as needed based on your content */
+    max-height: 500px;
     transition: max-height 0.5s ease-in;
 }

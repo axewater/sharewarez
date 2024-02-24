@@ -32,11 +32,11 @@
             
         </div>
         <a href="{{ url_for('main.scan_folder') }}" class="button-glass">Folder Scanner</a>
-        <a href="{{ url_for('main.browse_games') }}" class="button-glass">Open Library</a>
+        <a href="{{ url_for('main.library') }}" class="button-glass">Open Library</a>
     {% else %}
         <p>No game details to display.</p>
         <a href="{{ url_for('main.scan_folder') }}" class="button-glass">Folder Scanner</a>
-        <a href="{{ url_for('main.browse_games') }}" class="button-glass">Open Library</a>
+        <a href="{{ url_for('main.library') }}" class="button-glass">Open Library</a>
     {% endif %}
 </body>
 </html>
