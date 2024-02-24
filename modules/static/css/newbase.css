@@ -86,7 +86,7 @@
 #content {
     transition: margin-left .5s;
     padding: 20px;
-    margin-left: 175px;
+    margin-left: 200px;
 }
 
 #content.collapsed {

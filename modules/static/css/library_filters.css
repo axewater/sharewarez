@@ -22,17 +22,6 @@
     background-color: rgba(0, 0, 0, 0.5); /* Adjust color and opacity as needed */
 }
 
-.popup-game-details {
-    position: absolute;
-    top: 0%;
-    width: 260px;
-    z-index: 100;
-    background: #2a2c35;
-    padding: 15px 15px;
-    animation: fadein 0.5s;
-    display: none;
-}
-
 
 
 .popup-game-details img {
