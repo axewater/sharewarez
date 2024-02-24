@@ -10,6 +10,7 @@
     overflow-x: hidden;
     transition: 0.5s; /* Smooth transition for collapsing and expanding */
     padding-top: 20px;
+    padding-right: 7px;
 }
 
 .sidebar.collapsed {

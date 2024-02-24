@@ -1,5 +1,5 @@
 #/modules/utilities.py
-import re, requests, shutil, os
+import re, requests, shutil, os, zipfile
 from functools import wraps
 from flask import flash, redirect, url_for, request, current_app, flash
 from flask_login import current_user, login_user
@@ -89,15 +89,16 @@ def create_game_instance(game_data, full_disk_path, folder_size_mb):
 def process_and_save_image(game_uuid, image_data, image_type='cover'):
     url = None
     save_path = None
-    # print(f"Processing and saving {image_type} image for game {game_uuid} with UUID {image_data}.")
+    file_name = None
+
     if image_type == 'cover':
-        # print(f"Processing cover image for game {game_uuid}.")
         cover_query = f'fields url; where id={image_data};'
         cover_response = make_igdb_api_request('https://api.igdb.com/v4/covers', cover_query)
-        # print(f'Cover response: {cover_response}')
         if cover_response and 'error' not in cover_response:
             url = cover_response[0].get('url')
-            if not url:
+            if url:
+                file_name = secure_filename(f"{game_uuid}_cover_{image_data}.jpg")
+            else:
                 print(f"Cover URL not found for ID {image_data}.")
                 return
         else:
@@ -113,25 +114,33 @@ def process_and_save_image(game_uuid, image_data, image_type='cover'):
         response = make_igdb_api_request('https://api.igdb.com/v4/screenshots', screenshot_query)
         if response and 'error' not in response:
             url = response[0].get('url')
-            if not url:
+            if url:
+                file_name = secure_filename(f"{game_uuid}_{image_data}.jpg")
+            else:
                 print(f"Screenshot URL not found for ID {image_data}.")
                 return
             file_name = secure_filename(f"{game_uuid}_{image_data}.jpg") 
-            save_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], file_name)
-            download_image(url, save_path)
+    
+    # Check if file_name is set before proceeding
+    if not file_name:
+        print("File name could not be set. Exiting.")
+        return
+    save_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], file_name)
+    download_image(url, save_path)
 
-    image = Image(
-        game_uuid=game_uuid,
-        image_type=image_type,
-        url=file_name, 
-    )
-    db.session.add(image)
+    if file_name and save_path:
+        image = Image(
+            game_uuid=game_uuid,
+            image_type=image_type,
+            url=file_name,
+        )
+        db.session.add(image)
     
 def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
-    print(f"retrieve_and_save_game for {game_name} with full disk path {full_disk_path}.")
+    print(f"Finding a way to add {game_name} on {full_disk_path} to the library.")
     existing_game_by_path = Game.query.filter_by(full_disk_path=full_disk_path).first()
     if existing_game_by_path:
-        print(f"Game already exists in the database with full disk path: {full_disk_path}. Skipping.")
+        print(f"Skipping {game_name} on {full_disk_path} (path already in library).")
         return existing_game_by_path 
 
     response_json = make_igdb_api_request(current_app.config['IGDB_API_ENDPOINT'],
@@ -145,7 +154,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
     if 'error' not in response_json and response_json:
 
         igdb_id = response_json[0].get('id')
-
+        print(f"Found game {game_name} with IGDB ID {igdb_id}")
 
         existing_game = check_existing_game_by_igdb_id(igdb_id)
         if existing_game:
@@ -155,7 +164,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
         else:
             print(f"Calculating folder size for {full_disk_path}.")
             folder_size_mb = get_folder_size_in_mb(full_disk_path)
-            print(f"Folder size for {full_disk_path}: {folder_size_mb} MB.")
+            print(f"Folder size for {full_disk_path}: {format_size(folder_size_mb)}")
             new_game = create_game_instance(game_data=response_json[0], full_disk_path=full_disk_path, folder_size_mb=folder_size_mb)
             if 'genres' in response_json[0]:
                 for genre_data in response_json[0]['genres']:
@@ -171,7 +180,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
                 if involved_company_ids:
                     enumerate_companies(new_game, new_game.igdb_id, involved_company_ids)
                 else:
-                    print("No involved companies found for this game.")
+                    print(f"No involved companies found for {game_name}.")
 
             if 'themes' in response_json[0]:
                 for theme_data in response_json[0]['themes']:
@@ -221,7 +230,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
                 videos_comma_separated = ','.join(video_urls)
                 new_game.video_urls = videos_comma_separated
 
-            
+            print(f"Processing images for game: {new_game.name}.")
             if 'cover' in response_json[0]:
                 process_and_save_image(new_game.uuid, response_json[0]['cover'], 'cover')
             
@@ -233,17 +242,18 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
                     attr = getattr(new_game, column.name)
 
                 db.session.commit()
-                print(f"retrieve_and_save_game Game and its images saved successfully : {new_game.name}.")
-                flash("Game and its images saved successfully.")
+                print(f"Game and its images saved successfully : {new_game.name}.")
+                # flash("Game and its images saved successfully.")
             except IntegrityError as e:
                 db.session.rollback()
-                print(f"retrieve_and_save_game Failed to save game due to a database error: {e}")
+                print(f"Failed to save game due to a database error: {e}")
                 flash("Failed to save game due to a duplicate entry.")
             return new_game
     else:
         if scan_job_id:
-            print(f"PLACEHOLDER retrieve_and_save_game Scan job ID: {scan_job_id}")
-        print(f"retrieve_and_save_game Failed to find game: {game_name} using IGDB API.")
+            pass
+            # print(f"PLACEHOLDER retrieve_and_save_game Scan job ID: {scan_job_id}")
+        print(f"Failed to match: {game_name} using IGDB API.")
         error_message = "No game data found for the given name or failed to retrieve data from IGDB API."
         # print(error_message)
         flash(error_message)
@@ -259,16 +269,13 @@ def get_folder_size_in_mb(folder_path):
     return total_size / (1024 * 1024)
 
 def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
-    #print(f"Enumerating companies for game with IGDB ID {igdb_game_id}.")
     company_ids_str = ','.join(map(str, involved_company_ids))
 
-    # print(f"Company IDs: {company_ids_str}")
     response_json = make_igdb_api_request(
         "https://api.igdb.com/v4/involved_companies",
         f"""fields company.name, developer, publisher, game;
             where game={igdb_game_id} & id=({company_ids_str});"""
     )
-    # print(f"Companies Response JSON: {response_json}")
     
     for company in response_json:
         company_name = company['company']['name']
@@ -276,7 +283,6 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
         is_publisher = company.get('publisher', False)
 
         if is_developer:
-            # print(f"Company {company_name} is a developer.")
             developer = Developer.query.filter_by(name=company_name).first()
             if not developer:
                 developer = Developer(name=company_name)
@@ -313,11 +319,9 @@ def make_igdb_api_request(endpoint_url, query_params):
     }
 
     try:
-        # print(f"Making API request to {endpoint_url} with query params: {query_params}")
         response = requests.post(endpoint_url, headers=headers, data=query_params)
         response.raise_for_status()
         data = response.json()
-        # print(f"API request successful: {json.dumps(data, indent=4)}")
         return response.json()
 
     except requests.RequestException as e:
@@ -336,16 +340,56 @@ def download_image(url, save_path):
     
     url = url.replace('/t_thumb/', '/t_original/')
 
-    # print(f"Downloading image from {url}.")
     response = requests.get(url)
     if response.status_code == 200:
-        # print(f"Image downloaded successfully to {save_path}.")
         with open(save_path, 'wb') as f:
             f.write(response.content)
     else:
         print(f"Failed to download the image. Status Code: {response.status_code}")
 
 def zip_game(download_request_id, app):
+    with app.app_context():
+        download_request = DownloadRequest.query.get(download_request_id)
+        game = download_request.game
+        print(f"Zipping game: {game.name}")
+        if not game:
+            print(f"No game found for DownloadRequest ID: {download_request_id}")
+            return
+        
+        zip_save_path = app.config['ZIP_SAVE_PATH']
+        output_zip_base = os.path.join(zip_save_path, game.uuid)
+        source_folder = game.full_disk_path
+        
+        if not os.path.exists(source_folder):
+            print(f"Source folder does not exist: {source_folder}")
+            return
+        
+        try:
+            print(f"Zipping game folder: {source_folder} to {output_zip_base}.")
+            with zipfile.ZipFile(output_zip_base + '.zip', 'w', zipfile.ZIP_STORED) as zipf:
+                for root, dirs, files in os.walk(source_folder):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        zipf.write(file_path, os.path.relpath(file_path, source_folder))
+            print(f"Archive created at {output_zip_base}.zip")
+                        
+            download_request.status = 'available'
+            download_request.zip_file_path = output_zip_base + '.zip'
+            download_request.completion_time = datetime.utcnow()
+            print(f"Download request updated: {download_request}")
+            db.session.commit()
+        except Exception as e:
+            error_message = str(e)
+            print(f"An error occurred while zipping: {error_message}")
+
+            download_request.status = 'failed'
+            download_request.zip_file_path = error_message
+            db.session.commit()
+            print(f"Failed to zip game for DownloadRequest ID: {download_request_id}, Error: {error_message}")
+
+
+
+def zip_game1(download_request_id, app):
     with app.app_context():
         download_request = DownloadRequest.query.get(download_request_id)
         game = download_request.game

@@ -15,16 +15,14 @@ $(document).ready(function() {
         var query = $(this).val();
         // Debounce this function to avoid excessive AJAX calls
         fetchSearchResults(query);
-    });
-    $(document).on('keydown', function(e) {
-        if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-            e.preventDefault();
-            navigateSuggestions(e.key);
-        }
+        console.log(`Search query: ${query}`);
     });
 
+
     $('#searchResults').on('click', '.search-result', function() {
-        var gameUuid = $(this).data('game-uuid');
+        console.log("Search result clicked");
+        var gameUuid = $(this).attr('data-game-uuid'); // Slightly changed from .data('game-uuid') for debugging
+        console.log("Navigating to UUID:", gameUuid); // Debugging line to ensure UUID is captured
         window.location.href = '/game_details/' + gameUuid;
     });
 });
@@ -54,16 +52,3 @@ function fetchSearchResults(query) {
     });
 }
 
-function navigateSuggestions(direction) {
-    var $results = $('.search-result');
-    var $current = $results.filter('.selected');
-    var index = $results.index($current);
-
-    if (direction === "ArrowDown") {
-        index = (index === $results.length - 1) ? 0 : index + 1;
-    } else if (direction === "ArrowUp") {
-        index = (index <= 0) ? $results.length - 1 : index - 1;
-    }
-
-    $results.removeClass('selected').eq(index).addClass('selected').focus();
-}

@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch(`/delete_game/${gameUuid}`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': csrfToken
+                    'X-CSRF-Token': csrfToken
                 },
                 body: {}
             })

@@ -14,8 +14,8 @@
 
 .game-card:hover  {
     transform: scale(1.05);
-    z-index: 2;
-    box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.7); /* Increase the shadow's spread and blur */
+    z-index: 12;
+    box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.7);
 }
 
 
@@ -24,16 +24,16 @@
     width: 100%;
     height: auto;
     transition: transform 0.3s ease;
-    box-shadow: 5px 5px 9px rgba(0, 0, 0, 0.7); /* Initial shadow */
+    box-shadow: 5px 5px 9px rgba(0, 0, 0, 0.7);
     transition: transform 0.3s ease, box-shadow 0.3s ease; 
     border: 1px solid rgb(49, 49, 49);
-    
+ 
 }
 
 
 
 .game-cover::before {
-    z-index: 9;
+    z-index: 1;
     content: '';
     position: absolute;
     top: 0;
@@ -45,12 +45,13 @@
     background-size: 800px 100%;
     animation: shimmerAnimation 1s linear forwards;
     display: none;
-    pointer-events: none;
+    visibility: hidden; 
 }
 
-.game-card:hover .game-cover::before {
-    display: block;
-    z-index: 9;
+
+
+.game-card:hover .button-glass-hamburger {
+    opacity: 1; /* Make it fully visible on hover */
 }
 
 
@@ -129,12 +130,14 @@
     position: absolute;
     top: 10px;
     left: 10px;
-    z-index: 3;
+    z-index: 13;
     background-color: rgba(128, 128, 128, 0.7);
     border-radius: 50%;
     padding: 1px 6px;
     border: none;
     cursor: pointer;
+    opacity: 0; /* Make it fully transparent initially */
+    transition: opacity 0.3s ease;
 }
 
 

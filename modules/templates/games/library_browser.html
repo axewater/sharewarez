@@ -67,16 +67,14 @@
             {% for game in games %}
             <div class="game-card-container">
                 <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
-                    <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger" style="z-index: 6;"><i class="fas fa-bars"></i></button>
+                    <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
                     {% with game_uuid=game.uuid, game_url=game.url %}
                     {% include 'games/popup_menu.html' %}
                     {% endwith %}
                     {% if game.cover_url %}
-                    <div class="game-cover">
-        
-                        <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">
-                            <img src="{{ url_for('static', filename='images/' ~ game.cover_url) }}" alt="{{ game.name }}" class="game-cover">
-                        </a>
+                            <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">
+                                <img src="{{ url_for('static', filename='images/' ~ game.cover_url) }}" alt="{{ game.name }}" class="game-cover">
+                            </a>
                         {% else %}
                         <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">
                             <img src="{{ url_for('static', filename='newstyle/default_cover.jpg') }}" alt="Default Cover Image" class="game-cover">
@@ -85,7 +83,6 @@
                         <div id="details-{{ game.uuid }}" class="popup-game-details hidden">
                             <!-- Details and screenshots will be injected here by JavaScript -->
                         </div>
-                    </div>
                 </div>
             </div>
             {% endfor %}

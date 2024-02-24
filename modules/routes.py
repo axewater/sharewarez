@@ -744,15 +744,13 @@ def browse_games():
 @bp.route('/api/search')
 def search():
     query = request.args.get('query', '')
-    if query:
-        # Perform a case-insensitive search for games matching the query
-        games = Game.query.filter(Game.name.ilike(f'%{query}%')).all()
-        # Convert the game objects to a list of dictionaries to make them JSON serializable
-        results = [{'id': game.id, 'name': game.name, 'summary': game.summary} for game in games]
-        print(f'Search results for "{query}": {results}')
-    else:
-        results = []
+    results = []
 
+    if query:
+        games = Game.query.filter(Game.name.ilike(f'%{query}%')).all()
+        results = [{'id': game.id, 'uuid': game.uuid, 'name': game.name} for game in games]
+
+        print(f'Search results for "{query}": {results}')
     return jsonify(results)
 
 

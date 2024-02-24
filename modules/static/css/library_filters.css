@@ -9,6 +9,19 @@
     margin-top: 25px;
 }
 
+
+.modal-backdrop {
+    position: inherit;
+}
+
+.modal-backdrop.show {
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5); /* Adjust color and opacity as needed */
+}
+
 .popup-game-details {
     position: absolute;
     top: 0%;

@@ -165,8 +165,9 @@ $(document).ready(function() {
         <div class="game-card" onmouseover="showDetails(this, '${game.uuid}')" onmouseout="hideDetails()" data-name="${game.name}" data-size="${game.size}" data-genres="${genres}">
             <button id="menuButton-${game.uuid}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
             ${popupMenuHtml}
-            <a href="/game_details/${game.uuid}">
+            
             <div class="game-cover">
+                <a href="/game_details/${game.uuid}">
                 <img src="${fullCoverUrl}" alt="${game.name}" class="game-cover">
                 </a>
             </div>
@@ -199,6 +200,7 @@ function createPopupMenuHtml(game) {
 
         <form action="/refresh_game_images/${game.uuid}" method="post" class="menu-item">
             <input type="hidden" name="csrf_token" value="${csrfToken}">
+            
             <button type="submit" class="menu-button">Refresh Images</button>
         </form>
         <div class="menu-item">
