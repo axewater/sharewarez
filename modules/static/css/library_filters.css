@@ -5,7 +5,9 @@
     
 }
 
-
+.library-filters {
+    margin-top: 25px;
+}
 
 .popup-game-details {
     position: absolute;
