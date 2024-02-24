@@ -626,8 +626,7 @@ def get_games(page=1, per_page=20, **filters):
     query = Game.query.options(joinedload(Game.genres))
 
     # Apply filters based on the provided arguments
-    if filters.get('category'):
-        query = query.filter(Game.category.has(Category.name == filters['category']))
+
     if filters.get('genre'):
         query = query.filter(Game.genres.any(Genre.name == filters['genre']))
     if filters.get('rating') is not None:

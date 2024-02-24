@@ -11,8 +11,7 @@ from config import Config
 from flask_migrate import Migrate
 from modules.routes_site import site_bp
 from modules.filters import setup_filters
-# import logging
-# from logging.handlers import RotatingFileHandler
+
 
 
 db = SQLAlchemy()

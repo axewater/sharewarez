@@ -147,21 +147,25 @@ $(document).ready(function() {
 }
 
 function createPopupMenuHtml(game) {
+    // when modifying this function, make sure to update the popup_menu.html template as well
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
     return `
     <div id="popupMenu-${game.uuid}" class="popup-menu" style="display: none;">
-        <form action="/main/download_game/${game.uuid}" method="get" class="menu-item">
+        <form action="/download_game/${game.uuid}" method="get" class="menu-item">
             <button type="submit" class="menu-button">Download</button>
         </form>
 
-        <form action="/main/game_edit/${game.uuid}" method="get" class="menu-item">
+        <form action="/game_edit/${game.uuid}" method="get" class="menu-item">
             <button type="submit" class="menu-button">Edit Details</button>
         </form>
         
-        <form action="/main/edit_game_images/${game.uuid}" method="get" class="menu-item">
+        <form action="/edit_game_images/${game.uuid}" method="get" class="menu-item">
             <button type="submit" class="menu-button">Edit Images</button>
         </form>
 
-        <form action="/main/refresh_game_images/${game.uuid}" method="post" class="menu-item">
+        <form action="/refresh_game_images/${game.uuid}" method="post" class="menu-item">
+            <input type="hidden" name="csrf_token" value="${csrfToken}">
             <button type="submit" class="menu-button">Refresh Images</button>
         </form>
         <div class="menu-item">
@@ -173,6 +177,7 @@ function createPopupMenuHtml(game) {
     </div>
     `;
 }
+
 
 
   function updatePaginationControls() {
