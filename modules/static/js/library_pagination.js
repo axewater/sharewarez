@@ -1,6 +1,9 @@
+// When updating this file, remember to update popup_menu.html too
+
 $(document).ready(function() {
   var currentPage = 1;
   var totalPages = 0;
+  var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
   function populateGenres(callback) {
     $.ajax({
@@ -201,7 +204,7 @@ function createPopupMenuHtml(game) {
         <form action="/refresh_game_images/${game.uuid}" method="post" class="menu-item">
             <input type="hidden" name="csrf_token" value="${csrfToken}">
             
-            <button type="submit" class="menu-button">Refresh Images</button>
+            <button type="submit" class="menu-button refresh-game-images">Refresh Images</button>
         </form>
         <div class="menu-item">
             <button type="button" class="menu-button delete-game" data-game-uuid="${game.uuid}">Remove Game</button>
@@ -269,4 +272,34 @@ function createPopupMenuHtml(game) {
   populateGameModes();
   populatePlayerPerspectives();
   fetchFilteredGames();
+});
+
+document.body.addEventListener('click', function(event) {
+    if (event.target.classList.contains('refresh-game-images')) {
+        event.preventDefault(); // Prevent default form submission
+        const gameUuid = event.target.getAttribute('data-game-uuid');
+        console.log(`Refreshing images for game UUID: ${gameUuid}`);
+
+        fetch(`/refresh_game_images/${gameUuid}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', // Specify the content type
+                'X-CSRF-Token': csrfToken // Include the CSRF token in the request header
+            },
+            body: JSON.stringify({ /* Your data here if needed, otherwise an empty object */ })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok.');
+            }
+            return response.json(); // Assuming the server responds with JSON
+        })
+        .then(data => {
+            console.log('Game images refreshed successfully', data);
+            // Handle successful refresh, maybe update the UI to reflect the change
+        })
+        .catch(error => {
+            console.error('There has been a problem with your fetch operation:', error);
+        });
+    }
 });

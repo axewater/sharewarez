@@ -20,6 +20,7 @@
         <head>
             <link rel="stylesheet" href="{{ url_for('static', filename='css/game_details.css') }}">
             <script src="{{ url_for('static', filename='js/popup_menu.js') }}"></script>
+            <meta name="csrf-token" content="{{ csrf_token() }}">
 
             <title>{{ game.name or 'Game Details' }}</title>
         </head>

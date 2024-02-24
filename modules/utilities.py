@@ -432,11 +432,9 @@ def check_existing_game_by_igdb_id(igdb_id):
 
 
 def log_unmatched_folder(scan_job_id, folder_path):
-    # Check if there's already an unmatched folder logged for this specific folder path, regardless of the scan job ID
     existing_unmatched_folder = UnmatchedFolder.query.filter_by(folder_path=folder_path).first()
 
     if existing_unmatched_folder is None:
-        # No existing log for this folder path, proceed to log it
         unmatched_folder = UnmatchedFolder(
             folder_path=folder_path,
             failed_time=datetime.utcnow(),
@@ -448,11 +446,9 @@ def log_unmatched_folder(scan_job_id, folder_path):
             db.session.commit()
             print(f"Logged unmatched folder: {folder_path}")
         except IntegrityError:
-            # Handle any potential IntegrityError (e.g., concurrent write attempt)
             db.session.rollback()
             print(f"Failed to log unmatched folder due to a database error: {folder_path}")
     else:
-        # An unmatched folder log already exists for this path, skip logging
         print(f"Unmatched folder already logged for: {folder_path}. Skipping.")
 
 
@@ -632,7 +628,8 @@ def scan_and_add_games(folder_path):
         if success:
             pass
         else:
-            print(f"Failed to add game {game_name} after fallback attempts.")
+            # print(f"Failed to add game {game_name} after fallback attempts.")
+            pass
 
     scan_job_entry.status = 'Completed'
     print(f"Scan completed for folder: {folder_path} with ScanJob ID: {scan_job_id}")
@@ -642,23 +639,32 @@ def scan_and_add_games(folder_path):
         print(f"Failed to update ScanJob status: {str(e)}")
         
 def process_game_with_fallback(game_name, full_disk_path, scan_job_id):
-    # Check if the game exists before attempting fallback logic
+    print(f"Processing game with fallback: {game_name} at {full_disk_path}")
+    existing_unmatched_folder = UnmatchedFolder.query.filter_by(folder_path=full_disk_path).first()
+    if existing_unmatched_folder:
+        print(f"Skipping processing for already logged unmatched folder: {full_disk_path}")
+        return False
+
+    print(f"Checking if game already exists in database: {game_name} at {full_disk_path}")
     existing_game = Game.query.filter_by(full_disk_path=full_disk_path).first()
     if existing_game:
         print(f"Game already exists in database: {game_name} at {full_disk_path}")
-        return True  # Returning True because the game is already in the database, hence no need to add
+        return True 
 
-    # If game does not exist, proceed with adding it, including fallback logic
-    if not try_add_game(game_name, full_disk_path, scan_job_id, check_exists=False):  # Note the check_exists parameter
+    print(f'Game does not exist in database: {game_name} at {full_disk_path}')
+    if not try_add_game(game_name, full_disk_path, scan_job_id, check_exists=False):
         parts = game_name.split()
-        for i in range(len(parts) - 1, 1, -1):  # Adjusted to stop when only one word is left
+        for i in range(len(parts) - 1, 1, -1):
             fallback_name = ' '.join(parts[:i])
             if try_add_game(fallback_name, full_disk_path, scan_job_id, check_exists=False):
                 return True
     else:
-        return True  # Initial try was successful
+        print(f'Skipping duplicate game: {game_name} at {full_disk_path}')
+        return True
+
     log_unmatched_folder(scan_job_id, full_disk_path)
-    return False  # All fallback attempts failed
+    return False
+
 
 def try_add_game(game_name, full_disk_path, scan_job_id, check_exists=True):
     """
@@ -670,7 +676,8 @@ def try_add_game(game_name, full_disk_path, scan_job_id, check_exists=True):
             print(f"Game already exists in database: {game_name} at {full_disk_path}")
             return False
 
-    # Process of adding the game remains unchanged
+    
+    
     game = retrieve_and_save_game(game_name, full_disk_path, scan_job_id)
     return game is not None
 
