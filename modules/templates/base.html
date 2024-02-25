@@ -19,6 +19,8 @@
 </head>
 <body>
     <div id="sidebar" class="sidebar">
+        <div class="menu-logo-image">
+          </div>
         <div class="sidebar-header">
             <button id="toggleSidebar" class="toggle-sidebar">
                 <i class="icon-chevron">&gt;</i>
@@ -104,6 +106,12 @@
         });
     });
     
+    // Check the current URL
+    if (window.location.pathname !== '/library') {
+        // If the URL is not '/library', hide the container
+        document.querySelector('.container-filtersandsort').style.visibility = 'hidden';
+    }
+      
 </script>
 
 

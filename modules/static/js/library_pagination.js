@@ -125,6 +125,12 @@ $(document).ready(function() {
       theme: $('#themeSelect').val() || urlParams.theme,
       rating: $('#ratingSlider').val() || urlParams.rating,
     };
+    const sortValue = $('#sortSelect').val().split('-');
+    const sort_by = sortValue[0];
+    const sort_order = sortValue[1];
+    filters.sort_by = sort_by;
+    filters.sort_order = sort_order;
+
 
     // AJAX request using filters, including those from URL parameters
     $.ajax({
@@ -244,6 +250,11 @@ function createPopupMenuHtml(game) {
 
   $('#ratingSlider').on('input', function() {
       $('#ratingValue').text($(this).val());
+  });
+
+
+  $('#sortSelect').change(function() {
+    fetchFilteredGames(1); // Fetch the first page with new sorting
   });
 
 

@@ -614,6 +614,9 @@ def library():
     game_mode = request.args.get('game_mode')
     player_perspective = request.args.get('player_perspective')
     theme = request.args.get('theme')
+    sort_by = request.args.get('sort_by', 'name')  # Default sorting by name
+    sort_order = request.args.get('sort_order', 'asc')  # Default sorting order
+
     print(f"Filters: {genre}, {rating}, {game_mode}, {player_perspective}, {theme}")
     # Pass extracted filters to get_games
     filters = {
@@ -626,8 +629,8 @@ def library():
     # Filter out None values
     filters = {k: v for k, v in filters.items() if v is not None}
 
-    game_data, total, pages, current_page = get_games(page, per_page, **filters)
-    print(f'Total: {total}, Pages: {pages}, Current Page: {current_page}')
+    game_data, total, pages, current_page = get_games(page, per_page, sort_by=sort_by, sort_order=sort_order, **filters)
+    print(f'Game data: {game_data}, total: {total}, pages: {pages}, current_page: {current_page}, filters: {filters}, sort_by: {sort_by}, sort_order: {sort_order}')
     
     # You can modify this to pass additional context for rendering filters, etc.
     context = {
@@ -641,11 +644,10 @@ def library():
 
     return render_template('games/library_browser.html', **context)
 
-def get_games(page=1, per_page=20, **filters):
+def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
     query = Game.query.options(joinedload(Game.genres))
 
-    # Apply filters based on the provided arguments
-
+    # Filtering logic
     if filters.get('genre'):
         query = query.filter(Game.genres.any(Genre.name == filters['genre']))
     if filters.get('rating') is not None:
@@ -657,7 +659,13 @@ def get_games(page=1, per_page=20, **filters):
     if filters.get('theme'):
         query = query.filter(Game.themes.any(Theme.name == filters['theme']))
 
-    # Pagination
+    # Sorting logic
+    if sort_by == 'name':
+        query = query.order_by(Game.name.asc() if sort_order == 'asc' else Game.name.desc())
+    elif sort_by == 'rating':
+        query = query.order_by(Game.rating.asc() if sort_order == 'asc' else Game.rating.desc())
+
+    # Pagination logic
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     games = pagination.items
 
@@ -696,6 +704,9 @@ def browse_games():
     game_mode = request.args.get('game_mode')
     player_perspective = request.args.get('player_perspective')
     theme = request.args.get('theme')
+    sort_by = request.args.get('sort_by', 'name')  # Adding sort_by parameter
+    sort_order = request.args.get('sort_order', 'asc')  # Adding sort_order parameter
+
 
     query = Game.query.options(joinedload(Game.genres))
 
@@ -711,11 +722,20 @@ def browse_games():
         query = query.filter(Game.player_perspectives.any(PlayerPerspective.name == player_perspective))
     if theme:
         query = query.filter(Game.themes.any(Theme.name == theme))
+
+    # Apply sorting logic
+    if sort_by == 'name':
+        query = query.order_by(Game.name.asc() if sort_order == 'asc' else Game.name.desc())
+    elif sort_by == 'rating':
+        query = query.order_by(Game.rating.asc() if sort_order == 'asc' else Game.rating.desc())
+
     
     # Pagination
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     games = pagination.items
+    
 
+    # Get game data
     game_data = []
 
     for game in games:

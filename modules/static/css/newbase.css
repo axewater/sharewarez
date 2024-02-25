@@ -9,32 +9,36 @@
     background-color: #111;
     overflow-x: hidden;
     transition: 0.5s;
-    padding-top: 20px;
-    padding-right: 17px;
     margin-right: 5px;
     background: linear-gradient(to right, rgba(17, 17, 17, 0.9) 95%, rgba(17, 17, 17, 0));
 }
 
 .sidebar.collapsed {
-    width: 80px; 
+    width: 95px; 
+    margin-left: -10px;
 }
 
 .sidebar-header {
     display: flex;
     justify-content: flex-end; 
-    padding: 10px; 
+
+}
+
+.sidebar-menu {
+   
 }
 
 .sidebar-link {
     display: flex;
     align-items: center;
-    justify-content: left;
-    position: relative;
-    padding: 10px 15px;
     text-decoration: none !important;
-    font-size: 18px;
+    font-size: 22px;
     color: #ddd;
     transition: font-size 0.3s ease; 
+    margin-left: 15px;
+    justify-content: left;
+    position: relative;
+    margin-bottom: 3px;
 }
 
 
@@ -80,18 +84,18 @@
     cursor: pointer;
     font-size: 24px;
     display: inline-block;
-    padding: 10px;
+
 }
 
 
 #content {
     transition: margin-left .5s;
     padding: 20px;
-    margin-left: 200px;
+    margin-left: 165px;
 }
 
 #content.collapsed {
-    margin-left: 80px;
+    margin-left: 30px;
 }
 
 .icon-chevron {
@@ -152,3 +156,78 @@
     max-height: 500px;
     transition: max-height 0.5s ease-in;
 }
+
+.sidebar.collapsed .sidebar-menu {
+    
+      margin: 0px;
+    
+    
+  }
+
+
+.sidebar.collapsed .sidebar-link {
+    
+    margin-left: 25px;
+    font-size: 24px;
+  
+}
+
+.content-help-kadertje {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #111;
+    padding: 20px;
+}
+
+.menu-logo-image {
+    width: auto;
+    height: 150px;
+    background-image: url('/static/newstyle/sharewarez_logo.jpg');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    margin-left: 10px;
+    overflow: hidden; /* Ensure that the gradient mask doesn't overflow */
+  }
+  
+.sidebar.collapsed .menu-logo-image {
+    height: 50px;
+    margin-top: 15px;
+    margin-left: 20px;
+    align-self: flex-start;
+}
+
+.sidebar.collapsed .sorting-dropdown {
+    margin: 10px;
+}
+
+.sidebar.collapsed #sortSelect {
+    height: 25px;
+    width: 65px
+}
+
+.sidebar.collapsed .form-control {
+    margin-top: 3px;
+    margin-right: 0px;
+    margin: 0px;
+    width: 65px;
+    height: 25px;
+}
+
+.sidebar.collapsed .form-group {
+    text-size-adjust: 10px;
+}
+
+
+.sidebar.collapsed .container-filtersandsort {
+    visibility: hidden;
+}
+
+  
+/* Media query for adjusting height when menu is collapsed */
+@media (max-width: 768px) {
+    .menu-logo-image {
+      height: 50px; /* Adjust the height of the container when the menu is collapsed */
+    }
+  }
