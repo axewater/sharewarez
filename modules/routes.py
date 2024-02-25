@@ -1198,7 +1198,102 @@ def scan_games_folder():
     flash("Scan job started successfully.", "info")
     return redirect(url_for('main.scan_folder'))
 
+@bp.route('/scan_management', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def scan_management():
+    auto_form = AutoScanForm()
+    manual_form = ScanFolderForm()
+    jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
+    game_names_with_ids = None
+    csrf_form = CsrfProtectForm()
+    active_tab = 'auto'
+    unmatched_folders = UnmatchedFolder.query.all()
+    unmatched_form = UpdateUnmatchedFolderForm()  # Assuming this form is used for actions in the unmatched folders tab
 
+    
+    if 'submit' in request.form:
+        submit_action = request.form.get('submit')
+        print("Active tab: ", active_tab)
+        if submit_action == 'AutoScan':
+            active_tab = 'auto'
+            
+        elif submit_action == 'ManualScan':
+            active_tab = 'manual'
+        elif submit_action == 'DeleteAllUnmatched':
+            active_tab = 'unmatched'
+        elif submit_action == 'DeleteOnlyUnmatched':
+            active_tab = 'unmatched'
+
+    if request.method == 'POST':
+        submit_action = request.form.get('submit')
+        if submit_action == 'AutoScan' and auto_form.validate_on_submit():
+            folder_path = auto_form.folder_path.data
+            @copy_current_request_context
+            def start_scan():
+                scan_and_add_games(folder_path)
+
+            thread = Thread(target=start_scan)
+            thread.start()
+
+            flash('Auto-scan started for folder: ' + folder_path, 'info')
+            return redirect(url_for('main.scan_management'))
+        
+        elif submit_action == 'ManualScan' and manual_form.validate_on_submit():
+                        
+            folder_path = manual_form.folder_path.data
+            active_tab = 'manual'
+            if os.path.exists(folder_path) and os.access(folder_path, os.R_OK):
+                print(f"Folder {folder_path} is accessible.")
+                insensitive_patterns, sensitive_patterns = load_release_group_patterns()
+                games_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
+                print(f"Games found: {games_with_paths}")
+                session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
+                print(f"Game paths in session: {session['game_paths']}")
+                game_names_with_ids = [{'name': game['name'], 'id': i} for i, game in enumerate(games_with_paths)]
+            else:
+                flash("Folder does not exist or cannot be accessed.", "error")
+                print("Folder does not exist or cannot be accessed.")
+        # return redirect(url_for('main.scan_management'))
+        elif submit_action == 'deleteAllUnmatched':
+            # Delete all unmatched folders
+            try:
+                UnmatchedFolder.query.delete()
+                db.session.commit()
+                flash('All unmatched folders deleted successfully.', 'success')
+            except Exception as e:
+                db.session.rollback()
+                flash('An error occurred while deleting unmatched folders.', 'error')
+                print(e)
+            active_tab = 'unmatched'
+        elif submit_action == 'deleteOnlyUnmatched':
+            # Delete only folders with a specific status
+            try:
+                UnmatchedFolder.query.filter(UnmatchedFolder.status.ilike('unmatched')).delete()
+                db.session.commit()
+                flash('All unmatched folders with status "unmatched" deleted successfully.', 'success')
+            except Exception as e:
+                db.session.rollback()
+                flash('An error occurred while deleting unmatched folders.', 'error')
+                print(e)
+            active_tab = 'unmatched'
+    
+    else:
+        if request.method == 'GET':
+            print(f"Scan manager loaded.") 
+        else:
+            print(f"Action not recognized. Method was {request.method}")
+
+    return render_template('scan/scan_management.html', 
+                           auto_form=auto_form, 
+                           manual_form=manual_form, 
+                           jobs=jobs, 
+                           game_names_with_ids=game_names_with_ids, 
+                           csrf_form=csrf_form, 
+                           active_tab=active_tab, 
+                           unmatched_folders=unmatched_folders, 
+                           unmatched_form=unmatched_form)
+    
 @bp.route('/scan_jobs_manager')
 @login_required
 @admin_required
@@ -1216,7 +1311,7 @@ def delete_scan_job(job_id):
     db.session.delete(job)
     db.session.commit()
     flash('Scan job deleted successfully.', 'success')
-    return redirect(url_for('main.scan_jobs_manager'))
+    return redirect(url_for('main.scan_management'))
 
 @bp.route('/clear_all_scan_jobs', methods=['POST'])
 @login_required
@@ -1225,7 +1320,7 @@ def clear_all_scan_jobs():
     db.session.query(ScanJob).delete()
     db.session.commit()
     flash('All scan jobs cleared successfully.', 'success')
-    return redirect(url_for('main.scan_jobs_manager'))
+    return redirect(url_for('main.scan_management'))
 
 @bp.route('/unmatched_folders')
 @login_required
@@ -1263,7 +1358,7 @@ def clear_only_unmatched_folders():
         db.session.rollback()
         flash('An error occurred while deleting unmatched folders.', 'error')
         print(e)  # For debugging
-    return redirect(url_for('main.unmatched_folders'))
+    return redirect(url_for('main.scan_management'))
 
 
 
@@ -1286,7 +1381,7 @@ def update_unmatched_folder_status():
     else:
         flash('Folder not found.', 'error')
 
-    return redirect(url_for('main.unmatched_folders'))
+    return redirect(url_for('main.scan_management'))
 
 
 @bp.route('/admin/edit_filters', methods=['GET', 'POST'])

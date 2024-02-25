@@ -234,7 +234,7 @@ body {
 
 
 .container {
-    width: 80%;
+    width: 100%;
     margin: auto;
     overflow: hidden;
 }
@@ -430,7 +430,7 @@ body {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-radius: 15px;
-    padding: 20px;
+    padding: 25px;
     margin-bottom: 20px;
     margin-top: 20px;
     grid-template-columns: auto 1fr auto;
@@ -438,7 +438,7 @@ body {
     align-items: left;
     justify-content: space-between;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 75%;
+    width: 100%;
 
 }
 
@@ -448,15 +448,15 @@ body {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-radius: 15px;
-    padding-left: 50px;
-    padding-right: 50px;
+    padding-left: 20px;
+    padding-right: 20px;
     padding-top: 20px;
     margin-top: 20px;
     gap: 1px;
     align-items: left;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 75%;
-
+    width: 100%;
+    min-width: 800px;
 }
 
 .unmatched-deleteall-btn {

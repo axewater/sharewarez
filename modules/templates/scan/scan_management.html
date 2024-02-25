@@ -1,0 +1,181 @@
+<!-- templates/scan_jobs_management.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-3">
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link" id="autoScan-tab" data-bs-toggle="tab" href="#autoScan">Auto Scan</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="manualScan-tab" data-bs-toggle="tab" href="#manualScan">Manual Scan</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="unmatchedFolders-tab" data-bs-toggle="tab" href="#unmatchedFolders">Unmatched Folders</a>
+        </li>
+    </ul>
+    
+
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <!-- Auto Scan Tab -->
+        <div id="autoScan" class="container tab-pane active"><br>
+            <h3>Automatic Folder Scan</h3>
+            <form action="" method="post">
+                {{ auto_form.hidden_tag() }}
+                <div class="form-group">
+                    {{ auto_form.folder_path.label }}
+                    {{ auto_form.folder_path(class="form-control") }}
+                    {% if auto_form.folder_path.errors %}
+                        {% for error in auto_form.folder_path.errors %}
+                            <div class="alert alert-danger">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <button type="submit" name="submit" value="AutoScan" class="btn btn-primary">Start Auto Scan</button>
+                </div>
+            </form>
+
+            <div class="glass-panel-scanfolder">
+                <h2>Scan Jobs</h2>
+                <form action="{{ url_for('main.clear_all_scan_jobs') }}" method="post">
+                     {{ csrf_form.csrf_token }}
+                    <input type="submit" value="Clear All" class="btn btn-danger" onclick="return confirm('Delete ALL jobs?');">
+                </form>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Folders</th>
+                            <th>Status</th>
+                            <th>Last Run</th>
+                            <th>Next Run</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for job in jobs %}
+                        <tr>
+                            <td>{{ job.id.split('-')[0] }}</td>
+                            <td>{{ job.folders }}</td>
+                            <td>{{ job.status }}</td>
+                            <td>{{ job.last_run }}</td>
+                            <td>{{ job.next_run }}</td>
+                            <td>
+                                <form action="{{ url_for('main.delete_scan_job', job_id=job.id) }}" method="post">
+                                    {{ csrf_form.csrf_token }}
+                                    <input type="submit" value="Delete" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this scan job?');">
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Manual Scan Tab -->
+        <div id="manualScan" class="container tab-pane fade"><br>
+            <h3>Manual Folder Scan</h3>
+            <form action="" method="post">
+                {{ manual_form.hidden_tag() }}
+                <div class="form-group">
+                    {{ manual_form.folder_path.label }}
+                    {{ manual_form.folder_path(class="form-control") }}
+                    {% if manual_form.folder_path.errors %}
+                        {% for error in manual_form.folder_path.errors %}
+                            <div class="alert alert-danger">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div class="form-group d-flex justify-content-between">
+                    <button type="submit" name="submit" value="ManualScan" class="btn btn-primary">{{ manual_form.scan.label }}</button>
+                </div>
+            </form>
+            {% if game_names_with_ids %}
+                <h4>Found Games:</h4>
+                <div class="list-group">
+                    {% for game in game_names_with_ids %}
+                        <a href="{{ url_for('main.add_game', game_name=game['name']) }}" class="list-group-item list-group-item-action">
+                            {{ game['name'] }}
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Unmatched Folders Tab -->
+        <div id="unmatchedFolders" class="container tab-pane fade"><br>
+            <h3>Resolve Unmatched Folders</h3>
+            <div class="glass-panel-unmatchedfolder">
+                
+                <div class="container-unmatched-buttons mb-3">
+                    <form action="{{ url_for('main.delete_all_unmatched_folders') }}" method="post" style="display: inline;">
+                        {{ csrf_form.csrf_token }}
+                        <button type="submit" class="btn btn-danger" value="deleteAllUnmatched" onclick="return confirm('Are you sure you want to delete all entries in the list? This cannot be undone.');">Delete All</button>
+                        
+                    </form>
+                    <form action="{{ url_for('main.clear_only_unmatched_folders') }}" method="post" style="display: inline;">
+                        {{ csrf_form.csrf_token }}
+                        <button type="submit" class="btn btn-warning" value="deleteOnlyUnmatched"  onclick="return confirm('Are you sure you want to clear all unmatched folders? This cannot be undone.');">Clear Unmatched</button>
+                    </form>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Folder Path</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for folder in unmatched_folders %}
+                        <tr>
+                            <td>{{ folder.folder_path }}</td>
+                            <td>{{ folder.status }}</td>
+                            <td>
+                                <form method="post" action="{{ url_for('main.update_unmatched_folder_status') }}" style="display: inline;">
+                                    {{ csrf_form.csrf_token }}
+                                    <input type="hidden" name="folder_id" value="{{ folder.id }}">
+                                    <input type="hidden" name="new_status" value="Ignore">
+                                    <input type="submit" class="btn btn-secondary btn-sm" value="Ignore">
+                                </form>
+                                <!-- New Edit Form -->
+                                <form action="{{ url_for('main.add_game_manual') }}" method="GET" style="display: inline;">
+                                    <input type="hidden" name="full_disk_path" value="{{ folder.folder_path }}">
+                                    <input type="hidden" name="from_unmatched" value="true">
+                                    <input type="submit" class="btn btn-primary btn-sm" value="Edit">
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var activeTab = "{{ active_tab }}";
+        
+        if (activeTab === 'manual') {
+            var manualTab = new bootstrap.Tab(document.querySelector('#manualScan-tab'));
+            manualTab.show();
+        } else if (activeTab === 'unmatched') {
+            var unmatchedTab = new bootstrap.Tab(document.querySelector('#unmatchedFolders-tab'));
+            unmatchedTab.show();
+        } else {
+            // Ensure the Auto Scan tab is shown by default or when 'auto' is the active tab
+            var autoTab = new bootstrap.Tab(document.querySelector('#autoScan-tab'));
+            autoTab.show();
+        }
+    });
+    </script>
+    
+{% endblock %}
