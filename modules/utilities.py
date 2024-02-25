@@ -668,7 +668,7 @@ def process_game_with_fallback(game_name, full_disk_path, scan_job_id):
     print(f'Game does not exist in database: {game_name} at {full_disk_path}')
     if not try_add_game(game_name, full_disk_path, scan_job_id, check_exists=False):
         parts = game_name.split()
-        for i in range(len(parts) - 1, 1, -1):
+        for i in range(len(parts) - 1, 0, -1):
             fallback_name = ' '.join(parts[:i])
             if try_add_game(fallback_name, full_disk_path, scan_job_id, check_exists=False):
                 return True
@@ -721,13 +721,40 @@ import re
 
 def escape_special_characters(pattern):
     """Escape special characters in the pattern to prevent regex errors."""
+    if not isinstance(pattern, str):
+        pattern = str(pattern)  # Convert to string if not already
     return re.escape(pattern)
 
 
-    
-
-
 def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
+    # Normalize separators: Replace underscores and hyphens with spaces
+    filename = filename.replace('_', ' ').replace('-', ' ')
+    
+    # More aggressively replace dots with spaces, except in version numbers
+    filename = re.sub(r'\.(?!\d)', ' ', filename)
+    
+    # Remove version numbers and other patterns more explicitly
+    filename = re.sub(r'v\d+(\.\d+)*', '', filename)  # Remove version numbers like v2.0.0.3
+    filename = re.sub(r'\d+\.\d+\.\d+\.\d+', '', filename)  # Targeting version patterns like 2.0.0.3 more directly
+    
+    # Remove known release group patterns
+    for pattern in insensitive_patterns + sensitive_patterns:
+        escaped_pattern = escape_special_characters(pattern)
+        filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename, flags=re.IGNORECASE)
+    
+    # Additional cleanup for DLC mentions, etc.
+    filename = re.sub(r'(\+|\-)\d+DLCs?', '', filename, flags=re.IGNORECASE)
+    filename = re.sub(r'Repack|Edition|Remastered|Remake|Proper|Dodi', '', filename, flags=re.IGNORECASE)
+
+    # Normalize whitespace and re-title
+    filename = ' '.join(filename.split()).title()
+
+    return filename
+
+
+
+
+def clean_game_name_old(filename, insensitive_patterns, sensitive_patterns):
     # Step 1: Normalize separators for release group processing
     # Replace underscores and dots with spaces for easier pattern matching
     # Note: This step assumes dots not part of essential abbreviations or numeric versions are separators

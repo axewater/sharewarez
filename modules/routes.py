@@ -1250,6 +1250,22 @@ def delete_all_unmatched_folders():
     return redirect(url_for('main.unmatched_folders'))
 
 
+@bp.route('/clear_only_unmatched_folders', methods=['POST'])
+@login_required
+@admin_required
+def clear_only_unmatched_folders():
+    try:
+        # Perform a case-insensitive filter and delete unmatched folders
+        UnmatchedFolder.query.filter(func.lower(UnmatchedFolder.status) == 'unmatched'.lower()).delete()
+        db.session.commit()
+        flash('All unmatched folders with status "unmatched" deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while deleting unmatched folders.', 'error')
+        print(e)  # For debugging
+    return redirect(url_for('main.unmatched_folders'))
+
+
 
 @bp.route('/update_unmatched_folder_status', methods=['POST'])
 @login_required

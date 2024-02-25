@@ -448,7 +448,7 @@ body {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-radius: 15px;
-    padding-left: 120px;
+    padding-left: 50px;
     padding-right: 50px;
     padding-top: 20px;
     margin-top: 20px;
@@ -460,9 +460,19 @@ body {
 }
 
 .unmatched-deleteall-btn {
-    width: 25%;
     padding: 10px;
 }
+
+.unmatched-clearunmatched-btn {
+    padding: 10px;
+}
+
+.container-unmatched-buttons {
+    display: flex;
+    flex-direction: row;
+}
+
+
 
 .glass-panel-scanfolder-fg {
     background-color: hsl(207, 22%, 36%);
