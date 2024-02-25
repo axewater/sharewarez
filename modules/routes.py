@@ -40,7 +40,7 @@ from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
     get_game_by_uuid, escape_special_characters, enumerate_companies, make_igdb_api_request, load_release_group_patterns, check_existing_game_by_igdb_id,
     log_unmatched_folder, get_game_names_from_folder, clean_game_name, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_folder,
-    zip_game, retrieve_and_save_game, format_size, delete_game_images
+    zip_game, retrieve_and_save_game, format_size, delete_game_images, get_folder_size_in_mb
 )
 
 
@@ -630,7 +630,7 @@ def library():
     filters = {k: v for k, v in filters.items() if v is not None}
 
     game_data, total, pages, current_page = get_games(page, per_page, sort_by=sort_by, sort_order=sort_order, **filters)
-    print(f'Game data: {game_data}, total: {total}, pages: {pages}, current_page: {current_page}, filters: {filters}, sort_by: {sort_by}, sort_order: {sort_order}')
+    # print(f'Game data: {game_data}, total: {total}, pages: {pages}, current_page: {current_page}, filters: {filters}, sort_by: {sort_by}, sort_order: {sort_order}')
     
     # You can modify this to pass additional context for rendering filters, etc.
     context = {
@@ -719,6 +719,7 @@ def browse_games():
     if game_mode:
         query = query.filter(Game.game_modes.any(GameMode.name == game_mode))
     if player_perspective:
+        print(f'player_perspective query: {player_perspective}')
         query = query.filter(Game.player_perspectives.any(PlayerPerspective.name == player_perspective))
     if theme:
         query = query.filter(Game.themes.any(Theme.name == theme))
@@ -978,9 +979,8 @@ def add_game_manual():
 @login_required
 @admin_required
 def game_edit(game_uuid):
-    # print(f"Received {request.method} request for game {game_uuid}")
     game = Game.query.filter_by(uuid=game_uuid).first_or_404()
-    form = AddGameForm(obj=game)  # Pre-populate the form with the game's current data
+    form = AddGameForm(obj=game)  # Pre-populate form
     
     if form.validate_on_submit():
         game.igdb_id = form.igdb_id.data
@@ -994,6 +994,7 @@ def game_edit(game_uuid):
         game.first_release_date = form.first_release_date.data
         game.status = form.status.data
         game.category = form.category.data
+        
         # Handling Developer
         developer_name = form.developer.data
         if developer_name:
@@ -1020,8 +1021,13 @@ def game_edit(game_uuid):
         game.themes = form.themes.data
         game.platforms = form.platforms.data
         game.player_perspectives = form.player_perspectives.data
-
-        # print(f"game editor is saving these video_urls: {form.video_urls.data}")
+        
+        # Updating folder size
+        print(f"Calculating folder size for {game.full_disk_path}.")
+        new_folder_size_mb = get_folder_size_in_mb(game.full_disk_path)
+        print(f"New folder size for {game.full_disk_path}: {format_size(new_folder_size_mb)}")
+        
+        # Database commit and image update trigger
         try:
             db.session.commit()
             flash('Game updated successfully.', 'success')

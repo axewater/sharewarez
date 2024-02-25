@@ -156,11 +156,13 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
         igdb_id = response_json[0].get('id')
         print(f"Found game {game_name} with IGDB ID {igdb_id}")
 
-        existing_game = check_existing_game_by_igdb_id(igdb_id)
-        if existing_game:
-            print(f"Game with IGDB ID {igdb_id} already exists in the database.")
-            flash(f"Game '{game_name}' already exists in the database.")
-            return existing_game
+        # Check for existing game with the same IGDB ID but different folder path
+        existing_game_with_same_igdb_id = Game.query.filter(Game.igdb_id == igdb_id, Game.full_disk_path != full_disk_path).first()
+        if existing_game_with_same_igdb_id:
+            print(f"Duplicate game found with same IGDB ID {igdb_id} but different folder path. Logging as duplicate.")
+            matched_status = 'Duplicate'
+            log_unmatched_folder(scan_job_id, full_disk_path, matched_status)
+            return None
         else:
             print(f"Calculating folder size for {full_disk_path}.")
             folder_size_mb = get_folder_size_in_mb(full_disk_path)
@@ -252,12 +254,24 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
     else:
         if scan_job_id:
             pass
-            # print(f"PLACEHOLDER retrieve_and_save_game Scan job ID: {scan_job_id}")
         print(f"Failed to match: {game_name} using IGDB API.")
         error_message = "No game data found for the given name or failed to retrieve data from IGDB API."
         # print(error_message)
         flash(error_message)
         return None
+
+
+def format_size(size_in_mb):
+    try:
+        if size_in_mb is None:
+            return '0 MB'  # Fallback value if size_in_mb is None
+        elif size_in_mb >= 1024:
+            return f"{size_in_mb / 1024:.2f} GB"
+        else:
+            return f"{size_in_mb:.2f} MB"
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return '0 MB'  # Fallback value for any other errors
 
 def get_folder_size_in_mb(folder_path):
     total_size = 0
@@ -431,7 +445,7 @@ def check_existing_game_by_igdb_id(igdb_id):
 
 
 
-def log_unmatched_folder(scan_job_id, folder_path):
+def log_unmatched_folder(scan_job_id, folder_path, matched_status):
     existing_unmatched_folder = UnmatchedFolder.query.filter_by(folder_path=folder_path).first()
 
     if existing_unmatched_folder is None:
@@ -439,7 +453,7 @@ def log_unmatched_folder(scan_job_id, folder_path):
             folder_path=folder_path,
             failed_time=datetime.utcnow(),
             content_type='Games',
-            status='Pending'
+            status=matched_status
         )
         try:
             db.session.add(unmatched_folder)
@@ -639,13 +653,13 @@ def scan_and_add_games(folder_path):
         print(f"Failed to update ScanJob status: {str(e)}")
         
 def process_game_with_fallback(game_name, full_disk_path, scan_job_id):
-    print(f"Processing game with fallback: {game_name} at {full_disk_path}")
+    
     existing_unmatched_folder = UnmatchedFolder.query.filter_by(folder_path=full_disk_path).first()
     if existing_unmatched_folder:
         print(f"Skipping processing for already logged unmatched folder: {full_disk_path}")
         return False
 
-    print(f"Checking if game already exists in database: {game_name} at {full_disk_path}")
+    # print(f"Checking if game already exists in database: {game_name} at {full_disk_path}")
     existing_game = Game.query.filter_by(full_disk_path=full_disk_path).first()
     if existing_game:
         print(f"Game already exists in database: {game_name} at {full_disk_path}")
@@ -661,8 +675,8 @@ def process_game_with_fallback(game_name, full_disk_path, scan_job_id):
     else:
         print(f'Skipping duplicate game: {game_name} at {full_disk_path}')
         return True
-
-    log_unmatched_folder(scan_job_id, full_disk_path)
+    matched_status = 'Unmatched'
+    log_unmatched_folder(scan_job_id, full_disk_path, matched_status)
     return False
 
 

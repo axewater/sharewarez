@@ -448,13 +448,20 @@ body {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-radius: 15px;
-    padding: 20px;
+    padding-left: 120px;
+    padding-right: 50px;
+    padding-top: 20px;
     margin-top: 20px;
     gap: 1px;
     align-items: left;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 75%;
 
+}
+
+.unmatched-deleteall-btn {
+    width: 25%;
+    padding: 10px;
 }
 
 .glass-panel-scanfolder-fg {

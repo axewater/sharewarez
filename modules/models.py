@@ -181,7 +181,7 @@ class Game(db.Model):
     publisher_id = db.Column(db.Integer, db.ForeignKey('publishers.id'), nullable=True)
     download_requests = db.relationship('DownloadRequest', back_populates='game', lazy='dynamic', cascade='delete')
     multiplayer_modes = db.relationship("MultiplayerMode", secondary=game_multiplayer_mode_association, back_populates="games")    
-    size = db.Column(db.Float, nullable=True)
+    size = db.Column(db.Float, nullable=False, default=0.0)
 
     def __repr__(self):
         return f"<Game id={self.id}, name={self.name}>"
@@ -366,7 +366,7 @@ class UnmatchedFolder(db.Model):
     folder_path = db.Column(db.String)
     failed_time = db.Column(db.DateTime)
     content_type = db.Column(db.Enum('Games', name='unmatched_folder_content_type_enum'))
-    status = db.Column(db.Enum('Pending', 'Ignore', name='unmatched_folder_status_enum'))
+    status = db.Column(db.Enum('Pending', 'Ignore', 'Duplicate', 'Unmatched', name='unmatched_folder_status_enum'))
 
     
 

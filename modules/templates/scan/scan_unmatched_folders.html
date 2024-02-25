@@ -4,9 +4,10 @@
 {% block content %}
 
 <div class="glass-panel-unmatchedfolder">
-    <h2>Unmatched Folders</h2>
+    <h2>Resolve Unmatched Folders</h2>
     <table class="table">
         <thead>
+            <div class="unmatched-deleteall-btn">
             <form action="{{ url_for('main.delete_all_unmatched_folders') }}" method="post">
                 {{ form.csrf_token }}
                 <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete all unmatched folders? This cannot be undone.');">Delete All</button>
