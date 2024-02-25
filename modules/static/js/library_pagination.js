@@ -120,8 +120,8 @@ $(document).ready(function() {
       per_page: 20,
       category: $('#categorySelect').val() || urlParams.category,
       genre: $('#genreSelect').val() || urlParams.genre,
-      gameMode: $('#gameModeSelect').val() || urlParams.gameMode,
-      playerPerspective: $('#playerPerspectiveSelect').val() || urlParams.playerPerspective,
+      game_mode: $('#gameModeSelect').val() || urlParams.gameMode,
+      player_perspective: $('#playerPerspectiveSelect').val() || urlParams.playerPerspective,
       theme: $('#themeSelect').val() || urlParams.theme,
       rating: $('#ratingSlider').val() || urlParams.rating,
     };

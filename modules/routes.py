@@ -703,7 +703,7 @@ def browse_games():
         query = query.filter(Game.category.has(Category.name == category))
     if genre:
         query = query.filter(Game.genres.any(Genre.name == genre))
-    if rating is not None:  # Check if rating is not None since 0 is a valid rating but falsy
+    if rating is not None:
         query = query.filter(Game.rating >= rating)
     if game_mode:
         query = query.filter(Game.game_modes.any(GameMode.name == game_mode))
@@ -716,7 +716,7 @@ def browse_games():
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     games = pagination.items
 
-    game_data = []  # Initialize game_data as an empty list before appending
+    game_data = []
 
     for game in games:
         cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
@@ -750,7 +750,7 @@ def search():
         games = Game.query.filter(Game.name.ilike(f'%{query}%')).all()
         results = [{'id': game.id, 'uuid': game.uuid, 'name': game.name} for game in games]
 
-        print(f'Search results for "{query}": {results}')
+        # print(f'Search results for "{query}": {results}')
     return jsonify(results)
 
 

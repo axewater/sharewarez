@@ -102,6 +102,10 @@
     color: white;
 }
 
+.rating-slider {
+    
+    max-width: 100%;
+}
 
 .hidden {
     display: none;
