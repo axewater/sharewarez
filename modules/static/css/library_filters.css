@@ -132,16 +132,17 @@
 
 .container-pagination {
     display: flex;
-    margin: 15px;
+    margin: 5px;
     align-items: center;
     justify-content: center;
-    
+
 }
+
 
 .pagination-style{
     border: 1px solid rgba(0, 0, 0, 0.2);
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.8);
     align-items: center;
 }
 
