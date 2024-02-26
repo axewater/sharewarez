@@ -1342,7 +1342,7 @@ def delete_all_unmatched_folders():
         db.session.rollback()
         flash('An error occurred while deleting unmatched folders.', 'error')
         print(e)  # For debugging
-    return redirect(url_for('main.unmatched_folders'))
+    return redirect(url_for('main.scan_management'))
 
 
 @bp.route('/clear_only_unmatched_folders', methods=['POST'])

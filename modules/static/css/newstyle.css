@@ -260,11 +260,7 @@ body {
 }
 
 
-.pagination-style{
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-}
+
 
 
 .container-builder {
@@ -409,10 +405,9 @@ body {
     margin: 20px;
     grid-template-columns: auto 1fr auto;
     gap: 10px;
-    align-items: center;
     justify-content: space-between;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-width: 1400px;
+
 
 }
 

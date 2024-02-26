@@ -6,9 +6,9 @@
 .game-library-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
+
     position: relative;
-    overflow: hidden;
+    
 }
 
 .library-filters {
@@ -28,27 +28,31 @@
     background-color: rgba(0, 0, 0, 0.5);
 }
 
+.slideshow-container {
+    max-width: fit-content;
+}
 
 .popup-game-details {
     position: absolute;
     top: 0%;
-    width: 260px;
+ 
     z-index: 5;
     background: #2a2c35;
     padding: 15px 15px;
     animation: fadein 0.5s;
     display: none;
     border-radius: 5px;
+    box-sizing: content-box;
 }
 
 .screenshot-slide img {
     border-radius: 5px;
+
 }
 
 .popup-game-details img {
-    max-width: 100%;
-    height: auto;
     border: 1px solid #000000;
+    width: 300px;
 }
 
 .popup-game-details:not(.hidden) {
@@ -63,7 +67,7 @@
     display: flex;
     flex-direction: column;
     animation: fadein 0.5s;
-    height: 95%;
+
 }
 
 .game-name {
@@ -121,8 +125,20 @@
 }
 
 .container-pagination {
+    display: flex;
     margin: 15px;
+    align-items: center;
+    justify-content: center;
+    
 }
+
+.pagination-style{
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    align-items: center;
+}
+
 
 .hidden {
     display: none;

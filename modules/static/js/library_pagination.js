@@ -254,7 +254,7 @@ function createPopupMenuHtml(game) {
 
 
   $('#sortSelect').change(function() {
-    fetchFilteredGames(1); // Fetch the first page with new sorting
+    fetchFilteredGames(1); 
   });
 
 

@@ -34,10 +34,8 @@
                 {% if current_user.role == 'admin' %}
                     <a href="#" class="sidebar-link has-submenu"><i class="fas fa-cogs"></i><span class="link-text">Settings</span></a>
                     <div class="submenu">
-                        <a href="{{ url_for('main.scan_auto_folder') }}" class="sidebar-sublink"><span class="link-text">Folder Scanner</span></a>
-                        <a href="{{ url_for('main.scan_folder') }}" class="sidebar-sublink"><span class="link-text">Manual Scanner</span></a>
-                        <a href="{{ url_for('main.scan_management') }}" class="sidebar-sublink"><span class="link-text">Scanjob Manager</span></a>
-                        <a href="{{ url_for('main.unmatched_folders') }}" class="sidebar-sublink"><span class="link-text">Unmatched Folders</span></a>
+                        <a href="{{ url_for('main.scan_management') }}" class="sidebar-sublink"><span class="link-text">Library Manager</span></a>
+                        
                         <a href="{{ url_for('main.delete_library') }}" class="sidebar-sublink"><span class="link-text">Delete Library</span></a>
                         <a href="{{ url_for('main.api_debug') }}" class="sidebar-sublink"><span class="link-text">API Debugger</span></a>
                         <a href="{{ url_for('main.usermanager') }}" class="sidebar-sublink"><span class="link-text">User Manager</span></a>

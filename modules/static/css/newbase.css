@@ -1,6 +1,6 @@
 .sidebar {
     height: 100%;
-    width: 200px; 
+    width: 210px; 
     position: fixed;
     z-index: 1;
     top: 0;
@@ -95,7 +95,7 @@
 #content {
     transition: margin-left .5s;
     padding: 20px;
-    margin-left: 200px;
+    margin-left: 180px;
 }
 
 #content.collapsed {
