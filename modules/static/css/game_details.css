@@ -1,12 +1,12 @@
 .glass-panel-gamecard {
-    display: flex;
+    display: flex ;
     flex-direction: column;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-radius: 10px;
     padding: 20px;
     margin: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     width: 900px;
     min-height: 80vh; 
 }
@@ -37,7 +37,6 @@
 .game-card-meta {
     display: flex;
     flex-direction: column;
-
     color: #efeaea;
     background-color: #42403c;
     text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
@@ -59,6 +58,7 @@
     border: 1px solid black;
     margin-top: auto;
     margin-bottom: 10px;
+    box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
 
@@ -70,7 +70,7 @@
 
 .game-card-gamename {
     display: flex;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.9);
     width: 800px;
   }
   
@@ -116,6 +116,7 @@
     font-size: 17px;
     line-height: 1.2;
     border: 1px solid black;
+    box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     text-align: justify;
 }
 

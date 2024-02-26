@@ -40,8 +40,8 @@
 
                     
                     <div class="game-card-text-summary">
-                        {% if game.summary and game.summary|length > 350 %}
-                            <span class="summary-short">{{ game.summary[:350] }}...</span>
+                        {% if game.summary and game.summary|length > 340 %}
+                            <span class="summary-short">{{ game.summary[:340] }}...</span>
                             <a href="#" class="read-more-link">Read More</a>
                             <span class="summary-full" style="display: none;">{{ game.summary }}</span>
                         {% elif game.summary %}

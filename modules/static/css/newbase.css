@@ -36,7 +36,7 @@
     color: #ddd;
     transition: font-size 0.3s ease; 
 
-    padding-left: 25px;
+    padding-left: 20px;
     padding-right: 10px;
 
     padding-bottom: 5px;
@@ -223,7 +223,7 @@
 
 
 .sidebar.collapsed .sidebar-link {
-
+    padding-right: 19px;
   font-size: 33px;
   transition: font-size 33px ease;
 }

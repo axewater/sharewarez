@@ -275,6 +275,13 @@ body {
     border-radius: 15px;
 }
 
+.content-download {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+
 
 .content-restricted {
     display: flex;
@@ -300,12 +307,41 @@ body {
 }
 
 .content-textblock {
+    flex: 1;
     background-color: #000000;
     padding: 15px 30px;
     border-radius: 15px;
     color: #ddd;
     margin-top: 15px;
     text-align: justify;
+    padding-right: 20px;
+}
+
+.help-image {
+
+}
+
+.content-textblock-help {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start; 
+    background-color: #000000;
+    padding: 15px 30px;
+    border-radius: 15px;
+    color: #ddd;
+    margin-top: 15px;
+    text-align: justify;
+    padding: 20px 20px;
+}
+
+.content-textblock-help-q1 {
+    flex-basis: 40%; /* Adjusts the base size of the image block */
+}
+
+.content-textblock-help {
+    display: flex;
+    flex-direction: row;
 }
 
 .login-logo {
@@ -453,9 +489,15 @@ form textarea {
 }
 
 
+.logo-download {
+    display: flex;
+    justify-content: center;
+}
 
-
-
+.title-centered {
+    display: flex;
+    justify-content: center;
+}
 
 .glass-panel {
     display: flex;
@@ -468,7 +510,7 @@ form textarea {
     grid-template-columns: auto 1fr auto;
     gap: 10px;
     justify-content: space-between;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 9px 16px rgba(17, 2, 2, 2);
 
 
 }
@@ -497,6 +539,18 @@ form textarea {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 100%;
 
+}
+
+.help-logo {
+    display: flex;
+    justify-content: center;
+    width: 500px;
+    padding: 30px;
+    border-radius: 15px;
+}
+
+.help-logo img {
+    border-radius: 15px;
 }
 
 .glass-panel-unmatchedfolder {
