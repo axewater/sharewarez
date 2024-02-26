@@ -726,30 +726,38 @@ def escape_special_characters(pattern):
     return re.escape(pattern)
 
 
+
 def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
-    # Normalize separators: Replace underscores and hyphens with spaces
-    filename = filename.replace('_', ' ').replace('-', ' ')
-    
-    # More aggressively replace dots with spaces, except in version numbers
-    filename = re.sub(r'\.(?!\d)', ' ', filename)
-    
-    # Remove version numbers and other patterns more explicitly
-    filename = re.sub(r'v\d+(\.\d+)*', '', filename)  # Remove version numbers like v2.0.0.3
-    filename = re.sub(r'\d+\.\d+\.\d+\.\d+', '', filename)  # Targeting version patterns like 2.0.0.3 more directly
-    
+    # Normalize separators: Replace underscores and dots with spaces, except when dots are part of versioning or abbreviations
+    filename = re.sub(r'(?<!\.\d)(?<!\d\.)(?<!\b[A-Z])\.(?![A-Z]\b)|_', ' ', filename)
+
     # Remove known release group patterns
-    for pattern in insensitive_patterns + sensitive_patterns:
+    for pattern in insensitive_patterns:
         escaped_pattern = escape_special_characters(pattern)
         filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename, flags=re.IGNORECASE)
-    
-    # Additional cleanup for DLC mentions, etc.
-    filename = re.sub(r'(\+|\-)\d+DLCs?', '', filename, flags=re.IGNORECASE)
+
+    for pattern, is_case_sensitive in sensitive_patterns:
+        escaped_pattern = escape_special_characters(pattern)
+        if is_case_sensitive:
+            filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename)
+        else:
+            filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename, flags=re.IGNORECASE)
+
+    # Handle cases where a single number may indicate a sequel or version
+    filename = re.sub(r'\b([IVXLCDM]+|[0-9]+)(?:[^\w]|$)', r' \1 ', filename)  # Space out roman numerals and numbers
+
+    # Additional cleanup for version numbers, DLC mentions, etc.
+    filename = re.sub(r'\bv\d+(\.\d+)*', '', filename)  # Version numbers
+    filename = re.sub(r'Build\.\d+', '', filename)      # Build numbers
+    filename = re.sub(r'(\+|\-)\d+DLCs?', '', filename, flags=re.IGNORECASE)  # DLC mentions
     filename = re.sub(r'Repack|Edition|Remastered|Remake|Proper|Dodi', '', filename, flags=re.IGNORECASE)
 
     # Normalize whitespace and re-title
-    filename = ' '.join(filename.split()).title()
+    filename = re.sub(r'\s+', ' ', filename).strip()
+    cleaned_name = ' '.join(filename.split()).title()
 
-    return filename
+    return cleaned_name
+
 
 
 

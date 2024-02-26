@@ -963,7 +963,7 @@ def add_game_manual():
                 flash('Game added successfully.', 'success')
                 print(f"add_game_manual Game: {game_name} added by user {current_user.name}.")
                 if from_unmatched:
-                    return redirect(url_for('main.unmatched_folders'))
+                    return redirect(url_for('main.scan_manager'))
                 else:
                     return redirect(url_for('main.library'))
             except SQLAlchemyError as e:
@@ -1322,13 +1322,6 @@ def clear_all_scan_jobs():
     flash('All scan jobs cleared successfully.', 'success')
     return redirect(url_for('main.scan_management'))
 
-@bp.route('/unmatched_folders')
-@login_required
-@admin_required
-def unmatched_folders():
-    folders = UnmatchedFolder.query.all()
-    form = UpdateUnmatchedFolderForm()
-    return render_template('scan/scan_unmatched_folders.html', folders=folders, form=form)
 
 @bp.route('/delete_all_unmatched_folders', methods=['POST'])
 @login_required
