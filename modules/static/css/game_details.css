@@ -39,13 +39,15 @@
     flex-direction: column;
 
     color: #efeaea;
-    background-color: rgb(66, 64, 60);
+    background-color: #42403c;
     text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
     padding: 20px;
     border-radius: 15px;
     margin-bottom: 10px;
     line-height: normal;
-    
+    box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    border-radius: 15px;
+    border: 1px solid #080707;
 }
 
 .game-card-weblinks {

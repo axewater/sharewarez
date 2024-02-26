@@ -60,7 +60,7 @@ body {
 
 .button-glass {
     padding: 10px 15px;
-    backdrop-filter: blur(10px);
+    
     background: rgba(255, 255, 255, 0.1);
     border: none;
     border-radius: 8px;
@@ -75,7 +75,7 @@ body {
 
 .button-glass-download {
     padding: 10px 85px;
-    backdrop-filter: blur(10px);
+    
     background: rgba(11, 200, 11, 0.999);
     border: none;
     border-radius: 8px;
@@ -242,14 +242,12 @@ body {
 
 
 .container-base {
-    margin: 5px;
-    padding: 5px;
-    backdrop-filter: blur(5px);
-    
-    border-radius: 10px;
     display: flex;
     flex-grow: 1;
     flex-wrap: wrap;
+    margin: 5px;
+    padding: 5px;
+    border-radius: 10px;
 }
 
 .container-browser {
@@ -277,11 +275,45 @@ body {
     border-radius: 15px;
 }
 
+
+.content-restricted {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 40px 60px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 10px 30px;
+    border-radius: 15px;
+    margin-left: 50px;
+}
+
+.content-restricted-textblock {
+    background-color: #000000;
+    padding: 40px 60px;
+    border-radius: 15px;
+    color: #ddd;
+    margin-top: 15px;
+    text-align: justify;
+}
+
+.content-textblock {
+    background-color: #000000;
+    padding: 15px 30px;
+    border-radius: 15px;
+    color: #ddd;
+    margin-top: 15px;
+    text-align: justify;
+}
+
 .login-logo {
     width: 400px;
     border-radius: 15px;
     box-shadow: 0 0 20px rgb(0, 0, 0);
     align-self: center;
+    
 }
 
 
@@ -385,9 +417,30 @@ body {
     border-radius: 8px;
     color: black;
     margin: 3px;
-    height: 30px;
+    height: 38px;
     box-shadow: inset 1px 3px 5px rgb(41, 37, 37);
 }
+
+
+/* Apply box shadow to all input fields */
+form input[type="text"],
+form input[type="password"],
+form input[type="email"],
+form input[type="search"],
+form input[type="number"],
+form input[type="date"],
+form input[type="tel"],
+form input[type="url"],
+form input[type="time"],
+form input[type="range"],
+form input[type="color"],
+form select, /* Don't forget your select elements if you want to style them too */
+form textarea {
+  box-shadow: inset 1px 3px 5px rgb(41, 37, 37);
+  
+  /* Other styling properties */
+}
+
 
 .input-glass-checkbox {
 
@@ -400,24 +453,9 @@ body {
 }
 
 
-.formatted-message {
-    color: #000;
-    padding: 5px;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-}
 
-.password-input {
 
-    display: block;
-    padding: 10px;
-    height: 10px;
-    width: 80%;
-    background-color: white;
-    box-shadow: inset 1px 3px 5px rgba(0, 0, 0, 0.15);
-    border-radius: 6px;
 
-}
 
 .glass-panel {
     display: flex;

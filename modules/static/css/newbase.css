@@ -171,17 +171,20 @@
 }
 
 .menu-logo-image {
-    width: auto;
+    display: flex;
     height: 150px;
     background-image: url('/static/newstyle/sharewarez_pirate_small.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
-    position: relative;
-    
-    overflow: hidden; /* Ensure that the gradient mask doesn't overflow */
   }
-  
+
+.menu-logo-image img {
+    border-radius: 17px;    
+
+}
+
+
 .sidebar.collapsed .menu-logo-image {
     height: 50px;
     margin-top: 15px;

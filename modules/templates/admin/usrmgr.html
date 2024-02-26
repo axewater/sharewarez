@@ -3,62 +3,71 @@
 {% block content %}
 
 
-<div class="glass-panel-text-usrmgr">
+<div class="glass-panel">
     <div class="flashes">
         {% for message in messages %}
             <div class="flash">{{ message }}</div>
         {% endfor %}
     </div>
-    <form method="POST" action="">
-        {{ form.hidden_tag() }}
-        <div>
-            {{ form.user_id.label(class="formlabels") }} 
-            {{ form.user_id(class="input-class input-glass") }}
+    <div class="content-login">
+        <div class="content-textblock">
+        <h2>User management</h2>
         </div>
-        <div>
-            {{ form.state.label(class="formlabels") }} {{ form.state(class="input-checkbox") }}
-        </div>
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <div>
+                {{ form.user_id.label(class="formlabels") }} 
+                {{ form.user_id(class="input-class input-glass") }}
+            </div>
+            <div>
+                {{ form.state.label(class="formlabels") }} {{ form.state(class="input-checkbox") }}
+            </div>
 
-        <div>
-            {{ form.name.label(class="formlabels") }} {{ form.name(class="input-glass") }}
-        </div>
-        <div>
-            {{ form.email.label(class="formlabels") }} {{ form.email(class="input-glass") }}
-        </div>
-        <div>
-            {{ form.role.label(class="formlabels") }} {{ form.role(class="input-glass") }}
-        </div>
+            <div>
+                {{ form.name.label(class="formlabels") }} {{ form.name(class="input-glass") }}
+            </div>
+            <div>
+                {{ form.email.label(class="formlabels") }} {{ form.email(class="input-glass") }}
+            </div>
+            <div>
+                {{ form.role.label(class="formlabels") }} {{ form.role(class="input-glass") }}
+            </div>
 
 
-        <div>
-            {{ form.submit(class="button-glass") }} {{ form.delete(class="button-glass") }}
-        </div>
-    </form>
+            <div>
+                {{ form.submit(class="button-glass") }} {{ form.delete(class="button-glass") }}
+            </div>
+        </form>
 
-    <!-- List of users -->
-    {% if users %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Last seen</th>
-                    <!-- Add other headers for user fields -->
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in users %}
-                <tr>
-                    <td>{{ user.name }}</td>
-                    <td>{{ user.email }}</td>
-                    <td>{{ user.lastlogin }}</td>
-                    <!-- Add other user details here -->
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %} 
+        <!-- List of users -->
+        <div class="content-textblock">
+            <h3>Sharewarez userlist:</h3>
+            <br>
+            {% if users %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Last seen</th>
+                            <!-- Add other headers for user fields -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.name }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.lastlogin }}</td>
+                            <!-- Add other user details here -->
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %} 
+            </div>
+        </div>
     </div>
-
+</div>
 <script src="{{ url_for('static', filename='js/admin_usermanager.js') }}"></script>
 {% endblock %}

@@ -1,7 +1,7 @@
 .game-library-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
+    
     
 }
 
@@ -9,17 +9,19 @@
     cursor: pointer;
     transition: transform 0.3s ease; 
     position: relative;
+    margin: 5px;
 }
 
 
 .game-card:hover  {
-    transform: scale(1.05);
+    transform: scale(1.2);
     z-index: 6;
     box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.7);
 }
 
 
 .game-cover {
+    display: flex;
     position: relative;
     width: 100%;
     height: auto;
@@ -28,6 +30,7 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease; 
     border: 1px solid rgb(49, 49, 49);
     border-radius: 5px;
+    
 }
 
 

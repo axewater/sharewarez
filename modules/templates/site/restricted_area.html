@@ -11,27 +11,32 @@
         {% for message in messages %}
             <div class="flash">{{ message }}</div>
             {% endfor %}
-            </div>
         </div>
+        
     {% endif %}
     {% endwith %}
 
-    
-        {% if current_user.is_authenticated %}
-    <div class="container-content">
-        <img src="{{ url_for('static', filename='newstyle/sharewarez_pirate.png') }}" alt="ShareWareZ Logo" class="login-logo">
+</div>
+{% if current_user.is_authenticated %}
+<div class="content-restricted">
+    <img src="{{ url_for('static', filename='newstyle/sharewarez_pirate.png') }}" alt="ShareWareZ Logo" class="login-logo">
 
-        <h1 class="logo">ShareWarez</h1>
+    <div class="content-restricted-textblock">
+        Ahoy, {{ current_user.name }}, welcome to ShareWareZ!<br>
         <br>
-        Welcome back, {{ current_user.name }}!<br>
+        Set sail through vast digital seas where treasures abound in every corner. 
+        Here, ye can effortlessly chart yer course through libraries brimming with the finest games, each chest filled with images and lore. 
+        Seek and ye shall find with our trusty maps (search and filters), uncovering the jewels of your liking. 
+        And fret not, for every treasure is yours for the taking, cracked and ready to embark upon your device. Aye, for we are pirates, and the horizon is ours to explore!<br>
     </div>
     {% else %}
-    <div class="content">
+    <div class="content-restricted">
         <img src="{{ url_for('static', filename='newstyle/sharewarez_pirate.png') }}" alt="ShareWareZ Logo" class="login-logo">
-
+        <div class="content-restricted-textblock">
         Welcome to ShareWareZ!<br>
         Please login or register.
     </div>
+</div>
 
     <h1></h1>
 

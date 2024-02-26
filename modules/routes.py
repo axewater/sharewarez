@@ -129,7 +129,7 @@ def login():
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.login'))
 
     print("Route: /register")
 
@@ -218,7 +218,7 @@ def confirm_email(token):
 @bp.route('/reset_password_request', methods=['GET', 'POST'])
 def reset_password_request():
     if current_user.is_authenticated:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.login'))
     form = ResetPasswordRequestForm()
     
     if form.validate_on_submit():
@@ -241,12 +241,12 @@ def reset_password_request():
 @bp.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     if current_user.is_authenticated:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.login'))
 
     user = User.query.filter_by(password_reset_token=token).first()
     if not user or user.token_creation_time + timedelta(minutes=15) < datetime.utcnow():
         flash('The password reset link is invalid or has expired.')
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.login'))
 
     if request.method == 'POST':
         new_password = request.form['password']
@@ -1590,7 +1590,7 @@ def delete_library():
     except Exception as e:
         print(f"Error fetching game count: {e}")
         flash("Failed to fetch game count.", "error")
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.login'))
 
     return render_template('admin/delete_library.html', game_count=game_count, form=form)
 
