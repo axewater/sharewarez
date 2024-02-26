@@ -41,7 +41,7 @@ class EditProfileForm(FlaskForm):
     
 class ScanFolderForm(FlaskForm):
     folder_path = StringField('Folder Path', validators=[DataRequired()])
-    scan = SubmitField('Scan')
+    scan = SubmitField('List Games')
     cancel = SubmitField('Cancel')
 
 

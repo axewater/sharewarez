@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container-base">
-    <div class="ai">
+<div class="container-login">
+    <div class="content-login">
         {% if current_user.is_authenticated %}
         <div class="container-builder">Welcome back, {{ current_user.name }}!</div>
         {% else %}
@@ -19,8 +19,8 @@
 
             <div class="container-base">
                 <div class="container-builder">
-                    <h1 class="logo">ShareWareZ</h1>
-You can register for an account if your email has been whitelisted
+                    <img src="{{ url_for('static', filename='newstyle/sharewarez_pirate.png') }}" alt="ShareWareZ Logo" class="login-logo">
+
                 </div>
             </div>
             <div class="container-builder">

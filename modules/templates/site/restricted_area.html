@@ -5,20 +5,6 @@
 
 
 <div class="container-base">
-
-        {% if current_user.is_authenticated %}
-    <div class="container-builder">
-        <h1 class="logo">Oasis</h1>
-        <br>
-        Welcome back, {{ current_user.name }}!<br>
-    </div>
-    {% else %}
-    <div class="speech-bubble ai">
-        Welcome to the Oasis!<br>
-        Please login or register.
-    </div>
-
-    <h1></h1>
     {% with messages = get_flashed_messages() %}
     {% if messages %}
         <div class="flashes">
@@ -29,6 +15,26 @@
         </div>
     {% endif %}
     {% endwith %}
+
+    
+        {% if current_user.is_authenticated %}
+    <div class="container-content">
+        <img src="{{ url_for('static', filename='newstyle/sharewarez_pirate.png') }}" alt="ShareWareZ Logo" class="login-logo">
+
+        <h1 class="logo">ShareWarez</h1>
+        <br>
+        Welcome back, {{ current_user.name }}!<br>
+    </div>
+    {% else %}
+    <div class="content">
+        <img src="{{ url_for('static', filename='newstyle/sharewarez_pirate.png') }}" alt="ShareWareZ Logo" class="login-logo">
+
+        Welcome to ShareWareZ!<br>
+        Please login or register.
+    </div>
+
+    <h1></h1>
+
     <div class="container-login">
         <form action="/login" method="post">
             <label for="username">Username:</label><br>

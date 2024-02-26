@@ -1,11 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Confirm Your Email</title>
+    <title>Ye Be Almost Ready to Embark!</title>
+    <style>
+        body {
+            background-color: #f3f4f6;
+            color: #333;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 20px;
+        }
+        .container {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: 20px auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #007bff;
+        }
+        a {
+            background-color: #007bff;
+            color: #ffffff;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        p {
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>You are almost ready to enter the Oasis!</h1>
-    <p>But first, you must click the link below to activate your account:</p>
-    <a href="{{ confirm_url }}">{{ confirm_url }}</a>
+    <div class="container">
+        <h2>Arrr! Welcome Aboard, Matey!</h2>
+        <p>Ye be just a click away from joinin' the crew at ShareWareZ. Ready yer sea legs and prepare to set sail into the vast digital ocean. But first, let's make ye official!</p>
+        <p>Plunder the link below to confirm yer email and activate yer account. Quick, now, before the winds change!</p>
+        <a href="{{ confirm_url }}">Confirm Yer Email</a>
+        <p>If ye didn't attempt to join our crew, ignore this message and no action be needed. Your email shall walk the plank into the abyss.</p>
+    </div>
 </body>
 </html>

@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container-base">
-    <div class="messages">
-        <div class="ai">
-            <div class="speech-bubble ai">
-                <h1>Invalid Link</h1>
-                <p>The link you followed is invalid. Please check your email for the correct link or request a new activation link.</p>
-                <!-- Add a link to request a new activation link if necessary -->
-            </div>
-        </div>
+<div class="container-login">
+    <div class="content-login">
+        <img src="{{ url_for('static', filename='newstyle/sharewarez_pirate.png') }}" alt="ShareWareZ Logo" class="login-logo">
+        <h1 class="logo">Invalid Link</h1>
+        <p>The link you've sailed upon is marooned. Check your map (email) for the rightful path or signal (request) a new voyage (activation link).</p>
+        <!-- Button to request a new activation link -->
+        <a href="{{ url_for('auth.request_new_activation') }}" class="button-glass">Request New Link</a>
     </div>
 </div>
 {% endblock %}
+

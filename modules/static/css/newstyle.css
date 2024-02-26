@@ -1,6 +1,6 @@
 
 body {
-    background-image: url('/static/newstyle/1.jpg'); 
+    background-image: url('/static/newstyle/gamecontroller.jpg'); 
     background-size: cover;
     background-repeat: no-repeat;
 
@@ -259,8 +259,30 @@ body {
     flex-direction: column;    
 }
 
+.container-login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 
+}
 
+.content-login {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 40px 60px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 10px 30px;
+    border-radius: 15px;
+}
+
+.login-logo {
+    width: 400px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgb(0, 0, 0);
+    align-self: center;
+}
 
 
 .container-builder {
@@ -362,7 +384,9 @@ body {
     padding: 10px;
     border-radius: 8px;
     color: black;
-    margin: 5px;
+    margin: 3px;
+    height: 30px;
+    box-shadow: inset 1px 3px 5px rgb(41, 37, 37);
 }
 
 .input-glass-checkbox {

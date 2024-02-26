@@ -557,7 +557,7 @@ def escape_special_characters(pattern):
 def send_email(to, subject, template):
     msg = MailMessage(
         subject,
-        sender='halliday@pleasewaitloading.com',
+        sender='blackbeard@sharewarez.com',
         recipients=[to],
         html=template
     )
@@ -567,7 +567,7 @@ def send_password_reset_email(user_email, token):
     reset_url = url_for('main.reset_password', token=token, _external=True)
     msg = MailMessage(
         'Password Reset Request',
-        sender='halliday@sharewarez.pleasewaitloading.com',  # Replace with your actual sender email
+        sender='blackbeard@sharewarez.com', 
         recipients=[user_email],
         body=f'Please click on the link to reset your password: {reset_url}'
     )
@@ -690,8 +690,6 @@ def try_add_game(game_name, full_disk_path, scan_job_id, check_exists=True):
             print(f"Game already exists in database: {game_name} at {full_disk_path}")
             return False
 
-    
-    
     game = retrieve_and_save_game(game_name, full_disk_path, scan_job_id)
     return game is not None
 

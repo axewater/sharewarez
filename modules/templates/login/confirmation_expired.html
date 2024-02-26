@@ -1,14 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container-base">
-    <div class="messages">
-        <div class="ai">
-            <div class="speech-bubble ai">
+<div class="container-login">
+    <div class="content-login">
+        <img src="{{ url_for('static', filename='newstyle/sharewarez_pirate.png') }}" alt="ShareWareZ Logo" class="login-logo">
                 <h1>Link Expired</h1>
                 <p>The confirmation link is invalid or has expired. Please request a new activation link.</p>
                 <!-- Add a link to request a new activation link if necessary -->
-            </div>
-        </div>
     </div>
 </div>
 {% endblock %}

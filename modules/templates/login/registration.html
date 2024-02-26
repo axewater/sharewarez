@@ -6,10 +6,14 @@
     <link rel="stylesheet" href="/static/css/newstyle.css">
 </head>
 <body>
-    <div class="container-base">
+    <div class="container-login">
 
-                <div class="container-builder">
-                    <div class="speech-bubble">Register here!</div>
+                <div class="content-login">
+                    <img src="{{ url_for('static', filename='newstyle/sharewarez_pirate.png') }}" alt="ShareWareZ Logo" class="login-logo">
+
+                    <h2 style="text-align: center; margin-top: 5px;">Register now!</h1>
+                        (You can only register if your email has been whitelisted)
+
 
                     {% with messages = get_flashed_messages() %}
                     {% if messages %}

@@ -62,8 +62,10 @@
                             <td>{{ job.id.split('-')[0] }}</td>
                             <td>{{ job.folders }}</td>
                             <td>{{ job.status }}</td>
-                            <td>{{ job.last_run }}</td>
-                            <td>{{ job.next_run }}</td>
+                            <td>{{ job.last_run.strftime('%Y-%m-%d %H:%M:%S') if job.last_run else '' }}</td>
+                            <td>{{ job.next_run.strftime('%Y-%m-%d %H:%M:%S') if job.next_run else 'None' }}</td>
+
+                            
                             <td>
                                 <form action="{{ url_for('main.delete_scan_job', job_id=job.id) }}" method="post">
                                     {{ csrf_form.csrf_token }}
@@ -80,6 +82,9 @@
         <!-- Manual Scan Tab -->
         <div id="manualScan" class="container tab-pane fade"><br>
             <h3>Manual Folder Scan</h3>
+                <br>
+                Scan folder and list games for manual processing<br>
+
             <form action="" method="post">
                 {{ manual_form.hidden_tag() }}
                 <div class="form-group">
@@ -92,7 +97,7 @@
                     {% endif %}
                 </div>
                 <div class="form-group d-flex justify-content-between">
-                    <button type="submit" name="submit" value="ManualScan" class="btn btn-primary">{{ manual_form.scan.label }}</button>
+                    <button type="submit" name="submit" value="ManualScan" class="btn btn-primary">List Games</button>
                 </div>
             </form>
             {% if game_names_with_ids %}
@@ -113,14 +118,15 @@
             <div class="glass-panel-unmatchedfolder">
                 
                 <div class="container-unmatched-buttons mb-3">
-                    <form action="{{ url_for('main.delete_all_unmatched_folders') }}" method="post" style="display: inline;">
+                    <form action="" method="post">
                         {{ csrf_form.csrf_token }}
-                        <button type="submit" class="btn btn-danger" value="deleteAllUnmatched" onclick="return confirm('Are you sure you want to delete all entries in the list? This cannot be undone.');">Delete All</button>
-                        
+                        <input type="hidden" name="submit" value="DeleteAllUnmatched">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete all entries in the list? This cannot be undone.');">Delete All</button>
                     </form>
-                    <form action="{{ url_for('main.clear_only_unmatched_folders') }}" method="post" style="display: inline;">
+                    <form action="" method="post">
                         {{ csrf_form.csrf_token }}
-                        <button type="submit" class="btn btn-warning" value="deleteOnlyUnmatched"  onclick="return confirm('Are you sure you want to clear all unmatched folders? This cannot be undone.');">Clear Unmatched</button>
+                        <input type="hidden" name="submit" value="DeleteOnlyUnmatched">
+                        <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to clear all unmatched folders? This cannot be undone.');">Clear Unmatched</button>
                     </form>
                 </div>
                 <table class="table">
@@ -161,21 +167,25 @@
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var activeTab = "{{ active_tab }}";
-        
-        if (activeTab === 'manual') {
-            var manualTab = new bootstrap.Tab(document.querySelector('#manualScan-tab'));
-            manualTab.show();
-        } else if (activeTab === 'unmatched') {
-            var unmatchedTab = new bootstrap.Tab(document.querySelector('#unmatchedFolders-tab'));
-            unmatchedTab.show();
-        } else {
-            // Ensure the Auto Scan tab is shown by default or when 'auto' is the active tab
-            var autoTab = new bootstrap.Tab(document.querySelector('#autoScan-tab'));
-            autoTab.show();
-        }
-    });
+document.addEventListener("DOMContentLoaded", function() {
+    var activeTab = "{{ active_tab }}";
+    
+    console.log("Active tab:", activeTab);
+    if (activeTab === 'manual') {
+        console.log("manual tab active");
+        var manualTab = new bootstrap.Tab(document.querySelector('#manualScan-tab'));
+        manualTab.show();
+    } else if (activeTab === 'unmatched') {
+        console.log("unmatched tab active");
+        var unmatchedTab = new bootstrap.Tab(document.querySelector('#unmatchedFolders-tab'));
+        unmatchedTab.show();
+    } else {
+        console.log("auto tab active");
+        // Ensure the Auto Scan tab is shown by default or when 'auto' is the active tab
+        var autoTab = new bootstrap.Tab(document.querySelector('#autoScan-tab'));
+        autoTab.show();
+    }
+});
     </script>
     
 {% endblock %}

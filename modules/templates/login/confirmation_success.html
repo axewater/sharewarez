@@ -1,14 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container-base">
-    <div class="messages">
-        <div class="ai">
-            <div class="speech-bubble ai">
-                <h1>Account Activated!</h1>
-                <p>Your account has been successfully activated. You can now log in and enjoy our services.</p>
-                <a href="{{ url_for('main.login') }}" class="button-glass">Login</a>
-            </div>
-        </div>
+<div class="container-login">
+    <div class="content-login">
+        <img src="{{ url_for('static', filename='newstyle/sharewarez_pirate.png') }}" alt="ShareWareZ Logo" class="login-logo">
+        <h1 class="logo">Account Activated!</h1>
+        <p>You're now ready to embark on your journey with us. Log in and set sail towards adventure!</p>
+        <a href="{{ url_for('main.login') }}" class="button-glass">Log In</a>
     </div>
 </div>
 {% endblock %}
+

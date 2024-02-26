@@ -788,7 +788,7 @@ def downloads():
 
 
 
-@bp.route('/scan_manual_folder', methods=['GET', 'POST'])
+@bp.route('/old_scan_manual_folder', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def scan_folder():
@@ -823,7 +823,7 @@ def scan_folder():
 
 
 
-@bp.route('/scan_auto_folder', methods=['GET', 'POST'])
+@bp.route('/old_scan_auto_folder', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def scan_auto_folder():
@@ -962,8 +962,18 @@ def add_game_manual():
                         db.session.commit()
                 flash('Game added successfully.', 'success')
                 print(f"add_game_manual Game: {game_name} added by user {current_user.name}.")
+                # Trigger image refresh after adding the game
+                @copy_current_request_context
+                def refresh_images_in_thread():
+                    refresh_images_in_background(new_game.uuid)
+
+                # Start the background process for refreshing images
+                thread = Thread(target=refresh_images_in_thread)
+                thread.start()
+                print(f"Refresh images thread started for game UUID: {new_game.uuid}")
+                
                 if from_unmatched:
-                    return redirect(url_for('main.scan_manager'))
+                    return redirect(url_for('main.scan_management'))
                 else:
                     return redirect(url_for('main.library'))
             except SQLAlchemyError as e:
@@ -1178,7 +1188,7 @@ def delete_image():
 
 
 
-@bp.route('/auto_scan_games_folder', methods=['POST'])
+@bp.route('/old_auto_scan_games_folder', methods=['POST'])
 @login_required
 @admin_required
 def scan_games_folder():
@@ -1207,27 +1217,30 @@ def scan_management():
     jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
     game_names_with_ids = None
     csrf_form = CsrfProtectForm()
-    active_tab = 'auto'
     unmatched_folders = UnmatchedFolder.query.all()
-    unmatched_form = UpdateUnmatchedFolderForm()  # Assuming this form is used for actions in the unmatched folders tab
-
+    unmatched_form = UpdateUnmatchedFolderForm() 
     
+    active_tab = session.get('active_tab', 'auto')
+    print(f"scan manager loading with Active tab: {active_tab}")
+
     if 'submit' in request.form:
         submit_action = request.form.get('submit')
-        print("Active tab: ", active_tab)
+        print(f"Debug: submit_action = {submit_action}")
         if submit_action == 'AutoScan':
-            active_tab = 'auto'
-            
+            print(f"submit_action: AutoScan")
+            session['active_tab'] = 'auto'
         elif submit_action == 'ManualScan':
-            active_tab = 'manual'
-        elif submit_action == 'DeleteAllUnmatched':
-            active_tab = 'unmatched'
-        elif submit_action == 'DeleteOnlyUnmatched':
-            active_tab = 'unmatched'
+            print(f"submit_action: ManualScan")
+            session['active_tab'] = 'manual'
+        elif submit_action in ['DeleteAllUnmatched', 'DeleteOnlyUnmatched']:
+            session['active_tab'] = 'unmatched'
+        # Ensure this updated active_tab value is used for rendering
+        active_tab = session['active_tab']
 
     if request.method == 'POST':
         submit_action = request.form.get('submit')
         if submit_action == 'AutoScan' and auto_form.validate_on_submit():
+            print(f'Starting auto-scan for folder: {auto_form.folder_path.data}')
             folder_path = auto_form.folder_path.data
             @copy_current_request_context
             def start_scan():
@@ -1255,8 +1268,9 @@ def scan_management():
                 flash("Folder does not exist or cannot be accessed.", "error")
                 print("Folder does not exist or cannot be accessed.")
         # return redirect(url_for('main.scan_management'))
-        elif submit_action == 'deleteAllUnmatched':
+        elif submit_action == 'DeleteAllUnmatched':
             # Delete all unmatched folders
+            print(f"Deleting all unmatched folders.")
             try:
                 UnmatchedFolder.query.delete()
                 db.session.commit()
@@ -1283,7 +1297,7 @@ def scan_management():
             print(f"Scan manager loaded.") 
         else:
             print(f"Action not recognized. Method was {request.method}")
-
+    active_tab = session.get('active_tab', 'auto')
     return render_template('scan/scan_management.html', 
                            auto_form=auto_form, 
                            manual_form=manual_form, 
