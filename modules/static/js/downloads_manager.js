@@ -4,7 +4,8 @@ document.addEventListener("DOMContentLoaded", function() {
     console.log
     downloads.forEach((download) => {
         const gameUuid = download.getAttribute("data-game-uuid");
-        setInterval(() => checkDownloadStatus(gameUuid), 10000); // every 10 seconds
+        checkDownloadStatus(gameUuid);
+        setInterval(() => checkDownloadStatus(gameUuid), 1000); // every 5 seconds
     });
 });
 
@@ -25,8 +26,10 @@ function checkDownloadStatus(gameUuid) {
 function updateDownloadRow(downloadRow, downloadId) {
     // Update the status cell
     const statusCell = downloadRow.querySelector(".status-cell");
-    statusCell.innerHTML = '<span class="status-value">Available</span>';
+    statusCell.innerHTML = '<span class="status-value" style="color: #005f00; background-color: #e8ffe8; border: 2px solid #004c00; padding: 2px 6px; border-radius: 4px; font-weight: bold;">Available</span>';
 
+    
+    const csrfToken = getCsrfToken();
     // Update the actions cell with the CSRF token included in the form
     const actionsCell = downloadRow.querySelector(".actions-cell");
     actionsCell.innerHTML = `<a href="/download_zip/${downloadId}" class="btn btn-primary">Download</a>
@@ -36,3 +39,8 @@ function updateDownloadRow(downloadRow, downloadId) {
                              </form>`;
 }
 
+function getCsrfToken() {
+    // Attempt to find a CSRF token in the document
+    const csrfInput = document.querySelector('input[name="csrf_token"]');
+    return csrfInput ? csrfInput.value : null;
+}

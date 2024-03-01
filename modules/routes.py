@@ -7,7 +7,6 @@ from flask import copy_current_request_context
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_wtf import FlaskForm
 from flask_mail import Message as MailMessage
-from flask_cors import cross_origin
 from wtforms import StringField, PasswordField, SubmitField, FieldList, BooleanField
 from wtforms.validators import DataRequired, Email, Length
 from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
@@ -49,8 +48,6 @@ s = URLSafeTimedSerializer('YMecr3tK?IzzsSa@e!Zithpze')
 has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False
-
-
 
 @bp.before_app_request
 def initial_setup():
@@ -136,21 +133,20 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         try:
-            email_address = form.email.data
-            existing_user_email = User.query.filter_by(email=email_address).first()
+            email_address = form.email.data.lower()
+            existing_user_email = User.query.filter(func.lower(User.email) == email_address).first()
             if existing_user_email:
                 print(f"Debug: Email already in use - {email_address}")
                 flash('This email is already in use. Please use a different email or log in.')
                 return redirect(url_for('main.register'))
-            whitelist = Whitelist.query.filter_by(email=email_address).first()
+            whitelist = Whitelist.query.filter(func.lower(Whitelist.email) == email_address).first()
             if not whitelist:
-                # print(f"Debug: No matching whitelist entry found for - {email_address}")
                 flash('Your email is not whitelisted.')
                 return redirect(url_for('main.register'))
 
-            # print(f"Debug: Whitelist entry found - {whitelist.email}")
 
-            existing_user = User.query.filter_by(name=form.username.data).first()
+            username = form.username.data.lower()
+            existing_user = User.query.filter(func.lower(User.name) == username).first()
             if existing_user is not None:
                 print(f"Debug: User already exists - {form.username.data}")
                 flash('User already exists. Please Log in.')
@@ -165,7 +161,7 @@ def register():
 
             user = User(
                 user_id=user_uuid,
-                name=form.username.data,
+                name=username,
                 email=form.email.data,
                 role='user',
                 is_email_verified=False,
@@ -248,19 +244,21 @@ def reset_password(token):
         flash('The password reset link is invalid or has expired.')
         return redirect(url_for('main.login'))
 
-    if request.method == 'POST':
+    form = CsrfProtectForm()
+
+    if form.validate_on_submit():
         new_password = request.form['password']
         confirm_password = request.form['confirm_password']
         if new_password != confirm_password:
             flash('Passwords do not match.')
-            return render_template('reset_password.html', token=token)
+            return render_template('reset_password.html', form=form, token=token)
         user.set_password(new_password)
         user.password_reset_token = None
         db.session.commit()
         flash('Your password has been reset.')
         return redirect(url_for('main.login'))
 
-    return render_template('login/reset_password.html', token=token)
+    return render_template('login/reset_password.html', form=form, token=token)
 
 ################### API ROUTES ###################################################################################
 ################### API ROUTES ###################################################################################
@@ -781,14 +779,18 @@ def downloads():
     user_id = current_user.id
     print(f"Route: /downloads user_id: {user_id}")
     download_requests = DownloadRequest.query.filter_by(user_id=user_id).all()
+
+    # Format the size for each download request before passing to the template
+    for download_request in download_requests:
+        download_request.formatted_size = format_size(download_request.download_size)
+
     form = CsrfProtectForm()
     return render_template('games/downloads_manager.html', download_requests=download_requests, form=form)
 
 
 
 
-
-@bp.route('/old_scan_manual_folder', methods=['GET', 'POST'])
+@bp.route('/scan_manual_folder', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def scan_folder():
@@ -819,7 +821,7 @@ def scan_folder():
             
 
     # print("Game names with IDs:", game_names_with_ids)
-    return render_template('scan/scan_manual_folder.html', form=form, game_names_with_ids=game_names_with_ids)
+    return render_template('scan/scan_management.html', form=form, game_names_with_ids=game_names_with_ids)
 
 
 
@@ -1188,26 +1190,6 @@ def delete_image():
 
 
 
-@bp.route('/old_auto_scan_games_folder', methods=['POST'])
-@login_required
-@admin_required
-def scan_games_folder():
-    folder_path = request.form.get('folder_path')
-    if not folder_path:
-        flash("Folder path is required.", "error")
-        return redirect(url_for('main.scan_folder'))
-    
-    # Start the scanning process in a new thread
-    @copy_current_request_context
-    def start_scan():
-        scan_and_add_games(folder_path)
-    
-    thread = Thread(target=start_scan)
-    thread.start()
-    
-    flash("Scan job started successfully.", "info")
-    return redirect(url_for('main.scan_folder'))
-
 @bp.route('/scan_management', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -1308,14 +1290,14 @@ def scan_management():
                            unmatched_folders=unmatched_folders, 
                            unmatched_form=unmatched_form)
     
-@bp.route('/scan_jobs_manager')
+@bp.route('/scan_jobs_manager_old')
 @login_required
 @admin_required
-def scan_jobs_manager():
+def scan_jobs_manager_old():
     print("Route: /scan_jobs_manager")
     jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
     form = CsrfProtectForm()  # Instantiate the form
-    return render_template('scan/scan_jobs_manager.html', jobs=jobs, form=form)
+    return render_template('scan/scan_jobs_manager_old.html', jobs=jobs, form=form)
 
 @bp.route('/delete_scan_job/<job_id>', methods=['POST'])
 @login_required
@@ -1518,8 +1500,18 @@ def delete_game(game_uuid):
     game_uuid_str = str(valid_uuid)
 
     try:
-        delete_game_images(game_uuid)
         game_to_delete = Game.query.filter_by(uuid=game_uuid).first_or_404()
+        print(f"Found game to delete: {game_to_delete}")
+        associations = [game_to_delete.genres, game_to_delete.platforms, game_to_delete.game_modes,
+                        game_to_delete.themes, game_to_delete.player_perspectives, game_to_delete.multiplayer_modes]
+        
+        for association in associations:
+            print(f"Deleting association: {association}")
+            association.clear()  # Use clear() for a more efficient bulk operation if applicable
+
+        
+
+        delete_game_images(game_uuid_str)
         db.session.delete(game_to_delete)
         db.session.commit()
         flash('Game and its images have been deleted successfully.', 'success')
@@ -1531,10 +1523,10 @@ def delete_game(game_uuid):
     
     return redirect(url_for('main.library'))
 
-@bp.route('/remove_game/<string:game_uuid>', methods=['POST'])
+@bp.route('/old_remove_game/<string:game_uuid>', methods=['POST'])
 @login_required
 @admin_required
-def remove_game(game_uuid):
+def old_remove_game(game_uuid):
     print(f"Removing game with UUID: {game_uuid}")
     try:
         valid_uuid = uuid.UUID(game_uuid, version=4)
@@ -1642,7 +1634,12 @@ def download_game(game_uuid):
 
 
     print(f"Creating a new download request for user {current_user.id}: {DownloadRequest.query.filter_by(user_id=current_user.id, status='processing').first()}")
-    new_request = DownloadRequest(user_id=current_user.id, game_uuid=game.uuid, status='processing') 
+    new_request = DownloadRequest(
+        user_id=current_user.id,
+        game_uuid=game.uuid,
+        status='processing',
+        download_size=game.size  # Assign the game's size to the download request
+    )
     db.session.add(new_request)
     db.session.commit()
 
@@ -1767,7 +1764,7 @@ def game_screenshots(game_uuid):
 def get_company_role():
     game_igdb_id = request.args.get('game_igdb_id')
     company_id = request.args.get('company_id')
-
+    
     # Validate input
     if not game_igdb_id or not company_id or not game_igdb_id.isdigit() or not company_id.isdigit():
         print("Invalid input: Both game_igdb_id and company_id must be provided and numeric.")
@@ -1775,9 +1772,8 @@ def get_company_role():
 
 
     try:
-        # print(f"Requested company role for Game IGDB ID: {game_igdb_id} and Company ID: {company_id}")
+        print(f"Requested company role for Game IGDB ID: {game_igdb_id} and Company ID: {company_id}")
         
-
         response_json = make_igdb_api_request(
             "https://api.igdb.com/v4/involved_companies",
             f"""fields company.name, developer, publisher, game;
@@ -1796,13 +1792,14 @@ def get_company_role():
             elif company_data.get('publisher', False):
                 role = 'Publisher'
 
-            # print(f"Company {company_name} role: {role}")
+            print(f"Company {company_name} role: {role} (igdb_id=game_igdb_id, company_id={company_id})")
             return jsonify({
                 'game_igdb_id': game_igdb_id,
                 'company_id': company_id,
                 'company_name': company_name,
                 'role': role
             }), 200
+            
         
         return jsonify({'error': 'Company with given ID not found in the specified game.'}), 404
 

@@ -154,7 +154,7 @@ body {
     margin-right: 8px;
 }
 
-.button-glass.button-delete:hover {
+ .button-glass.button-delete:hover {
     background-color: rgba(255, 0, 0, 0.1);
 }
 
@@ -492,6 +492,7 @@ form textarea {
 .logo-download {
     display: flex;
     justify-content: center;
+    height: 250px;
 }
 
 .title-centered {
@@ -629,9 +630,20 @@ form textarea {
 }
 
 .status-value {
-    color: #007bff; 
+    color: #18b2dd;
     font-weight: bold;
-    text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.9)
+    background-color: #e8ffe8; 
+    border: 2px solid #004c00; 
+    padding: 2px 6px; 
+    border-radius: 4px; 
+    font-weight: bold;">Available</span>';
+
+}
+
+.status-cell {
+    
+
+
 }
 
 .form-text-muted {
@@ -640,9 +652,6 @@ form textarea {
     color: black;
 }
 
-.status-cell {
- 
-}
 
 .actions-cell {
  
@@ -853,11 +862,12 @@ form textarea {
         flex-direction: column;
     }
     .button-glass {
-        font-size: 14px;
+        font-size: 12px;
         margin-bottom: 10px;
         width: auto;
         min-width: 80px;
         justify-content: center;
+        padding: 3px;
     }
     .button-glass i {
         margin-right: 0;
@@ -885,5 +895,71 @@ form textarea {
     .game-video {
         width: 100%;
         height: auto;
+    }
+    .login-logo {
+        width: 60px;
+    }
+
+    
+    #content {
+        margin-left: 100px;
+    }
+    
+    .sidebar {
+        max-width: 90px;
+        padding: 0px 0px;
+    }
+
+    .sidebar-link {
+        margin: 0px;
+        padding: 0px 0px;
+        font-size: 14px;
+    }
+
+    .sidebar-link .link-text {
+        margin-left: 0px;
+    }
+     
+    .sidebar-menu
+    .sidebar.collapsed .menu-logo-image {
+        height: 50px;
+        margin-top: 15px;
+        margin-left: 5px;
+        align-self: flex-start;
+    }
+
+    .sidebar.collapsed .sorting-dropdown {
+        margin: 10px;
+    }
+
+    .sidebar.collapsed #sortSelect {
+        height: 25px;
+        width: 65px
+    }
+
+    .sidebar.collapsed .form-control {
+        margin-top: 3px;
+        margin-right: 0px;
+        margin: 0px;
+        width: 65px;
+        height: 25px;
+    }
+
+    .sidebar.collapsed .form-group {
+        text-size-adjust: 10px;
+    }
+
+    .sidebar.collapsed .container-filtersandsort {
+        visibility: hidden;
+    }
+
+    .sidebar.collapsed .sidebar-menu {
+        margin: 0px;  
+    }
+
+
+    .sidebar.collapsed .sidebar-link {
+        padding-left: 5px;
+        transition: font-size 28px ease;
     }
 }

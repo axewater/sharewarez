@@ -292,7 +292,8 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
     )
     
     for company in response_json:
-        company_name = company['company']['name']
+        company_name = company['company']['name'][:50]  # Truncate the name to 50 characters
+
         is_developer = company.get('developer', False)
         is_publisher = company.get('publisher', False)
 
@@ -566,12 +567,34 @@ def send_email(to, subject, template):
 def send_password_reset_email(user_email, token):
     reset_url = url_for('main.reset_password', token=token, _external=True)
     msg = MailMessage(
-        'Password Reset Request',
-        sender='blackbeard@sharewarez.com', 
-        recipients=[user_email],
-        body=f'Please click on the link to reset your password: {reset_url}'
+        'Avast Ye! Password Reset Request Arrr!',
+        sender='Blackbeard@Sharewarez.com', 
+        recipients=[user_email]
     )
+    msg.body = '''Ahoy there!
+
+Ye be wantin' to reset yer password, aye? No worries, we got ye covered! Unfortunately, yer email client doesn't support HTML messages. For a plain sailing, please ensure ye can view HTML emails.
+
+Fair winds and followin' seas,
+
+Captain Blackbeard
+'''
+    msg.html = f'''<p>Ahoy there!</p>
+
+<p>Ye be wantin' to reset yer password, aye? No worries, we got ye covered! Jus' click on the link below to set a new course for yer password:</p>
+
+<p><a href="{reset_url}">Password Reset Link</a></p>
+
+<p>If ye didn't request this, ye can just ignore this message and continue sailin' the digital seas.</p>
+
+<p>Fair winds and followin' seas,</p>
+
+<p>Captain Blackbeard</p>
+
+<p>P.S. If ye be havin' any troubles, send a message to the crew at <a href="mailto:Blackbeard@Sharewarez.com">Blackbeard@Sharewarez.com</a>, and we'll help ye navigate yer way back into yer account! Arrr!</p>
+'''
     mail.send(msg)
+
 
 
 def get_access_token(client_id, client_secret):

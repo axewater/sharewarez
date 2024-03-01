@@ -116,8 +116,10 @@ function showDetails(element, gameUuid) {
         return;
     }
 
+    showDetailsDebounced(element, gameUuid);
+
     // Calculate the space needed for the popup
-    const popupWidth = 260; // Assuming a fixed width for the popup
+    const popupWidth = 300; // Assuming a fixed width for the popup
     const viewportWidth = window.innerWidth;
     const gameCardRect = element.getBoundingClientRect();
     const spaceOnRight = viewportWidth - gameCardRect.right;

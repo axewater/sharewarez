@@ -253,6 +253,7 @@ class DownloadRequest(db.Model):
     zip_file_path = db.Column(db.String, nullable=True)
     request_time = db.Column(db.DateTime, default=datetime.utcnow)
     completion_time = db.Column(db.DateTime, nullable=True)
+    download_size = db.Column(db.Float, nullable=False, default=0.0)
     game = db.relationship('Game', foreign_keys=[game_uuid], back_populates='download_requests')
 
 
@@ -295,13 +296,13 @@ class Genre(db.Model):
 class Developer(db.Model):
     __tablename__ = 'developers'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True)
+    name = db.Column(db.String(255), unique=True)
     games = db.relationship("Game", back_populates="developer")
 
 class Publisher(db.Model):
     __tablename__ = 'publishers'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True)
+    name = db.Column(db.String(255), unique=True)
     games = db.relationship("Game", back_populates="publisher")
 
 class Platform(db.Model):

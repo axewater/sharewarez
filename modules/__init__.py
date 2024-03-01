@@ -35,7 +35,6 @@ def create_app():
     scheduler.init_app(app)
     scheduler.start()
 
-
     with app.app_context():
         from . import routes, models
         db.create_all()
