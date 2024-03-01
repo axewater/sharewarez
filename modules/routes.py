@@ -122,7 +122,6 @@ def login():
 
 
 
-
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
@@ -145,8 +144,7 @@ def register():
                 return redirect(url_for('main.register'))
 
 
-            username = form.username.data.lower()
-            existing_user = User.query.filter(func.lower(User.name) == username).first()
+            existing_user = User.query.filter_by(name=form.username.data).first()
             if existing_user is not None:
                 print(f"Debug: User already exists - {form.username.data}")
                 flash('User already exists. Please Log in.')
@@ -161,7 +159,7 @@ def register():
 
             user = User(
                 user_id=user_uuid,
-                name=username,
+                name=form.username.data,
                 email=form.email.data,
                 role='user',
                 is_email_verified=False,
@@ -485,25 +483,38 @@ def whitelist():
     return render_template('admin/whitelist.html', title='Whitelist', whitelist=whitelist, form=form)
 
 
+
 @bp.route('/admin/usrmgr', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def usermanager():
+    print("ADMIN USRMGR: username: Request method:", request.method)
     form = UserManagementForm()
     users_query = User.query.order_by(User.name).all()
     form.user_id.choices = [(user.id, user.name) for user in users_query]
+    print(f"ADMIN USRMGR: User list : {users_query}")
+    # Pre-populate the form when the page loads or re-populate upon validation failure
+    if request.method == 'GET' or not form.validate_on_submit():
+        # You could also use a default user here or based on some criteria
+        default_user_id = request.args.get('user_id', 3)  # Example of getting a user_id from query parameters
+        default_user = User.query.get(default_user_id)
+        if default_user:
+            form.user_id.data = default_user.id
+            form.name.data = default_user.name
+            form.email.data = default_user.email
+            form.role.data = default_user.role
+            form.state.data = default_user.state
+            form.is_email_verified.data = default_user.is_email_verified
+            form.about.data = default_user.about  # Pre-populate the 'about' field
 
-    if form.validate_on_submit():
+    else:
+        # This block handles the form submission for both updating and deleting users
+        print(f"ADMIN USRMGR: Form data: {form.data}")
         user_id = form.user_id.data
-        action = "Delete" if form.delete.data else "Update"
-
-        print(f"Attempting to {action} user with ID: {user_id}")
-
         user = User.query.get(user_id)
         if not user:
-            print(f"User not found with ID: {user_id}")
             flash(f'User not found with ID: {user_id}', 'danger')
-            return redirect(url_for('main.usermanager'))
+            return redirect(url_for('.usermanager'))  # Make sure the redirect is correct
 
         if form.submit.data:
             # Update user logic
@@ -512,44 +523,32 @@ def usermanager():
                 user.email = form.email.data or user.email
                 user.role = form.role.data or user.role
                 user.state = form.state.data if form.state.data is not None else user.state
-
+                user.is_email_verified = form.is_email_verified.data
+                user.about = form.about.data  # Update the 'about' field
+                print(f"ADMIN USRMGR: User updated: {user} about field : {user.about}")
                 db.session.commit()
-                print(f"User updated: {user}")
                 flash('User updated successfully!', 'success')
-                form.user_id.data = user_id
             except Exception as e:
                 db.session.rollback()
-                print(f"Database error on update: {e}")
-                flash('Database error. Update failed.', 'danger')
+                flash(f'Database error on update: {e}', 'danger')
 
         elif form.delete.data:
             # Delete user logic
-            user = User.query.get(form.user_id.data)
-            if not user:
-                print(f"User not found with ID: {form.user_id.data}")
-                flash('User not found.', 'danger')
-                return redirect(url_for('main.usermanager'))
-
             try:
                 db.session.delete(user)
                 db.session.commit()
-                print(f"User deleted: {user}")
                 flash('User deleted successfully!', 'success')
-            except SQLAlchemyError as e:
+            except Exception as e:
                 db.session.rollback()
-                error_msg = f"Database error on delete: {e}"
-                print(error_msg)
-                flash(error_msg, 'danger')
-    else:
-        form.user_id.data = 3
-    return render_template('admin/usrmgr.html', form=form, users=users_query)
+                flash(f'Database error on delete: {e}', 'danger')
+
+    return render_template('admin/user_manager.html', form=form, users=users_query)
 
 
 @bp.route('/get_user/<int:user_id>', methods=['GET'])
 @login_required
 @admin_required
 def get_user(user_id):
-    print(f"Accessing get_user route with user_id: {user_id}")
     user = User.query.get(user_id)
     if user:
         user_data = {
@@ -557,6 +556,8 @@ def get_user(user_id):
             'email': user.email,
             'role': user.role,
             'state': user.state,
+            'about': user.about,
+            'is_email_verified': user.is_email_verified
         }
         return jsonify(user_data)
     else:
@@ -1198,7 +1199,12 @@ def scan_management():
     csrf_form = CsrfProtectForm()
     unmatched_folders = UnmatchedFolder.query.all()
     unmatched_form = UpdateUnmatchedFolderForm() 
-
+    try:
+        game_count = Game.query.count()  # Fetch the game count here
+    except Exception as e:
+        flash(f"Error fetching game count: {e}", "error")
+        game_count = 0
+        
     if request.method == 'POST':
         submit_action = request.form.get('submit')
         if submit_action == 'AutoScan':
@@ -1221,7 +1227,8 @@ def scan_management():
                            csrf_form=csrf_form, 
                            active_tab=active_tab, 
                            unmatched_folders=unmatched_folders, 
-                           unmatched_form=unmatched_form)
+                           unmatched_form=unmatched_form,
+                           game_count=game_count)
 
 def handle_auto_scan(auto_form):
     if auto_form.validate_on_submit():
@@ -1558,7 +1565,7 @@ def delete_all_games():
             # Optionally, decide if you want to halt the process or continue with the next game
     
     flash('All games and their images have been deleted successfully.', 'success')
-    return redirect(url_for('main.library'))
+    return redirect(url_for('main.scan_management'))
 
 
 @bp.route('/download_game/<game_uuid>', methods=['GET'])

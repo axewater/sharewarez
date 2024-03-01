@@ -8,7 +8,12 @@ document.addEventListener('DOMContentLoaded', function() {
             var userId = this.value;
             if (userId) {
                 fetch('/get_user/' + userId)
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         // Populate form fields with data
                         document.getElementById('name').value = data.name || '';
@@ -22,7 +27,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('quota_messages').value = data.quota_messages || 0;
                         document.getElementById('count_messages').value = data.count_messages || 0;
                         document.getElementById('country').value = data.country || '';
-                        document.getElementById('about').value = data.about || '';
+                        document.getElementById('about').value = data.about || '';                    })
+                    .catch(error => console.error('There has been a problem with your fetch operation:', error));
+
+                fetch('/get_user/' + userId)
+                    .then(response => response.json())
+                    .then(data => {
+                        
                     });
             }
         });

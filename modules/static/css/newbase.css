@@ -13,6 +13,12 @@
     background: linear-gradient(to right, rgba(17, 17, 17, 0.9) 95%, rgba(17, 17, 17, 0));
 }
 
+.sidebar-link:hover {
+    border: 1px solid #ffffff;
+    border-radius: 15px;
+    background-color: #333;
+}
+
 .sidebar.collapsed {
     width: 95px; 
     margin-left: -10px;
@@ -35,7 +41,7 @@
     font-size: 22px;
     color: #ddd;
     transition: font-size 0.3s ease; 
-
+    transition: background-color 0.3s ease;
     padding-left: 20px;
     padding-right: 10px;
 

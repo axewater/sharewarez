@@ -40,13 +40,16 @@
                     <div class="submenu">
                         <a href="{{ url_for('main.scan_management') }}" class="sidebar-sublink"><span class="link-text">Library Manager</span></a>
                         
-                        <a href="{{ url_for('main.delete_library') }}" class="sidebar-sublink"><span class="link-text">Delete Library</span></a>
-                        <a href="{{ url_for('main.api_debug') }}" class="sidebar-sublink"><span class="link-text">API Debugger</span></a>
-                        <a href="{{ url_for('main.usermanager') }}" class="sidebar-sublink"><span class="link-text">User Manager</span></a>
-                        <a href="{{ url_for('main.edit_filters') }}" class="sidebar-sublink"><span class="link-text">Filters Manager</span></a>
+                        
                         <a href="{{ url_for('main.whitelist') }}" class="sidebar-sublink"><span class="link-text">Whitelist Manager</span></a>
+                        <a href="{{ url_for('main.usermanager') }}" class="sidebar-sublink"><span class="link-text">User Manager</span></a>
+                        
+                        <a href="{{ url_for('main.edit_filters') }}" class="sidebar-sublink"><span class="link-text">Filters Manager</span></a>
+                        <a href="{{ url_for('main.api_debug') }}" class="sidebar-sublink"><span class="link-text">API Debugger</span></a>
                         <a href="{{ url_for('main.clear_downloads') }}" class="sidebar-sublink"><span class="link-text">Downloads Manager</span></a>
+                        
                         <a href="{{ url_for('main.newsletter') }}" class="sidebar-sublink"><span class="link-text">Newsletter</span></a>
+                        
                     </div>
         
                 {% endif %}

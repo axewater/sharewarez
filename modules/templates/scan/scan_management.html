@@ -2,6 +2,9 @@
 
 {% extends "base.html" %}
 
+
+
+
 {% block content %}
 <div class="container mt-3">
     <!-- Nav tabs -->
@@ -15,6 +18,10 @@
         <li class="nav-item">
             <a class="nav-link" id="unmatchedFolders-tab" data-bs-toggle="tab" href="#unmatchedFolders">Unmatched Folders</a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" id="deleteLibrary-tab" data-bs-toggle="tab" href="#deleteLibrary">Delete Library</a>
+        </li>
+    
     </ul>
     
 
@@ -81,7 +88,7 @@
         </div>
 
         <!-- Manual Scan Tab -->
-        <div id="manualScan" class="container tab-pane fade"><br>
+        <div id="manualScan" class="glass-panel tab-pane fade"><br>
             <h3>Manual Folder Scan</h3>
                 <br>
                 Scan folder and list games for manual processing<br>
@@ -115,9 +122,9 @@
 
         <!-- Unmatched Folders Tab -->
         <div id="unmatchedFolders" class="container tab-pane fade"><br>
-            <h3>Resolve Unmatched Folders</h3>
-            <div class="glass-panel-unmatchedfolder">
-                
+            <div class="glass-panel">
+                <h3>Resolve Unmatched Folders</h3>
+
                 <div class="container-unmatched-buttons mb-3">
                     <form action="" method="post">
                         {{ csrf_form.csrf_token }}
@@ -164,29 +171,68 @@
             </div>
 
         </div>
+
+        <div id="deleteLibrary" class="glass-panel tab-pane fade"><br>
+            <h3>Delete Library</h3>
+            <p>This action will delete all games in the library. Proceed with caution.</p>
+            <p>Number of games currently in the library: <strong>{{ game_count }}</strong></p>
+            <button id="deleteAllGamesBtn" class="btn btn-danger" data-toggle="modal" data-target="#deleteWarningModal">Delete All Games</button>               
+              <!-- Spinner -->
+                 <div id="spinner" class="spinner"></div>
+        
+        </div>
+
+        <!-- Bootstrap Modal for Warning Confirmation -->
+        <div class="modal fade" id="deleteWarningModal" tabindex="-1" role="dialog" aria-labelledby="deleteWarningModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteWarningModalLabel">Confirm Deletion</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete all games? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('main.delete_all_games') }}" method="post">
+                    {{ csrf_form.csrf_token }}
+                    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                </form>
+
+            </div>
+        </div>
+       
     </div>
 </div>
-
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    var activeTab = "{{ active_tab }}";
-    
-    console.log("Active tab:", activeTab);
-    if (activeTab === 'manual') {
-        console.log("manual tab active");
-        var manualTab = new bootstrap.Tab(document.querySelector('#manualScan-tab'));
-        manualTab.show();
-    } else if (activeTab === 'unmatched') {
-        console.log("unmatched tab active");
-        var unmatchedTab = new bootstrap.Tab(document.querySelector('#unmatchedFolders-tab'));
-        unmatchedTab.show();
-    } else {
-        console.log("auto tab active");
-        // Ensure the Auto Scan tab is shown by default or when 'auto' is the active tab
-        var autoTab = new bootstrap.Tab(document.querySelector('#autoScan-tab'));
-        autoTab.show();
-    }
-});
-    </script>
-    
+    document.addEventListener("DOMContentLoaded", function() {
+        var activeTab = "{{ active_tab }}";
+        
+        console.log("Active tab:", activeTab);
+        if (activeTab === 'manual') {
+            console.log("manual tab active");
+            var manualTab = new bootstrap.Tab(document.querySelector('#manualScan-tab'));
+            manualTab.show();
+        } else if (activeTab === 'unmatched') {
+            console.log("unmatched tab active");
+            var unmatchedTab = new bootstrap.Tab(document.querySelector('#unmatchedFolders-tab'));
+            unmatchedTab.show();
+        } else if (activeTab === 'deleteLibrary') { // Ensure this line is correctly structured
+            var deleteLibraryTab = new bootstrap.Tab(document.querySelector('#deleteLibrary-tab'));
+            deleteLibraryTab.show();
+        } else {
+            console.log("auto tab active");
+            var autoTab = new bootstrap.Tab(document.querySelector('#autoScan-tab'));
+            autoTab.show();
+        }
+    });
+    document.getElementById('deleteAllGamesBtn').addEventListener('click', function() {
+        var myModal = new bootstrap.Modal(document.getElementById('deleteWarningModal'));
+        myModal.show();
+    });
+</script>
+            
 {% endblock %}

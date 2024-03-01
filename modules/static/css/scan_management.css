@@ -1,0 +1,32 @@
+.content-textblock-usermanager {
+    flex: 1;
+    background-color: #000000;
+    padding: 15px;
+    border-radius: 15px;
+    color: #ddd;
+    margin-top: 15px;
+    overflow-x: auto; /* Add horizontal scrolling */
+}
+
+table {
+    width: 100%;
+    table-layout: fixed; /* Use a fixed table layout */
+    border-collapse: collapse; /* Optional: for cleaner borders */
+}
+
+th, td {
+    padding: 8px; /* Adjust padding for readability */
+    text-align: left;
+    word-wrap: break-word; /* Ensure text wraps within the cell */
+}
+
+th {
+    background-color: #555; /* Optional: for better header contrast */
+    color: #fff;
+}
+
+.avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+}

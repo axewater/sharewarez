@@ -209,7 +209,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(128), nullable=False)
     role = db.Column(db.String(64), nullable=False)
     state = db.Column(db.Boolean, default=True)
-    about = db.Column(db.String(64), unique=True, nullable=True)
+    about = db.Column(db.String(256), unique=True, nullable=True)
     created = db.Column(db.DateTime, default=datetime.utcnow)
     lastlogin = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.String(36), unique=True, nullable=False, default=str(uuid4()))

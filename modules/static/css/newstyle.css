@@ -317,6 +317,21 @@ body {
     padding-right: 20px;
 }
 
+.content-textblock-usermanager {
+    flex: 1;
+    background-color: #000000;
+    padding: 15px 30px;
+    border-radius: 15px;
+    color: #ddd;
+    margin-top: 15px;
+    text-align: justify;
+    padding-right: 20px;
+
+}
+
+
+
+
 .help-image {
 
 }
@@ -512,6 +527,8 @@ form textarea {
     gap: 10px;
     justify-content: space-between;
     box-shadow: 0 9px 16px rgba(17, 2, 2, 2);
+    padding-bottom: 50px;
+
 
 
 }
@@ -554,22 +571,6 @@ form textarea {
     border-radius: 15px;
 }
 
-.glass-panel-unmatchedfolder {
-    display: flex;
-    flex-direction: column;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 15px;
-    padding-left: 20px;
-    padding-right: 20px;
-    padding-top: 20px;
-    margin-top: 20px;
-    gap: 1px;
-    align-items: left;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    min-width: 800px;
-}
 
 .unmatched-deleteall-btn {
     padding: 10px;
@@ -582,6 +583,8 @@ form textarea {
 .container-unmatched-buttons {
     display: flex;
     flex-direction: row;
+    
+    gap: 25px;
 }
 
 
