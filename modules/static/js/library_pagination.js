@@ -1,9 +1,11 @@
 // When updating this file, remember to update popup_menu.html too
+var csrfToken;
+
 
 $(document).ready(function() {
   var currentPage = 1;
   var totalPages = 0;
-  var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
   function populateGenres(callback) {
     $.ajax({
@@ -192,7 +194,6 @@ $(document).ready(function() {
 function createPopupMenuHtml(game) {
     // when modifying this function, make sure to update the popup_menu.html template as well
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
     return `
     <div id="popupMenu-${game.uuid}" class="popup-menu" style="display: none;">
         <form action="/download_game/${game.uuid}" method="get" class="menu-item">
@@ -210,7 +211,7 @@ function createPopupMenuHtml(game) {
         <form action="/refresh_game_images/${game.uuid}" method="post" class="menu-item">
             <input type="hidden" name="csrf_token" value="${csrfToken}">
             
-            <button type="submit" class="menu-button refresh-game-images">Refresh Images</button>
+            <button type="submit" class="menu-button refresh-game-images" data-game-uuid="${game.uuid}">Refresh Images</button>
         </form>
         <div class="menu-item">
             <button type="button" class="menu-button delete-game" data-game-uuid="${game.uuid}">Remove Game</button>
@@ -295,15 +296,25 @@ document.body.addEventListener('click', function(event) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json', // Specify the content type
-                'X-CSRF-Token': csrfToken // Include the CSRF token in the request header
+                'X-CSRF-Token': csrfToken, // Include the CSRF token in the request header
+                'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({ /* Your data here if needed, otherwise an empty object */ })
+            body: JSON.stringify({ /* Your data here */ })
         })
         .then(response => {
+            console.log('Response status:', response.status);
             if (!response.ok) {
-                throw new Error('Network response was not ok.');
+                throw new Error(`Network response was not ok, status: ${response.status}`);
             }
-            return response.json(); // Assuming the server responds with JSON
+            return response.text().then(text => {
+                try {
+                    return JSON.parse(text); // Manually parse the JSON to handle non-JSON responses gracefully
+                } catch (error) {
+                    console.error('Error parsing JSON:', error);
+                    console.log('Raw text response:', text);
+                    throw new Error('Failed to parse JSON');
+                }
+            });
         })
         .then(data => {
             console.log('Game images refreshed successfully', data);

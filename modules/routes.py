@@ -1188,8 +1188,6 @@ def delete_image():
         print(f"Error deleting image: {str(e)}")
         return jsonify({'error': 'An unexpected error occurred while deleting the image'}), 500
 
-
-
 @bp.route('/scan_management', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -1197,98 +1195,80 @@ def scan_management():
     auto_form = AutoScanForm()
     manual_form = ScanFolderForm()
     jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
-    game_names_with_ids = None
     csrf_form = CsrfProtectForm()
     unmatched_folders = UnmatchedFolder.query.all()
     unmatched_form = UpdateUnmatchedFolderForm() 
-    
-    active_tab = session.get('active_tab', 'auto')
-    print(f"scan manager loading with Active tab: {active_tab}")
-
-    if 'submit' in request.form:
-        submit_action = request.form.get('submit')
-        print(f"Debug: submit_action = {submit_action}")
-        if submit_action == 'AutoScan':
-            print(f"submit_action: AutoScan")
-            session['active_tab'] = 'auto'
-        elif submit_action == 'ManualScan':
-            print(f"submit_action: ManualScan")
-            session['active_tab'] = 'manual'
-        elif submit_action in ['DeleteAllUnmatched', 'DeleteOnlyUnmatched']:
-            session['active_tab'] = 'unmatched'
-        # Ensure this updated active_tab value is used for rendering
-        active_tab = session['active_tab']
 
     if request.method == 'POST':
         submit_action = request.form.get('submit')
-        if submit_action == 'AutoScan' and auto_form.validate_on_submit():
-            print(f'Starting auto-scan for folder: {auto_form.folder_path.data}')
-            folder_path = auto_form.folder_path.data
-            @copy_current_request_context
-            def start_scan():
-                scan_and_add_games(folder_path)
-
-            thread = Thread(target=start_scan)
-            thread.start()
-
-            flash('Auto-scan started for folder: ' + folder_path, 'info')
-            return redirect(url_for('main.scan_management'))
-        
-        elif submit_action == 'ManualScan' and manual_form.validate_on_submit():
-                        
-            folder_path = manual_form.folder_path.data
-            active_tab = 'manual'
-            if os.path.exists(folder_path) and os.access(folder_path, os.R_OK):
-                print(f"Folder {folder_path} is accessible.")
-                insensitive_patterns, sensitive_patterns = load_release_group_patterns()
-                games_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
-                print(f"Games found: {games_with_paths}")
-                session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
-                print(f"Game paths in session: {session['game_paths']}")
-                game_names_with_ids = [{'name': game['name'], 'id': i} for i, game in enumerate(games_with_paths)]
-            else:
-                flash("Folder does not exist or cannot be accessed.", "error")
-                print("Folder does not exist or cannot be accessed.")
-        # return redirect(url_for('main.scan_management'))
+        if submit_action == 'AutoScan':
+            return handle_auto_scan(auto_form)
+        elif submit_action == 'ManualScan':
+            return handle_manual_scan(manual_form)
         elif submit_action == 'DeleteAllUnmatched':
-            # Delete all unmatched folders
-            print(f"Deleting all unmatched folders.")
-            try:
-                UnmatchedFolder.query.delete()
-                db.session.commit()
-                flash('All unmatched folders deleted successfully.', 'success')
-            except Exception as e:
-                db.session.rollback()
-                flash('An error occurred while deleting unmatched folders.', 'error')
-                print(e)
-            active_tab = 'unmatched'
-        elif submit_action == 'deleteOnlyUnmatched':
-            # Delete only folders with a specific status
-            try:
-                UnmatchedFolder.query.filter(UnmatchedFolder.status.ilike('unmatched')).delete()
-                db.session.commit()
-                flash('All unmatched folders with status "unmatched" deleted successfully.', 'success')
-            except Exception as e:
-                db.session.rollback()
-                flash('An error occurred while deleting unmatched folders.', 'error')
-                print(e)
-            active_tab = 'unmatched'
-    
-    else:
-        if request.method == 'GET':
-            print(f"Scan manager loaded.") 
+            return handle_delete_unmatched(all=True)
+        elif submit_action == 'DeleteOnlyUnmatched':
+            return handle_delete_unmatched(all=False)
         else:
-            print(f"Action not recognized. Method was {request.method}")
+            flash("Unrecognized action.", "error")
+            return redirect(url_for('main.scan_management'))
+
     active_tab = session.get('active_tab', 'auto')
     return render_template('scan/scan_management.html', 
                            auto_form=auto_form, 
                            manual_form=manual_form, 
                            jobs=jobs, 
-                           game_names_with_ids=game_names_with_ids, 
                            csrf_form=csrf_form, 
                            active_tab=active_tab, 
                            unmatched_folders=unmatched_folders, 
                            unmatched_form=unmatched_form)
+
+def handle_auto_scan(auto_form):
+    if auto_form.validate_on_submit():
+        folder_path = auto_form.folder_path.data
+        @copy_current_request_context
+        def start_scan():
+            scan_and_add_games(folder_path)
+
+        thread = Thread(target=start_scan)
+        thread.start()
+        flash('Auto-scan started for folder: ' + folder_path, 'info')
+        session['active_tab'] = 'auto'
+    else:
+        flash('Auto-scan form validation failed.', 'error')
+    return redirect(url_for('main.scan_management'))
+
+def handle_manual_scan(manual_form):
+    if manual_form.validate_on_submit():
+        folder_path = manual_form.folder_path.data
+        if os.path.exists(folder_path) and os.access(folder_path, os.R_OK):
+            insensitive_patterns, sensitive_patterns = load_release_group_patterns()
+            games_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
+            session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
+            flash('Manual scan processed for folder: ' + folder_path, 'info')
+            session['active_tab'] = 'manual'
+        else:
+            flash("Folder does not exist or cannot be accessed.", "error")
+    else:
+        flash('Manual scan form validation failed.', 'error')
+    return redirect(url_for('main.scan_management'))
+
+def handle_delete_unmatched(all):
+    try:
+        if all:
+            print("Deleting all unmatched folders")
+            UnmatchedFolder.query.delete()
+            flash('All unmatched folders deleted successfully.', 'success')
+        else:
+            print("Deleting only unmatched folders")
+            UnmatchedFolder.query.filter(UnmatchedFolder.status.ilike('unmatched')).delete()
+            flash('Unmatched folders with status "unmatched" deleted successfully.', 'success')
+        db.session.commit()
+        session['active_tab'] = 'unmatched'
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while deleting unmatched folders.', 'error')
+    return redirect(url_for('main.scan_management'))
     
 @bp.route('/scan_jobs_manager_old')
 @login_required
@@ -1472,10 +1452,14 @@ def game_details(game_uuid):
 
 from flask import copy_current_request_context
 
+from flask import jsonify  # Make sure to import jsonify
+
 @bp.route('/refresh_game_images/<game_uuid>', methods=['POST'])
 @login_required
 @admin_required
 def refresh_game_images(game_uuid):
+    print(f"Route: /refresh_game_images - {current_user.name} - {current_user.role} method: {request.method} UUID: {game_uuid}")
+
     @copy_current_request_context
     def refresh_images_in_thread():
         refresh_images_in_background(game_uuid)
@@ -1483,34 +1467,49 @@ def refresh_game_images(game_uuid):
     thread = Thread(target=refresh_images_in_thread)
     thread.start()
     print(f"Refresh images thread started for game UUID: {game_uuid}")
-    flash("Game images refresh process started.", "info")
-    return redirect(url_for('main.library'))
+
+    # Check if the request is an AJAX request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # Return a JSON response for AJAX requests
+        return jsonify({"message": "Game images refresh process started.", "status": "info"})
+    else:
+        # For non-AJAX requests, perform the usual redirect
+        flash("Game images refresh process started.", "info")
+        return redirect(url_for('main.library'))
 
 
 @bp.route('/delete_game/<string:game_uuid>', methods=['POST'])
 @login_required
 @admin_required
-def delete_game(game_uuid):
-    try:
-        valid_uuid = uuid.UUID(game_uuid, version=4)
-    except ValueError:
-        print(f"Invalid UUID format: {game_uuid}")
-        abort(404)
+def delete_game_route(game_uuid):
+    # This wrapper function is only to adapt the route to the modified delete_game function.
+    delete_game(game_uuid)
+    return redirect(url_for('main.library'))
 
-    game_uuid_str = str(valid_uuid)
+def delete_game(game_identifier):
+    """Delete a game by UUID or Game object."""
+    game_to_delete = None
+    if isinstance(game_identifier, Game):
+        game_to_delete = game_identifier
+        game_uuid_str = game_to_delete.uuid
+    else:
+        try:
+            valid_uuid = uuid.UUID(game_identifier, version=4)
+            game_uuid_str = str(valid_uuid)
+            game_to_delete = Game.query.filter_by(uuid=game_uuid_str).first_or_404()
+        except ValueError:
+            print(f"Invalid UUID format: {game_identifier}")
+            abort(404)
+        except Exception as e:
+            print(f"Error fetching game with UUID {game_uuid_str}: {e}")
+            abort(404)
 
     try:
-        game_to_delete = Game.query.filter_by(uuid=game_uuid).first_or_404()
         print(f"Found game to delete: {game_to_delete}")
-        associations = [game_to_delete.genres, game_to_delete.platforms, game_to_delete.game_modes,
-                        game_to_delete.themes, game_to_delete.player_perspectives, game_to_delete.multiplayer_modes]
+        # Assume you have a utility function to handle the associations deletion
+        delete_associations_for_game(game_to_delete)
         
-        for association in associations:
-            print(f"Deleting association: {association}")
-            association.clear()  # Use clear() for a more efficient bulk operation if applicable
-
-        
-
+        # Assuming delete_game_images is capable of handling deletion by UUID.
         delete_game_images(game_uuid_str)
         db.session.delete(game_to_delete)
         db.session.commit()
@@ -1520,56 +1519,14 @@ def delete_game(game_uuid):
         db.session.rollback()
         print(f'Error deleting game with UUID {game_uuid_str}: {e}')
         flash(f'Error deleting game: {e}', 'error')
+
+def delete_associations_for_game(game_to_delete):
+    associations = [game_to_delete.genres, game_to_delete.platforms, game_to_delete.game_modes,
+                    game_to_delete.themes, game_to_delete.player_perspectives, game_to_delete.multiplayer_modes]
     
-    return redirect(url_for('main.library'))
+    for association in associations:
+        association.clear()  # Assuming `.clear()` is valid for your ORM setup
 
-@bp.route('/old_remove_game/<string:game_uuid>', methods=['POST'])
-@login_required
-@admin_required
-def old_remove_game(game_uuid):
-    print(f"Removing game with UUID: {game_uuid}")
-    try:
-        valid_uuid = uuid.UUID(game_uuid, version=4)
-        print(f"Valid UUID format: {valid_uuid}")
-    except ValueError:
-        print(f"Invalid UUID format: {game_uuid}")
-        return jsonify({'error': 'Invalid or missing game UUID'}), 400
-
-    game_uuid_str = str(valid_uuid)
-    print(f"UUID String: {game_uuid_str}")
-
-    try:
-        game_to_delete = Game.query.filter_by(uuid=game_uuid_str).first_or_404()
-        print(f"Game to delete: {game_to_delete}")
-
-        images_to_delete = Image.query.filter_by(game_uuid=game_uuid_str).all()
-        print(f"Images to delete: {images_to_delete}")
-
-        for image in images_to_delete:
-            relative_image_path = image.url.replace('/static/images/', '').strip("/")
-            image_file_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], relative_image_path)
-            image_file_path = os.path.normpath(image_file_path)
-
-            if os.path.exists(image_file_path):
-                os.remove(image_file_path)
-                print(f"Deleted image file: {image_file_path}")
-            else:
-                print(f"Image file not found: {image_file_path}")
-
-            db.session.delete(image)
-
-        db.session.delete(game_to_delete)
-        db.session.commit()
-        print('Game and its images have been deleted successfully.')
-
-        flash('Game and its images have been deleted successfully.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        print(f'Error deleting game with UUID {game_uuid_str}: {e}')
-        flash(f'Error deleting game: {e}', 'error')
-        return jsonify({'error': f'Error deleting game: {e}'}), 500
-
-    return jsonify({'message': 'Game and its images have been deleted successfully.'}), 200
 
 
 @bp.route('/admin/delete_library')
@@ -1590,33 +1547,18 @@ def delete_library():
 @login_required
 @admin_required
 def delete_all_games():
-    try:
-        games_to_delete = Game.query.all()
-        for game in games_to_delete:
-            images_to_delete = Image.query.filter_by(game_uuid=game.uuid).all()
-
-            for image in images_to_delete:
-                relative_image_path = image.url.replace('/static/images/', '').strip("/")
-                image_file_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], relative_image_path)
-                image_file_path = os.path.normpath(image_file_path)
-
-                if os.path.exists(image_file_path):
-                    os.remove(image_file_path)
-                    print(f"Deleted image file: {image_file_path}")
-
-                db.session.delete(image)
-
-            db.session.delete(game)
-        
-        db.session.commit()
-        flash('All games and their images have been deleted successfully.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        print(f'Error deleting all games: {e}')
-        flash(f'Error deleting all games: {e}', 'error')
+    games_to_delete = Game.query.all()
+    for game in games_to_delete:
+        try:
+            # Assuming delete_game is adjusted to accept a game object or UUID
+            delete_game(game.uuid)  # If delete_game is adapted to work with UUIDs
+        except Exception as e:
+            print(f'Error deleting game with UUID {game.uuid}: {e}')
+            flash(f'Error deleting game with UUID {game.uuid}: {e}', 'error')
+            # Optionally, decide if you want to halt the process or continue with the next game
     
+    flash('All games and their images have been deleted successfully.', 'success')
     return redirect(url_for('main.library'))
-
 
 
 @bp.route('/download_game/<game_uuid>', methods=['GET'])
