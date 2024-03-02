@@ -1546,6 +1546,30 @@ def admin_dashboard():
     pass
     return render_template('admin/admin_dashboard.html')
 
+@bp.route('/delete_folder', methods=['POST'])
+@login_required
+@admin_required
+def delete_folder():
+    folder_path = request.form.get('folder_path')
+    if folder_path:
+        full_path = os.path.abspath(folder_path)  # Ensure the path is absolute
+        if os.path.isdir(full_path):
+            try:
+                print(f"Attempting to delete folder: {full_path}")
+                shutil.rmtree(full_path)
+                if not os.path.exists(full_path):
+                    flash('Folder deleted successfully.', 'success')
+                else:
+                    flash('Failed to delete the folder.', 'danger')
+            except Exception as e:
+                flash(f'Error deleting folder: {e}', 'danger')
+        else:
+            flash('The specified path is not a folder or does not exist.', 'danger')
+    else:
+        flash('Folder path is required.', 'danger')
+
+    return redirect(url_for('main.scan_management'))
+
 @bp.route('/admin/delete_library')
 @login_required
 @admin_required
