@@ -524,7 +524,7 @@ def usermanager():
                 user.role = form.role.data or user.role
                 user.state = form.state.data if form.state.data is not None else user.state
                 user.is_email_verified = form.is_email_verified.data
-                user.about = form.about.data  # Update the 'about' field
+                user.about = form.about.data
                 print(f"ADMIN USRMGR: User updated: {user} about field : {user.about}")
                 db.session.commit()
                 flash('User updated successfully!', 'success')

@@ -20,13 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('email').value = data.email || '';
                         document.getElementById('role').value = data.role || '';
                         document.getElementById('state').checked = data.state || false;
-                        document.getElementById('openai_api_key').value = data.openai_api_key || '';
-                        document.getElementById('gcloud_api_key').value = data.gcloud_api_key || '';
-                        document.getElementById('tts_engine').value = data.tts_engine || '';
-                        document.getElementById('speech_enabled').checked = data.speech_enabled || false;
-                        document.getElementById('quota_messages').value = data.quota_messages || 0;
-                        document.getElementById('count_messages').value = data.count_messages || 0;
-                        document.getElementById('country').value = data.country || '';
+                        document.getElementById('is_email_verified').checked = data.is_email_verified || false;
                         document.getElementById('about').value = data.about || '';                    })
                     .catch(error => console.error('There has been a problem with your fetch operation:', error));
 
@@ -43,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
         deleteButton.addEventListener('click', function(event) {
             var userNameField = document.getElementById('name');
             var userName = userNameField ? userNameField.value : 'this user';
-            var confirmDeletion = confirm("Euh zeker weten dat je " + userName + " wilt verwijderen?");
+            var confirmDeletion = confirm("Remove " + userName + " from your pirate crew?");
             if (!confirmDeletion) {
                 event.preventDefault();
             }

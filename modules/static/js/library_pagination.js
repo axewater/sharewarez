@@ -119,7 +119,7 @@ $(document).ready(function() {
     page = page || urlParams.page || 1; // Use URL parameter for page if available
     var filters = {
       page: page,
-      per_page: 20,
+      per_page: $('#perPageSelect').val() || 20,
       category: $('#categorySelect').val() || urlParams.category,
       genre: $('#genreSelect').val() || urlParams.genre,
       game_mode: $('#gameModeSelect').val() || urlParams.gameMode,
@@ -230,6 +230,11 @@ function createPopupMenuHtml(game) {
       $('#nextPage').parent().toggleClass('disabled', currentPage >= totalPages);
   }
 
+  $('#perPageSelect').change(function() {
+      fetchFilteredGames(1); // Fetch starting at page 1 with the new per page value
+      console.log('perPageSelect changed to ' + $(this).val());
+  });
+
   $('#prevPage').click(function(e) {
       e.preventDefault();
       if (currentPage > 1) {
@@ -325,3 +330,5 @@ document.body.addEventListener('click', function(event) {
         });
     }
 });
+
+

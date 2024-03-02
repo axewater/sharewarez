@@ -82,8 +82,8 @@ class UserManagementForm(FlaskForm):
     search = StringField('Search Users')
     is_email_verified = BooleanField('Email Verified', validators=[Optional()])
     about = TextAreaField('Admin Notes', validators=[Optional()])
-    submit = SubmitField('Submit')
-    delete = SubmitField('Delete User')
+    submit = SubmitField('Save Changes')
+    delete = SubmitField('Walk the plank!')
     
 class IGDBApiForm(FlaskForm):
     endpoint = SelectField('Select API Endpoint', choices=[
