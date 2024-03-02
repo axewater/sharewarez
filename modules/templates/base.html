@@ -23,12 +23,12 @@
 
 
 <div id="sidebar" class="sidebar">
-
+    {% if current_user.is_authenticated %}
     <div class="useraccount-minimenu-container">
         <!-- User Account Icon at the Bottom Left -->
         <div id="userAccountIcon" class="user-account-icon">
             <img src="/static/avatars_users/default_thumbnail.jpg" alt="User Avatar" class="user-avatar"> <!-- Use the user's avatar if available -->
-            <span class="user-name" style="color: white;">{{ current_user.name }}</span>
+            <span class="user-name" style="color: white;">{{ current_user.name | capitalize }}</span>
 
             <i class="fas fa-chevron-up user-expand-icon" style="color: white;"></i>
         </div>
@@ -40,6 +40,7 @@
             <a href="{{ url_for('site.logout') }}" class="account-menu-option">Logout</a>
         </div>
     </div>
+    {% endif %}
     <a href="/library">
         <div class="menu-logo-image">
             <!-- Your CSS will apply here, displaying the logo -->
