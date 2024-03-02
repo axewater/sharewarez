@@ -158,11 +158,12 @@
                                     <input type="submit" class="btn btn-secondary btn-sm" value="Ignore">
                                 </form>
                                 <!-- Inside the loop for displaying folders -->
-                                <form method="post" action="{{ url_for('main.delete_folder') }}" style="display: inline;">
+                                <form class="delete-folder-form" style="display: inline;">
                                     {{ csrf_form.csrf_token }}
                                     <input type="hidden" name="folder_path" value="{{ folder.folder_path }}">
                                     <button type="submit" class="btn btn-danger btn-sm">Delete Folder</button>
                                 </form>
+
 
                                 <!-- New Edit Form -->
                                 <form action="{{ url_for('main.add_game_manual') }}" method="GET" style="display: inline;">
@@ -215,31 +216,59 @@
     </div>
 </div>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var activeTab = "{{ active_tab }}";
+    document.addEventListener('DOMContentLoaded', function() {
         
+        document.querySelectorAll('.delete-folder-form').forEach(form => {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault(); 
+    
+                const formData = new FormData(form);
+                const folderPath = formData.get('folder_path');
+                const csrfToken = "{{ csrf_token() }}"; 
+                
+                // Perform the AJAX request
+                fetch('/delete_folder', { // Using direct path instead of url_for
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
+                    },
+                    body: JSON.stringify({folder_path: folderPath})
+                }).then(response => response.json())
+                .then(data => {
+                    
+                    // Instead of alert, consider using a more user-friendly method 
+                    alert(data.message);
+    
+                    
+                    if(data.status === 'success') {
+                        form.parentElement.parentElement.remove();
+                    }
+                }).catch(error => console.error('Error:', error));
+            });
+        });
+        var activeTab = "{{ active_tab }}";
         console.log("Active tab:", activeTab);
+
         if (activeTab === 'manual') {
-            console.log("manual tab active");
-            var manualTab = new bootstrap.Tab(document.querySelector('#manualScan-tab'));
-            manualTab.show();
+            new bootstrap.Tab(document.querySelector('#manualScan-tab')).show();
         } else if (activeTab === 'unmatched') {
-            console.log("unmatched tab active");
-            var unmatchedTab = new bootstrap.Tab(document.querySelector('#unmatchedFolders-tab'));
-            unmatchedTab.show();
-        } else if (activeTab === 'deleteLibrary') { // Ensure this line is correctly structured
-            var deleteLibraryTab = new bootstrap.Tab(document.querySelector('#deleteLibrary-tab'));
-            deleteLibraryTab.show();
+            new bootstrap.Tab(document.querySelector('#unmatchedFolders-tab')).show();
+        } else if (activeTab === 'deleteLibrary') {
+            new bootstrap.Tab(document.querySelector('#deleteLibrary-tab')).show();
         } else {
-            console.log("auto tab active");
-            var autoTab = new bootstrap.Tab(document.querySelector('#autoScan-tab'));
-            autoTab.show();
+            new bootstrap.Tab(document.querySelector('#autoScan-tab')).show();
+        }
+
+        
+        var deleteAllGamesBtn = document.getElementById('deleteAllGamesBtn');
+        if (deleteAllGamesBtn) {
+            deleteAllGamesBtn.addEventListener('click', function() {
+                var deleteWarningModal = new bootstrap.Modal(document.getElementById('deleteWarningModal'));
+                deleteWarningModal.show();
+            });
         }
     });
-    document.getElementById('deleteAllGamesBtn').addEventListener('click', function() {
-        var myModal = new bootstrap.Modal(document.getElementById('deleteWarningModal'));
-        myModal.show();
-    });
-</script>
+    </script>
             
 {% endblock %}

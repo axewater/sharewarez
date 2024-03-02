@@ -858,6 +858,17 @@ form textarea {
     width: 500px;
 }
 
+.image-whitelist img {
+    width: 150px;
+    border-radius: 15px;
+
+}
+.image-whitelist {
+    display: flex;
+    align-items: flex-end;
+}
+
+
 .breadcrumbs {
 
     font-size: 35px;
@@ -1139,6 +1150,7 @@ form textarea {
         width: 65px;
         height: 25px;
     }
+ 
 
     .sidebar.collapsed .form-group {
         text-size-adjust: 10px;

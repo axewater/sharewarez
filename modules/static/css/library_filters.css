@@ -95,6 +95,8 @@
     background-color: #4a4e69;
     color: #ffffff;
     margin: 2px;
+    margin-top: 5px;
+    border: 1px solid #000000;
     white-space: nowrap;
 }
 

@@ -2,18 +2,26 @@
 {% extends "base.html" %}
 {% block content %}
 
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<ul class=flashes>
+    {% for message in messages %}
+<li>{{ message }}</li>
+{% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
 
 <div class="glass-panel">
-    <h1>Pirates allowed on board</h1><br>
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    <ul class=flashes>
-        {% for message in messages %}
-    <li>{{ message }}</li>
-    {% endfor %}
-    </ul>
-    {% endif %}
-    {% endwith %}
+    <h1>Pirates allowed on board
+        <div class="image-whitelist">
+            <img src="/static/newstyle/whitelist.jpg" alt="Pirates allowed on board">
+        </div>
+
+    </h1><br>
+
+
+
     <form method="post">
         {{ form.hidden_tag() }}
         <p>
@@ -41,6 +49,5 @@
         </tbody>
     </table>
     
-
 </div>
 {% endblock %}

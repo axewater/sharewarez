@@ -190,3 +190,14 @@
 
 }
 
+
+
+.sidebar.collapsed .user-name {
+    visibility: hidden;
+}
+
+
+.sidebar.collapsed .user-account-icon {
+    width: 60px;
+}
+

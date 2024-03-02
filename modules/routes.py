@@ -1546,29 +1546,50 @@ def admin_dashboard():
     pass
     return render_template('admin/admin_dashboard.html')
 
+    
 @bp.route('/delete_folder', methods=['POST'])
 @login_required
 @admin_required
 def delete_folder():
-    folder_path = request.form.get('folder_path')
-    if folder_path:
-        full_path = os.path.abspath(folder_path)  # Ensure the path is absolute
-        if os.path.isdir(full_path):
-            try:
-                print(f"Attempting to delete folder: {full_path}")
-                shutil.rmtree(full_path)
-                if not os.path.exists(full_path):
-                    flash('Folder deleted successfully.', 'success')
-                else:
-                    flash('Failed to delete the folder.', 'danger')
-            except Exception as e:
-                flash(f'Error deleting folder: {e}', 'danger')
-        else:
-            flash('The specified path is not a folder or does not exist.', 'danger')
-    else:
-        flash('Folder path is required.', 'danger')
+    data = request.get_json()  # Get the JSON data sent with the POST request
+    folder_path = data.get('folder_path') if data else None
 
-    return redirect(url_for('main.scan_management'))
+    if not folder_path:
+        return jsonify({'status': 'error', 'message': 'Folder path is required.'}), 400
+
+    # Normalize and absolute the path
+    full_path = os.path.abspath(folder_path)
+
+    # Operating system checks
+    os_type = platform.system()
+    restricted_paths = []
+
+    if os_type == "Windows":
+        drive_letters = ['C:\\', 'D:\\', 'E:\\']  # Extend this list as needed
+        restricted_roots = ['Windows', 'Program Files', 'Program Files (x86)']
+        restricted_paths.extend(drive_letters)
+        restricted_paths.extend([f"{letter}{root}" for letter in drive_letters for root in restricted_roots])
+    elif os_type in ["Linux", "Darwin"]:  # Darwin is macOS's system type
+        restricted_paths = ['/', '/bin', '/etc', '/proc', '/boot', '/dev', '/lib32', '/libdrm', '/lost+found', '/root', '/sbin', '/srv', '/lib64', '/libx32']
+
+    # Check if the path is restricted
+    if any(full_path.lower().startswith(res_path.lower()) for res_path in restricted_paths):
+        return jsonify({'status': 'error', 'message': 'Deletion of specified folder is not allowed.'}), 403
+
+    # Deletion process
+    if os.path.isdir(full_path):
+        try:
+            shutil.rmtree(full_path)
+            if not os.path.exists(full_path):
+                return jsonify({'status': 'success', 'message': 'Folder deleted successfully.'}), 200
+            else:
+                return jsonify({'status': 'error', 'message': 'Failed to delete the folder.'}), 500
+        except Exception as e:
+            return jsonify({'status': 'error', 'message': f'Error deleting folder: {e}'}), 500
+    else:
+        return jsonify({'status': 'error', 'message': 'The specified path is not a folder or does not exist.'}), 404    
+    
+    
 
 @bp.route('/admin/delete_library')
 @login_required
