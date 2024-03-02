@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flashes">
+    {% for message in messages %}
+        <div class="flash">{{ message }}</div>
+    {% endfor %}
+</div>
+<div class="container mt-3">
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link active" id="whitelistManager-tab" data-bs-toggle="tab" href="#whitelistManager">Whitelist Manager</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="userManager-tab" data-bs-toggle="tab" href="#userManager">User Manager</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="filtersManager-tab" data-bs-toggle="tab" href="#filtersManager">Filters Manager</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="apiDebugger-tab" data-bs-toggle="tab" href="#apiDebugger">API Debugger</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="downloadsManager-tab" data-bs-toggle="tab" href="#downloadsManager">Downloads Manager</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="newsletter-tab" data-bs-toggle="tab" href="#newsletter">Newsletter</a>
+        </li>
+    </ul>
+
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <div id="whitelistManager" class="container tab-pane active"><br>
+            <h3>Whitelist Manager</h3>
+            <!-- Whitelist Manager content goes here -->
+        </div>
+        <div id="userManager" class="container tab-pane fade"><br>
+            <h3>User Manager</h3>
+            
+
+<div class="glass-panel">
+
+    <div class="content-login">
+        <div class="content-textblock">
+            
+        <h2>Pirate crew membership</h2>
+        </div>
+        <form method="POST" action="">
+            {{ user_management_form.hidden_tag() }}
+            <div>
+                {{ user_management_form.user_id.label(class="formlabels") }} 
+                {{ user_management_form.user_id(class="input-class input-glass") }}
+            </div>
+            <div>
+                {{ user_management_form.state.label(class="formlabels") }} {{ user_management_form.state(class="input-checkbox") }}
+            </div>
+
+            <div>
+                {{ user_management_form.name.label(class="formlabels") }} {{ user_management_form.name(class="input-glass") }}
+            </div>
+            <div>
+                {{ user_management_form.email.label(class="formlabels") }} {{ user_management_form.email(class="input-glass") }}
+            </div>
+            <div>
+                {{ user_management_form.role.label(class="formlabels") }} {{ user_management_form.role(class="input-glass") }}
+            </div>
+
+            <div>
+                {{ user_management_form.about.label(class="formlabels") }}
+                {{ user_management_form.about(class="input-glass") }}
+            </div>
+            
+
+            <div>
+                {{ user_management_form.is_email_verified.label(class="formlabels") }} {{ user_management_form.is_email_verified(class="input-checkbox") }}
+            </div>
+            <div>
+                {{ user_management_form.submit(class="btn btn-primary") }} 
+                {{ user_management_form.delete(class="btn btn-danger") }}
+            </div>
+        </form>
+
+        <!-- List of users -->
+        <div class="content-textblock-usermanager">
+            <h3>Ship's manifest:</h3>
+            
+            {% if users %}
+            <table class="table table-striped table-hover custom-table rounded-lg">
+
+
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Created</th>
+                            <th>Last seen</th>
+                            <th>Notes</th>
+                            <th>Activated</th>
+                            <!-- Add other headers for user fields -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>
+                                <img src="/static/{{ user.avatarpath }}" alt="Avatar" class="avatar" style="width: 30px; height: 30px; border-radius: 50%;">
+                            </td>
+                            
+                            <td>{{ user.name }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.created.strftime('%Y-%m-%d') if user.created else '' }}</td>
+                            <td>{{ user.lastlogin.strftime('%Y-%m-%d %H:%M:%S') if user.lastlogin else '' }}</td>
+                            <td>{{ user.about }}</td>
+                            <td>{{ user.is_email_verified }}</td>
+                            <!-- Add other user details here -->
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %} 
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/admin_usermanager.js') }}"></script>
+        </div>
+        <div id="filtersManager" class="container tab-pane fade"><br>
+            <h3>Filters Manager</h3>
+            
+<div class="glass-filter-editor">
+    <h2>Edit Release Group Filters</h2>
+    <form action="" method="post">
+        {{ releasegroup_form.hidden_tag() }}
+        <div class="form-group">
+            {{ releasegroup_form.rlsgroup.label }} {{ releasegroup_form.rlsgroup() }}
+        </div>
+        <div class="form-group">
+            {{ releasegroup_form.rlsgroupcs.label }} {{ releasegroup_form.rlsgroupcs() }}
+        </div>
+        <div class="form-group">
+            {{ releasegroup_form.submit() }}
+        </div>
+    </form>
+    <hr>
+    <h3>Existing Filters</h3>
+    <ul>
+    {% for group in groups %}
+        <li>{{ group.rlsgroup }} (CS: {{ group.rlsgroupcs }}) - <a href="{{ url_for('main.delete_filter', id=group.id) }}">Remove</a></li>
+    {% endfor %}
+    </ul>
+</div>
+        </div>
+        <div id="apiDebugger" class="container tab-pane fade"><br>
+            <h3>API Debugger</h3>
+            <!-- API Debugger content goes here -->
+        </div>
+        <div id="downloadsManager" class="container tab-pane fade"><br>
+            <h3>Downloads Manager</h3>
+            <!-- Downloads Manager content goes here -->
+        </div>
+
+<div id="newsletter" class="container tab-pane fade"><br>
+    <h3>Newsletter</h3>
+    <!-- Newsletter content here -->
+    <div class="glass-panel">
+        <!-- Your form and JavaScript code here -->
+        <form action="" method="post" novalidate>
+            {{ newsletter_form.hidden_tag() }}
+            <p>
+                {{ newsletter_form.subject.label }}<br>
+                {{ newsletter_form.subject(size=32, class="input-glass") }}<br>
+            </p>
+            <p>
+                {{ newsletter_form.content.label }}<br>
+                {{ newsletter_form.content(rows=10, cols=32, class="input-glass-content") }}<br>
+            </p>
+            <p>
+                <input type="checkbox" id="selectAll"> Select All/Select None<br><br>
+            </p>
+            {% for user in users %}
+                <input type="checkbox" name="user" class="userCheckbox" value="{{ user.email }}" checked onchange="updateRecipients()"> {{ user.email }}<br>
+            {% endfor %}
+            {{ newsletter_form.recipients(style="display:none") }}  <!-- hidden input field -->
+    
+            <p>{{ newsletter_form.send(class="button-glass") }}</p>
+        </form>
+     
+    </div>
+</div>
+
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById("selectAll").addEventListener("click", function(e) {
+    var userCheckboxes = document.getElementsByClassName("userCheckbox");
+    for(var i = 0; i < userCheckboxes.length; i++) {
+        userCheckboxes[i].checked = e.target.checked;
+    }
+    updateRecipients();
+});
+
+function updateRecipients() {
+    var recipients = [];
+    var checkboxes = document.querySelectorAll('input[name="user"]:checked');
+
+    for (var i = 0; i < checkboxes.length; i++) {
+        recipients.push(checkboxes[i].value);
+    }
+
+    document.querySelector('input[name="recipients"]').value = recipients.join(',');
+
+    console.log('Recipients: ' + document.querySelector('input[name="recipients"]').value);
+}
+
+updateRecipients(); 
+</script>
+
+</div>
+{% endblock %}

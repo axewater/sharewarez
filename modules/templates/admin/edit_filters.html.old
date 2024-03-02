@@ -1,0 +1,29 @@
+<!-- templates/admin/edit_filters.html -->
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<div class="glass-filter-editor">
+    <h2>Edit Release Group Filters</h2>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.rlsgroup.label }} {{ form.rlsgroup() }}
+        </div>
+        <div class="form-group">
+            {{ form.rlsgroupcs.label }} {{ form.rlsgroupcs() }}
+        </div>
+        <div class="form-group">
+            {{ form.submit() }}
+        </div>
+    </form>
+    <hr>
+    <h3>Existing Filters</h3>
+    <ul>
+    {% for group in groups %}
+        <li>{{ group.rlsgroup }} (CS: {{ group.rlsgroupcs }}) - <a href="{{ url_for('main.delete_filter', id=group.id) }}">Remove</a></li>
+    {% endfor %}
+    </ul>
+</div>
+{% endblock %}

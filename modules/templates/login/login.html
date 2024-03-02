@@ -23,17 +23,18 @@
 
                 </div>
             </div>
-            <div class="container-builder">
+            <div class="container-content">
                 <form action="/login" method="post">
                     {{ form.hidden_tag() }}
-                    <label for="username">Username:</label><br>
+                    <label for="username" class="label-large-text">Pirate name:</label><br>
                     <input type="text" class="input-glass" id="username" name="username"><br>
-                    <label for="password">Password:</label><br>
+                    <label for="password" class="label-large-text">Secret Password:</label><br>
                     <input type="password" class="input-glass" id="password" name="password"><br>
-                    <div class="container-base">
-                        <input type="submit" value="LOGIN" class="button-glass">
-                        <a href="/register" class="button-glass">REGISTER</a>
-                        <a href="{{ url_for('main.reset_password_request') }}" class="button-glass">Forgot Password?</a>
+                    
+                    <div class="container-buttons-login">
+                        <input type="submit" value="Login" class="btn btn-primary button-login">
+                        <a href="/register" class="btn btn-primary button-login">Sign up</a>
+                        <a href="{{ url_for('main.reset_password_request') }}" class="btn btn-danger button-login">Forgot Password?</a>
                     </div>
                 </form>
                 

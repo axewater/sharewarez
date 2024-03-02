@@ -134,6 +134,18 @@ body {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
+.button-login {
+font-size: large;
+    
+}
+
+
+.button-login:hover {
+    font-weight: bold;
+        
+    }
+
+
 .button-pagination-glass active {
     background-color: #000;
     color: green;
@@ -378,11 +390,24 @@ body {
     margin-left: 50px;
 }
 
-.content-restricted-textblock {
-    background-color: #000000;
-    padding: 40px 60px;
+.label-large-text {
+    font-size: 22px; /* Adjust the size as needed */
+}
+
+.container-content {
+    background-color: #161e25;
+    padding: 25px;
     border-radius: 15px;
     color: #ddd;
+    margin-top: 15px;
+    text-align: justify;
+    
+}
+
+.content-restricted-textblock {
+    background-color: #0f0e1f;
+    padding: 40px 60px;
+    border-radius: 15px;
     margin-top: 15px;
     text-align: justify;
 }
@@ -539,6 +564,15 @@ body {
 
 .role-box.highlight {
     border-color: gold;
+}
+
+.container-buttons-login {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 20px;
+    font-size: 20px;
+    gap: 20px;
 }
 
 
@@ -1023,7 +1057,16 @@ form textarea {
         flex-wrap: wrap;
         justify-content: center;
     }
-
+    .container-buttons-login {
+       flex-direction: column;
+    }
+    .button-login {
+        font-size: medium;
+        height: 45px;
+    }
+    .input-glass {
+        width: 200px;
+    }
     .game-video {
         width: 100%;
         height: auto;
@@ -1032,7 +1075,16 @@ form textarea {
         width: 60px;
     }
 
-    
+    .container-content {
+        background-color: #161e25;
+        padding-top: 20px;
+        padding-left: 20px;
+        border-radius: 15px;
+        color: #ddd;
+        margin-top: 15px;
+        text-align: justify;
+        
+    }    
     #content {
         margin-left: 100px;
     }

@@ -1,0 +1,65 @@
+<!-- in templates/admin/newsletter.html -->
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-builder">
+    <h1>Newsletter</h1>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul class=flashes>
+        {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+    <br>
+
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.subject.label }}<br>
+            {{ form.subject(size=32, class="input-glass-content") }}<br>
+        </p>
+        <p>
+            {{ form.content.label }}<br>
+            {{ form.content(rows=10, cols=32, class="input-glass") }}<br>
+        </p>
+        <p>
+            <input type="checkbox" id="selectAll"> Select All/Select None<br><br>
+        </p>
+        {% for user in users %}
+            <input type="checkbox" name="user" class="userCheckbox" value="{{ user.email }}" checked onchange="updateRecipients()"> {{ user.email }}<br>
+        {% endfor %}
+        {{ form.recipients(style="display:none") }}  <!-- hidden input field -->
+
+        <p>{{ form.send(class="button-glass") }}</p>
+    </form>
+    <script>
+        document.getElementById("selectAll").addEventListener("click", function(e) {
+        var userCheckboxes = document.getElementsByClassName("userCheckbox");
+        for(var i = 0; i < userCheckboxes.length; i++) {
+            userCheckboxes[i].checked = e.target.checked;
+        }
+        updateRecipients();
+    });
+
+    function updateRecipients() {
+        var recipients = [];
+        var checkboxes = document.querySelectorAll('input[name="user"]:checked');
+
+        for (var i = 0; i < checkboxes.length; i++) {
+            recipients.push(checkboxes[i].value);
+        }
+
+        document.querySelector('input[name="recipients"]').value = recipients.join(',');
+
+        console.log('Recipients: ' + document.querySelector('input[name="recipients"]').value);
+    }
+
+    updateRecipients(); 
+    </script>
+
+</div>
+{% endblock %}

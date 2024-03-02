@@ -1,0 +1,12 @@
+<!-- in templates/admin/navbar.html -->
+
+<div class="container-settings-menubuttons">
+    
+    <a href="{{ url_for('main.scan_folder') }}" class="button-glass">Library manager</a>
+    <button type="button" class="button-glass" onclick="window.location.href='/admin/usrmgr'">User manager</button>
+    <button type="button" class="button-glass" onclick="window.location.href='/admin/clear-downloads'">Downloads manager</button>
+    <button type="button" class="button-glass" onclick="window.location.href='/admin/edit_filters'">Filter manager</button>
+    <button type="button" class="button-glass" onclick="window.location.href='/admin/whitelist'">Whitelist manager</button>
+    <button type="button" class="button-glass" onclick="window.location.href='/admin/newsletter'">Newsletter</button>
+    <button type="button" class="button-glass" onclick="window.location.href='/admin/beta'">Beta features</button>
+</div>
