@@ -58,27 +58,14 @@
             <a href="{{ url_for('main.downloads') }}" class="sidebar-link"><i class="fas fa-download"></i><span class="link-text">Downloads</span></a>
     
             {% if current_user.role == 'admin' %}
-                <a href="#" class="sidebar-link has-submenu"><i class="fas fa-cogs"></i><span class="link-text">Settings</span></a>
-                <div class="submenu">
-                    <a href="{{ url_for('main.scan_management') }}" class="sidebar-sublink"><span class="link-text">Library Manager</span></a>
-                    
-                    
-                    <a href="{{ url_for('main.whitelist') }}" class="sidebar-sublink"><span class="link-text">Whitelist Manager</span></a>
-                    <a href="{{ url_for('main.usermanager') }}" class="sidebar-sublink"><span class="link-text">User Manager</span></a>
-                    
-                    <a href="{{ url_for('main.edit_filters') }}" class="sidebar-sublink"><span class="link-text">Filters Manager</span></a>
-                    <a href="{{ url_for('main.api_debug') }}" class="sidebar-sublink"><span class="link-text">API Debugger</span></a>
-                    <a href="{{ url_for('main.clear_downloads') }}" class="sidebar-sublink"><span class="link-text">Downloads Manager</span></a>
-                    
-                    <a href="{{ url_for('main.newsletter') }}" class="sidebar-sublink"><span class="link-text">Newsletter</span></a>
-                    
-                </div>
+                <a href="/admin/dashboard" class="sidebar-link"><i class="fas fa-cogs"></i><span class="link-text">Dashboard</span></a>
+                
     
             {% endif %}
     
 
             <a href="{{ url_for('site.helpfaq') }}" class="sidebar-link"><i class="fas fa-question-circle"></i><span class="link-text">Help</span></a>
-            <a href="{{ url_for('site.logout') }}" class="sidebar-link"><i class="fas fa-sign-out-alt"></i><span class="link-text">Logout</span></a>
+            
         {% else %}
             <a href="{{ url_for('main.login') }}" class="sidebar-link"><i class="fas fa-sign-in-alt"></i><span class="link-text">Login</span></a>
             <a href="{{ url_for('main.register') }}" class="sidebar-link"><i class="fas fa-user-plus"></i><span class="link-text">Register</span></a>

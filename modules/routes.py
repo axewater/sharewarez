@@ -91,6 +91,10 @@ def initial_setup():
         print(f'error upgrading user to admin: {e}')
 
 
+
+
+
+
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -1534,7 +1538,13 @@ def delete_associations_for_game(game_to_delete):
     for association in associations:
         association.clear()  # Assuming `.clear()` is valid for your ORM setup
 
+@bp.route('/admin/dashboard')
+@login_required
+@admin_required
 
+def admin_dashboard():
+    pass
+    return render_template('admin/admin_dashboard.html')
 
 @bp.route('/admin/delete_library')
 @login_required
