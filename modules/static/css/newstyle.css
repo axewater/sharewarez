@@ -27,6 +27,87 @@ body {
     text-decoration: none;
 }
 
+.useraccount-minimenu-container {
+    display: flex;
+    margin-left: 50px;
+    padding-left: 50px;
+}
+
+
+.user-account-icon, .user-account-menu {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    background-color: #2d3141; 
+    color: #ecf0f1;
+    border-radius: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5); /* Stronger shadow for depth */
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.user-account-icon {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* This will space out the avatar, username, and icon */
+    color: white;
+    padding: 10px;
+    width: 180px;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    margin-right: 10px;
+    border: 2px solid #ecf0f1; /* Light border around avatar for definition */
+}
+
+.user-name {
+    font-weight: bold;
+}
+
+.user-expand-icon {
+    margin-left: 7px;
+    transition: transform 0.3s ease;
+}
+
+.user-account-menu {
+    display: none; /* Initially hidden */
+
+    bottom: 75px;
+}
+
+.account-menu-option {
+    display: block;
+    padding: 10px;
+    color: #ecf0f1; /* Light text color for contrast */
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.account-menu-option:hover {
+    background-color: #34495e; /* Slightly lighter blue for hover effect */
+}
+
+/* To hide and show the menu with a class */
+.hide {
+    display: none;
+}
+
+.show {
+    display: block;
+}
+
+
+
+
+
+
+
+
+
+
 .button-pagination-glass {
 
     width: 6%;

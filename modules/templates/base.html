@@ -18,65 +18,82 @@
     {% endblock %}
 </head>
 <body>
-    <div id="sidebar" class="sidebar">
-        <a href="/library">
-            <div class="menu-logo-image">
-              <!-- Your CSS will apply here, displaying the logo -->
-            </div>
-        </a>
-        
-        <div class="sidebar-header">
-            <button id="toggleSidebar" class="toggle-sidebar">
-                <i class="icon-chevron">&gt;</i>
-            </button>
+
+
+
+
+<div id="sidebar" class="sidebar">
+
+    <div class="useraccount-minimenu-container">
+        <!-- User Account Icon at the Bottom Left -->
+        <div id="userAccountIcon" class="user-account-icon">
+            <img src="/static/avatars_users/default_thumbnail.jpg" alt="User Avatar" class="user-avatar"> <!-- Use the user's avatar if available -->
+            <span class="user-name" style="color: white;">{{ current_user.name }}</span>
+
+            <i class="fas fa-chevron-up user-expand-icon" style="color: white;"></i>
         </div>
-        <div class="sidebar-menu">
-            {% if current_user.is_authenticated %}
-                <a href="{{ url_for('main.library') }}" class="sidebar-link"><i class="fas fa-gamepad"></i><span class="link-text">Library</span></a>
-                <a href="{{ url_for('main.downloads') }}" class="sidebar-link"><i class="fas fa-download"></i><span class="link-text">Downloads</span></a>
-        
-                {% if current_user.role == 'admin' %}
-                    <a href="#" class="sidebar-link has-submenu"><i class="fas fa-cogs"></i><span class="link-text">Settings</span></a>
-                    <div class="submenu">
-                        <a href="{{ url_for('main.scan_management') }}" class="sidebar-sublink"><span class="link-text">Library Manager</span></a>
-                        
-                        
-                        <a href="{{ url_for('main.whitelist') }}" class="sidebar-sublink"><span class="link-text">Whitelist Manager</span></a>
-                        <a href="{{ url_for('main.usermanager') }}" class="sidebar-sublink"><span class="link-text">User Manager</span></a>
-                        
-                        <a href="{{ url_for('main.edit_filters') }}" class="sidebar-sublink"><span class="link-text">Filters Manager</span></a>
-                        <a href="{{ url_for('main.api_debug') }}" class="sidebar-sublink"><span class="link-text">API Debugger</span></a>
-                        <a href="{{ url_for('main.clear_downloads') }}" class="sidebar-sublink"><span class="link-text">Downloads Manager</span></a>
-                        
-                        <a href="{{ url_for('main.newsletter') }}" class="sidebar-sublink"><span class="link-text">Newsletter</span></a>
-                        
-                    </div>
-        
-                {% endif %}
-        
-                <a href="#" class="sidebar-link has-submenu"><i class="fas fa-user-circle"></i><span class="link-text">Account</span></a>
+
+        <!-- Expandable User Account Menu -->
+        <div id="userAccountMenu" class="user-account-menu hide">
+            <a href="{{ url_for('main.settings_profile_view') }}" class="account-menu-option">Profile</a>
+            <a href="{{ url_for('main.account_pw') }}" class="account-menu-option">Change Password</a>
+            <a href="{{ url_for('site.logout') }}" class="account-menu-option">Logout</a>
+        </div>
+    </div>
+    <a href="/library">
+        <div class="menu-logo-image">
+            <!-- Your CSS will apply here, displaying the logo -->
+        </div>
+    </a>
+    
+    <div class="sidebar-header">
+        <button id="toggleSidebar" class="toggle-sidebar">
+            <i class="icon-chevron">&gt;</i>
+        </button>
+    </div>
+    <div class="sidebar-menu">
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('main.library') }}" class="sidebar-link"><i class="fas fa-gamepad"></i><span class="link-text">Library</span></a>
+            <a href="{{ url_for('main.downloads') }}" class="sidebar-link"><i class="fas fa-download"></i><span class="link-text">Downloads</span></a>
+    
+            {% if current_user.role == 'admin' %}
+                <a href="#" class="sidebar-link has-submenu"><i class="fas fa-cogs"></i><span class="link-text">Settings</span></a>
                 <div class="submenu">
-                    <a href="{{ url_for('main.account_pw') }}" class="sidebar-sublink"><span class="link-text">Password</span></a>
-                    <a href="{{ url_for('main.settings_profile_view') }}" class="sidebar-sublink"><span class="link-text">Profile</span></a>
+                    <a href="{{ url_for('main.scan_management') }}" class="sidebar-sublink"><span class="link-text">Library Manager</span></a>
+                    
+                    
+                    <a href="{{ url_for('main.whitelist') }}" class="sidebar-sublink"><span class="link-text">Whitelist Manager</span></a>
+                    <a href="{{ url_for('main.usermanager') }}" class="sidebar-sublink"><span class="link-text">User Manager</span></a>
+                    
+                    <a href="{{ url_for('main.edit_filters') }}" class="sidebar-sublink"><span class="link-text">Filters Manager</span></a>
+                    <a href="{{ url_for('main.api_debug') }}" class="sidebar-sublink"><span class="link-text">API Debugger</span></a>
+                    <a href="{{ url_for('main.clear_downloads') }}" class="sidebar-sublink"><span class="link-text">Downloads Manager</span></a>
+                    
+                    <a href="{{ url_for('main.newsletter') }}" class="sidebar-sublink"><span class="link-text">Newsletter</span></a>
+                    
                 </div>
-                <a href="{{ url_for('site.helpfaq') }}" class="sidebar-link"><i class="fas fa-question-circle"></i><span class="link-text">Help</span></a>
-                <a href="{{ url_for('site.logout') }}" class="sidebar-link"><i class="fas fa-sign-out-alt"></i><span class="link-text">Logout</span></a>
-            {% else %}
-                <a href="{{ url_for('main.login') }}" class="sidebar-link"><i class="fas fa-sign-in-alt"></i><span class="link-text">Login</span></a>
-                <a href="{{ url_for('main.register') }}" class="sidebar-link"><i class="fas fa-user-plus"></i><span class="link-text">Register</span></a>
+    
             {% endif %}
-            {% include 'games/library_filters.html' %}
-        </div>
-        
-        
-        
+    
+
+            <a href="{{ url_for('site.helpfaq') }}" class="sidebar-link"><i class="fas fa-question-circle"></i><span class="link-text">Help</span></a>
+            <a href="{{ url_for('site.logout') }}" class="sidebar-link"><i class="fas fa-sign-out-alt"></i><span class="link-text">Logout</span></a>
+        {% else %}
+            <a href="{{ url_for('main.login') }}" class="sidebar-link"><i class="fas fa-sign-in-alt"></i><span class="link-text">Login</span></a>
+            <a href="{{ url_for('main.register') }}" class="sidebar-link"><i class="fas fa-user-plus"></i><span class="link-text">Register</span></a>
+        {% endif %}
+        {% include 'games/library_filters.html' %}
     </div>
-    <div id="content">
-        {% block content %}{% endblock %}
-    </div>
+</div>
+<div id="content">
+    {% block content %}{% endblock %}
+</div>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        console.log("Document loaded.");
+
+        // Existing function to close all submenus
         function closeAllSubmenus() {
             document.querySelectorAll('.submenu').forEach(submenu => {
                 submenu.style.display = 'none';
@@ -88,14 +105,54 @@
     
         closeAllSubmenus();
     
+        // Toggle sidebar
         document.getElementById("toggleSidebar").addEventListener("click", function() {
+            console.log("Sidebar toggle clicked.");
             document.getElementById("sidebar").classList.toggle("collapsed");
             document.getElementById("content").classList.toggle("collapsed");
             closeAllSubmenus();
         });
     
+        // User account icon click event
+        document.getElementById('userAccountIcon').addEventListener('click', function() {
+            console.log("User account icon clicked.");
+
+            var menu = document.getElementById('userAccountMenu');
+            var icon = document.querySelector('.user-expand-icon');
+        
+            if (menu.classList.contains('hide')) {
+                console.log("Menu is hidden, showing now.");
+                menu.classList.remove('hide');
+                menu.classList.add('show');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                console.log("Menu is shown, hiding now.");
+                menu.classList.remove('show');
+                menu.classList.add('hide');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        });
+
+        document.addEventListener('click', function(event) {
+            var isClickInsideIcon = document.getElementById('userAccountIcon').contains(event.target);
+            var isClickInsideMenu = document.getElementById('userAccountMenu').contains(event.target);
+
+            console.log("Checking clickzone.");
+                if (!isClickInsideIcon && !isClickInsideMenu) {
+                console.log("Click is outside menu.");
+                // If the click is outside the userAccountIcon and userAccountMenu, close the menu
+                document.getElementById('userAccountMenu').classList.add('hide');
+                document.getElementById('userAccountMenu').classList.remove('show');
+                document.querySelector('.user-expand-icon').style.transform = 'rotate(0deg)';
+            }
+        });
+        
+
+
+        // Handling click events on sidebar links with submenu
         document.querySelectorAll('.sidebar-link.has-submenu').forEach(item => {
             item.addEventListener('click', function(e) {
+                console.log("Submenu item clicked.");
                 closeAllSubmenus();
                 
                 e.preventDefault();
@@ -111,13 +168,13 @@
         });
     });
     
-    // Check the current URL
+    // Additional checks for visibility of elements based on URL
     if (window.location.pathname !== '/library') {
-        // If the URL is not '/library', hide the container
+        console.log("Not on '/library' page, adjusting visibility.");
         document.querySelector('.container-filtersandsort').style.visibility = 'hidden';
     }
-      
 </script>
+    
 
 
 </body>
