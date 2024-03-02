@@ -1022,7 +1022,9 @@ form textarea {
 }
 
 
-/* Responsive Design */
+
+
+
 @media (max-width: 600px) {
     .menu {
         flex-direction: column;
@@ -1034,6 +1036,15 @@ form textarea {
         min-width: 80px;
         justify-content: center;
         padding: 3px;
+    }
+    .content-restricted {
+        padding: 7px;
+        margin-left: 0;    
+    }
+    
+    
+    .content-restricted-textblock {
+        padding: 7px;    
     }
     .button-glass i {
         margin-right: 0;
@@ -1086,7 +1097,7 @@ form textarea {
         
     }    
     #content {
-        margin-left: 100px;
+        margin-left: 70px;
     }
     
     .sidebar {
