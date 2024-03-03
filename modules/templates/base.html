@@ -125,9 +125,9 @@
             var isClickInsideIcon = document.getElementById('userAccountIcon').contains(event.target);
             var isClickInsideMenu = document.getElementById('userAccountMenu').contains(event.target);
 
-            console.log("Checking clickzone.");
+            
                 if (!isClickInsideIcon && !isClickInsideMenu) {
-                console.log("Click is outside menu.");
+                
                 // If the click is outside the userAccountIcon and userAccountMenu, close the menu
                 document.getElementById('userAccountMenu').classList.add('hide');
                 document.getElementById('userAccountMenu').classList.remove('show');

@@ -125,10 +125,10 @@
 
 .sorting-dropdown {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     margin-top: 15px;
-    margin: 10px;
     
+    gap: 8px;
 
 }
 

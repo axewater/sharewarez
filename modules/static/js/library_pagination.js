@@ -1,5 +1,8 @@
 // When updating this file, remember to update popup_menu.html too
 var csrfToken;
+var sortOrder = 'asc'; // Default sort order
+
+$('#sortOrderToggle').text(sortOrder === 'asc' ? '^' : '~');
 
 
 $(document).ready(function() {
@@ -126,12 +129,12 @@ $(document).ready(function() {
       player_perspective: $('#playerPerspectiveSelect').val() || urlParams.playerPerspective,
       theme: $('#themeSelect').val() || urlParams.theme,
       rating: $('#ratingSlider').val() || urlParams.rating,
+      sort_by: $('#sortSelect').val(),
+      sort_order: sortOrder,
     };
-    const sortValue = $('#sortSelect').val().split('-');
-    const sort_by = sortValue[0];
-    const sort_order = sortValue[1];
-    filters.sort_by = sort_by;
-    filters.sort_order = sort_order;
+
+    console.log("Filters before AJAX request:", filters);
+    console.log("Current sort order: ", sortOrder);
 
 
     // AJAX request using filters, including those from URL parameters
@@ -223,7 +226,13 @@ function createPopupMenuHtml(game) {
     `;
 }
 
-
+  $('#sortOrderToggle').click(function() {
+      sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+      $(this).text(sortOrder === 'asc' ? '^' : '~'); // Update button text based on sort order
+      console.log('sortOrderToggle clicked, new sort order:', sortOrder);
+      fetchFilteredGames(currentPage); // Refetch games with the new sort order
+  });
+  
 
   function updatePaginationControls() {
       $('#prevPage').parent().toggleClass('disabled', currentPage <= 1);
