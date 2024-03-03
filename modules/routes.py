@@ -773,6 +773,34 @@ def browse_games():
         'current_page': page
     })
 
+
+@bp.route('/browse_folders_ss')
+@login_required
+@admin_required
+def browse_folders_ss():
+    
+    # Select base by OS
+    base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
+    print(f'SS folder browser: Base directory: {base_dir}')
+    req_path = request.args.get('path', '')
+
+    if not req_path:
+        folder_path = base_dir
+    else:
+        folder_path = os.path.abspath(os.path.join(base_dir, req_path))
+        if not folder_path.startswith(base_dir):
+            # no dir traversal
+            return jsonify({'error': 'Access denied'}), 403
+
+    if os.path.isdir(folder_path):
+        contents = [{'name': item, 'isDir': True} for item in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, item))]
+        return jsonify(contents)
+    else:
+        return jsonify({'error': 'Folder not found'}), 404
+
+
+
+
 @bp.route('/api/search')
 def search():
     query = request.args.get('query', '')
@@ -1245,13 +1273,19 @@ def scan_management():
 def handle_auto_scan(auto_form):
     if auto_form.validate_on_submit():
         folder_path = auto_form.folder_path.data
+
+        # Prepend the base path
+        base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
+        full_path = os.path.join(base_dir, folder_path)
+
         @copy_current_request_context
         def start_scan():
-            scan_and_add_games(folder_path)
+            # Ensure that scan_and_add_games uses the full_path
+            scan_and_add_games(full_path)
 
         thread = Thread(target=start_scan)
         thread.start()
-        flash('Auto-scan started for folder: ' + folder_path, 'info')
+        flash('Auto-scan started for folder: ' + full_path, 'info')  # Optionally show only folder_path to the user
         session['active_tab'] = 'auto'
     else:
         flash('Auto-scan form validation failed.', 'error')

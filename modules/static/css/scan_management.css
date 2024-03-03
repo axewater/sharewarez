@@ -30,3 +30,18 @@ th {
     height: 30px;
     border-radius: 50%;
 }
+
+.folder-item:hover {
+    background-color: #f5f5f5;
+    cursor: pointer;
+}
+
+.loading-spinner {
+    position: fixed; /* or absolute */
+    top: 5%;
+    left: 5%;
+}
+.loading-spinner img {
+    border-radius: 15px;
+
+}

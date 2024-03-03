@@ -2,10 +2,10 @@
 
 {% extends "base.html" %}
 
-
-
-
 {% block content %}
+<link rel="stylesheet" href="/static/css/scan_management.css">
+
+
 <div class="container mt-3">
     <!-- Nav tabs -->
     <ul class="nav nav-tabs">
@@ -44,6 +44,18 @@
                 </div>
                 <div class="form-group">
                     <button type="submit" name="submit" value="AutoScan" class="btn btn-primary">Start Auto Scan</button>
+
+                    <button id="browseFoldersBtn" type="button" class="btn btn-info" data-browse-url="{{ url_for('main.browse_folders_ss') }}">Browse Folders</button>
+                    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                        <img src="/static/newstyle/searching_small.gif" alt="Loading...">
+                    </div>
+                    <button id="upFolderBtn" type="button" class="btn btn-secondary" style="display: none;">Up</button>
+
+                    <div id="folderContents">
+                        
+                    </div>
+                 
+                    
                 </div>
             </form>
 
@@ -215,6 +227,8 @@
        
     </div>
 </div>
+<script src="{{ url_for('static', filename='js/scan_management.js') }}"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         
