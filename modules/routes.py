@@ -667,6 +667,10 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
         query = query.order_by(Game.name.asc() if sort_order == 'asc' else Game.name.desc())
     elif sort_by == 'rating':
         query = query.order_by(Game.rating.asc() if sort_order == 'asc' else Game.rating.desc())
+    elif sort_by == 'first_release_date':
+        query = query.order_by(Game.first_release_date.asc() if sort_order == 'asc' else Game.first_release_date.desc())
+    elif sort_by == 'size':
+        query = query.order_by(Game.size.asc() if sort_order == 'asc' else Game.size.desc())
 
     # Pagination logic
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
@@ -732,8 +736,12 @@ def browse_games():
         query = query.order_by(Game.name.asc() if sort_order == 'asc' else Game.name.desc())
     elif sort_by == 'rating':
         query = query.order_by(Game.rating.asc() if sort_order == 'asc' else Game.rating.desc())
+    elif sort_by == 'first_release_date':
+        query = query.order_by(Game.first_release_date.asc() if sort_order == 'asc' else Game.first_release_date.desc())
+    elif sort_by == 'size':
+        query = query.order_by(Game.size.asc() if sort_order == 'asc' else Game.size.desc())
 
-    
+        
     # Pagination
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     games = pagination.items
