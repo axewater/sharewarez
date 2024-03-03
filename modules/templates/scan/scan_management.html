@@ -43,9 +43,10 @@
                     {% endif %}
                 </div>
                 <div class="form-group">
-                    <button type="submit" name="submit" value="AutoScan" class="btn btn-primary">Start Auto Scan</button>
 
                     <button id="browseFoldersBtn" type="button" class="btn btn-info" data-browse-url="{{ url_for('main.browse_folders_ss') }}">Browse Folders</button>
+                    <button type="submit" name="submit" value="AutoScan" class="btn btn-primary">Start On-Demand Scan</button>
+
                     <div id="loadingSpinner" class="loading-spinner" style="display: none;">
                         <img src="/static/newstyle/searching_small.gif" alt="Loading...">
                     </div>
@@ -102,24 +103,30 @@
         <!-- Manual Scan Tab -->
         <div id="manualScan" class="glass-panel tab-pane fade"><br>
             <h3>Manual Folder Scan</h3>
-                <br>
-                Scan folder and list games for manual processing<br>
-
             <form action="" method="post">
                 {{ manual_form.hidden_tag() }}
                 <div class="form-group">
                     {{ manual_form.folder_path.label }}
-                    {{ manual_form.folder_path(class="form-control") }}
-                    {% if manual_form.folder_path.errors %}
+                    {{ manual_form.folder_path(class="form-control", id="manualFolderPath") }}
+                                        {% if manual_form.folder_path.errors %}
                         {% for error in manual_form.folder_path.errors %}
                             <div class="alert alert-danger">{{ error }}</div>
                         {% endfor %}
                     {% endif %}
                 </div>
-                <div class="form-group d-flex justify-content-between">
+                <div class="form-group">
+                    <button id="browseFoldersBtnManual" type="button" class="btn btn-info">Browse Folders</button>
                     <button type="submit" name="submit" value="ManualScan" class="btn btn-primary">List Games</button>
+                    <button id="upFolderBtnManual" type="button" class="btn btn-secondary" style="display: none;">Up</button>
+
                 </div>
             </form>
+            <div id="loadingSpinnerManual" class="loading-spinner" style="display: none;">
+                <img src="/static/newstyle/searching_small.gif" alt="Loading...">
+            </div>
+            <div id="folderContentsManual"></div>
+        
+
             {% if game_names_with_ids %}
                 <h4>Found Games:</h4>
                 <div class="list-group">
@@ -136,6 +143,10 @@
         <div id="unmatchedFolders" class="container tab-pane fade"><br>
             <div class="glass-panel">
                 <h3>Resolve Unmatched Folders</h3>
+                <!-- spinner -->
+                <div id="globalSpinner" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                    <img src="{{ url_for('static', filename='/statis/newstyle/pirate_treasure.gif') }}" alt="Loading...">
+                </div>
 
                 <div class="container-unmatched-buttons mb-3">
                     <form action="" method="post">
@@ -169,7 +180,7 @@
                                     <input type="hidden" name="new_status" value="Ignore">
                                     <input type="submit" class="btn btn-secondary btn-sm" value="Ignore">
                                 </form>
-                                <!-- Inside the loop for displaying folders -->
+
                                 <form class="delete-folder-form" style="display: inline;">
                                     {{ csrf_form.csrf_token }}
                                     <input type="hidden" name="folder_path" value="{{ folder.folder_path }}">
@@ -230,18 +241,29 @@
 <script src="{{ url_for('static', filename='js/scan_management.js') }}"></script>
 
 <script>
+    function showSpinner() {
+        document.getElementById('globalSpinner').style.display = 'block';
+    }
+    
+    function hideSpinner() {
+        document.getElementById('globalSpinner').style.display = 'none';
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
-        
+        console.log("Document loaded. Setting up form submission handlers and tab activation based on activeTab.");
+    
         document.querySelectorAll('.delete-folder-form').forEach(form => {
             form.addEventListener('submit', function(event) {
                 event.preventDefault(); 
+                showSpinner(); // Now accessible
     
                 const formData = new FormData(form);
                 const folderPath = formData.get('folder_path');
                 const csrfToken = "{{ csrf_token() }}"; 
-                
+                console.log("Submitting delete-folder-form for folderPath:", folderPath);
+    
                 // Perform the AJAX request
-                fetch('/delete_folder', { // Using direct path instead of url_for
+                fetch('/delete_folder', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -250,39 +272,48 @@
                     body: JSON.stringify({folder_path: folderPath})
                 }).then(response => response.json())
                 .then(data => {
-                    
-                    // Instead of alert, consider using a more user-friendly method 
-                    alert(data.message);
-    
+                    console.log("Response received from delete_folder request:", data);
+                    alert(data.message); // Consider using a more user-friendly notification
+                    hideSpinner(); // Now accessible
                     
                     if(data.status === 'success') {
+                        console.log("Delete operation successful, removing form from DOM.");
                         form.parentElement.parentElement.remove();
                     }
-                }).catch(error => console.error('Error:', error));
+                }).catch(error => {
+                    console.error('Error during fetch operation for delete_folder:', error);
+                    hideSpinner(); // Now accessible
+                });
             });
         });
+
         var activeTab = "{{ active_tab }}";
-        console.log("Active tab:", activeTab);
+        console.log("Active tab determined from server-side:", activeTab);
 
         if (activeTab === 'manual') {
+            console.log("Activating manualScan tab.");
             new bootstrap.Tab(document.querySelector('#manualScan-tab')).show();
         } else if (activeTab === 'unmatched') {
+            console.log("Activating unmatchedFolders tab.");
             new bootstrap.Tab(document.querySelector('#unmatchedFolders-tab')).show();
         } else if (activeTab === 'deleteLibrary') {
+            console.log("Activating deleteLibrary tab.");
             new bootstrap.Tab(document.querySelector('#deleteLibrary-tab')).show();
         } else {
+            console.log("Defaulting to activating autoScan tab.");
             new bootstrap.Tab(document.querySelector('#autoScan-tab')).show();
         }
-
         
         var deleteAllGamesBtn = document.getElementById('deleteAllGamesBtn');
         if (deleteAllGamesBtn) {
             deleteAllGamesBtn.addEventListener('click', function() {
+                console.log("Showing delete warning modal.");
                 var deleteWarningModal = new bootstrap.Modal(document.getElementById('deleteWarningModal'));
                 deleteWarningModal.show();
             });
         }
     });
-    </script>
+</script>
+
             
 {% endblock %}

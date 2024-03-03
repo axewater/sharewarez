@@ -1,5 +1,5 @@
 # modules/routes.py
-import ast, uuid, json, random, requests, html, os, re, shutil, traceback, time, schedule, os
+import ast, uuid, json, random, requests, html, os, re, shutil, traceback, time, schedule, os, platform, tempfile
 from threading import Thread
 from config import Config
 from flask import Flask, render_template, flash, redirect, url_for, request, Blueprint, jsonify, session, abort, current_app, send_from_directory
@@ -7,7 +7,6 @@ from flask import copy_current_request_context
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_wtf import FlaskForm
 from flask_mail import Message as MailMessage
-from wtforms import StringField, PasswordField, SubmitField, FieldList, BooleanField
 from wtforms.validators import DataRequired, Email, Length
 from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 from sqlalchemy.orm import joinedload
@@ -1229,6 +1228,7 @@ def delete_image():
         print(f"Error deleting image: {str(e)}")
         return jsonify({'error': 'An unexpected error occurred while deleting the image'}), 500
 
+
 @bp.route('/scan_management', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -1260,6 +1260,7 @@ def scan_management():
             return redirect(url_for('main.scan_management'))
 
     active_tab = session.get('active_tab', 'auto')
+    print(f"Active tab: {active_tab}")
     return render_template('scan/scan_management.html', 
                            auto_form=auto_form, 
                            manual_form=manual_form, 
@@ -1388,9 +1389,10 @@ def clear_only_unmatched_folders():
 @login_required
 @admin_required
 def update_unmatched_folder_status():
+    print("Route: /update_unmatched_folder_status")
     folder_id = request.form.get('folder_id')
     new_status = request.form.get('new_status')
-
+    session['active_tab'] = 'unmatched'
     folder = UnmatchedFolder.query.filter_by(id=folder_id).first()
     if folder:
         folder.status = new_status
@@ -1589,49 +1591,44 @@ def admin_dashboard():
     return render_template('admin/admin_dashboard.html')
 
     
+
 @bp.route('/delete_folder', methods=['POST'])
 @login_required
 @admin_required
 def delete_folder():
-    data = request.get_json()  # Get the JSON data sent with the POST request
+    data = request.get_json()
     folder_path = data.get('folder_path') if data else None
 
     if not folder_path:
         return jsonify({'status': 'error', 'message': 'Folder path is required.'}), 400
 
-    # Normalize and absolute the path
     full_path = os.path.abspath(folder_path)
 
-    # Operating system checks
-    os_type = platform.system()
-    restricted_paths = []
+    folder_entry = UnmatchedFolder.query.filter_by(folder_path=folder_path).first()
 
-    if os_type == "Windows":
-        drive_letters = ['C:\\', 'D:\\', 'E:\\']  # Extend this list as needed
-        restricted_roots = ['Windows', 'Program Files', 'Program Files (x86)']
-        restricted_paths.extend(drive_letters)
-        restricted_paths.extend([f"{letter}{root}" for letter in drive_letters for root in restricted_roots])
-    elif os_type in ["Linux", "Darwin"]:  # Darwin is macOS's system type
-        restricted_paths = ['/', '/bin', '/etc', '/proc', '/boot', '/dev', '/lib32', '/libdrm', '/lost+found', '/root', '/sbin', '/srv', '/lib64', '/libx32']
+    if not os.path.isdir(full_path):
+        # If the folder does not exist, remove the database entry (if it exists)
+        if folder_entry:
+            db.session.delete(folder_entry)
+            db.session.commit()
+        return jsonify({'status': 'error', 'message': 'The specified path does not exist or is not a folder. Entry removed if it was in the database.'}), 404
 
-    # Check if the path is restricted
-    if any(full_path.lower().startswith(res_path.lower()) for res_path in restricted_paths):
-        return jsonify({'status': 'error', 'message': 'Deletion of specified folder is not allowed.'}), 403
+    # Attempt to delete the folder and handle permission errors separately
+    try:
+        shutil.rmtree(full_path)
+        if not os.path.exists(full_path):
+            # Folder deleted successfully, remove the database entry
+            if folder_entry:
+                db.session.delete(folder_entry)
+                db.session.commit()
+            return jsonify({'status': 'success', 'message': 'Folder deleted successfully. Database entry removed.'}), 200
+    except PermissionError:
+        # Permission error encountered, do not remove the database entry
+        return jsonify({'status': 'error', 'message': 'Failed to delete the folder due to insufficient permissions. Database entry retained.'}), 403
+    except Exception as e:
+        # Handle other exceptions, but do not remove the database entry
+        return jsonify({'status': 'error', 'message': f'Error deleting folder: {e}. Database entry retained.'}), 500
 
-    # Deletion process
-    if os.path.isdir(full_path):
-        try:
-            shutil.rmtree(full_path)
-            if not os.path.exists(full_path):
-                return jsonify({'status': 'success', 'message': 'Folder deleted successfully.'}), 200
-            else:
-                return jsonify({'status': 'error', 'message': 'Failed to delete the folder.'}), 500
-        except Exception as e:
-            return jsonify({'status': 'error', 'message': f'Error deleting folder: {e}'}), 500
-    else:
-        return jsonify({'status': 'error', 'message': 'The specified path is not a folder or does not exist.'}), 404    
-    
-    
 
 @bp.route('/admin/delete_library')
 @login_required
