@@ -118,7 +118,7 @@ def login():
 
             return _authenticate_and_redirect(username, password)
         else:
-            flash('Invalid username or password.', 'error')
+            flash('Invalid username or password. USERNAMES ARE CASE SENSITIVE!', 'error')
             return redirect(url_for('main.login'))
 
     return render_template('login/login.html', form=form)
@@ -1237,7 +1237,7 @@ def scan_management():
     manual_form = ScanFolderForm()
     jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
     csrf_form = CsrfProtectForm()
-    unmatched_folders = UnmatchedFolder.query.all()
+    unmatched_folders = UnmatchedFolder.query.order_by(UnmatchedFolder.status.desc()).all()
     unmatched_form = UpdateUnmatchedFolderForm() 
     try:
         game_count = Game.query.count()  # Fetch the game count here

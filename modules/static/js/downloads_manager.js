@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function() {
     downloads.forEach((download) => {
         const gameUuid = download.getAttribute("data-game-uuid");
         checkDownloadStatus(gameUuid);
-        setInterval(() => checkDownloadStatus(gameUuid), 1000); // every 5 seconds
+        setInterval(() => checkDownloadStatus(gameUuid), 3000); // every 3 seconds
     });
 });
 

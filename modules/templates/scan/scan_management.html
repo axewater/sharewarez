@@ -239,53 +239,60 @@
     </div>
 </div>
 <script src="{{ url_for('static', filename='js/scan_management.js') }}"></script>
-
 <script>
-    function showSpinner() {
-        document.getElementById('globalSpinner').style.display = 'block';
-    }
-    
-    function hideSpinner() {
-        document.getElementById('globalSpinner').style.display = 'none';
-    }
-    
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log("Document loaded. Setting up form submission handlers and tab activation based on activeTab.");
-    
-        document.querySelectorAll('.delete-folder-form').forEach(form => {
-            form.addEventListener('submit', function(event) {
-                event.preventDefault(); 
-                showSpinner(); // Now accessible
-    
-                const formData = new FormData(form);
-                const folderPath = formData.get('folder_path');
-                const csrfToken = "{{ csrf_token() }}"; 
-                console.log("Submitting delete-folder-form for folderPath:", folderPath);
-    
-                // Perform the AJAX request
-                fetch('/delete_folder', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': csrfToken
-                    },
-                    body: JSON.stringify({folder_path: folderPath})
-                }).then(response => response.json())
-                .then(data => {
-                    console.log("Response received from delete_folder request:", data);
-                    alert(data.message); // Consider using a more user-friendly notification
-                    hideSpinner(); // Now accessible
-                    
-                    if(data.status === 'success') {
-                        console.log("Delete operation successful, removing form from DOM.");
-                        form.parentElement.parentElement.remove();
+function showSpinner() {
+    document.getElementById('globalSpinner').style.display = 'block';
+}
+
+function hideSpinner() {
+    document.getElementById('globalSpinner').style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Document loaded. Setting up form submission handlers and tab activation based on activeTab.");
+
+    document.querySelectorAll('.delete-folder-form').forEach(form => {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            showSpinner();
+            
+            const folderPath = form.querySelector('[name="folder_path"]').value; // Ensure this matches your form structure
+            console.log("Attempting to delete folder with path:", folderPath); // Debugging log
+            
+            fetch('/delete_folder', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': "{{ csrf_token() }}" // Adjust as needed
+                },
+                body: JSON.stringify({folder_path: folderPath})
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Server response:", data); // Log the server response
+                
+                if(data.status === 'success') {
+                    console.log("Deletion successful, removing row.");
+                    form.closest('tr').remove();
+                } else {
+                    console.log("Deletion not successful:", data.message); // Log failure message
+                    // If you want to remove the row even when the folder doesn't exist, adjust logic here
+                    if (data.message === "The specified path does not exist or is not a folder. Entry removed if it was in the database.") {
+                        console.log("Folder does not exist, removing row.");
+                        form.closest('tr').remove(); // This line assumes your condition for removing the row matches this message
                     }
-                }).catch(error => {
-                    console.error('Error during fetch operation for delete_folder:', error);
-                    hideSpinner(); // Now accessible
-                });
+                }
+                alert(data.message); // Show message to user
+            })
+            .catch(error => {
+                console.error('Fetch error:', error); // Log any fetch error
+            })
+            .finally(() => {
+                hideSpinner(); // Ensure spinner is always hidden after operation
             });
         });
+    });
+    
 
         var activeTab = "{{ active_tab }}";
         console.log("Active tab determined from server-side:", activeTab);

@@ -584,6 +584,7 @@ font-size: large;
     border-radius: 8px;
     color: black;
     margin: 3px;
+    margin-left: 3px !important;
     height: 38px;
     box-shadow: inset 1px 3px 5px rgb(41, 37, 37);
 }
