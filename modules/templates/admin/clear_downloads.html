@@ -15,14 +15,13 @@
 </div>
 <div class="glass-panel-scanfolder">
 <h2>Download Requests</h2>
-You can clear download jobs here that got stuck
 {% if download_requests %}
     <table class="table table-striped">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>User ID</th>
-                <th>Game UUID</th>
+                <th>Game UUID (Part)</th>
                 <th>Status</th>
                 <th>Zip File Path</th>
                 <th>Request Time</th>
@@ -34,13 +33,14 @@ You can clear download jobs here that got stuck
             <tr>
                 <td>{{ request.id }}</td>
                 <td>{{ request.user_id }}</td>
-                <td>{{ request.game_uuid }}</td>
+                <td>{{ request.game_uuid[:8] }}</td>
                 <td>{{ request.status }}</td>
                 <td>{{ request.zip_file_path }}</td>
-                <td>{{ request.request_time }}</td>
-                <td>{{ request.completion_time }}</td>
+                <td>{{ request.request_time.strftime('%Y-%m-%d %H:%M') }}</td> <!-- Format request time -->
+                <td>{{ request.completion_time.strftime('%Y-%m-%d %H:%M') }}</td> <!-- Format completion time -->
             </tr>
             {% endfor %}
+            
         </tbody>
     </table>
 {% else %}
