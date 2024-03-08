@@ -12,20 +12,20 @@ Before you start, make sure you have the following prerequisites installed on yo
 
 First, create and activate a virtual environment for your project:
 
-
-bash
+```
 python -m venv venv
 python -m pip install -r requirements.txt
 .\venv\Scripts\Activate
-
+```
 
 ## 2. Install PostgreSQL
 
 Next, install PostgreSQL and create a database named `sharewarez`:
 
+```
 psql -U postgres -h localhost
 CREATE DATABASE sharewarez;
-
+```
 
 ## 3a. Setup with Mail Features Enabled
 
