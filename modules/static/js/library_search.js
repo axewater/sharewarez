@@ -4,7 +4,7 @@ $(document).ready(function() {
     $(document).on('keypress', function(e) {
         if (!$("input, textarea").is(":focus")) {
             $('#searchModal').modal('show');
-            $('#searchInput').focus();
+            $('#searchInput').focus().val(String.fromCharCode(e.which)); // Convert key code to character and set as value
         }
     });
 

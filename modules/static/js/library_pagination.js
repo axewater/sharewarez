@@ -194,9 +194,13 @@ $(document).ready(function() {
     return gameCardHtml;
 }
 
+let i =0;
+
 function createPopupMenuHtml(game) {
     // when modifying this function, make sure to update the popup_menu.html template as well
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    console.log(i++, game);
+    window.game = game;
     return `
     <div id="popupMenu-${game.uuid}" class="popup-menu" style="display: none;">
         <form action="/download_game/${game.uuid}" method="get" class="menu-item">
@@ -213,11 +217,13 @@ function createPopupMenuHtml(game) {
 
         <form action="/refresh_game_images/${game.uuid}" method="post" class="menu-item">
             <input type="hidden" name="csrf_token" value="${csrfToken}">
-            
             <button type="submit" class="menu-button refresh-game-images" data-game-uuid="${game.uuid}">Refresh Images</button>
         </form>
         <div class="menu-item">
             <button type="button" class="menu-button delete-game" data-game-uuid="${game.uuid}">Remove Game</button>
+        </div>
+        <div class="menu-item">
+            <button type="button" class="menu-button trigger-delete-disk-modal" data-game-uuid="${game.uuid}">Delete Game from Disk</button>
         </div>
         <div class="menu-item">
             <a href="${game.url}" target="_blank" class="menu-button" style="text-decoration: none; color: inherit;">Open IGDB Page</a>
@@ -225,6 +231,7 @@ function createPopupMenuHtml(game) {
     </div>
     `;
 }
+
 
   $('#sortOrderToggle').click(function() {
       sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';

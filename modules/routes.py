@@ -1533,11 +1533,26 @@ def refresh_game_images(game_uuid):
         return redirect(url_for('main.library'))
 
 
+
+@bp.route('/admin/dashboard')
+@login_required
+@admin_required
+
+def admin_dashboard():
+    pass
+    return render_template('admin/admin_dashboard.html')
+
+    
+
+
+
+
 @bp.route('/delete_game/<string:game_uuid>', methods=['POST'])
 @login_required
 @admin_required
 def delete_game_route(game_uuid):
-    # This wrapper function is only to adapt the route to the modified delete_game function.
+    print(f"Route: /delete_game - {current_user.name} - {current_user.role} method: {request.method} UUID: {game_uuid}")
+    
     delete_game(game_uuid)
     return redirect(url_for('main.library'))
 
@@ -1561,10 +1576,10 @@ def delete_game(game_identifier):
 
     try:
         print(f"Found game to delete: {game_to_delete}")
-        # Assume you have a utility function to handle the associations deletion
+        
         delete_associations_for_game(game_to_delete)
         
-        # Assuming delete_game_images is capable of handling deletion by UUID.
+        
         delete_game_images(game_uuid_str)
         db.session.delete(game_to_delete)
         db.session.commit()
@@ -1580,17 +1595,7 @@ def delete_associations_for_game(game_to_delete):
                     game_to_delete.themes, game_to_delete.player_perspectives, game_to_delete.multiplayer_modes]
     
     for association in associations:
-        association.clear()  # Assuming `.clear()` is valid for your ORM setup
-
-@bp.route('/admin/dashboard')
-@login_required
-@admin_required
-
-def admin_dashboard():
-    pass
-    return render_template('admin/admin_dashboard.html')
-
-    
+        association.clear()
 
 @bp.route('/delete_folder', methods=['POST'])
 @login_required
@@ -1607,27 +1612,59 @@ def delete_folder():
     folder_entry = UnmatchedFolder.query.filter_by(folder_path=folder_path).first()
 
     if not os.path.isdir(full_path):
-        # If the folder does not exist, remove the database entry (if it exists)
         if folder_entry:
             db.session.delete(folder_entry)
             db.session.commit()
         return jsonify({'status': 'error', 'message': 'The specified path does not exist or is not a folder. Entry removed if it was in the database.'}), 404
 
-    # Attempt to delete the folder and handle permission errors separately
     try:
         shutil.rmtree(full_path)
         if not os.path.exists(full_path):
-            # Folder deleted successfully, remove the database entry
             if folder_entry:
                 db.session.delete(folder_entry)
                 db.session.commit()
             return jsonify({'status': 'success', 'message': 'Folder deleted successfully. Database entry removed.'}), 200
     except PermissionError:
-        # Permission error encountered, do not remove the database entry
         return jsonify({'status': 'error', 'message': 'Failed to delete the folder due to insufficient permissions. Database entry retained.'}), 403
     except Exception as e:
-        # Handle other exceptions, but do not remove the database entry
         return jsonify({'status': 'error', 'message': f'Error deleting folder: {e}. Database entry retained.'}), 500
+
+
+
+@bp.route('/delete_full_game', methods=['POST'])
+@login_required
+@admin_required
+def delete_full_game():
+    print(f"Route: /delete_full_game - {current_user.name} - {current_user.role} method: {request.method}")
+    data = request.get_json()
+    game_uuid = data.get('game_uuid') if data else None
+
+    if not game_uuid:
+        return jsonify({'status': 'error', 'message': 'Game UUID is required.'}), 400
+
+    game_to_delete = Game.query.filter_by(uuid=game_uuid).first()
+
+    if not game_to_delete:
+        return jsonify({'status': 'error', 'message': 'Game not found.'}), 404
+
+    full_path = game_to_delete.full_disk_path
+
+    if not os.path.isdir(full_path):
+        return jsonify({'status': 'error', 'message': 'Game folder does not exist.'}), 404
+
+    try:
+        # Delete the game folder
+        print(f"Deleting game folder: {full_path}")
+        shutil.rmtree(full_path)
+        if os.path.exists(full_path):
+            raise Exception("Folder deletion failed")
+        print(f"Game folder deleted: {full_path}")
+        delete_game(game_uuid)
+
+        return jsonify({'status': 'success', 'message': 'Game and its folder have been deleted successfully.'}), 200
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': f'Error deleting game and folder: {e}'}), 500
+
 
 
 @bp.route('/admin/delete_library')
