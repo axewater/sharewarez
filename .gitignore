@@ -8,3 +8,4 @@ instance/app.db
 /modules/static/zips/*
 /modules/static/images/
 /modules/static/images/*
+/venv

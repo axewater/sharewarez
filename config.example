@@ -3,7 +3,7 @@ from datetime import timedelta
 
 class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY') or '1111222232334434545455666778898fhdesuilv'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'postgresql://postgres:!Piratingin2024!@localhost/sharewarez'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     IMAGE_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/images')
     ZIP_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/zips')
