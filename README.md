@@ -74,9 +74,10 @@ For a setup without mail:
 - Run `setup.py` to create an admin user.
 - Start the application by running `app.py`.
 
-### Creating Additional Users
+### Other notes
 
 - Use the admin panel to create any additional users as needed.
+- The app runs on port 5001, you can simply change this in app.py
 
 ---
 
