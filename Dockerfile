@@ -5,9 +5,10 @@ COPY ./requirements.txt /app
 RUN pip install -r requirements.txt
 COPY . .
 EXPOSE 5001
-ENV FLASK_APP=app.py
-ENV DATABASE_URL='postgresql://sharewarez:!Piratingin2024!@db/sharewarez'
-RUN python docker_adduser.py
+RUN chmod a+x /app/entrypoint.sh
 
-#CMD ["flask", "run", "--host", "0.0.0.0"]
-#CMD ["bash", "-c", "while true; do sleep 3600; done"]
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait /wait
+RUN chmod +x /wait
+
+ENTRYPOINT ["/app/entrypoint.sh"]
+
