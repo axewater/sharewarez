@@ -773,30 +773,34 @@ def browse_games():
         'current_page': page
     })
     
+
 @bp.route('/browse_folders_ss')
 @login_required
 @admin_required
 def browse_folders_ss():
-
     # Select base by OS
     base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
     print(f'SS folder browser: Base directory: {base_dir}')
+    
+    # Attempt to get 'path' from request arguments; default to an empty string which signifies the base directory
     req_path = request.args.get('path', '')
 
+    # Handle the default path case
     if not req_path:
         folder_path = base_dir
     else:
+        # Safely construct the folder path to prevent directory traversal vulnerabilities
         folder_path = os.path.abspath(os.path.join(base_dir, req_path))
+        # Prevent directory traversal outside the base directory
         if not folder_path.startswith(base_dir):
-            # no dir traversal
             return jsonify({'error': 'Access denied'}), 403
 
     if os.path.isdir(folder_path):
-        contents = [{'name': item, 'isDir': True} for item in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, item))]
+        # List directory contents; distinguish between files and directories
+        contents = [{'name': item, 'isDir': os.path.isdir(os.path.join(folder_path, item))} for item in os.listdir(folder_path)]
         return jsonify(contents)
     else:
         return jsonify({'error': 'Folder not found'}), 404
-
 
 
 
