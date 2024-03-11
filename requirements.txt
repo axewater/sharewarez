@@ -27,3 +27,6 @@ Flask-APScheduler
 wtforms-sqlalchemy
 schedule
 psycopg2-binary
+greenlet==3.0.3
+SQLAlchemy==2.0.28
+typing_extensions==4.10.0

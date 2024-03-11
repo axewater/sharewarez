@@ -6,7 +6,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session  # Upd
 from werkzeug.security import generate_password_hash
 
 # Editable database URI
-DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:password@localhost/sharewarez')
+DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://sharewarez:!Piratingin2024!@localhost/sharewarez')
 
 Base = declarative_base()
 
