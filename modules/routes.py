@@ -23,6 +23,8 @@ from PIL import ImageOps
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from authlib.jose import jwt
 from authlib.jose.errors import DecodeError
+from urllib.parse import unquote
+
 
 from modules.forms import (
     UserPasswordForm, UserDetailForm, EditProfileForm, NewsletterForm, WhitelistForm, EditUserForm, 
@@ -770,13 +772,12 @@ def browse_games():
         'pages': pagination.pages,
         'current_page': page
     })
-
-
+    
 @bp.route('/browse_folders_ss')
 @login_required
 @admin_required
 def browse_folders_ss():
-    
+
     # Select base by OS
     base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
     print(f'SS folder browser: Base directory: {base_dir}')

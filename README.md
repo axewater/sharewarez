@@ -31,7 +31,28 @@ CREATE DATABASE sharewarez;
 
 To set up the app with mail features:
 
-1. **Create `config.py`**: Copy `config.py.example`. Ensure `INITIAL_WHITELIST` contains the admin's email.
+1. **Create `config.py`**: 
+    Copy config.py.example: Start by making a copy of config.py.example and rename it to config.py. This file will serve as the basis for your application's configuration.
+
+    Set a Secret Key: Generate a secret key that is random and long. This key is crucial for securely signing your app's sessions and cookies. Use a combination of letters, numbers, and symbols to make it as secure as possible.
+
+    Enter Database URI: Specify the URI of your database in the DATABASE_URI setting. This URI should include the username, password, host, and database name.
+
+    Configure SMTP Settings: To enable email sending capabilities for user registration and notifications, configure the SMTP settings as follows:
+        MAIL_SERVER: The address of your mail server.
+        MAIL_PORT: The port your mail server uses for outgoing mail.
+        MAIL_USE_TLS: Set to True or False depending on your server's requirements.
+        MAIL_USERNAME: Your mail server username.
+        MAIL_PASSWORD: Your mail server password.
+
+    Ensure INITIAL_WHITELIST Contains the Admin's Email: Add the admin's email address to the INITIAL_WHITELIST in your configuration. This step is crucial for granting initial access and administrative privileges.
+
+    Obtain IGDB API Keys:
+        Visit the IGDB API Docs and follow the instructions to obtain your IGDB Client ID and Client Secret. These keys are necessary for making requests to the IGDB API.
+        Enter the IGDB Client ID and Client Secret into your config.py.
+
+    Setup Base Folder Access Restriction: Configure your web server to restrict access to the base folder of your application. This measure is important for security, ensuring that sensitive files and directories are not accessible from the web.
+
 2. **Database URI**: Should point to your newly created database.
 3. **IGDB API Keys**: Obtain your keys from [IGDB API Docs](https://api-docs.igdb.com/#getting-started).
 

@@ -7,6 +7,8 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     IMAGE_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/images')
     ZIP_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/zips')
+    THEME_FILES = os.path.join(os.path.dirname(__file__), 'modules/static/themes')
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'modules/static')
     MAIL_SERVER = 'mail.myisp.com'
     MAIL_PORT = 25
     MAIL_USE_TLS = False
@@ -19,3 +21,8 @@ class Config(object):
     IGDB_CLIENT_SECRET = 'get this from igdb'
     IGDB_API_ENDPOINT = 'https://api.igdb.com/v4/games'
     SCHEDULER_API_ENABLED = True
+        # OS-specific base folder paths
+    if os.name == 'nt':  # Windows
+        BASE_FOLDER_WINDOWS = 'Z:\\'
+    else:  # POSIX (Linux, Unix, MacOS, etc.)
+        BASE_FOLDER_POSIX = '/storage'
