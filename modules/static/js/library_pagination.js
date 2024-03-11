@@ -6,6 +6,8 @@ $('#sortOrderToggle').text(sortOrder === 'asc' ? '^' : '~');
 
 
 $(document).ready(function() {
+  var initialParams = getUrlParams();
+  console.log("Initial URL Parameters:", initialParams);
   var currentPage = 1;
   var totalPages = 0;
   csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -128,14 +130,15 @@ $(document).ready(function() {
       game_mode: $('#gameModeSelect').val() || urlParams.gameMode,
       player_perspective: $('#playerPerspectiveSelect').val() || urlParams.playerPerspective,
       theme: $('#themeSelect').val() || urlParams.theme,
-      rating: $('#ratingSlider').val() || urlParams.rating,
+      rating: $('#ratingSlider').val() !== '0' ? $('#ratingSlider').val() : undefined, // if 0, do not filter!
       sort_by: $('#sortSelect').val(),
       sort_order: sortOrder,
     };
 
-    console.log("Filters before AJAX request:", filters);
-    console.log("Current sort order: ", sortOrder);
-
+    // Enhanced Logging
+    console.log("Fetching games with filters:", filters);
+    var queryString = $.param(filters); // Convert filters object to query string
+    console.log(`Full query URL: /browse_games?${queryString}`);
 
     // AJAX request using filters, including those from URL parameters
     $.ajax({

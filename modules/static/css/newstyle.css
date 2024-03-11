@@ -960,8 +960,8 @@ form textarea {
     position: relative;
     top: 0;
     left: 0;
-    width: auto;
-    max-width: 50px;
+    min-width: 40px;
+    max-width: 75px;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -1173,4 +1173,5 @@ form textarea {
         padding-left: 5px;
         transition: font-size 28px ease;
     }
+
 }

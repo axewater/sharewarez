@@ -32,7 +32,7 @@ from modules.forms import (
 )
 from modules.models import (
     User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, 
-    Platform, Genre, Theme, GameMode, MultiplayerMode, PlayerPerspective
+    Platform, Genre, Theme, GameMode, MultiplayerMode, PlayerPerspective, Category
 )
 from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
@@ -610,17 +610,16 @@ def get_player_perspectives():
 def library():
     # Extract filters from request arguments
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 20, type=int)
+    per_page = request.args.get('per_page', 16, type=int)
     genre = request.args.get('genre')
     rating = request.args.get('rating', type=int)
     game_mode = request.args.get('game_mode')
     player_perspective = request.args.get('player_perspective')
     theme = request.args.get('theme')
-    sort_by = request.args.get('sort_by', 'name')  # Default sorting by name
-    sort_order = request.args.get('sort_order', 'asc')  # Default sorting order
+    sort_by = request.args.get('sort_by', 'name')
+    sort_order = request.args.get('sort_order', 'asc')
 
     print(f"Filters: {genre}, {rating}, {game_mode}, {player_perspective}, {theme}")
-    # Pass extracted filters to get_games
     filters = {
         'genre': genre,
         'rating': rating,
@@ -678,7 +677,7 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
     game_data = []
     for game in games:
         cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
-        cover_url = cover_image.url if cover_image else None
+        cover_url = cover_image.url if cover_image else "newstyle/default_cover.jpg"
         genres = [genre.name for genre in game.genres]
         game_size_formatted = format_size(game.size)
 
@@ -751,7 +750,7 @@ def browse_games():
 
     for game in games:
         cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
-        cover_url = cover_image.url if cover_image else url_for('static', filename='newstyle/default_cover.jpg')
+        cover_url = cover_image.url if cover_image else 'newstyle/default_cover.jpg'
         genres = [genre.name for genre in game.genres]
         game_size_formatted = format_size(game.size)
         game_data.append({
@@ -1045,7 +1044,8 @@ def game_edit(game_uuid):
         game.aggregated_rating = form.aggregated_rating.data
         game.first_release_date = form.first_release_date.data
         game.status = form.status.data
-        game.category = form.category.data
+        category_str = form.category.data  # This might be a string like 'MAIN_GAME'
+        game.category = Category[category_str]  # Convert string to Category enum member
         
         # Handling Developer
         developer_name = form.developer.data
