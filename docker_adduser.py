@@ -47,6 +47,12 @@ def create_admin_user():
         print("Error details:", e)
         return
 
+    # Check if the admin user already exists
+    existing_admin_user = session.query(User).filter_by(role="admin").first()
+    if existing_admin_user:
+        print("Admin user already exists. No action taken.")
+        return  # Stop the function if an admin user already exists
+
     username = os.getenv('APP_USERNAME', 'admin')
     password = os.getenv('APP_PASSWORD', 'admin')
     hashed_password = generate_password_hash(password)
@@ -71,6 +77,7 @@ def create_admin_user():
         print("Failed to create admin user. Error details:", e)
     finally:
         session.remove()
+
 
 if __name__ == '__main__':
     print(DATABASE_URI)
