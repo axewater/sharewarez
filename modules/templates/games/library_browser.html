@@ -7,7 +7,7 @@
     <title>Browse Games</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/library_browser.css') }}">
     <script src="{{ url_for('static', filename='js/popup_menu.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/library_browser.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/library_slideshow.js') }}"></script>
     <script src="{{ url_for('static', filename='js/library_pagination.js') }}"></script>
     <script src="{{ url_for('static', filename='js/library_search.js') }}"></script>
 </head>
@@ -75,7 +75,7 @@
                 <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
                     <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
                     {% with game_uuid=game.uuid, game_url=game.url %}
-                    {% include 'games/popup_menu.html' %}
+             
                     {% endwith %}
                     {% if game.cover_url %}
                             <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">

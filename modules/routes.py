@@ -1034,6 +1034,18 @@ def game_edit(game_uuid):
     form = AddGameForm(obj=game)  # Pre-populate form
     
     if form.validate_on_submit():
+        # Check if any other game has the same igdb_id and is not the current game
+        existing_game_with_igdb_id = Game.query.filter(
+            Game.igdb_id == form.igdb_id.data,
+            Game.id != game.id  # Ensure it's not the current game being updated
+        ).first()
+        
+        if existing_game_with_igdb_id is not None:
+            # Inform the user that the igdb_id is already in use
+            flash(f'The IGDB ID {form.igdb_id.data} is already used by another game.', 'error')
+            return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, action="edit")
+        
+        
         game.igdb_id = form.igdb_id.data
         game.name = form.name.data
         game.summary = form.summary.data

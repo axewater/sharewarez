@@ -340,7 +340,7 @@
     padding: 0;
     width: 90%;
     background-color: #080e1d;
-    
+    z-index: 15;
 }
 
 .close {
