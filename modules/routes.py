@@ -1056,8 +1056,16 @@ def game_edit(game_uuid):
         game.aggregated_rating = form.aggregated_rating.data
         game.first_release_date = form.first_release_date.data
         game.status = form.status.data
-        category_str = form.category.data  # This might be a string like 'MAIN_GAME'
-        game.category = Category[category_str]  # Convert string to Category enum member
+        category_str = form.category.data  # This might be a string like 'Category.BUNDLE'
+        # Remove the 'Category.' prefix and get the correct enum member
+        category_str = category_str.replace('Category.', '')  # Now it should be just 'BUNDLE'
+        if category_str in Category.__members__:
+            game.category = Category[category_str]
+        else:
+            # Handle the case where the category string does not match any enum member
+            flash(f'Invalid category: {category_str}', 'error')
+            return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, action="edit")
+        
         
         # Handling Developer
         developer_name = form.developer.data
