@@ -6,6 +6,5 @@ instance/app.db
 /logs
 /modules/static/zips/
 /modules/static/zips/*
-/modules/static/images/
-/modules/static/images/*
+/modules/static/images/*.jpg
 /venv
