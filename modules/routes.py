@@ -1,5 +1,5 @@
 # modules/routes.py
-import ast, uuid, json, random, requests, html, os, re, shutil, traceback, time, schedule, os, platform, tempfile
+import sys,ast, uuid, json, random, requests, html, os, re, shutil, traceback, time, schedule, os, platform, tempfile
 from threading import Thread
 from config import Config
 from flask import Flask, render_template, flash, redirect, url_for, request, Blueprint, jsonify, session, abort, current_app, send_from_directory
@@ -786,7 +786,7 @@ def browse_games():
 def browse_folders_ss():
     # Select base by OS
     base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
-    print(f'SS folder browser: Base directory: {base_dir}')
+    print(f'SS folder browser: Base directory: {base_dir}', file=sys.stderr)
     
     # Attempt to get 'path' from request arguments; default to an empty string which signifies the base directory
     req_path = request.args.get('path', '')

@@ -13,7 +13,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - "B:/:/storage"
+      - "B:/SteamLibrary/steamapps/common:/storage"
   app:
     build:
       context: .
