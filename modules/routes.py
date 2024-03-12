@@ -30,7 +30,7 @@ from modules.forms import (
     UserPasswordForm, UserDetailForm, EditProfileForm, NewsletterForm, WhitelistForm, EditUserForm, 
     UserManagementForm, ScanFolderForm, IGDBApiForm, ClearDownloadRequestsForm, CsrfProtectForm, 
     AddGameForm, LoginForm, ResetPasswordRequestForm, AutoScanForm, UpdateUnmatchedFolderForm, 
-    ReleaseGroupForm, RegistrationForm, CsrfForm
+    ReleaseGroupForm, RegistrationForm, CreateUserForm, CsrfForm
 )
 from modules.models import (
     User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, 
@@ -262,6 +262,52 @@ def reset_password(token):
         return redirect(url_for('main.login'))
 
     return render_template('login/reset_password.html', form=form, token=token)
+
+
+
+@bp.route('/admin/create_user', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_user():
+    # Initialize the user creation form
+    form = CreateUserForm()
+
+    # Handle form submission
+    if form.validate_on_submit():
+        try:
+            # Create a new user
+            user = User(
+                name=form.username.data,
+                email=form.email.data.lower(),
+                role='user',
+                is_email_verified=True,  # Automatically set to True
+                user_id=str(uuid4()),  # Generate a UUID for the user
+                created=datetime.utcnow()
+            )
+            user.set_password(form.password.data)  # Set the user's password
+            print(f"Debug: User created: {user}")
+            db.session.add(user)
+            db.session.commit()
+
+            # Redirect to a success page
+            flash('User created successfully.', 'success')
+            return redirect(url_for('main.user_created'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred: {str(e)}', 'danger')
+
+    # Render the registration form
+    return render_template('admin/create_user.html', form=form)
+
+# Route for the user creation success page
+@bp.route('/admin/user_created')
+@login_required
+@admin_required
+def user_created():
+    return render_template('admin/create_user_done.html')
+
+
+
 
 ################### API ROUTES ###################################################################################
 ################### API ROUTES ###################################################################################
@@ -1865,6 +1911,7 @@ def check_download_status(game_uuid):
 
 
 @bp.route('/admin/clear-downloads', methods=['GET', 'POST'])
+@login_required
 @admin_required
 def clear_downloads():
     print("Route: /admin/clear-downloads")

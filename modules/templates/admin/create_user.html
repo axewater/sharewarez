@@ -1,0 +1,63 @@
+<!-- create_user.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h1>Create New User</h1>
+    <form id="createUserForm" method="POST" action="{{ url_for('main.create_user') }}">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.username.label(class="form-label") }}
+            {{ form.username(class="form-control") }}
+            <small id="usernameAvailabilityFeedback"></small> <!-- Feedback text for username availability -->
+        </div>
+        <div class="mb-3">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.confirm_password.label(class="form-label") }}
+            {{ form.confirm_password(class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary">Create User</button>
+    </form>
+</div>
+{% endblock %}
+<!-- Include this script in the HTML template, or link to an external JavaScript file -->
+<script>
+    // Function to check username availability
+    function checkUsernameAvailability() {
+        var username = document.getElementById('username').value;
+        if (!username) return; // Skip if username is empty
+
+        // Send AJAX request to check username availability
+        fetch('/api/check_username', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': "{{ csrf_token() }}" // Include CSRF token for Flask
+            },
+            body: JSON.stringify({ username: username })
+        })
+        .then(response => response.json())
+        .then(data => {
+            var feedback = document.getElementById('usernameAvailabilityFeedback');
+            if (data.exists) {
+                feedback.textContent = 'Username not available';
+                feedback.style.color = 'red'; // Set text color to red
+            } else {
+                feedback.textContent = 'Username available';
+                feedback.style.color = 'green'; // Set text color to green
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    // Attach event listener to username field to trigger username availability check
+    document.getElementById('username').addEventListener('blur', checkUsernameAvailability);
+</script>

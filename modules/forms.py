@@ -2,7 +2,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SelectField, BooleanField, SubmitField, PasswordField, TextAreaField, RadioField, FloatField, DateTimeField, ValidationError, HiddenField
 from flask_wtf.file import FileField, FileAllowed, FileRequired
-from wtforms.validators import DataRequired, Length, Optional, NumberRange, Regexp, URL,Email
+from wtforms.validators import DataRequired, Length, Optional, NumberRange, Regexp, URL,Email, EqualTo
 from wtforms.widgets import TextInput
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField
 from wtforms.widgets import ListWidget, CheckboxInput
@@ -84,6 +84,15 @@ class UserManagementForm(FlaskForm):
     about = TextAreaField('Admin Notes', validators=[Optional()])
     submit = SubmitField('Save Changes')
     delete = SubmitField('Walk the plank!')
+
+
+class CreateUserForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Create User')
+
     
 class IGDBApiForm(FlaskForm):
     endpoint = SelectField('Select API Endpoint', choices=[
