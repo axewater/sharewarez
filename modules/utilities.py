@@ -517,7 +517,7 @@ def delete_game_images(game_uuid):
 
         for image in images_to_delete:
             
-            relative_image_path = image.url.replace('/static/images/', '').strip("/")
+            relative_image_path = image.url.replace('/static/library/images/', '').strip("/")
             image_file_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], relative_image_path)
             image_file_path = os.path.normpath(image_file_path)
 

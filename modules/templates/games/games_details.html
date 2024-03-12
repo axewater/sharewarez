@@ -34,7 +34,7 @@
                     
                     {% if game.images and game.images|length > 0 %}
                         <div class="game-card-coverimage">
-                            <img src="{{ url_for('static', filename='images/' + game.images[0].url) }}" alt="{{ game.name }} Cover Image" class="game-card-coverimage animated-entry">
+                            <img src="{{ url_for('static', filename='library/images/' + game.images[0].url) }}" alt="{{ game.name }} Cover Image" class="game-card-coverimage animated-entry">
                         </div>
                     {% endif %}
 
@@ -146,7 +146,7 @@
                 {% if game.images and game.images|length > 0 %}
                 <div class="screenshot-gallery">
                     {% for image in game.images %}
-                        <img src="{{ url_for('static', filename='images/' + image.url) }}" alt="{{ game.name }} Screenshot" class="screenshot-image" onclick="openModal();currentSlide({{ loop.index }})">
+                        <img src="{{ url_for('static', filename='library/images/' + image.url) }}" alt="{{ game.name }} Screenshot" class="screenshot-image" onclick="openModal();currentSlide({{ loop.index }})">
                     {% endfor %}
                 </div>
             {% endif %}
@@ -176,7 +176,7 @@
                 <div class="modal-content">
                     {% for image in game.images %}
                         <div class="mySlides">
-                            <img src="{{ url_for('static', filename='images/' + image.url) }}" class="screenshot-browser-image" style="width:100%">                        
+                            <img src="{{ url_for('static', filename='library/images/' + image.url) }}" class="screenshot-browser-image" style="width:100%">                        
                         </div>
                     {% endfor %}
                 </div>

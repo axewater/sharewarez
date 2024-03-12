@@ -218,7 +218,7 @@ class User(db.Model):
     created = db.Column(db.DateTime, default=datetime.utcnow)
     lastlogin = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.String(36), unique=True, nullable=False, default=str(uuid4()))
-    avatarpath = db.Column(db.String(256), default='avatars_users/default.jpg')
+    avatarpath = db.Column(db.String(256), default='newstyle/avatar_default.jpg')
     is_email_verified = db.Column(db.Boolean, default=False)
     email_verification_token = db.Column(db.String(256), nullable=True)
     password_reset_token = db.Column(db.String(256), nullable=True)

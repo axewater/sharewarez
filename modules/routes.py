@@ -412,18 +412,18 @@ def settings_profile_edit():
             thumbnail_path = os.path.splitext(image_path)[0] + '_thumbnail' + os.path.splitext(image_path)[1]
             img.save(thumbnail_path)
 
-            if old_avatarpath != 'avatars_users/default.jpg':
+            if old_avatarpath != 'newstyle/avatar_default.jpg':
                 try:
-                    os.remove(os.path.join(current_app.config['UPLOAD_FOLDER_USER'], os.path.basename(old_avatarpath)))
-                    os.remove(os.path.join(current_app.config['UPLOAD_FOLDER_USER'], os.path.basename(old_thumbnailpath)))
+                    os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], os.path.basename(old_avatarpath)))
+                    os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], os.path.basename(old_thumbnailpath)))
                 except Exception as e:
                     print(f"Error deleting old avatar: {e}")
                     flash("Error deleting old avatar. Please try again.", 'error')
 
-            current_user.avatarpath = 'avatars_users/' + uuid_filename
+            current_user.avatarpath = 'library/avatars_users/' + uuid_filename
         else:
             if not current_user.avatarpath:
-                current_user.avatarpath = 'avatars_users/default.jpg'
+                current_user.avatarpath = 'newstyle/avatar_default.jpg'
 
         
 
@@ -1271,7 +1271,7 @@ def upload_image(game_uuid):
     flash('Image(s) uploaded successfully', 'success')
     return jsonify({
         'message': 'File uploaded successfully',
-        'url': url_for('static', filename=f'images/{filename}'),
+        'url': url_for('static', filename=f'library/images/{filename}'),
         'flash': 'Image uploaded successfully!',
         'image_id': new_image.id
     })
@@ -1828,7 +1828,7 @@ def discover():
         game_details = []
         for game in games:
             cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
-            cover_url = cover_image.url if cover_image else url_for('static', filename='default_cover.jpg')
+            cover_url = cover_image.url if cover_image else url_for('static', filename='newstyle/default_cover.jpg')
             game_details.append({
                 'id': game.id,
                 'uuid': game.uuid,
@@ -1957,7 +1957,7 @@ def delete_download(download_id):
 @login_required
 def game_screenshots(game_uuid):
     screenshots = Image.query.filter_by(game_uuid=game_uuid, image_type='screenshot').all()
-    screenshot_urls = [url_for('static', filename=f'images/{screenshot.url}') for screenshot in screenshots]
+    screenshot_urls = [url_for('static', filename=f'library/images/{screenshot.url}') for screenshot in screenshots]
     return jsonify(screenshot_urls)
 
 

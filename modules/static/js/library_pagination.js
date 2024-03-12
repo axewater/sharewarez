@@ -174,7 +174,7 @@ $(document).ready(function() {
 
   function createGameCardHtml(game) {
     var genres = game.genres ? game.genres.join(', ') : 'No Genres';
-    var fullCoverUrl = game.cover_url.startsWith('http') ? game.cover_url : '/static/images/' + game.cover_url;
+    var fullCoverUrl = game.cover_url.startsWith('http') ? game.cover_url : '/static/library/images/' + game.cover_url;
     var popupMenuHtml = createPopupMenuHtml(game); // Ensure this function generates the correct HTML for your popup menu
 
     var gameCardHtml = `

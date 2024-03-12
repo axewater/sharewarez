@@ -25,7 +25,7 @@ def create_app():
     app.config.from_object(Config)
     csrf = CSRFProtect(app)
     app.config['WTF_CSRF_HEADERS'] = ['X-CSRFToken', 'X-CSRF-Token']
-    app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/avatars_users')
+    app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/library/avatars_users')
     db.init_app(app)
     login_manager.init_app(app)
     mail.init_app(app)

@@ -79,7 +79,7 @@
                     {% endwith %}
                     {% if game.cover_url %}
                             <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">
-                                <img src="{{ url_for('static', filename='images/' ~ game.cover_url) }}" alt="{{ game.name }}" class="game-cover">
+                                <img src="{{ url_for('static', filename='library/images/' ~ game.cover_url) }}" alt="{{ game.name }}" class="game-cover">
                             </a>
                         {% else %}
                         <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">

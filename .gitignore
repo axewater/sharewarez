@@ -11,3 +11,4 @@ instance/app.db
 /modules/static/zips/*
 /modules/static/images/*.jpg
 /venv
+modules/static/library

@@ -22,7 +22,7 @@ class User(Base):
     created = Column(DateTime, default=datetime.utcnow)
     lastlogin = Column(DateTime, default=datetime.utcnow)
     user_id = Column(String(36), unique=True, nullable=False, default=lambda: str(uuid4()))
-    avatarpath = Column(String(256), default='avatars_users/default.jpg')
+    avatarpath = Column(String(256), default='newstyle/avatar_default.jpg')
     is_email_verified = Column(Boolean, default=False)
     email_verification_token = Column(String(256), nullable=True)
     password_reset_token = Column(String(256), nullable=True)

@@ -28,10 +28,10 @@
             <h3>Cover Image</h3>
             <div id="cover-image-editor" class="image-editor-image">
                 {% if cover_image %}
-                    <img src="{{ url_for('static', filename='images/' + cover_image.url) }}" alt="Cover Image">
+                    <img src="{{ url_for('static', filename='library/images/' + cover_image.url) }}" alt="Cover Image">
                     <button onclick="deleteImage({{ cover_image.id }})">Delete Cover Image</button>
                 {% else %}
-                    <img src="{{ url_for('static', filename='images/default_cover.jpg') }}" alt="Default Cover Image">
+                    <img src="{{ url_for('static', filename='newstyle/default_cover.jpg') }}" alt="Default Cover Image">
                 {% endif %}
             </div>
             <div class="glass-panel-image-editor-upload">
@@ -43,7 +43,7 @@
                 {% for image in images %}
                 <div class="image-editor-image" id="image-{{ image.id }}">
                     <button onclick="deleteImage({{ image.id }})">Delete</button>
-                    <img src="{{ url_for('static', filename='images/' + image.url) }}" alt="Image">
+                    <img src="{{ url_for('static', filename='library/images/' + image.url) }}" alt="Image">
                     
                 </div>
                 {% endfor %}
