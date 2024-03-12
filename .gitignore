@@ -1,6 +1,8 @@
 __pycache__/
+modules/__pycache__/
 config.py
 .env
+./db_data/
 app.db
 instance/app.db
 /logs/*

@@ -2,29 +2,32 @@
 version: '3.9'
 
 services:
-  db:
-    image: postgres:16.2
-    restart: always
-    shm_size: 128mb
-    environment:
-      POSTGRES_USER: sharewarez
-      POSTGRES_PASSWORD: '!Piratingin2024!'
-      POSTGRES_DB: sharewarez
-    ports:
-      - "5432:5432"
-    volumes:
-      - "B:/SteamLibrary/steamapps/common:/storage"
   app:
     build:
       context: .
       dockerfile: Dockerfile
     privileged: true
+    image: edgecrush3r/sharewarez:0.1t
     ports:
       - "5001:5001"
     environment:
-      APP_USERNAME: admin
-      APP_PASSWORD: admindocker
-      DATABASE_URL: 'postgresql://sharewarez:!Piratingin2024!@db/sharewarez'
-      WAIT_HOSTS: db:5432
+      - APP_USERNAME=${SHAREWAREZ_USERNAME}
+      - APP_PASSWORD=${SHAREWAREZ_PASSWORD}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}
+      - WAIT_HOSTS="db:5432"
+    volumes:
+      - "${ROOT_DATA_FOLDER}:/storage"
     depends_on:
       - db     
+
+  db:
+    image: postgres:16.2
+    restart: always
+    shm_size: 128mb
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+       - ./db_data:/var/lib/postgresql/data/pgdata
