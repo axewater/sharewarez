@@ -78,7 +78,11 @@ def create_game_instance(game_data, full_disk_path, folder_size_mb):
         total_rating_count=game_data.get('total_rating_count'),
         video_urls=videos_comma_separated,
         full_disk_path=full_disk_path,
-        size=folder_size_mb
+        size=folder_size_mb,
+        date_created=datetime.utcnow(),
+        date_identified=datetime.utcnow(),
+        steam_url='',
+        times_downloaded=0
     )
     
     db.session.add(new_game)
@@ -259,7 +263,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
         # print(error_message)
         flash(error_message)
         return None
-
+ 
 
 def format_size(size_in_mb):
     try:

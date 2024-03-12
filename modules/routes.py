@@ -671,6 +671,9 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
         query = query.order_by(Game.first_release_date.asc() if sort_order == 'asc' else Game.first_release_date.desc())
     elif sort_by == 'size':
         query = query.order_by(Game.size.asc() if sort_order == 'asc' else Game.size.desc())
+    elif sort_by == 'date_identified':
+        query = query.order_by(Game.date_identified.asc() if sort_order == 'asc' else Game.date_identified.desc())
+
 
     # Pagination logic
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
@@ -682,6 +685,8 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
         cover_url = cover_image.url if cover_image else "newstyle/default_cover.jpg"
         genres = [genre.name for genre in game.genres]
         game_size_formatted = format_size(game.size)
+        first_release_date_formatted = game.first_release_date.strftime('%Y-%m-%d') if game.first_release_date else 'Not available'
+
 
         game_data.append({
             'id': game.id,
@@ -691,7 +696,8 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
             'summary': game.summary,
             'url': game.url,
             'size': game_size_formatted,
-            'genres': genres
+            'genres': genres,
+            'first_release_date': first_release_date_formatted
         })
 
     return game_data, pagination.total, pagination.pages, page
@@ -1104,6 +1110,8 @@ def game_edit(game_uuid):
         new_folder_size_mb = get_folder_size_in_mb(game.full_disk_path)
         print(f"New folder size for {game.full_disk_path}: {format_size(new_folder_size_mb)}")
         
+        game.date_identified = datetime.utcnow()
+       
         # Database commit and image update trigger
         try:
             db.session.commit()
@@ -1524,15 +1532,17 @@ def game_details(game_uuid):
             "developer": game.developer.name if game.developer else 'Not available',
             "publisher": game.publisher.name if game.publisher else 'Not available',
             "multiplayer_modes": [mode.name for mode in game.multiplayer_modes],
-            "size": format_size(game.size)
+            "size": format_size(game.size),
+            "date_identified": game.date_identified.strftime('%Y-%m-%d %H:%M:%S') if game.date_identified else 'Not available',
+            "steam_url": game.steam_url if game.steam_url else 'Not available',
+            "times_downloaded": game.times_downloaded
         }
         return render_template('games/games_details.html', game=game_data, form=csrf_form)
     else:
         return jsonify({"error": "Game not found"}), 404
 
-from flask import copy_current_request_context
 
-from flask import jsonify  # Make sure to import jsonify
+
 
 @bp.route('/refresh_game_images/<game_uuid>', methods=['POST'])
 @login_required
@@ -1743,9 +1753,10 @@ def download_game(game_uuid):
         user_id=current_user.id,
         game_uuid=game.uuid,
         status='processing',
-        download_size=game.size  # Assign the game's size to the download request
+        download_size=game.size
     )
     db.session.add(new_request)
+    game.times_downloaded += 1
     db.session.commit()
 
 
@@ -1759,6 +1770,45 @@ def download_game(game_uuid):
     
     flash("Your download request is being processed. You will be notified when the download is ready.")
     return redirect(url_for('main.downloads'))
+
+
+
+@bp.route('/discover')
+@login_required
+def discover():
+    # Define a helper function to fetch game details
+    def fetch_game_details(games_query, limit=5):
+        games = games_query.limit(limit).all()
+        game_details = []
+        for game in games:
+            cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
+            cover_url = cover_image.url if cover_image else url_for('static', filename='default_cover.jpg')
+            game_details.append({
+                'id': game.id,
+                'uuid': game.uuid,
+                'name': game.name,
+                'cover_url': cover_url,
+                'summary': game.summary,
+                'url': game.url,
+                'size': format_size(game.size),
+                'genres': [genre.name for genre in game.genres],
+                'first_release_date': game.first_release_date.strftime('%Y-%m-%d') if game.first_release_date else 'Not available',
+                # Add any additional fields you need
+            })
+        return game_details
+
+    # Using the helper function to fetch games for each category
+    latest_games = fetch_game_details(Game.query.order_by(Game.date_created.desc()))
+    most_downloaded_games = fetch_game_details(Game.query.order_by(Game.times_downloaded.desc()))
+    highest_rated_games = fetch_game_details(Game.query.filter(Game.rating != None).order_by(Game.rating.desc()))
+
+    return render_template('games/discover.html', 
+                           latest_games=latest_games, 
+                           most_downloaded_games=most_downloaded_games, 
+                           highest_rated_games=highest_rated_games)
+
+
+
 
 
 @bp.route('/download_zip/<download_id>')

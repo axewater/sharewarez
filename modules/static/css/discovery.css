@@ -13,6 +13,12 @@
 }
 
 
+.game-card-container {
+    display: flex;
+    flex-direction: row;
+    
+    
+}
 
 
 .game-card {
@@ -20,6 +26,7 @@
     transition: transform 0.3s ease; 
     position: relative;
     margin: 5px;
+    max-width: 250px;
 }
 
 
@@ -87,44 +94,6 @@
         opacity: 0;
     }
 }
-
-.search-result {
-    padding: 5px;
-    cursor: pointer;
-}
-
-.search-result:hover, .search-result.selected {
-    background-color: #f0f0f0;
-}
-
-
-.pagination .page-link {
-    padding-left: 3.8rem;
-    padding-right: 3.8rem;
-    background-color: #343a40;
-    color: #ffffff;
-    border: 1px solid #343a40;
-}
-
-
-.pagination .page-link.active,
-.pagination .page-item.active .page-link {
-    background-color: #707b85;
-    border-color: #495057;
-}
-
-
-.pagination .page-link:hover {
-    background-color: #495057; 
-    border-color: #495057;
-}
-
-.pagination .page-item.disabled .page-link {
-    color: #6c757d;
-    background-color: #343a40;
-    border-color: #343a40;
-}
-
 
 
 .button-glass-hamburger {
@@ -196,12 +165,7 @@
 
 }
 
-.breadcrumbs {
-    font-size: 2.2rem;
-    font-weight: bold;
-    margin: 10px;
-    text-align: center;
-}
+
 
 
 .hidden {

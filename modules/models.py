@@ -169,6 +169,11 @@ class Game(db.Model):
     url = db.Column(db.String)
     video_urls = db.Column(db.String, nullable=True)
     full_disk_path = db.Column(db.String, nullable=True)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    date_identified = db.Column(db.DateTime, nullable=True)
+    steam_url = db.Column(db.String, nullable=True)
+    times_downloaded = db.Column(db.Integer, default=0)
+
     images = db.relationship("Image", backref="game", lazy='dynamic')
     genres = db.relationship('Genre', secondary=game_genre_association, back_populates='games')
     game_modes = db.relationship("GameMode", secondary=game_game_mode_association, back_populates="games")

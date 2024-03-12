@@ -4,9 +4,9 @@ from uuid import uuid4
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session  # Updated import here
 from werkzeug.security import generate_password_hash
+from config import Config
 
-# Editable database URI
-DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://sharewarez:!Piratingin2024!@localhost/sharewarez')
+DATABASE_URI = Config.SQLALCHEMY_DATABASE_URI
 
 Base = declarative_base()
 
