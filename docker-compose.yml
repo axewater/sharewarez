@@ -16,7 +16,8 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}
       - WAIT_HOSTS="db:5432"
     volumes:
-      - "${ROOT_DATA_FOLDER}:/storage"
+      - "${DATA_FOLDER_WAREZ}:/storage"
+      - "${DATA_FOLDER_IMAGEZ}:/imagedata"
     depends_on:
       - db     
 
