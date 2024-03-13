@@ -20,4 +20,19 @@
 }
 
 .admin-panel {
-    }
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px;
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    justify-content: space-between;
+    box-shadow: 0 9px 16px rgba(17, 2, 2, 2);
+    padding-bottom: 50px;
+
+    width: 500px;
+
+}
