@@ -1,68 +1,68 @@
-<!-- in templates/admin/admin_dashboard.html -->
-{% extends "base.html" %}  
+{% extends "base.html" %}
 {% block content %}
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 
-
 <body>
-<div class="glass-panel">
-    <div class="admin-panel">
-        <h1 style="text-align: center;">Captain's Cabin</h1>
-        <div class="container-fluid h-100">
-            <div class="row h-100">
-                <!-- Each col-4 div represents a large button, adjust as necessary for your layout -->
-                <div class="col-4 d-flex align-items-stretch">
-                    <a href="/scan_management" class="btn btn-primary w-100 d-flex flex-column align-items-center justify-content-center dashboard-button">
-                        <i class="fas fa-book dashboard-icon"></i>
-                        Library Manager
-                    </a>
-                </div>
-                <div class="col-4 d-flex align-items-stretch">
-                    <a href="/admin/whitelist" class="btn btn-secondary w-100 d-flex flex-column align-items-center justify-content-center dashboard-button">
-                        <i class="fas fa-user-shield dashboard-icon"></i>
-                        Whitelist Manager
-                    </a>
-                </div>
-                <div class="col-4 d-flex align-items-stretch">
-                    <a href="/admin/edit_filters" class="btn btn-success w-100 d-flex flex-column align-items-center justify-content-center dashboard-button">
-                        <i class="fas fa-filter dashboard-icon"></i>
-                        Filter Manager
-                    </a>
-                </div>
-                <div class="col-4 d-flex align-items-stretch">
-                    <a href="/admin/usrmgr" class="btn btn-info w-100 d-flex flex-column align-items-center justify-content-center dashboard-button">
-                        <i class="fas fa-users-cog dashboard-icon"></i>
-                        User Manager
-                    </a>
-                </div>
-                <div class="col-4 d-flex align-items-stretch">
-                    <a href="/admin/clear-downloads" class="btn btn-warning w-100 d-flex flex-column align-items-center justify-content-center dashboard-button">
-                        <i class="fas fa-download dashboard-icon"></i>
-                        Downloads Manager
-                    </a>
-                </div>
-                <div class="col-4 d-flex align-items-stretch">
-                    <a href="/api_debug" class="btn btn-danger w-100 d-flex flex-column align-items-center justify-content-center dashboard-button">
-                        <i class="fas fa-bug dashboard-icon"></i>
-                        API Debugger
-                    </a>
-                </div>
-                <div class="col-4 d-flex align-items-stretch">
-                    <a href="/admin/newsletter" class="btn btn-dark w-100 d-flex flex-column align-items-center justify-content-center dashboard-button">
-                        <i class="fas fa-envelope dashboard-icon"></i>
-                        Send Newsletter
-                    </a>
-                </div>
-                <!-- Add the button for creating a new user -->
-                <div class="col-4 d-flex align-items-stretch">
-                    <a href="/admin/create_user" class="btn btn-primary w-100 d-flex flex-column align-items-center justify-content-center dashboard-button">
-                        <i class="fas fa-user-plus dashboard-icon"></i>
-                        Create New User
-                    </a>
+    <div class="glass-panel">
+        <div class="admin-panel">
+            <h1 style="text-align: center;">Captain's Cabin</h1>
+            <div class="container-fluid h-100">
+                <div class="row h-100">
+                    <!-- Line 1: Library Manager, Filter Manager, API Debugger -->
+                    <div class="col-4 d-flex align-items-stretch">
+                        <a href="/scan_management" class="btn btn-primary w-100 d-flex flex-column align-items-center justify-content-center dashboard-button">
+                            <i class="fas fa-book dashboard-icon"></i>
+                            Library Manager
+                        </a>
+                    </div>
+                    <div class="col-4 d-flex align-items-stretch">
+                        <a href="/admin/edit_filters" class="btn btn-success w-100 d-flex flex-column align-items-center justify-content-center dashboard-button">
+                            <i class="fas fa-filter dashboard-icon"></i>
+                            Filter Manager
+                        </a>
+                    </div>
+                    <div class="col-4 d-flex align-items-stretch">
+                        <a href="/api_debug" class="btn btn-danger w-100 d-flex flex-column align-items-center justify-content-center dashboard-button">
+                            <i class="fas fa-bug dashboard-icon"></i>
+                            API Debugger
+                        </a>
+                    </div>
+                    <!-- Line 2: User Manager, Add User, Whitelist -->
+                    <div class="col-4 d-flex align-items-stretch">
+                        <a href="/admin/usrmgr" class="btn btn-info w-100 d-flex flex-column align-items-center justify-content-center dashboard-button">
+                            <i class="fas fa-users-cog dashboard-icon"></i>
+                            User Manager
+                        </a>
+                    </div>
+                    <div class="col-4 d-flex align-items-stretch">
+                        <a href="/admin/create_user" class="btn btn-primary w-100 d-flex flex-column align-items-center justify-content-center dashboard-button">
+                            <i class="fas fa-user-plus dashboard-icon"></i>
+                            Add User
+                        </a>
+                    </div>
+                    <div class="col-4 d-flex align-items-stretch">
+                        <a href="/admin/whitelist" class="btn btn-secondary w-100 d-flex flex-column align-items-center justify-content-center dashboard-button">
+                            <i class="fas fa-user-shield dashboard-icon"></i>
+                            Whitelist
+                        </a>
+                    </div>
+                    <!-- Line 3: Downloads, Newsletter -->
+                    <div class="col-4 d-flex align-items-stretch">
+                        <a href="/admin/clear-downloads" class="btn btn-warning w-100 d-flex flex-column align-items-center justify-content-center dashboard-button">
+                            <i class="fas fa-download dashboard-icon"></i>
+                            Downloads
+                        </a>
+                    </div>
+                    <div class="col-4 d-flex align-items-stretch">
+                        <a href="/admin/newsletter" class="btn btn-dark w-100 d-flex flex-column align-items-center justify-content-center dashboard-button">
+                            <i class="fas fa-envelope dashboard-icon"></i>
+                            Newsletter
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</body>
 {% endblock %}

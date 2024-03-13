@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
     privileged: true
-    image: edgecrush3r/sharewarez:0.1t
+    image: kapitanczarnobrody/sharewarez:0.1
     ports:
       - "5001:5001"
     environment:
