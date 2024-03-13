@@ -1,0 +1,23 @@
+.dashboard-button {
+    font-size: 1.5em; /* Large text for buttons */
+    margin-bottom: 10px;
+    max-width: 150px;
+    min-width: 100px;
+    min-height: 150px;
+    color: aliceblue;
+}
+
+.dashboard-icon {
+    font-size: 2em; /* Large icons */
+    margin-bottom: 10px;
+}
+
+.dashboard-button:hover {
+    text-decoration: none;
+    color: rgb(9, 12, 12);
+    transform: scale(1.1);
+}
+
+.admin-panel {
+    padding: 20px;
+}
