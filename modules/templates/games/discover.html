@@ -3,7 +3,9 @@
 {% block content %}
 <head>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/discovery.css') }}">
-    <!-- Include other scripts or CSS files as needed -->
+    <script src="{{ url_for('static', filename='js/library_slideshow.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/popup_menu.js') }}"></script>
+
 </head>
 <body>
     <div class="content-flash">
@@ -19,7 +21,8 @@
     </div>
     <div class="glass-panel">
 
-            <h1>Discover Games</h1>
+        <h1 style="text-align: center;">Discover Loot</h1>
+
             <div class="game-discovery-container" id="gamesContainer">
                 <section>
                     <div class="discover-category-label">
@@ -30,7 +33,6 @@
                         {% for game in latest_games %}
                         <div class="game-card-container">
                             <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
-                                <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
                                 {% with game_uuid=game.uuid, game_url=game.url %}
                          
                                 {% endwith %}
@@ -65,7 +67,7 @@
                             {% for game in most_downloaded_games %}
                                 <div class="game-card-container">
                                     <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
-                                        <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
+                                        
                                         {% with game_uuid=game.uuid, game_url=game.url %}
                                      
                                         {% endwith %}
@@ -99,7 +101,6 @@
                             {% for game in highest_rated_games %}
                                 <div class="game-card-container">
                                     <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
-                                        <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
                                         {% with game_uuid=game.uuid, game_url=game.url %}
                                      
                                         {% endwith %}

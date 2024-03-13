@@ -99,7 +99,7 @@ def initial_setup():
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('site.restricted'))
+        return redirect(url_for('site.discover'))
 
     print("Route: /login")
     form = LoginForm()

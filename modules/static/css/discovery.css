@@ -5,10 +5,20 @@
     
 }
 
+.discover-category-label {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+
 .game-discovery-container {
     display: flex;
     flex-direction: row;
-    
+    justify-content: space-around;
+
     
 }
 
@@ -16,7 +26,6 @@
 .game-card-container {
     display: flex;
     flex-direction: row;
-    
     
 }
 
