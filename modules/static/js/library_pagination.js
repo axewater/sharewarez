@@ -174,7 +174,9 @@ $(document).ready(function() {
 
   function createGameCardHtml(game) {
     var genres = game.genres ? game.genres.join(', ') : 'No Genres';
-    var fullCoverUrl = game.cover_url.startsWith('http') ? game.cover_url : '/static/library/images/' + game.cover_url;
+    // Check if cover_url is not specified or is exactly 'newstyle/default_cover.jpg'
+    var defaultCover = 'newstyle/default_cover.jpg';
+    var fullCoverUrl = !game.cover_url || game.cover_url === defaultCover ? '/static/' + defaultCover : '/static/library/images/' + game.cover_url;
     var popupMenuHtml = createPopupMenuHtml(game); // Ensure this function generates the correct HTML for your popup menu
 
     var gameCardHtml = `
@@ -196,6 +198,7 @@ $(document).ready(function() {
     `;
     return gameCardHtml;
 }
+
 
 let i =0;
 
