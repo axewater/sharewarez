@@ -1643,6 +1643,7 @@ def delete_game_route(game_uuid):
     except Exception as e:
         flash(f'Error deleting game: {e}', 'error')
     
+    print(f"Route: /delete_game - EXIT {current_user.name} - {current_user.role} method: {request.method} UUID: {game_uuid}")
     return redirect(url_for('main.library'))
 
 def delete_game(game_identifier):
@@ -1797,6 +1798,11 @@ def delete_all_games():
     for game in games_to_delete:
         try:
             delete_game(game.uuid)  # Assuming delete_game is adapted to work with UUIDs
+        except FileNotFoundError as fnfe:
+            # Handling "file not found" errors specifically
+            print(f'File not found for game with UUID {game.uuid}: {fnfe}')
+            flash(f'File not found for game with UUID {game.uuid}. Skipping...', 'info')
+            continue  # Explicitly continue with the next game
         except Exception as e:
             # Specific handling for "access denied" or similar permission-related errors
             if "access denied" in str(e).lower():
@@ -1809,6 +1815,7 @@ def delete_all_games():
 
     flash('All accessible games and their images have been deleted successfully.', 'success')
     return redirect(url_for('main.scan_management'))
+
 
 
 @bp.route('/download_game/<game_uuid>', methods=['GET'])
