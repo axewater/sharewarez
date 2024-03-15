@@ -351,20 +351,47 @@ def make_igdb_api_request(endpoint_url, query_params):
 
     except Exception as e:
         return {"error": f"An unexpected error occurred: {e}"}
+    
 
 def download_image(url, save_path):
+    # Ensure the URL starts with http:// or https://
     if not url.startswith(('http://', 'https://')):
         url = 'https:' + url
 
-    
+    # Replace thumbnail image path with original image path
     url = url.replace('/t_thumb/', '/t_original/')
 
-    response = requests.get(url)
-    if response.status_code == 200:
-        with open(save_path, 'wb') as f:
-            f.write(response.content)
-    else:
-        print(f"Failed to download the image. Status Code: {response.status_code}")
+    # Attempt to download the image
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            # Extract the directory path from the save_path
+            directory = os.path.dirname(save_path)
+
+            # Ensure the 'library/images' directory exists
+            if not os.path.exists(directory):
+                print(f"'{directory}' does not exist. Attempting to create it.")
+                try:
+                    os.makedirs(directory, exist_ok=True)
+                    print(f"Successfully created the directory '{directory}'.")
+                except Exception as e:
+                    print(f"Failed to create the directory '{directory}': {e}")
+                    return  # Stop execution if we can't create the directory
+
+            if os.access(directory, os.W_OK):
+                with open(save_path, 'wb') as f:
+                    f.write(response.content)
+                print(f"Image successfully saved to {save_path}")
+            else:
+                print(f"Error: The directory '{directory}' is not writable. Please check permissions.")
+        else:
+            print(f"Failed to download the image. Status Code: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print(f"Error downloading image from {url}: {e}")
+    except Exception as e:
+        # Catch any other exceptions, such as permissions issues, and print a user-friendly message
+        print(f"An error occurred while saving the image to {save_path}: {e}")        
+        
 
 def zip_game(download_request_id, app):
     with app.app_context():
@@ -407,43 +434,6 @@ def zip_game(download_request_id, app):
             print(f"Failed to zip game for DownloadRequest ID: {download_request_id}, Error: {error_message}")
 
 
-
-def zip_game1(download_request_id, app):
-    with app.app_context():
-        download_request = DownloadRequest.query.get(download_request_id)
-        game = download_request.game
-        print(f"Zipping game: {game.name}")
-        if not game:
-            print(f"No game found for DownloadRequest ID: {download_request_id}")
-            return
-        
-        zip_save_path = app.config['ZIP_SAVE_PATH']
-        output_zip_base = os.path.join(zip_save_path, game.uuid)
-        source_folder = game.full_disk_path
-        
-        if not os.path.exists(source_folder):
-            print(f"Source folder does not exist: {source_folder}")
-            return
-        
-        try:
-            print(f"Zipping game folder: {source_folder} to {output_zip_base}.")
-            output_zip = shutil.make_archive(output_zip_base, 'zip', source_folder)
-            print(f"Archive created at {output_zip}")
-                        
-            download_request.status = 'available'
-            download_request.zip_file_path = output_zip
-            download_request.completion_time = datetime.utcnow()
-            print(f"Download request updated: {download_request}")
-            db.session.commit()
-        except Exception as e:
-            error_message = str(e)
-            print(f"An error occurred while zipping: {error_message}")
-
-            download_request.status = 'failed'
-            download_request.zip_file_path = error_message
-            db.session.commit()
-            print(f"Failed to zip game for DownloadRequest ID: {download_request_id}, Error: {error_message}")
-   
         
 def check_existing_game_by_igdb_id(igdb_id):
     return Game.query.filter_by(igdb_id=igdb_id).first()

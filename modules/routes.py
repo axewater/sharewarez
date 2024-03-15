@@ -1629,22 +1629,27 @@ def admin_dashboard():
     return render_template('admin/admin_dashboard.html')
 
     
-
-
-
-
 @bp.route('/delete_game/<string:game_uuid>', methods=['POST'])
 @login_required
 @admin_required
 def delete_game_route(game_uuid):
     print(f"Route: /delete_game - {current_user.name} - {current_user.role} method: {request.method} UUID: {game_uuid}")
     
-    delete_game(game_uuid)
+    try:
+        delete_game(game_uuid)
+        flash('Game and its images have been deleted successfully.', 'success')
+    except PermissionError as e:
+        flash(f'Permission denied error: {e}', 'error')
+    except Exception as e:
+        flash(f'Error deleting game: {e}', 'error')
+    
     return redirect(url_for('main.library'))
 
 def delete_game(game_identifier):
-    """Delete a game by UUID or Game object."""
+    """Delete a game by UUID or Game object, with improved error handling."""
     game_to_delete = None
+    game_uuid_str = ""
+
     if isinstance(game_identifier, Game):
         game_to_delete = game_identifier
         game_uuid_str = game_to_delete.uuid
@@ -1660,28 +1665,38 @@ def delete_game(game_identifier):
             print(f"Error fetching game with UUID {game_uuid_str}: {e}")
             abort(404)
 
+    print(f"Found game to delete: {game_to_delete}")
+    if not delete_game_images(game_uuid_str):  # If image deletion fails, return early.
+        raise PermissionError(f"Failed to delete images for game UUID {game_uuid_str}. Operation aborted.")
+    
+    delete_associations_for_game(game_to_delete)
+    db.session.delete(game_to_delete)
+    db.session.commit()
+    print(f'Deleted game with UUID: {game_uuid_str}')
+
+def delete_game_images(game_uuid_str):
+    """Delete images associated with a game. Returns True on success, False on permission error."""
+    image_path = f'/var/www/sharewarez/modules/static/library/images/{game_uuid_str}_cover_276642.jpg'  # Adjust as needed
     try:
-        print(f"Found game to delete: {game_to_delete}")
-        
-        delete_associations_for_game(game_to_delete)
-        
-        
-        delete_game_images(game_uuid_str)
-        db.session.delete(game_to_delete)
-        db.session.commit()
-        flash('Game and its images have been deleted successfully.', 'success')
-        print(f'Deleted game with UUID: {game_uuid_str}')
-    except Exception as e:
-        db.session.rollback()
-        print(f'Error deleting game with UUID {game_uuid_str}: {e}')
-        flash(f'Error deleting game: {e}', 'error')
+        os.remove(image_path)
+        # Add additional logic here if there are multiple images to delete,
+        # ensuring each deletion is wrapped in try-except to catch PermissionError.
+        return True
+    except PermissionError as e:
+        print(f'Error deleting image: {e}')
+        db.session.rollback()  # Ensure no changes are committed if there's a failure.
+        return False
 
 def delete_associations_for_game(game_to_delete):
+    """Clear associations for a game to be deleted."""
     associations = [game_to_delete.genres, game_to_delete.platforms, game_to_delete.game_modes,
                     game_to_delete.themes, game_to_delete.player_perspectives, game_to_delete.multiplayer_modes]
     
     for association in associations:
         association.clear()
+
+
+
 
 @bp.route('/delete_folder', methods=['POST'])
 @login_required
@@ -1724,18 +1739,23 @@ def delete_full_game():
     print(f"Route: /delete_full_game - {current_user.name} - {current_user.role} method: {request.method}")
     data = request.get_json()
     game_uuid = data.get('game_uuid') if data else None
-
+    print(f"Route: /delete_full_game - Game UUID: {game_uuid}")
     if not game_uuid:
+        print(f"Route: /delete_full_game - Game UUID is required.")
         return jsonify({'status': 'error', 'message': 'Game UUID is required.'}), 400
 
     game_to_delete = Game.query.filter_by(uuid=game_uuid).first()
+    print(f"Route: /delete_full_game - Game to delete: {game_to_delete}")
 
     if not game_to_delete:
+        print(f"Route: /delete_full_game - Game not found.")
         return jsonify({'status': 'error', 'message': 'Game not found.'}), 404
 
     full_path = game_to_delete.full_disk_path
+    print(f"Route: /delete_full_game - Full path: {full_path}")
 
     if not os.path.isdir(full_path):
+        print(f"Route: /delete_full_game - Game folder does not exist.")
         return jsonify({'status': 'error', 'message': 'Game folder does not exist.'}), 404
 
     try:
@@ -1744,11 +1764,12 @@ def delete_full_game():
         shutil.rmtree(full_path)
         if os.path.exists(full_path):
             raise Exception("Folder deletion failed")
-        print(f"Game folder deleted: {full_path}")
+        print(f"Game folder deleted: {full_path} initiating database cleanup.")
         delete_game(game_uuid)
-
+        print(f"Database and image cleanup complete.")
         return jsonify({'status': 'success', 'message': 'Game and its folder have been deleted successfully.'}), 200
     except Exception as e:
+        print(f"Error deleting game and folder: {e}")
         return jsonify({'status': 'error', 'message': f'Error deleting game and folder: {e}'}), 500
 
 

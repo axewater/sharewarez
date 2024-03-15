@@ -36,11 +36,10 @@
                 <td>{{ request.game_uuid[:8] }}</td>
                 <td>{{ request.status }}</td>
                 <td>{{ request.zip_file_path }}</td>
-                <td>{{ request.request_time.strftime('%Y-%m-%d %H:%M') }}</td> <!-- Format request time -->
-                <td>{{ request.completion_time.strftime('%Y-%m-%d %H:%M') }}</td> <!-- Format completion time -->
+                <td>{{ request.request_time.strftime('%Y-%m-%d %H:%M') if request.request_time else 'N/A' }}</td>
+                <td>{{ request.completion_time.strftime('%Y-%m-%d %H:%M') if request.completion_time else 'N/A' }}</td>
             </tr>
             {% endfor %}
-            
         </tbody>
     </table>
 {% else %}
