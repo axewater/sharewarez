@@ -511,28 +511,40 @@ def delete_game_images(game_uuid):
             print("Game not found for image deletion.")
             return
 
-        # Assuming Game model has a relationship to an Image model where images are stored
-        game_to_delete = Game.query.filter_by(uuid=game_uuid).first_or_404()
         images_to_delete = Image.query.filter_by(game_uuid=game_uuid).all()
 
+        if not images_to_delete:
+            print("No images found for deletion.")
+            return
+
         for image in images_to_delete:
-            
-            relative_image_path = image.url.replace('/static/library/images/', '').strip("/")
-            image_file_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], relative_image_path)
-            image_file_path = os.path.normpath(image_file_path)
+            try:
+                relative_image_path = image.url.replace('/static/library/images/', '').strip("/")
+                image_file_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], relative_image_path)
+                image_file_path = os.path.normpath(image_file_path)
 
-            #print(f"Attempting to delete image file: {image_file_path}")
+                if os.path.exists(image_file_path):
+                    os.remove(image_file_path)
+                    if not os.path.exists(image_file_path):  # Verify file deletion
+                        print(f"Deleted image file: {image_file_path}")
+                    else:
+                        print(f"Failed to delete image file: {image_file_path}")
+                else:
+                    print(f"Image file not found: {image_file_path}")
 
-            if os.path.exists(image_file_path):
-                os.remove(image_file_path)
-                print(f"Deleted image file: {image_file_path}")
-            else:
-                print(f"Image file not found: {image_file_path}")
+                db.session.delete(image)
+            except Exception as e:
+                print(f"Error deleting image or database operation failed: {e}")
+                db.session.rollback()  # Ensure the session is clean for the next operation
+                continue  # Proceed with the next image
 
-            db.session.delete(image)
-        
-        db.session.commit()
-        print("All associated images have been deleted.")
+        try:
+            db.session.commit()
+            print("All associated images have been deleted.")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error committing image deletion changes to the database: {e}")
+
 
 
 def square_image(image, size):

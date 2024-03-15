@@ -839,16 +839,21 @@ def browse_folders_ss():
 
     # Handle the default path case
     if not req_path:
+        print(f'No default path provided; using base directory: {base_dir}', file=sys.stderr)
+        req_path = ''
         folder_path = base_dir
     else:
         # Safely construct the folder path to prevent directory traversal vulnerabilities
         folder_path = os.path.abspath(os.path.join(base_dir, req_path))
+        print(f'Folder path: {folder_path}', file=sys.stderr)
         # Prevent directory traversal outside the base directory
         if not folder_path.startswith(base_dir):
+            print(f'Access denied: {folder_path} outside of base directory: {base_dir}', file=sys.stderr)
             return jsonify({'error': 'Access denied'}), 403
 
     if os.path.isdir(folder_path):
         # List directory contents; distinguish between files and directories
+        print(f'Folder contents: {os.listdir(folder_path)}', file=sys.stderr)
         contents = [{'name': item, 'isDir': os.path.isdir(os.path.join(folder_path, item))} for item in os.listdir(folder_path)]
         return jsonify(contents)
     else:
@@ -1762,6 +1767,7 @@ def delete_library():
 
     return render_template('admin/delete_library.html', game_count=game_count, form=form)
 
+
 @bp.route('/delete_all_games', methods=['POST'])
 @login_required
 @admin_required
@@ -1769,14 +1775,18 @@ def delete_all_games():
     games_to_delete = Game.query.all()
     for game in games_to_delete:
         try:
-            # Assuming delete_game is adjusted to accept a game object or UUID
-            delete_game(game.uuid)  # If delete_game is adapted to work with UUIDs
+            delete_game(game.uuid)  # Assuming delete_game is adapted to work with UUIDs
         except Exception as e:
-            print(f'Error deleting game with UUID {game.uuid}: {e}')
-            flash(f'Error deleting game with UUID {game.uuid}: {e}', 'error')
-            # Optionally, decide if you want to halt the process or continue with the next game
-    
-    flash('All games and their images have been deleted successfully.', 'success')
+            # Specific handling for "access denied" or similar permission-related errors
+            if "access denied" in str(e).lower():
+                print(f'Access denied for game with UUID {game.uuid}: {e}')
+                flash(f'Access denied for game with UUID {game.uuid}. Skipping...', 'warning')
+            else:
+                print(f'Error deleting game with UUID {game.uuid}: {e}')
+                flash(f'Error deleting game with UUID {game.uuid}: {e}', 'error')
+            continue  # Explicitly continue with the next game
+
+    flash('All accessible games and their images have been deleted successfully.', 'success')
     return redirect(url_for('main.scan_management'))
 
 
