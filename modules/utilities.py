@@ -393,34 +393,53 @@ def download_image(url, save_path):
         print(f"An error occurred while saving the image to {save_path}: {e}")        
         
 
+import os
+import zipfile
+from datetime import datetime
+# Assuming other necessary imports are already done
+
 def zip_game(download_request_id, app):
     with app.app_context():
         download_request = DownloadRequest.query.get(download_request_id)
         game = download_request.game
-        print(f"Zipping game: {game.name}")
+
         if not game:
             print(f"No game found for DownloadRequest ID: {download_request_id}")
             return
+
+        print(f"Zipping game: {game.name}")
         
         zip_save_path = app.config['ZIP_SAVE_PATH']
         output_zip_base = os.path.join(zip_save_path, game.uuid)
         source_folder = game.full_disk_path
         
+        # Check if source folder exists
         if not os.path.exists(source_folder):
             print(f"Source folder does not exist: {source_folder}")
             return
         
+        # Ensure the ZIP_SAVE_PATH exists, attempt to create if it doesn't
+        if not os.path.exists(zip_save_path):
+            try:
+                os.makedirs(zip_save_path)
+                print(f"Created missing directory: {zip_save_path}")
+            except Exception as e:
+                print(f"Failed to create directory {zip_save_path}: {e}")
+                return
+        
+        # Proceed to zip the game
         try:
-            print(f"Zipping game folder: {source_folder} to {output_zip_base}.")
-            with zipfile.ZipFile(output_zip_base + '.zip', 'w', zipfile.ZIP_STORED) as zipf:
+            zip_file_path = output_zip_base + '.zip'
+            print(f"Zipping game folder: {source_folder} to {zip_file_path}.")
+            with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_STORED) as zipf:
                 for root, dirs, files in os.walk(source_folder):
                     for file in files:
                         file_path = os.path.join(root, file)
                         zipf.write(file_path, os.path.relpath(file_path, source_folder))
-            print(f"Archive created at {output_zip_base}.zip")
+            print(f"Archive created at {zip_file_path}")
                         
             download_request.status = 'available'
-            download_request.zip_file_path = output_zip_base + '.zip'
+            download_request.zip_file_path = zip_file_path
             download_request.completion_time = datetime.utcnow()
             print(f"Download request updated: {download_request}")
             db.session.commit()
@@ -429,7 +448,7 @@ def zip_game(download_request_id, app):
             print(f"An error occurred while zipping: {error_message}")
 
             download_request.status = 'failed'
-            download_request.zip_file_path = error_message
+            download_request.zip_file_path = "Error: " + error_message
             db.session.commit()
             print(f"Failed to zip game for DownloadRequest ID: {download_request_id}, Error: {error_message}")
 
@@ -503,9 +522,7 @@ def delete_game_images(game_uuid):
 
         images_to_delete = Image.query.filter_by(game_uuid=game_uuid).all()
 
-        if not images_to_delete:
-            print("No images found for deletion.")
-            return
+
 
         for image in images_to_delete:
             try:
