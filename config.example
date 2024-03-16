@@ -23,6 +23,6 @@ class Config(object):
     SCHEDULER_API_ENABLED = True
         # OS-specific base folder paths
     if os.name == 'nt':  # Windows
-        BASE_FOLDER_WINDOWS = 'Z:'
+        BASE_FOLDER_WINDOWS = os.environ.get('BASE_FOLDER_WINDOWS') or 'C:'
     else:  # POSIX (Linux, Unix, MacOS, etc.)
-        BASE_FOLDER_POSIX = '/storage'
+        BASE_FOLDER_POSIX = os.environ.get('BASE_FOLDER_POSIX') or '/storage'

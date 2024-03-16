@@ -17,7 +17,7 @@ services:
       - WAIT_HOSTS="db:5432"
     volumes:
       - "${DATA_FOLDER_WAREZ}:/storage"
-      - "${DATA_FOLDER_IMAGEZ}:/imagedata"
+      - "${DATA_FOLDER_IMAGEZ}:/app/modules/static/library/images"
     depends_on:
       - db     
 
@@ -32,3 +32,8 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
        - ./db_data:/var/lib/postgresql/data/pgdata
+    healthcheck:
+      test: /usr/bin/pg_isready
+      interval: 5s
+      timeout: 10s
+      retries: 120

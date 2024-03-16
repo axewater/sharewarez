@@ -1,6 +1,4 @@
-__pycache__/
-/modules/__pycache__/
-modules/__pycache__/*
+__pycache__
 config.py
 .env
 ./db_data/
