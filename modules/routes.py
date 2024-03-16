@@ -537,7 +537,7 @@ def whitelist():
 
 
 
-@bp.route('/admin/usrmgr', methods=['GET', 'POST'])
+@bp.route('/admin/user_manager', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def usermanager():
