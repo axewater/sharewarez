@@ -1430,6 +1430,14 @@ import socket, platform
 def admin_status_page():
     uptime = datetime.now() - app_start_time
     config_values = {item: getattr(Config, item) for item in dir(Config) if not item.startswith("__")}
+    
+    try:
+        hostname = socket.gethostname()
+        ip_address = socket.gethostbyname(hostname)
+    except Exception as e:
+        ip_address = 'Unavailable'
+        print(f"Error retrieving IP address: {e}")
+    
     system_info = {
         'OS': platform.system(),
         'OS Version': platform.version(),

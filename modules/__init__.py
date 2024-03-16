@@ -1,5 +1,5 @@
 #/modules/__init__.py
-import sys, os, re
+import sys, os, re, datetime
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from flask_mail import Mail, Message as MailMessage
@@ -21,6 +21,7 @@ from flask_apscheduler import APScheduler
 
 def create_app():
     global s
+    
     app = Flask(__name__)
     app.config.from_object(Config)
     csrf = CSRFProtect(app)
