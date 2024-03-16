@@ -17,8 +17,8 @@ class Config(object):
     MAIL_DEFAULT_SENDER = 'admin@warezsite.com'
     REMEMBER_COOKIE_DURATION = timedelta(days=30)
     INITIAL_WHITELIST = 'putyouradminemailhere@gmail.com'
-    IGDB_CLIENT_ID = 'get this from igdb'
-    IGDB_CLIENT_SECRET = 'get this from igdb'
+    IGDB_CLIENT_ID = os.environ.get('IGDB_CLIENT_ID') or 'get this from igdb'
+    IGDB_CLIENT_SECRET = os.environ.get('IGDB_CLIENT_SECRET') or 'get this from igdb'
     IGDB_API_ENDPOINT = 'https://api.igdb.com/v4/games'
     SCHEDULER_API_ENABLED = True
         # OS-specific base folder paths
