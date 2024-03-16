@@ -18,7 +18,8 @@ services:
     volumes:
       - "${DATA_FOLDER_WAREZ}:/storage"
       - "${DATA_FOLDER_IMAGEZ}:/app/modules/static/library/images"
-#      - "./:/app"
+      # only for realtime debugging
+      # - "./:/app"
     depends_on:
       - db     
 
