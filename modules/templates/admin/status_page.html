@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="glass-panel">
+    <div class="flashes">
+        {% for message in messages %}
+            <div class="flash">{{ message }}</div>
+        {% endfor %}
+    </div>
+    <body>
+    <div class="glass-panel">
+        <!-- Back to Dashboard Button -->
+        <div class="container mt-3">
+            <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
+        </div>
+        <div class="container-status-page">
+            <div class="container mt-5">
+                <h2>Application Configuration</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Key</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, value in config_values.items() %}
+                        <tr>
+                            <td>{{ key }}</td>
+                            <td>{{ value }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <h2>System Information</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Key</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, value in system_info.items() %}
+                        <tr>
+                            <td>{{ key }}</td>
+                            <td>{{ value }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    </body>
+</div>
+
+{% endblock %}

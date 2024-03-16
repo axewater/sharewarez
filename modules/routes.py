@@ -1,5 +1,5 @@
 # modules/routes.py
-import sys,ast, uuid, json, random, requests, html, os, re, shutil, traceback, time, schedule, os, platform, tempfile
+import sys,ast, uuid, json, random, requests, html, os, re, shutil, traceback, time, schedule, os, platform, tempfile, socket
 from threading import Thread
 from config import Config
 from flask import Flask, render_template, flash, redirect, url_for, request, Blueprint, jsonify, session, abort, current_app, send_from_directory
@@ -49,6 +49,7 @@ s = URLSafeTimedSerializer('YMecr3tK?IzzsSa@e!Zithpze')
 has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False
+app_start_time = datetime.now()
 
 @bp.before_app_request
 def initial_setup():
@@ -56,6 +57,7 @@ def initial_setup():
     if has_initialized_setup:
         return
     has_initialized_setup = True
+    app_start_time = datetime.now()  # Record the startup time
 
     # Initialize whitelist
     try:
@@ -836,7 +838,7 @@ def browse_folders_ss():
     
     # Attempt to get 'path' from request arguments; default to an empty string which signifies the base directory
     req_path = request.args.get('path', '')
-
+    print(f'SS folder browser: Requested path: {req_path}', file=sys.stderr)
     # Handle the default path case
     if not req_path:
         print(f'No default path provided; using base directory: {base_dir}', file=sys.stderr)
@@ -1416,6 +1418,38 @@ def scan_jobs_manager_old():
     jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
     form = CsrfProtectForm()  # Instantiate the form
     return render_template('scan/scan_jobs_manager_old.html', jobs=jobs, form=form)
+
+
+
+from flask import request
+import socket, platform
+
+@bp.route('/admin/status_page')
+@login_required
+@admin_required
+def admin_status_page():
+    uptime = datetime.now() - app_start_time
+    config_values = {item: getattr(Config, item) for item in dir(Config) if not item.startswith("__")}
+    system_info = {
+        'OS': platform.system(),
+        'OS Version': platform.version(),
+        'Python Version': platform.python_version(),
+        'Hostname': socket.gethostname(),
+        'IP Address': socket.gethostbyname(socket.gethostname()),
+        'Flask Port': request.environ.get('SERVER_PORT'),
+        'Uptime': str(uptime),
+        'Current Time': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    return render_template('admin/status_page.html', config_values=config_values, system_info=system_info)
+
+
+
+
+
+
+
+
+
 
 @bp.route('/delete_scan_job/<job_id>', methods=['POST'])
 @login_required

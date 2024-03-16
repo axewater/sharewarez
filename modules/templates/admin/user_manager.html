@@ -1,4 +1,4 @@
-<!-- templates/admin/usrmgr.html -->
+<!-- templates/admin/user_manager.html -->
 {% extends "base.html" %}
 {% block content %}
 
@@ -9,7 +9,12 @@
             <div class="flash">{{ message }}</div>
         {% endfor %}
     </div>
+    
     <div class="content-login">
+            <!-- Back to Dashboard Button -->
+            <div class="container mt-3">
+                <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
+            </div>
         <div class="content-textblock">
             
         <h2>Pirate crew membership</h2>

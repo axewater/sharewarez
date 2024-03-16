@@ -13,6 +13,10 @@
                 {% endif %}
                 {% endwith %}
             </div>
+                        <!-- Back to Dashboard Button -->
+                        <div class="container mt-3">
+                            <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
+                        </div>
             <h1>IGDB API Debugger</h1>
             <p>For API documentation, visit <a href="https://api-docs.igdb.com/#game" target="_blank">IGDB API Docs</a>.</p>
             <form method="post">
