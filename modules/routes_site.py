@@ -10,11 +10,6 @@ def helpfaq():
     return render_template('site/help.html')
 
 
-@site_bp.route('/admin/base')
-@login_required
-def admin_main():
-    print("ADMIN MAIN: Request method:", request.method)
-    return render_template('admin/base.html')
 
 
 
