@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
-    
+     
 
     document.body.addEventListener('click', function(event) {
         // Check if the click is on the menu button or any of its descendants
