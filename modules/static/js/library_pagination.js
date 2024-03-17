@@ -225,11 +225,12 @@ function createPopupMenuHtml(game) {
             <input type="hidden" name="csrf_token" value="${csrfToken}">
             <button type="submit" class="menu-button refresh-game-images" data-game-uuid="${game.uuid}">Refresh Images</button>
         </form>
+        
         <div class="menu-item">
             <button type="button" class="menu-button delete-game" data-game-uuid="${game.uuid}">Remove Game</button>
         </div>
         <div class="menu-item">
-            <button type="button" class="menu-button trigger-delete-disk-modal" data-game-uuid="${game.uuid}">Delete Game from Disk</button>
+            <button type="button" class="menu-button trigger-delete-disk-modal delete-game-from-disk" data-game-uuid="${game.uuid}">Delete Game from Disk</button>
         </div>
         <div class="menu-item">
             <a href="${game.url}" target="_blank" class="menu-button" style="text-decoration: none; color: inherit;">Open IGDB Page</a>

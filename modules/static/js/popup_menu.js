@@ -30,6 +30,46 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('There has been a problem with your fetch operation:', error);
             });
         }
+
+        //delete-game-from-disk
+
+        if (event.target.classList.contains('delete-game-from-disk')) {
+            event.stopPropagation();
+            const gameUuid = event.target.getAttribute('data-game-uuid');
+            alert('We are deleting from disk... beware');
+            console.log(`Deleting folder from disk UUID: ${gameUuid}`);
+
+            const jsonData = {
+                game_uuid: gameUuid
+            };
+
+            console.log(jsonData);
+
+            fetch(`/delete_full_game`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-Token': csrfToken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(jsonData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.log(response.text());
+                    throw new Error('Network response was not ok.');
+                }
+                return response.text();
+            })
+            .then(() => {
+                console.log('Game deleted successfully');
+                window.location.href = '/library';
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+        }
+
+
     });
      
 
