@@ -1,7 +1,7 @@
 # Welcome to SharewareZ App
 SharewareZ transforms any game folder into a dynamic, searchable library. With IGDB integration, it indexes games and adds cover images, screenshots, and metadata for easy filtering. Plus, you can invite friends to download games from your library.
 
-[SharewareZ promotes legal use of its application]
+**[SharewareZ promotes legal use of its application**
 
 Features Overview
 1. User Authentication
@@ -21,20 +21,19 @@ Features Overview
     - Detailed game summaries, including genre, themes, supported platforms, and more.
     - Downloadable game files, neatly packaged as zipped archives.
 5. System Management & Administration
-    - Comprehensive user account and role management.
-    - Registration whitelist management.
-    - Monitoring and management of library scan jobs.
-    - System dashboard for real-time insights into application health and settings.
+    - User account and role management.
+    - Whitelist access management.
+    - Monitoring & management of library scan jobs.
+    - Dashboard for insights into server and application settings.
 6. Download Management
     - Oversight of user download activities.
-    - Administration capabilities to manage or clear pending downloads.
+    - Capabilities to clear pending downloads.
 7. Security Features
     - Implementation of industry-standard security practices.
     - Cross-Site Request Forgery (CSRF) protection.
     - Strict file upload validation to prevent security risks.
-    - Enhanced protection for administrative functions and role verification.
     - Defense against SQL injection through parameterized queries.
-    - Secure password handling and token-based email verification.
+    - Secure password hashing and token-based email verification.
 
 ## Known Issues
 Manual Folder Addition Screen: Currently, the manual folder addition functionality is experiencing issues. We're actively working on a fix and appreciate your patience.
@@ -89,7 +88,8 @@ CREATE DATABASE sharewarez;
 
 **Windows:**
 
-[Visit the official PostgreSQL website]https://www.postgresql.org/download/windows/
+[Visit the official PostgreSQL website]
+https://www.postgresql.org/download/windows/
 
 - Run the Installer
 - Launch Stack Builder
