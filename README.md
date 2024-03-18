@@ -1,3 +1,43 @@
+# Welcome to SharewareZ App
+SharewareZ revolutionizes the way you organize and enjoy your game collection.
+At its core, SharewareZ is an innovative library and sharing application designed to transform a simple folder of games into a dynamic, richly detailed game library. By leveraging the power of the IGDB (Internet Game Database), SharewareZ not only indexes your game names but also enriches them with cover images, screenshots, and a wealth of metadata. This enhancement allows for an unparalleled filtering experience, making it effortless to discover and engage with the game you're in the mood for. Dive into SharewareZ and reimagine your digital game library.
+
+Features Overview
+1. User Authentication
+    - Secure sign-up and sign-in processes with email verification.
+    - Password recovery system.
+    - Role-based access control for admins and regular users.
+2. User Profile
+    - Customizable user profiles with editable information.
+    - Support for avatar uploads.
+3. Game Management
+    - Automated scanning of specified folders to catalog games.
+    - Integration with IGDB to fetch comprehensive game details.
+    - Full CRUD (Create, Read, Update, Delete) capabilities for managing your game library.
+4. Library Browsing & Discoverability
+    - A dynamic discovery page showcasing latest additions, top downloads, and highly rated games.
+    - Advanced filtering options based on genre, rating, and gameplay mode to fine-tune your search.
+    - Detailed game summaries, including genre, themes, supported platforms, and more.
+    - Downloadable game files, neatly packaged as zipped archives.
+5. System Management & Administration
+    - Comprehensive user account and role management.
+    - Registration whitelist management.
+    - Monitoring and management of library scan jobs.
+    - System dashboard for real-time insights into application health and settings.
+6. Download Management
+    - Oversight of user download activities.
+    - Administration capabilities to manage or clear pending downloads.
+7. Security Features
+    - Implementation of industry-standard security practices.
+    - Cross-Site Request Forgery (CSRF) protection.
+    - Strict file upload validation to prevent security risks.
+    - Enhanced protection for administrative functions and role verification.
+    - Defense against SQL injection through parameterized queries.
+    - Secure password handling and token-based email verification.
+
+## Known Issues
+Manual Folder Addition Screen: Currently, the manual folder addition functionality is experiencing issues. We're actively working on a fix and appreciate your patience.
+
 # Sharewarez App Setup Guide
 
 Welcome to the setup guide for Sharewarez App. Follow read these instructions carefully before diving into things :)
@@ -85,7 +125,13 @@ For a setup without mail:
 - Use the admin panel to create any additional users as needed.
 - The app runs on port 5001, you can simply change this in app.py
 
+### Docker image
+```
+docker pull kapitanczarnobrod/sharewarez
+```
+Make sure to setup the correct paths to your warez folder (Windows and Linux)
+
+
 ---
 
 Thank you for setting up the Sharewarez App. For further assistance, please open an issue on this repository.
-
