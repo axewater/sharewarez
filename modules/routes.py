@@ -864,6 +864,7 @@ def browse_folders_ss():
 
 
 @bp.route('/api/search')
+@login_required
 def search():
     query = request.args.get('query', '')
     results = []
