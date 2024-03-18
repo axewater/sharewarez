@@ -48,27 +48,70 @@ You can install SharewareZ manually, or use the Docker image. The following inst
 
 Before you start, make sure you have the following prerequisites installed on your system:
 
-- **Windows**: Microsoft Visual C++ 14.0 or greater is required. Download it via [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
+- **Linux**: 
+    - Python 3.11
+    - pip
+
+- **Windows**: 
+    - Python 3.11
+    - pip
+    - Microsoft Visual C++ 14.0 or greater is required. [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
 
 ## 1. Setup Your Virtual Environment
+First, create and activate a virtual environment :
 
-First, create and activate a virtual environment for your project:
+note: in some configurations, you must type python3 instead of just python.
 
+**Linux:**
 ```
 python -m venv venv
+source venv/bin/activate
 python -m pip install -r requirements.txt
+
+```
+**Windows:**
+```
+python -m venv venv
 .\venv\Scripts\Activate
+python -m pip install -r requirements.txt
 ```
 
 ## 2. Install PostgreSQL
 
 Next, install PostgreSQL and create a database named `sharewarez`:
 
+**Linux:**
 ```
+sudo apt install postgresql
 psql -U postgres -h localhost
 CREATE DATABASE sharewarez;
 ```
 
+**Windows:**
+
+[Visit the official PostgreSQL website]https://www.postgresql.org/download/windows/
+
+- Run the Installer
+- Launch Stack Builder
+- select the option to "Add a new server."
+
+Once the server is added, you can use pgAdmin, the graphical administration tool for PostgreSQL, to connect to the server and create the database.
+- Open pgAdmin and connect to the PostgreSQL server.
+- Right-click on "Databases" in the object browser and select "New Database."
+- Enter sharewarez as the database name and click "Save" or "OK" to create the database.
+
+## Alternatively, if you prefer using the command line:
+
+
+Navigate to the directory where PostgreSQL is installed. By default, it is usually installed in C:\Program Files\PostgreSQL\<version>\bin.
+
+Run the following command to connect to the PostgreSQL server and create the sharewarez database:
+```
+sql
+Copy code
+psql -U postgres
+CREATE DATABASE sharewarez;
+```
 ## 3a. Setup with Mail Features Enabled
 
 To set up the app with mail features:
@@ -130,8 +173,7 @@ For a setup without mail:
 ```
 docker pull kapitanczarnobrod/sharewarez
 ```
-Make sure to setup the correct paths to your warez folder (Windows and Linux)
-
+**Make sure to setup the correct paths to your warez folder (Windows and Linux)**
 
 ---
 
