@@ -1,6 +1,7 @@
 # Sharewarez App Setup Guide
 
-Welcome to the setup guide for Sharewarez App. Follow these instructions to get your development environment ready.
+Welcome to the setup guide for Sharewarez App. Follow read these instructions carefully before diving into things :)
+You can install SharewareZ manually, or use the Docker image. The following instructions are for the manual installation.
 
 ## Prerequisites
 
@@ -32,12 +33,11 @@ CREATE DATABASE sharewarez;
 To set up the app with mail features:
 
 1. **Create `config.py`**: 
-- Copy `config.py.example`: Start by making a copy of `config.py.example` and rename it to `config.py`. This file will serve as the basis for your application's configuration.
-
+- Copy `config.py.example`: Start by making a copy of `config.py.example` and rename it to `config.py`. This file will serve as the basis for your application's configuration. (sidenote: You can also use a .env file for some of the settings if you prefer)
 
 - Set a Secret Key: Generate a secret key that is random and long. This key is crucial for securely signing your app's sessions and cookies. Use a combination of letters, numbers, and symbols to make it as secure as possible.
 
-- Enter Database URI: Specify the URI of your database in the `DATABASE_URI` setting. This URI should include the username, password, host, and database name.
+- Enter Database URI: Specify the URI of your database in the `DATABASE_URI` setting. This URI should include the username, password, host, and database name you just created.
 
 - Configure SMTP Settings: To enable email sending capabilities for user registration and notifications, configure the SMTP settings as follows:
     - `MAIL_SERVER`: The address of your mail server.
@@ -60,6 +60,12 @@ To set up the app with mail features:
 ### Running the App
 
 - Run the app and register the first user with the email mentioned in `config.py`.
+```
+python app.py
+
+or on some systems:
+python3 app.py
+```
 - Restart the app. The first user is now an admin.
 
 ## 3b. Setup without Mail (NO SMTP)
