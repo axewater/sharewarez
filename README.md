@@ -1,7 +1,7 @@
 # Welcome to SharewareZ App
 SharewareZ transforms any game folder into a dynamic, searchable library. With IGDB integration, it indexes games and adds cover images, screenshots, and metadata for easy filtering. Plus, you can invite friends to download games from your library.
 
-**[SharewareZ promotes legal use of its application**
+**[SharewareZ promotes legal use of its application]**
 
 Features Overview
 1. User Authentication
