@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
     privileged: true
-    image: kapitanczarnobrody/sharewarez:0.1
+    image: kapitanczarnobrod/sharewarez:0.1
     ports:
       - "5001:5001"
     environment:
@@ -34,8 +34,3 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
        - ./db_data:/var/lib/postgresql/data/pgdata
-    healthcheck:
-      test: /usr/bin/pg_isready
-      interval: 5s
-      timeout: 10s
-      retries: 120
