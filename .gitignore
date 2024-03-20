@@ -1,5 +1,6 @@
 __pycache__
 config.py
+config.portainer
 .env
 /db_data/
 /db_data/*
