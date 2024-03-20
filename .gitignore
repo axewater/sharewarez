@@ -1,6 +1,8 @@
 __pycache__
 config.py
 config.portainer
+config.backup
+config.py.backup
 .env
 /db_data/
 /db_data/*
