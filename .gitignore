@@ -4,6 +4,7 @@ config.portainer
 config.backup
 config.py.backup
 .env
+.env.bak
 /db_data/
 /db_data/*
 app.db
