@@ -36,11 +36,11 @@ body {
 
 .user-account-icon, .user-account-menu {
     position: fixed;
-    bottom: 10px;
-    left: 10px;
+    bottom: 5px;
+    left: 5px;
     background-color: #2d3141; 
     color: #ecf0f1;
-    border-radius: 15px;
+    border-radius: 25px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.5); /* Stronger shadow for depth */
     cursor: pointer;
     transition: all 0.3s ease;
@@ -51,13 +51,13 @@ body {
     align-items: center;
     justify-content: space-between; /* This will space out the avatar, username, and icon */
     color: white;
-    padding: 10px;
+    padding: 4px;
     width: 180px;
 }
 
 .user-avatar {
-    width: 40px;
-    height: 40px;
+    width: 25px;
+    height: 25px;
     border-radius: 20px;
     margin-right: 10px;
     border: 2px solid #ecf0f1; /* Light border around avatar for definition */
