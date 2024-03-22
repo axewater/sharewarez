@@ -396,28 +396,45 @@ def settings_profile_edit():
     if form.validate_on_submit():
         file = form.avatar.data
         if file:
+            # Ensure UPLOAD_FOLDER exists
+            upload_folder = current_app.config['UPLOAD_FOLDER']
+            if not os.path.exists(upload_folder):
+                try:
+                    # Safe check to avoid creating 'static' directly
+                    os.makedirs(upload_folder, exist_ok=True)
+                except Exception as e:
+                    print(f"Error creating upload directory: {e}")
+                    flash("Error processing request. Please try again.", 'error')
+                    return redirect(url_for('main.settings_profile_edit'))
+
             old_avatarpath = current_user.avatarpath
-            old_thumbnailpath = os.path.splitext(old_avatarpath)[0] + '_thumbnail' + os.path.splitext(old_avatarpath)[1]
+            # Define old_thumbnailpath based on old_avatarpath
+            if old_avatarpath and old_avatarpath != 'newstyle/avatar_default.jpg':
+                old_thumbnailpath = os.path.splitext(old_avatarpath)[0] + '_thumbnail' + os.path.splitext(old_avatarpath)[1]
+            else:
+                old_thumbnailpath = None  # No old thumbnail to worry about
+
             filename = secure_filename(file.filename)
             uuid_filename = str(uuid4()) + '.' + filename.rsplit('.', 1)[1].lower()
-            image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], uuid_filename)
+            image_path = os.path.join(upload_folder, uuid_filename)
             file.save(image_path)
 
-            # Create square avatar
+            # Image processing
             img = PILImage.open(image_path)
-            img = square_image(img, 500)
+            img = square_image(img, 500)  # Assume square_image is correctly defined elsewhere
             img.save(image_path)
 
-            # Create square thumbnail
             img = PILImage.open(image_path)
             img = square_image(img, 50)
             thumbnail_path = os.path.splitext(image_path)[0] + '_thumbnail' + os.path.splitext(image_path)[1]
             img.save(thumbnail_path)
 
-            if old_avatarpath != 'newstyle/avatar_default.jpg':
+            # Delete old avatar and thumbnail if they exist
+            if old_avatarpath and old_avatarpath != 'newstyle/avatar_default.jpg':
                 try:
-                    os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], os.path.basename(old_avatarpath)))
-                    os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], os.path.basename(old_thumbnailpath)))
+                    os.remove(os.path.join(upload_folder, os.path.basename(old_avatarpath)))
+                    if old_thumbnailpath:  # Check if old_thumbnailpath was defined
+                        os.remove(os.path.join(upload_folder, os.path.basename(old_thumbnailpath)))
                 except Exception as e:
                     print(f"Error deleting old avatar: {e}")
                     flash("Error deleting old avatar. Please try again.", 'error')
@@ -427,14 +444,8 @@ def settings_profile_edit():
             if not current_user.avatarpath:
                 current_user.avatarpath = 'newstyle/avatar_default.jpg'
 
-        
-
         try:
             db.session.commit()
-            print("Form validated and submitted successfully")
-            print(f"Avatar Path: {current_user.avatarpath}")
-        
-
             flash('Profile updated successfully!', 'success')
         except Exception as e:
             db.session.rollback()
@@ -442,11 +453,8 @@ def settings_profile_edit():
             flash('Failed to update profile. Please try again.', 'error')
 
         return redirect(url_for('main.settings_profile_edit'))
-       
 
     print("Form validation failed" if request.method == 'POST' else "Settings profile Form rendering")
-    print(f"Avatar Path: {current_user.avatarpath}")
-    
 
     for field, errors in form.errors.items():
         for error in errors:
@@ -454,6 +462,8 @@ def settings_profile_edit():
             flash(f"Error in field '{getattr(form, field).label.text}': {error}", 'error')
 
     return render_template('settings/settings_profile_edit.html', form=form, avatarpath=current_user.avatarpath)
+
+
 
 @bp.route('/settings_profile_view', methods=['GET'])
 @login_required
