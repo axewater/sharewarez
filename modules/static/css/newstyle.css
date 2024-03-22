@@ -532,9 +532,9 @@ font-size: large;
     padding-left: 10px;
    }
       
-.form-group {
+.form-control {
 
- margin: 10px;
+   line-height: 1.1;
 }
 
 .group-game-details {
