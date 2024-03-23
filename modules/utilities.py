@@ -662,41 +662,67 @@ def get_cover_thumbnail_url(igdb_id):
 
 def scan_and_add_games(folder_path):
     print(f"Starting scan for games in folder: {folder_path}")
-    if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
-        print(f"Error: Cannot access folder at path {folder_path}")
-        return
-
-    insensitive_patterns, sensitive_patterns = load_release_group_patterns()
+    # Create initial scan job entry
+    scan_job_entry = ScanJob(
+        folders={folder_path: True}, 
+        content_type='Games', 
+        status='Running', 
+        is_enabled=True, 
+        last_run=datetime.now(),
+        error_message=''  # Initialize with empty error message
+    )
     
-    game_names_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
-    
-    scan_job_entry = ScanJob(folders={folder_path:True}, content_type='Games', status='Running', is_enabled=True, last_run=datetime.now())
+    db.session.add(scan_job_entry)
     try:
-        db.session.add(scan_job_entry)
         db.session.commit()
     except SQLAlchemyError as e:
-        print(f"Failed to add ScanJob: {str(e)}")
+        print(f"Database error when adding ScanJob: {str(e)}")
+        return  # Early return as we cannot proceed without a ScanJob entry
+
+    # Check folder access permissions
+    if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
+        error_message = f"Cannot access folder at path {folder_path}. Check permissions."
+        print(error_message)
+        scan_job_entry.status = 'Failed'
+        scan_job_entry.error_message = error_message
+        try:
+            db.session.commit()
+        except SQLAlchemyError as e:
+            print(f"Database error when updating ScanJob with error: {str(e)}")
         return
-    
-    scan_job_id = scan_job_entry.id
+
+    try:
+        insensitive_patterns, sensitive_patterns = load_release_group_patterns()
+        game_names_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
+    except Exception as e:
+        scan_job_entry.status = 'Failed'
+        scan_job_entry.error_message = str(e)
+        db.session.commit()
+        print(f"Error during pattern loading or game name extraction: {str(e)}")
+        return
+
     for game_info in game_names_with_paths:
         game_name = game_info['name']
         full_disk_path = game_info['full_path']
         
-        # Attempt to process the game with fallback logic
-        success = process_game_with_fallback(game_name, full_disk_path, scan_job_id)
-        if success:
-            pass
-        else:
-            # print(f"Failed to add game {game_name} after fallback attempts.")
-            pass
+        try:
+            success = process_game_with_fallback(game_name, full_disk_path, scan_job_entry.id)
+            if not success:
+                print(f"Failed to process game {game_name} after fallback attempts.")
+        except Exception as e:
+            scan_job_entry.status = 'Failed'
+            scan_job_entry.error_message += f" Failed to process {game_name}: {str(e)}; "
+            break  # Exit the loop if a game processing fails critically
 
-    scan_job_entry.status = 'Completed'
-    print(f"Scan completed for folder: {folder_path} with ScanJob ID: {scan_job_id}")
+    if scan_job_entry.status != 'Failed':  # Only update to 'Completed' if not already 'Failed'
+        scan_job_entry.status = 'Completed'
+    
     try:
         db.session.commit()
+        print(f"Scan completed for folder: {folder_path} with ScanJob ID: {scan_job_entry.id}")
     except SQLAlchemyError as e:
-        print(f"Failed to update ScanJob status: {str(e)}")
+        print(f"Database error when finalizing ScanJob: {str(e)}")
+
         
 def process_game_with_fallback(game_name, full_disk_path, scan_job_id):
     

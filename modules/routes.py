@@ -1375,15 +1375,18 @@ def handle_auto_scan(auto_form):
         # Prepend the base path
         base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
         full_path = os.path.join(base_dir, folder_path)
+        if not os.path.exists(full_path) or not os.access(full_path, os.R_OK):
+            flash(f"Cannot access folder: {full_path}. Please check the path and permissions.", 'error')
+            session['active_tab'] = 'auto'
+            return redirect(url_for('main.library'))
 
         @copy_current_request_context
         def start_scan():
-            # Ensure that scan_and_add_games uses the full_path
             scan_and_add_games(full_path)
 
         thread = Thread(target=start_scan)
         thread.start()
-        flash('Auto-scan started for folder: ' + full_path, 'info')  # Optionally show only folder_path to the user
+        flash('Auto-scan started for folder: ' + full_path, 'info') 
         session['active_tab'] = 'auto'
     else:
         flash('Auto-scan form validation failed.', 'error')
