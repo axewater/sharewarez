@@ -94,10 +94,6 @@ def initial_setup():
         print(f'error upgrading user to admin: {e}')
 
 
-
-
-
-
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -126,7 +122,6 @@ def login():
             return redirect(url_for('main.login'))
 
     return render_template('login/login.html', form=form)
-
 
 
 @bp.route('/register', methods=['GET', 'POST'])
@@ -192,9 +187,6 @@ def register():
             flash('error while registering. Please try again.')
 
     return render_template('login/registration.html', title='Register', form=form)
-
-
-
 
 
 @bp.route('/confirm/<token>')
@@ -308,14 +300,6 @@ def create_user():
 def user_created():
     return render_template('admin/create_user_done.html')
 
-
-
-
-################### API ROUTES ###################################################################################
-################### API ROUTES ###################################################################################
-################### API ROUTES ###################################################################################
-
-
 @bp.route('/api/current_user_role', methods=['GET'])
 @login_required
 def get_current_user_role():
@@ -353,13 +337,6 @@ def delete_avatar(avatar_path):
         flash(f'Avatar image {full_avatar_path} not found.')
 
     return redirect(url_for('main.bot_generator'))
-
-
-
-#################################### SETTINGS ROUTES ############################################
-#################################### SETTINGS ROUTES ############################################
-#################################### SETTINGS ROUTES ############################################
-
 
 
 @bp.route('/settings_account', methods=['GET', 'POST'])
@@ -626,13 +603,6 @@ def get_user(user_id):
     else:
         print(f"User not found with id: {user_id}")
         return jsonify({'error': 'User not found'}), 404
-
-
-
-
-######################            basic site above                  ####################
-######################            basic site above                  ####################
-######################            basic site above                  ####################
 
 
 @bp.route('/api/genres')
@@ -902,8 +872,6 @@ def downloads():
     return render_template('games/downloads_manager.html', download_requests=download_requests, form=form)
 
 
-
-
 @bp.route('/scan_manual_folder', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -924,7 +892,7 @@ def scan_folder():
             insensitive_patterns, sensitive_patterns = load_release_group_patterns()
             
             games_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
-            
+            session['active_tab'] = 'manualScan'
             session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
             # print("Session updated with game paths.")
             
@@ -936,7 +904,6 @@ def scan_folder():
 
     # print("Game names with IDs:", game_names_with_ids)
     return render_template('scan/scan_management.html', form=form, game_names_with_ids=game_names_with_ids)
-
 
 
 @bp.route('/old_scan_auto_folder', methods=['GET', 'POST'])
@@ -958,9 +925,7 @@ def scan_auto_folder():
     
     return render_template('scan/scan_auto_folder.html', form=form)
 
-
-
-    
+   
 @bp.route('/api_debug', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -975,8 +940,6 @@ def api_debug():
         api_response = make_igdb_api_request(selected_endpoint, query_params)
         
     return render_template('scan/scan_apidebug.html', form=form, api_response=api_response)
-
-
 
 
 @bp.route('/add_game/<game_name>')
@@ -1112,11 +1075,11 @@ def game_edit(game_uuid):
         # Check if any other game has the same igdb_id and is not the current game
         existing_game_with_igdb_id = Game.query.filter(
             Game.igdb_id == form.igdb_id.data,
-            Game.id != game.id  # Ensure it's not the current game being updated
+            Game.id != game.id 
         ).first()
         
         if existing_game_with_igdb_id is not None:
-            # Inform the user that the igdb_id is already in use
+            # Inform user that igdb_id already in use
             flash(f'The IGDB ID {form.igdb_id.data} is already used by another game.', 'error')
             return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, action="edit")
         
@@ -1131,13 +1094,13 @@ def game_edit(game_uuid):
         game.aggregated_rating = form.aggregated_rating.data
         game.first_release_date = form.first_release_date.data
         game.status = form.status.data
-        category_str = form.category.data  # This might be a string like 'Category.BUNDLE'
-        # Remove the 'Category.' prefix and get the correct enum member
-        category_str = category_str.replace('Category.', '')  # Now it should be just 'BUNDLE'
+        category_str = form.category.data 
+        
+        category_str = category_str.replace('Category.', '')
         if category_str in Category.__members__:
             game.category = Category[category_str]
         else:
-            # Handle the case where the category string does not match any enum member
+            
             flash(f'Invalid category: {category_str}', 'error')
             return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, action="edit")
         
@@ -1162,21 +1125,21 @@ def game_edit(game_uuid):
                 db.session.flush()
             game.publisher = publisher
 
-        # Update many-to-many relationships
+        # Update many-to-many
         game.genres = form.genres.data
         game.game_modes = form.game_modes.data
         game.themes = form.themes.data
         game.platforms = form.platforms.data
         game.player_perspectives = form.player_perspectives.data
         
-        # Updating folder size
+        # Updating size
         print(f"Calculating folder size for {game.full_disk_path}.")
         new_folder_size_mb = get_folder_size_in_mb(game.full_disk_path)
         print(f"New folder size for {game.full_disk_path}: {format_size(new_folder_size_mb)}")
         
         game.date_identified = datetime.utcnow()
        
-        # Database commit and image update trigger
+        # DB commit and image update
         try:
             db.session.commit()
             flash('Game updated successfully.', 'success')
@@ -1187,7 +1150,7 @@ def game_edit(game_uuid):
             def refresh_images_in_thread():
                 refresh_images_in_background(game_uuid)
 
-            # Start the background process for refreshing images
+            # Start refresh images
             thread = Thread(target=refresh_images_in_thread)
             thread.start()
             print(f"Refresh images thread started for game UUID: {game_uuid}")
@@ -1200,7 +1163,7 @@ def game_edit(game_uuid):
     if request.method == 'POST':
         print(f"Form validation failed: {form.errors}")
 
-    # For GET requests or if form validation fails
+    # For GET or if form fails
     return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, action="edit")
 
 
@@ -1336,6 +1299,7 @@ def scan_management():
     csrf_form = CsrfProtectForm()
     unmatched_folders = UnmatchedFolder.query.order_by(UnmatchedFolder.status.desc()).all()
     unmatched_form = UpdateUnmatchedFolderForm() 
+
     try:
         game_count = Game.query.count()  # Fetch the game count here
     except Exception as e:
@@ -1355,9 +1319,11 @@ def scan_management():
         else:
             flash("Unrecognized action.", "error")
             return redirect(url_for('main.scan_management'))
+    game_paths_dict = session.get('game_paths', {})
+    game_names_with_ids = [{'name': name, 'full_path': path} for name, path in game_paths_dict.items()]
 
     active_tab = session.get('active_tab', 'auto')
-    print(f"Active tab: {active_tab}")
+    print(f"Passing Active tab: {active_tab}")
     return render_template('scan/scan_management.html', 
                            auto_form=auto_form, 
                            manual_form=manual_form, 
@@ -1366,7 +1332,9 @@ def scan_management():
                            active_tab=active_tab, 
                            unmatched_folders=unmatched_folders, 
                            unmatched_form=unmatched_form,
-                           game_count=game_count)
+                           game_count=game_count,
+                           game_names_with_ids=game_names_with_ids) 
+
 
 def handle_auto_scan(auto_form):
     if auto_form.validate_on_submit():
@@ -1393,18 +1361,27 @@ def handle_auto_scan(auto_form):
     return redirect(url_for('main.scan_management'))
 
 def handle_manual_scan(manual_form):
+    session['active_tab'] = 'manual'
     if manual_form.validate_on_submit():
         folder_path = manual_form.folder_path.data
-        if os.path.exists(folder_path) and os.access(folder_path, os.R_OK):
+        base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
+        full_path = os.path.join(base_dir, folder_path)
+        print(f"Manual scan form submitted. Full path: {full_path}")
+
+        if os.path.exists(full_path) and os.access(full_path, os.R_OK):
+            print("Folder exists and can be accessed.")
             insensitive_patterns, sensitive_patterns = load_release_group_patterns()
-            games_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
+            games_with_paths = get_game_names_from_folder(full_path, insensitive_patterns, sensitive_patterns)
             session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
-            flash('Manual scan processed for folder: ' + folder_path, 'info')
-            session['active_tab'] = 'manual'
+            print(f"Found {len(session['game_paths'])} games in the folder.")
+            flash('Manual scan processed for folder: ' + full_path, 'info')
+            
         else:
             flash("Folder does not exist or cannot be accessed.", "error")
     else:
         flash('Manual scan form validation failed.', 'error')
+        
+    print("Game paths: ", session.get('game_paths', {}))
     return redirect(url_for('main.scan_management'))
 
 def handle_delete_unmatched(all):
@@ -1424,19 +1401,6 @@ def handle_delete_unmatched(all):
         flash('An error occurred while deleting unmatched folders.', 'error')
     return redirect(url_for('main.scan_management'))
     
-@bp.route('/scan_jobs_manager_old')
-@login_required
-@admin_required
-def scan_jobs_manager_old():
-    print("Route: /scan_jobs_manager")
-    jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
-    form = CsrfProtectForm()  # Instantiate the form
-    return render_template('scan/scan_jobs_manager_old.html', jobs=jobs, form=form)
-
-
-
-from flask import request
-import socket, platform
 
 @bp.route('/admin/status_page')
 @login_required
@@ -1466,13 +1430,6 @@ def admin_status_page():
 
 
 
-
-
-
-
-
-
-
 @bp.route('/delete_scan_job/<job_id>', methods=['POST'])
 @login_required
 @admin_required
@@ -1487,6 +1444,7 @@ def delete_scan_job(job_id):
 @login_required
 @admin_required
 def clear_all_scan_jobs():
+    session['active_tab'] = 'auto'
     db.session.query(ScanJob).delete()
     db.session.commit()
     flash('All scan jobs cleared successfully.', 'success')
