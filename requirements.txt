@@ -3,7 +3,7 @@ flask
 flask_sqlalchemy
 email-validator==2.0.0.post2
 Flask==2.3.2
-Flask-Bcrypt==1.0.1
+argon2-cffi==20.1.0
 Flask-Limiter==3.3.1
 Flask-Login==0.6.2
 Flask-Mail==0.9.1

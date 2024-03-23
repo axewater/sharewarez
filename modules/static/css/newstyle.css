@@ -20,6 +20,7 @@ body {
     backdrop-filter: blur(10px);
     background: rgba(255, 255, 255, 0.1);
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+
 }
 
 .menu a {
@@ -44,6 +45,7 @@ body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.5); /* Stronger shadow for depth */
     cursor: pointer;
     transition: all 0.3s ease;
+
 }
 
 .user-account-icon {
@@ -52,7 +54,7 @@ body {
     justify-content: space-between; /* This will space out the avatar, username, and icon */
     color: white;
     padding: 4px;
-    width: 180px;
+
 }
 
 .user-avatar {
@@ -75,15 +77,16 @@ body {
 .user-account-menu {
     display: none; /* Initially hidden */
     padding: 10px;
-    bottom: 75px;
+    bottom: 40px;
 }
 
 .account-menu-option {
     display: block;
-    padding: 10px;
+    padding: 5px;
     color: #ecf0f1; /* Light text color for contrast */
     text-decoration: none;
     transition: background-color 0.2s ease;
+    border-radius: 15px;
 }
 
 .account-menu-option:hover {
