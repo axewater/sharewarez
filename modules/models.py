@@ -364,6 +364,8 @@ class ScanJob(db.Model):
     status = db.Column(db.Enum('Scheduled', 'Running', 'Completed', 'Failed', name='status_enum'))
     last_run = db.Column(db.DateTime, nullable=True)
     next_run = db.Column(db.DateTime, nullable=True)
+    error_message = db.Column(db.String(512))
+
 
 class UnmatchedFolder(db.Model):
     __tablename__ = 'unmatched_folders'
