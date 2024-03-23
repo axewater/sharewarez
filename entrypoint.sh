@@ -15,6 +15,9 @@ wait_for_postgres() {
 # Wait for PostgreSQL to come online
 wait_for_postgres
 
+# trigger database migrations to update schema
+flask db upgrade
+
 # Execute your Python scripts
 python /app/docker_adduser.py
 python /app/app.py
