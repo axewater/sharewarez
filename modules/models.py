@@ -5,11 +5,15 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.types import TypeDecorator, TEXT
 from sqlalchemy.types import Enum as SQLEnum
 from werkzeug.security import generate_password_hash, check_password_hash
+from argon2 import PasswordHasher
 from datetime import datetime
 import uuid, json
 from uuid import uuid4
 
 from enum import Enum as PyEnum
+
+
+ph = PasswordHasher()
 
 class JSONEncodedDict(TypeDecorator):
     impl = TEXT
@@ -225,10 +229,24 @@ class User(db.Model):
     token_creation_time = db.Column(db.DateTime, nullable=True)
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        # Now using Argon2 to hash new passwords
+        self.password_hash = ph.hash(password)
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        # Checking if the password hash starts with Argon2's identifier
+        if self.password_hash.startswith('$argon2'):
+            try:
+                return ph.verify(self.password_hash, password)
+            except argon2_exceptions.VerifyMismatchError:
+                return False
+        else:
+            # Fallback to the old bcrypt checking
+            return check_password_hash(self.password_hash, password)
+        
+    def rehash_password(self, password):
+        # Only rehash if the current hash is not using Argon2
+        if not self.password_hash.startswith('$argon2'):
+            self.password_hash = ph.hash(password)
 
     @property
     def is_authenticated(self):
