@@ -75,6 +75,7 @@
                             <th>ID</th>
                             <th>Folders</th>
                             <th>Status</th>
+                            <th>Error message</th>
                             <th>Last Run</th>
                             <th>Next Run</th>
                             <th>Actions</th>
@@ -86,6 +87,7 @@
                             <td>{{ job.id.split('-')[0] }}</td>
                             <td>{{ job.folders }}</td>
                             <td>{{ job.status }}</td>
+                            <td>{{ job.error_message }}</td>
                             <td>{{ job.last_run.strftime('%Y-%m-%d %H:%M:%S') if job.last_run else '' }}</td>
                             <td>{{ job.next_run.strftime('%Y-%m-%d %H:%M:%S') if job.next_run else 'None' }}</td>
 

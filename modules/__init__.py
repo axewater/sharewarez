@@ -10,6 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import Config
 from flask_migrate import Migrate
+from flask_migrate import upgrade as _upgrade
 from modules.routes_site import site_bp
 from modules.filters import setup_filters
 from urllib.parse import urlparse
@@ -20,6 +21,7 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 mail = Mail()
 from flask_apscheduler import APScheduler
+
 
 def check_postgres_port_open(host, port, retries=5, delay=2):
     """
@@ -48,6 +50,7 @@ def create_app():
     global s    
     app = Flask(__name__)
     app.config.from_object(Config)
+    migrate = Migrate(app, db) 
     csrf = CSRFProtect(app)
     app.config['WTF_CSRF_HEADERS'] = ['X-CSRFToken', 'X-CSRF-Token']
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/library/avatars_users')
@@ -56,6 +59,7 @@ def create_app():
     check_postgres_port_open(parsed_url.hostname, 5432, 60, 2);
     
     db.init_app(app)
+
     login_manager.init_app(app)
     mail.init_app(app)
     login_manager.login_view = 'main.login'
@@ -66,6 +70,7 @@ def create_app():
 
     with app.app_context():
         from . import routes, models
+        _upgrade()
         db.create_all()
         insert_default_release_groups()
     app.register_blueprint(routes.bp)
