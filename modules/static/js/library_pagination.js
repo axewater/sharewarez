@@ -221,12 +221,12 @@ $(document).ready(function() {
 }
 
 
-let i =0;
+// let i =0;
 
 function createPopupMenuHtml(game) {
     // when modifying this function, make sure to update the popup_menu.html template as well
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    console.log(i++, game);
+    // console.log(i++, game); // super handy debug
     window.game = game;
     return `
     <div id="popupMenu-${game.uuid}" class="popup-menu" style="display: none;">
@@ -344,8 +344,8 @@ document.body.addEventListener('click', function(event) {
         fetch(`/refresh_game_images/${gameUuid}`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json', // Specify the content type
-                'X-CSRF-Token': csrfToken, // Include the CSRF token in the request header
+                'Content-Type': 'application/json', 
+                'X-CSRF-Token': csrfToken,
                 'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify({ /* Your data here */ })
