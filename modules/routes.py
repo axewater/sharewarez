@@ -300,6 +300,9 @@ def create_user():
 def user_created():
     return render_template('admin/create_user_done.html')
 
+
+
+
 @bp.route('/api/current_user_role', methods=['GET'])
 @login_required
 def get_current_user_role():
@@ -1381,6 +1384,13 @@ def scan_management():
 
 def handle_auto_scan(auto_form):
     if auto_form.validate_on_submit():
+        # Check 4 scan job 'running' status
+        running_job = ScanJob.query.filter_by(status='Running').first()
+        if running_job:
+            flash('A scan is already in progress. Please wait until the current scan completes.', 'error')
+            session['active_tab'] = 'auto'
+            return redirect(url_for('main.scan_management'))
+    
         folder_path = auto_form.folder_path.data
 
         # Prepend the base path
@@ -1406,6 +1416,13 @@ def handle_auto_scan(auto_form):
 def handle_manual_scan(manual_form):
     session['active_tab'] = 'manual'
     if manual_form.validate_on_submit():
+        # Check 4 scan job 'running' status
+        running_job = ScanJob.query.filter_by(status='Running').first()
+        if running_job:
+            flash('A scan is already in progress. Please wait until the current scan completes.', 'error')
+            session['active_tab'] = 'manual'
+            return redirect(url_for('main.scan_management'))
+        
         folder_path = manual_form.folder_path.data
         base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
         full_path = os.path.join(base_dir, folder_path)

@@ -664,7 +664,7 @@ form textarea {
 .glass-panel-scanfolder {
     display: flex;
     flex-direction: column;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(13, 27, 38, 0.9);
     backdrop-filter: blur(10px);
     border-radius: 15px;
     padding: 25px;
@@ -1057,7 +1057,15 @@ form textarea {
   }
 
 
-
+  /* Modal Content Box */
+  .modal-content-search {
+    background-color: black;
+    color: white;
+    margin: 25% auto;
+    padding: 20px;
+    border: 15px solid black;
+    width: 80%;
+  }
 
 
 @media (max-width: 600px) {
