@@ -24,7 +24,7 @@
 
 
 .button-glass-hamburger:hover {
-    background-color: rgba(218, 217, 217, 0.9); /* Slightly darker on hover */
+    background-color: rgba(218, 217, 217, 0.9);
 
 }
 
@@ -41,12 +41,15 @@
     background-color: #42403c;
     text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
     padding: 20px;
+    padding-right: 40px;
     border-radius: 15px;
     margin-bottom: 10px;
     line-height: normal;
     box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     border-radius: 15px;
     border: 1px solid #080707;
+    position: relative; /* Add this line */
+
 }
 
 .game-card-weblinks {
@@ -60,6 +63,53 @@
     margin-bottom: 10px;
     box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
+
+.game-card-links {
+    position: absolute; /* Keep this absolute */
+    top: 50%; /* Vertically centered */
+    right: 10px; /* To the right, adjust as needed */
+    transform: translateY(-50%); /* Center align vertically */
+    display: flex; /* Use flexbox for layout */
+    flex-direction: column; 
+    justify-content: flex-start; /* Aligns children to the start of the flex container */
+
+    align-items: center; /* Center items vertically */
+    gap: 5px; /* Adjust the space between icons as needed */
+
+}
+
+
+.game-link-icon i {
+    color: white; 
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); 
+    margin-top: 5px;
+}
+
+.game-link-icon {
+
+    transition: color 0.9s ease, font-size 0.5s ease;
+
+}
+
+
+.game-link-icon:hover {
+    margin: 0 5px; 
+    color: rgb(24, 47, 179); 
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    font-size:xx-large;
+
+}
+
+.game-link-icon i:hover {
+    color: rgb(32, 56, 192); 
+   
+}
+
+
+.game-card-links:empty {
+    display: none; /* This will hide the div if it's empty */
+}
+
 
 
 .game-name {
@@ -143,7 +193,7 @@
 .summary-modal {
     display: none;
     position: fixed;
-    z-index: 2; /* Ensure this is above other content but adjust as needed */
+    z-index: 2; 
     left: 0;
     top: 0;
     width: 100%;
@@ -217,11 +267,13 @@
 .rating-container {
     display: flex;
     flex-direction: row;
+    
     width: 100%;
     margin-bottom: 5px;
     border-radius: 5px;
   }
   
+
 .rating-bar {
     height: 25px;
     max-width: 100px;

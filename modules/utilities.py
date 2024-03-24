@@ -8,7 +8,7 @@ from datetime import datetime
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from modules.models import (
-    User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, Platform, Genre, Publisher, Developer, 
+    User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, Platform, Genre, Publisher, Developer, GameURL,
     Theme, GameMode, MultiplayerMode, PlayerPerspective, ScanJob, UnmatchedFolder, category_mapping, status_mapping, player_perspective_mapping
 )
 from modules import db, mail
@@ -50,50 +50,84 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-
-
 def create_game_instance(game_data, full_disk_path, folder_size_mb):
-            
-    category_id = game_data.get('category')
-    category_enum = category_mapping.get(category_id, None)
-    status_id = game_data.get('status')
-    status_enum = status_mapping.get(status_id, None)
-    player_perspective_id = game_data.get('player_perspective')
-    player_perspective_enum = player_perspective_mapping.get(player_perspective_id, None)
-    # Convert video IDs to YouTube URLs and concatenate into a comma-separated string
-    if 'videos' in game_data:
-        video_urls = [f"https://www.youtube.com/watch?v={video['video_id']}" for video in game_data['videos']]
-        videos_comma_separated = ','.join(video_urls)
-    else:
-        videos_comma_separated = ""
-    new_game = Game(
-        igdb_id=game_data['id'],
-        name=game_data['name'],
-        summary=game_data.get('summary'),
-        storyline=game_data.get('storyline'),
-        url=game_data.get('url'),
-        first_release_date=datetime.utcfromtimestamp(game_data.get('first_release_date', 0)) if game_data.get('first_release_date') else None,
-        aggregated_rating=game_data.get('aggregated_rating'),
-        aggregated_rating_count=game_data.get('aggregated_rating_count'),
-        rating=game_data.get('rating'),
-        rating_count=game_data.get('rating_count'),
-        slug=game_data.get('slug'),
-        status=status_enum,
-        category=category_enum,
-        total_rating=game_data.get('total_rating'),
-        total_rating_count=game_data.get('total_rating_count'),
-        video_urls=videos_comma_separated,
-        full_disk_path=full_disk_path,
-        size=folder_size_mb,
-        date_created=datetime.utcnow(),
-        date_identified=datetime.utcnow(),
-        steam_url='',
-        times_downloaded=0
-    )
+    try:
+        category_id = game_data.get('category')
+        category_enum = category_mapping.get(category_id, None)
+        status_id = game_data.get('status')
+        status_enum = status_mapping.get(status_id, None)
+        player_perspective_id = game_data.get('player_perspective')
+        player_perspective_enum = player_perspective_mapping.get(player_perspective_id, None)
+        
+        if 'videos' in game_data:
+            video_urls = [f"https://www.youtube.com/watch?v={video['video_id']}" for video in game_data['videos']]
+            videos_comma_separated = ','.join(video_urls)
+        else:
+            videos_comma_separated = ""
+        
+        new_game = Game(
+            igdb_id=game_data['id'],
+            name=game_data['name'],
+            summary=game_data.get('summary'),
+            storyline=game_data.get('storyline'),
+            url=game_data.get('url'),
+            first_release_date=datetime.utcfromtimestamp(game_data.get('first_release_date', 0)) if game_data.get('first_release_date') else None,
+            aggregated_rating=game_data.get('aggregated_rating'),
+            aggregated_rating_count=game_data.get('aggregated_rating_count'),
+            rating=game_data.get('rating'),
+            rating_count=game_data.get('rating_count'),
+            slug=game_data.get('slug'),
+            status=status_enum,
+            category=category_enum,
+            total_rating=game_data.get('total_rating'),
+            total_rating_count=game_data.get('total_rating_count'),
+            video_urls=videos_comma_separated,
+            full_disk_path=full_disk_path,
+            size=folder_size_mb,
+            date_created=datetime.utcnow(),
+            date_identified=datetime.utcnow(),
+            steam_url='',
+            times_downloaded=0
+        )
+        
+        db.session.add(new_game)
+        db.session.flush()
+        
+        print(f"Game instance created for '{new_game.name}' with UUID: {new_game.uuid}. Proceeding to fetch URLs.")
+        
+        fetch_and_store_game_urls(new_game.uuid, game_data['id'])
+        
+        print(f"Finished processing game '{new_game.name}'. URLs (if any) have been fetched and stored.")
+    except Exception as e:
+        print(f"Error during the game instance creation or URL fetching for game '{game_data.get('name')}'. Error: {e}")
     
-    db.session.add(new_game)
-    db.session.flush()
     return new_game
+
+
+
+def fetch_and_store_game_urls(game_uuid, igdb_id):
+    try:
+        website_query = f'fields url, category; where game={igdb_id};'
+        print(f"Fetching URLs for game IGDB ID {igdb_id} with query: {website_query}.")
+        
+        websites_response = make_igdb_api_request('https://api.igdb.com/v4/websites', website_query)
+        
+        if websites_response and 'error' not in websites_response:
+            print(f"Retrieved URLs for game IGDB ID {igdb_id} : {websites_response}.")
+            for website in websites_response:
+                print(f"Storing URL: {website.get('url')}, Category: {website.get('category')}.")
+                
+                new_url = GameURL(
+                    game_uuid=game_uuid,
+                    url_type=website_category_to_string(website.get('category')),
+                    url=website.get('url')
+                )
+                db.session.add(new_url)
+        else:
+            print(f"No URLs found or failed to retrieve URLs for game IGDB ID {igdb_id}.")
+    except Exception as e:
+        print(f"Exception while fetching/storing URLs for game UUID {game_uuid}, IGDB ID {igdb_id}: {e}")
+
 
 
 def process_and_save_image(game_uuid, image_data, image_type='cover'):
@@ -145,6 +179,32 @@ def process_and_save_image(game_uuid, image_data, image_type='cover'):
             url=file_name,
         )
         db.session.add(image)
+    
+
+def website_category_to_string(category_id):
+    # Mapping based on IGDB API documentation for website categories
+    category_mapping = {
+        1: "official",
+        2: "wikia",
+        3: "wikipedia",
+        4: "facebook",
+        5: "twitter",
+        6: "twitch",
+        8: "instagram",
+        9: "youtube",
+        10: "iphone",
+        11: "ipad",
+        12: "android",
+        13: "steam",
+        14: "reddit",
+        15: "itch",
+        16: "epicgames",
+        17: "gog",
+        18: "discord"
+    }
+    return category_mapping.get(category_id, "unknown")
+
+    
     
 def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
     print(f"Finding a way to add {game_name} on {full_disk_path} to the library.")
