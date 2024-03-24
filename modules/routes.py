@@ -717,7 +717,7 @@ def library():
         'filters': filters,
         'form': CsrfForm()
     }
-    print(f"LIBRARY: context: {context}")
+    #print(f"LIBRARY: context: {context}")
     return render_template('games/library_browser.html', **context)
 
 
@@ -1662,6 +1662,35 @@ def game_details(game_uuid):
             "steam_url": game.steam_url if game.steam_url else 'Not available',
             "times_downloaded": game.times_downloaded
         }
+        
+        # URL Icons Mapping
+        # Updated for FontAwesome v6
+        url_icons = {
+            "official": "fa-solid fa-globe",
+            "wikia": "fa-brands fa-wikimedia",
+            "wikipedia": "fa-brands fa-wikipedia-w",
+            "facebook": "fa-brands fa-facebook",
+            "twitter": "fa-brands fa-twitter",
+            "twitch": "fa-brands fa-twitch",
+            "instagram": "fa-brands fa-instagram",
+            "youtube": "fa-brands fa-youtube",
+            "steam": "fa-brands fa-steam",
+            "reddit": "fa-brands fa-reddit",
+            "itch": "fa-brands fa-itch-io",
+            "epicgames": "fa-brands fa-epic-games",
+            "gog": "fa-brands fa-gog",
+            "discord": "fa-brands fa-discord",
+            # Add or update mappings as needed
+        }
+
+
+        # Augment game_data with URLs
+        game_data['urls'] = [{
+            "type": url.url_type,
+            "url": url.url,
+            "icon": url_icons.get(url.url_type, "fa-link")
+        } for url in game.urls]
+        
         return render_template('games/games_details.html', game=game_data, form=csrf_form)
     else:
         return jsonify({"error": "Game not found"}), 404

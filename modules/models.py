@@ -196,6 +196,20 @@ class Game(db.Model):
         return f"<Game id={self.id}, name={self.name}>"
     
 
+class GameURL(db.Model):
+    __tablename__ = 'game_urls'
+
+    id = db.Column(db.Integer, primary_key=True)
+    game_uuid = db.Column(db.String(36), db.ForeignKey('games.uuid'), nullable=False)
+    url_type = db.Column(db.String, nullable=False)
+    url = db.Column(db.String, nullable=False)
+
+    game = db.relationship('Game', backref=db.backref('urls', lazy=True))
+
+    def __repr__(self):
+        return f"<GameURL id={self.id}, game_uuid={self.game_uuid}, url_type={self.url_type}, url={self.url}>"
+
+
 class Image(db.Model):
     __tablename__ = 'images'
 

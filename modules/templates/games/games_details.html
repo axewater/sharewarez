@@ -67,18 +67,30 @@
                                 <a href="{{ game.url }}" class="igdb-link">IGDB</a>
                             </div>
                             {% if game.rating %}
-                                <div class="rating-bar" style="width: {{ game.rating * 10 }}%;"></div>
+                                <div class="rating-bar" style="width: {{ game.rating }}%;"></div>
                             {% else %}
                                 <div class="emptyrating">Not rated</div>
                             {% endif %}
+
                             <div class="game-card-labels-rating">
                                 Other:
                             </div>
                             {% if game.aggregated_rating %}
-                                <div class="rating-bar" style="width: {{ game.aggregated_rating * 10 }}%;"></div>
+                                <div class="rating-bar" style="width: {{ game.aggregated_rating }}%;"></div>
                             {% else %}
                                 <div class="emptyrating">Not rated</div>
                             {% endif %}
+                            {% if game.urls and game.urls|length > 0 %}
+                            <div class="game-card-links">
+                                <!-- Iterate through URLs and create icon links -->
+                                {% for link in game.urls %}
+                                    <a href="{{ link.url }}" target="_blank" class="game-link-icon" title="{{ link.type|capitalize }}">
+                                        <i class="fas {{ link.icon }}"></i>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
                         </div>
                         
                         {% macro list_items(items, label, filter_type) %}
@@ -120,8 +132,8 @@
                             {{ detail_item("Released", game.first_release_date) }}
                             {{ detail_item("Developer", game.developer) }}
                             
-                            
-                            
+
+
                             
                         </div>
  
