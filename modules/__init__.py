@@ -9,8 +9,8 @@ from flask_wtf.csrf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import Config
-from flask_migrate import Migrate
-from flask_migrate import upgrade as _upgrade
+#from flask_migrate import Migrate
+#from flask_migrate import upgrade as _upgrade
 from modules.routes_site import site_bp
 from modules.filters import setup_filters
 from urllib.parse import urlparse
@@ -50,7 +50,6 @@ def create_app():
     global s    
     app = Flask(__name__)
     app.config.from_object(Config)
-    migrate = Migrate(app, db) 
     csrf = CSRFProtect(app)
     app.config['WTF_CSRF_HEADERS'] = ['X-CSRFToken', 'X-CSRF-Token']
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/library/avatars_users')
@@ -70,7 +69,7 @@ def create_app():
 
     with app.app_context():
         from . import routes, models
-        _upgrade()
+        #_upgrade()
         db.create_all()
         insert_default_release_groups()
     app.register_blueprint(routes.bp)

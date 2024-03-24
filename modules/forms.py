@@ -152,3 +152,30 @@ class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
     submit = SubmitField('Register')
+
+class UserPreferencesForm(FlaskForm):
+    items_per_page_choices = [
+        ('16', '16'),
+        ('20', '20'),
+        ('50', '50'),
+        ('100', '100'),
+        ('500', '500'),
+        ('1000', '1000')
+    ]
+    default_sort_choices = [
+        ('name', 'Name'),
+        ('rating', 'Rating'),
+        ('first_release_date', 'Date Released'),
+        ('date_identified', 'Date Added'),
+        ('size', 'Filesize')
+    ]
+    default_sort_order_choices = [
+        ('asc', 'Ascending'),
+        ('desc', 'Descending')
+    ]
+
+    items_per_page = SelectField('Max items per Page', choices=items_per_page_choices, coerce=int)
+    default_sort = SelectField('Default Sort', choices=default_sort_choices)
+    default_sort_order = SelectField('Default Sort Order', choices=default_sort_order_choices)
+    submit = SubmitField('Save Preferences')
+
