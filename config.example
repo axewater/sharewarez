@@ -2,19 +2,19 @@ import os
 from datetime import timedelta
 
 class Config(object):
-    SECRET_KEY = os.getenv('SECRET_KEY', 'HGAaaaJHS32AJ645U53AAems3290jkklAA7')
+    SECRET_KEY = os.getenv('SECRET_KEY', 'enter1your2own3random4key5here')
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:!Piratingin2024!@postgresqlservername:5432/sharewarez')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     IMAGE_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/library/images')
     ZIP_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/library/zips')
     UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'modules/static/library')
     THEME_FILES = os.path.join(os.path.dirname(__file__), 'modules/static/library/themes')
-    MAIL_SERVER = os.getenv('MAIL_SERVER', 'mail.kpnmail.nl')
+    MAIL_SERVER = os.getenv('MAIL_SERVER', 'mail.yourisp.com')
     MAIL_PORT = int(os.getenv('MAIL_PORT', 25))
     MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', 'False') == 'True'
     MAIL_USERNAME = os.getenv('MAIL_USERNAME')
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', 'ace@aceboard.pleasewaitloading.com')
+    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', 'blackbeard@sharewarez.com')
     REMEMBER_COOKIE_DURATION = timedelta(days=int(os.getenv('REMEMBER_COOKIE_DURATION', 30)))
     INITIAL_WHITELIST = os.getenv('INITIAL_WHITELIST', 'wateraxe@gmail.com')
     IGDB_CLIENT_ID = os.getenv('IGDB_CLIENT_ID', 'get this from IGDB')
