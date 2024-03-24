@@ -11,7 +11,9 @@
     <script src="{{ url_for('static', filename='js/library_pagination.js') }}"></script>
     <script src="{{ url_for('static', filename='js/library_search.js') }}"></script>
 </head>
-<body>
+<body data-user-per-page="{{ user_per_page }}" data-user-default-sort="{{ user_default_sort }}" data-user-default-sort-order="{{ user_default_sort_order }}">
+
+    
 
     <div class="content-flash">
         {% with messages = get_flashed_messages() %}
@@ -39,13 +41,14 @@
         </div>
 
         <select id="perPageSelect" class="dropdown-perpage">
-            <option value="16">16</option>
-            <option value="20" selected>20</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-            <option value="500">500</option>
-            <option value="1000">1000</option>
+            <option value="16" {% if user_per_page == 16 %}selected{% endif %}>16</option>
+            <option value="20" {% if user_per_page == 20 %}selected{% endif %}>20</option>
+            <option value="50" {% if user_per_page == 50 %}selected{% endif %}>50</option>
+            <option value="100" {% if user_per_page == 100 %}selected{% endif %}>100</option>
+            <option value="500" {% if user_per_page == 500 %}selected{% endif %}>500</option>
+            <option value="1000" {% if user_per_page == 1000 %}selected{% endif %}>1000</option>
         </select>
+        
         
         <!-- Search Modal -->
         <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
@@ -162,8 +165,15 @@
                 });
             });
         });
-        </script>    
 
+            // Debugging user preferences
+            console.log("Uzer preferences:", {
+                perPage: "{{ user_per_page }}",
+                defaultSort: "{{ user_default_sort }}",
+                defaultSortOrder: "{{ user_default_sort_order }}"
+            });
+        </script>
+        
 </body>
 </html>
 {% endblock %}

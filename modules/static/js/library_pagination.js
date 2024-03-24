@@ -8,9 +8,30 @@ $('#sortOrderToggle').text(sortOrder === 'asc' ? '^' : '~');
 $(document).ready(function() {
   var initialParams = getUrlParams();
   console.log("Initial URL Parameters:", initialParams);
+
+  // Read preferences from data attributes
+  var userPerPage = $('body').data('user-per-page');
+  var userDefaultSort = $('body').data('user-default-sort');
+  var userDefaultSortOrder = $('body').data('user-default-sort-order');
+  console.log("User preferences:", userPerPage, userDefaultSort, userDefaultSortOrder);
   var currentPage = 1;
   var totalPages = 0;
   csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+  // Set items per page dropdown
+  if(userPerPage) {
+    $('#perPageSelect').val(userPerPage.toString());
+  }
+
+  // Set sort dropdown
+  if(userDefaultSort) {
+    $('#sortSelect').val(userDefaultSort);
+  }
+
+  // Update sort order and toggle button
+  sortOrder = userDefaultSortOrder || 'asc'; // Use user preference or default
+  $('#sortOrderToggle').text(sortOrder === 'asc' ? '^' : '~');
+
 
   function populateGenres(callback) {
     $.ajax({

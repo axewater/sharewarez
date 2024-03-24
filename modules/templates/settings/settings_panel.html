@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-builder">
+    <div class="content-flash">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="flashes">
+            {% for message in messages %}
+            <div class="flash">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+    </div>
+<div class="glass-panel">
+    <div class="container my-4">
+        <h2>User Preferences</h2>
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.items_per_page.label(class="form-label") }}
+                {{ form.items_per_page(class="form-control") }}
+                {% for error in form.items_per_page.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ form.default_sort.label(class="form-label") }}
+                {{ form.default_sort(class="form-select") }}
+                {% for error in form.default_sort.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <div class="mb-3">
+                {{ form.default_sort_order.label(class="form-label") }}
+                {{ form.default_sort_order(class="form-select") }}
+                {% for error in form.default_sort_order.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
+            <div class="d-grid">
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

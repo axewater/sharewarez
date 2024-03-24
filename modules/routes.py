@@ -30,11 +30,11 @@ from modules.forms import (
     UserPasswordForm, UserDetailForm, EditProfileForm, NewsletterForm, WhitelistForm, EditUserForm, 
     UserManagementForm, ScanFolderForm, IGDBApiForm, ClearDownloadRequestsForm, CsrfProtectForm, 
     AddGameForm, LoginForm, ResetPasswordRequestForm, AutoScanForm, UpdateUnmatchedFolderForm, 
-    ReleaseGroupForm, RegistrationForm, CreateUserForm, CsrfForm
+    ReleaseGroupForm, RegistrationForm, CreateUserForm, UserPreferencesForm, CsrfForm
 )
 from modules.models import (
     User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, 
-    Platform, Genre, Theme, GameMode, MultiplayerMode, PlayerPerspective, Category
+    Platform, Genre, Theme, GameMode, MultiplayerMode, PlayerPerspective, Category, UserPreference
 )
 from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
@@ -471,8 +471,37 @@ def account_pw():
 
     return render_template('settings/settings_password.html', title='Change Password', form=form, user=user)
 
+@bp.route('/settings_panel', methods=['GET', 'POST'])
+@login_required
+def settings_panel():
+    form = UserPreferencesForm()
+    if request.method == 'POST' and form.validate_on_submit():
+        # Ensure preferences exist
+        if not current_user.preferences:
+            current_user.preferences = UserPreference(user_id=current_user.id)
+        
+        current_user.preferences.items_per_page = form.items_per_page.data or current_user.preferences.items_per_page
+        current_user.preferences.default_sort = form.default_sort.data or current_user.preferences.default_sort
+        current_user.preferences.default_sort_order = form.default_sort_order.data or current_user.preferences.default_sort_order
+        db.session.add(current_user.preferences)
+        db.session.commit()
+        flash('Your settings have been updated.', 'success')
+        return redirect(url_for('main.discover'))
+    elif request.method == 'GET':
+        # Ensure preferences exist
+        if not current_user.preferences:
+            current_user.preferences = UserPreference(user_id=current_user.id)
+            db.session.add(current_user.preferences)
+            db.session.commit()
+        
+        form.items_per_page.data = current_user.preferences.items_per_page
+        form.default_sort.data = current_user.preferences.default_sort
+        form.default_sort_order.data = current_user.preferences.default_sort_order
 
-######################################## ADMIN ROUTES #####################################################
+    return render_template('settings/settings_panel.html', form=form)
+
+
+
 ######################################## ADMIN ROUTES #####################################################
 ######################################## ADMIN ROUTES #####################################################
 
@@ -633,21 +662,33 @@ def get_player_perspectives():
     perspectives = PlayerPerspective.query.all()
     perspectives_list = [{'id': perspective.id, 'name': perspective.name} for perspective in perspectives]
     return jsonify(perspectives_list)
-
-
 @bp.route('/library')
 @login_required
 def library():
+    print(f"LIBRARY: current_user: {current_user} req :", request.method)
+    # Ensure user preferences are loaded or default ones are created
+    if not current_user.preferences:
+        print("User preferences not found, creating default...")
+        current_user.preferences = UserPreference(user_id=current_user.id)
+        db.session.add(current_user.preferences)
+        db.session.commit()
+
+    # Start with user prefs or default
+    per_page = current_user.preferences.items_per_page if current_user.preferences else 20
+    sort_by = current_user.preferences.default_sort if current_user.preferences else 'name'
+    sort_order = current_user.preferences.default_sort_order if current_user.preferences else 'asc'
+
     # Extract filters from request arguments
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 16, type=int)
+    # Only override per_page, sort_by, and sort_order if the URL parameters are provided
+    per_page = request.args.get('per_page', type=int) or per_page
     genre = request.args.get('genre')
     rating = request.args.get('rating', type=int)
     game_mode = request.args.get('game_mode')
     player_perspective = request.args.get('player_perspective')
     theme = request.args.get('theme')
-    sort_by = request.args.get('sort_by', 'name')
-    sort_order = request.args.get('sort_order', 'asc')
+    sort_by = request.args.get('sort_by') or sort_by
+    sort_order = request.args.get('sort_order') or sort_order
 
     print(f"Filters: {genre}, {rating}, {game_mode}, {player_perspective}, {theme}")
     filters = {
@@ -661,19 +702,21 @@ def library():
     filters = {k: v for k, v in filters.items() if v is not None}
 
     game_data, total, pages, current_page = get_games(page, per_page, sort_by=sort_by, sort_order=sort_order, **filters)
-    # print(f'Game data: {game_data}, total: {total}, pages: {pages}, current_page: {current_page}, filters: {filters}, sort_by: {sort_by}, sort_order: {sort_order}')
-    
-    # You can modify this to pass additional context for rendering filters, etc.
+
     context = {
         'games': game_data,
         'total': total,
         'pages': pages,
         'current_page': current_page,
-        # Add other necessary context variables for filters
-        'form': CsrfForm()  # Assuming you're still using this for CSRF protection
+        'user_per_page': per_page,
+        'user_default_sort': sort_by,
+        'user_default_sort_order': sort_order,
+        'filters': filters,
+        'form': CsrfForm()
     }
-
+    print(f"LIBRARY: context: {context}")
     return render_template('games/library_browser.html', **context)
+
 
 def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
     query = Game.query.options(joinedload(Game.genres))
@@ -703,7 +746,7 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
         query = query.order_by(Game.date_identified.asc() if sort_order == 'asc' else Game.date_identified.desc())
 
 
-    # Pagination logic
+    # Pagination
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     games = pagination.items
 
