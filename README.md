@@ -1,9 +1,8 @@
-# Welcome to SharewareZ v1.0.2
+# Welcome to SharewareZ v1.0.3
 SharewareZ transforms any game folder into a dynamic, searchable library. With IGDB integration, it indexes games and adds cover images, screenshots, and metadata for easy filtering. Plus, you can invite friends to download games from your library.
 
 **THIS IS A BETA APPLICATION - USE AT YOUR OWN RISK**
-This version updates the database schema AUTOMATICALLY, if you already had it installed ... 
-it should go smooth, but be aware I will update the database schema as we go along versions.
+IF YOU HAVE V1.0.0 INSTALLED YOU WILL NEED TO RESET YOUR DATABASE OR TAKE CARE OF YOUR OWN MIGRATION
 
 ***[SharewareZ promotes legal use of its application]***
 
