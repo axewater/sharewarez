@@ -175,7 +175,7 @@ For a setup without mail:
 
 ### Docker image
 ```
-docker pull kapitanczarnobrod/sharewarez:1.0.0
+docker pull kapitanczarnobrod/sharewarez:1.0.4
 ```
 
 **Make sure to setup the correct paths to your warez folder (Windows and Linux)**
