@@ -3,15 +3,27 @@
 {% extends "base.html" %}
 
 {% block content %}
+
 <meta name="active-tab" content="{{ active_tab }}">
 
 <link rel="stylesheet" href="/static/css/scan_management.css">
-            <!-- Back to Dashboard Button -->
-            <div class="container mt-3">
-                <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
+<div class="content-flash">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flashes">
+                {% for message in messages %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
             </div>
-
+        {% endif %}
+    {% endwith %}
+</div>
+<!-- Back to Dashboard Button -->
 <div class="container mt-3">
+    <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
+</div>
+
+<div class="glass-panel mt-3">
     <!-- Nav tabs -->
     <ul class="nav nav-tabs">
         <li class="nav-item">
@@ -67,6 +79,7 @@
 
             <div class="glass-panel-scanfolder">
                 <h2>Scan Jobs</h2>
+                <p>(you can only have 1 scan job 'Running' at a time)</p>
                 <form action="{{ url_for('main.clear_all_scan_jobs') }}" method="post">
                      {{ csrf_form.csrf_token }}
                     <input type="submit" value="Clear All" class="btn btn-danger" onclick="return confirm('Delete ALL jobs?');">
@@ -135,6 +148,7 @@
         
 
             {% if game_names_with_ids %}
+            <br>
             <h4>Found Games:</h4>
             <div class="list-group">
                 {% for game in game_names_with_ids %}
@@ -173,7 +187,7 @@
                         <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to clear all unmatched folders? This cannot be undone.');">Clear Unmatched</button>
                     </form>
                 </div>
-                <table class="table">
+                <table class="table" style="border-radius: 15px";>
                     <thead>
                         <tr>
                             <th>Folder Path</th>
@@ -216,7 +230,7 @@
 
         </div>
 
-        <div id="deleteLibrary" class="glass-panel tab-pane fade"><br>
+        <div id="deleteLibrary" class="glass-panel-scanfolder tab-pane fade"><br>
             <h3>Delete Library</h3>
             <p>This action will delete all games in the library. Proceed with caution.</p>
             <p>Number of games currently in the library: <strong>{{ game_count }}</strong></p>
@@ -252,9 +266,6 @@
     </div>
 </div>
 <script src="{{ url_for('static', filename='js/scan_management.js') }}"></script>
-<script>
-
-</script>
 
             
 {% endblock %}
