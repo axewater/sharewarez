@@ -396,3 +396,14 @@ class UnmatchedFolder(db.Model):
 
     
 
+class UserPreference(db.Model):
+    __tablename__ = 'user_preferences'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    items_per_page = db.Column(db.Integer, default=20)
+    default_sort = db.Column(db.String(50), default='name')
+    default_sort_order = db.Column(db.String(4), default='asc')  # Add this line
+
+    user = db.relationship('User', backref=db.backref('preferences', uselist=False))
+
