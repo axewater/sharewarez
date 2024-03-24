@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Adjusted for dynamic content using event delegation
     document.body.addEventListener('click', function(event) {
+        // Handling deletion of a game (not from disk)
         if (event.target.classList.contains('delete-game')) {
             event.stopPropagation();
             const gameUuid = event.target.getAttribute('data-game-uuid');
@@ -31,50 +32,20 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        //delete-game-from-disk
-
+        // Handling "Delete Game from Disk" with modal instead of alert
         if (event.target.classList.contains('delete-game-from-disk')) {
-            event.stopPropagation();
+            event.preventDefault(); // Prevent any default action
             const gameUuid = event.target.getAttribute('data-game-uuid');
-            alert('We are deleting from disk... beware');
-            console.log(`Deleting folder from disk UUID: ${gameUuid}`);
+            console.log(`Preparing to delete from disk UUID: ${gameUuid}`);
 
-            const jsonData = {
-                game_uuid: gameUuid
-            };
-
-            console.log(jsonData);
-
-            fetch(`/delete_full_game`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-Token': csrfToken,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(jsonData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    console.log(response.text());
-                    throw new Error('Network response was not ok.');
-                }
-                return response.text();
-            })
-            .then(() => {
-                console.log('Game deleted successfully');
-                window.location.href = '/library';
-            })
-            .catch(error => {
-                console.error('There has been a problem with your fetch operation:', error);
-            });
+            // Set the UUID in the modal's form hidden input
+            document.getElementById('deleteGameUuid').value = gameUuid;
+            // Display the modal
+            document.getElementById('deleteGameModal').style.display = 'block';
         }
-
-
     });
-     
 
     document.body.addEventListener('click', function(event) {
-        // Check if the click is on the menu button or any of its descendants
         var clickedElement = event.target.closest('[id^="menuButton-"]');
         if (clickedElement) {
             console.log('Menu button or its child clicked');
@@ -83,7 +54,6 @@ document.addEventListener('DOMContentLoaded', function() {
             var uuid = clickedElement.id.replace('menuButton-', '');
             var popupMenu = document.getElementById('popupMenu-' + uuid);
     
-            // Toggle the display of the popup menu for the clicked button
             document.querySelectorAll('.popup-menu').forEach(function(menu) {
                 if (menu.id !== 'popupMenu-' + uuid) {
                     menu.style.display = 'none';
@@ -92,21 +62,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
             popupMenu.style.display = popupMenu.style.display === 'block' ? 'none' : 'block';
         }
-    })
+    });
 
-
-    // Close popup menus when clicking anywhere else on the window
     window.addEventListener('click', function() {
-        
         document.querySelectorAll('.popup-menu').forEach(function(menu) {
             menu.style.display = 'none';
         });
     });
 
-    // Prevent menu close when clicking inside the menu
     document.body.addEventListener('click', function(event) {
         if (event.target.closest('.popup-menu')) {
             event.stopPropagation();
         }
     });
+
 });
