@@ -1,66 +1,66 @@
-# Welcome to SharewareZ v1.0.4
+# 🎮 Welcome to SharewareZ v1.0.4 🚀
 SharewareZ transforms any game folder into a dynamic, searchable library. With IGDB integration, it indexes games and adds cover images, screenshots, and metadata for easy filtering. Plus, you can invite friends to download games from your library.
 
-**THIS IS A BETA APPLICATION - USE AT YOUR OWN RISK**
+**⚠️ THIS IS A BETA APPLICATION - USE AT YOUR OWN RISK ⚠️**
 
-IF YOU HAVE V1.0.0 INSTALLED YOU WILL NEED TO RESET YOUR DATABASE OR TAKE CARE OF YOUR OWN MIGRATION
+🚧 IF YOU HAVE V1.0.0 INSTALLED YOU WILL NEED TO RESET YOUR DATABASE OR TAKE CARE OF YOUR OWN MIGRATION 🚧
 
 ***[SharewareZ promotes legal use of its application]***
 
-Features Overview
-1. User Authentication
+## 🌟 Features Overview
+1. **User Authentication** 🔐
     - Secure sign-up and sign-in processes with email verification.
     - Password recovery system.
     - Role-based access control for admins and regular users.
-2. User Profile
+2. **User Profile** 👤
     - Customizable user profiles with editable information.
     - Support for avatar uploads.
-3. Game Management
+3. **Game Management** 🎲
     - Automated scanning of specified folders to catalog games.
     - Integration with IGDB to fetch comprehensive game details.
     - Full CRUD (Create, Read, Update, Delete) capabilities for managing your game library.
-4. Library Browsing & Discoverability
+4. **Library Browsing & Discoverability** 🔍
     - A dynamic discovery page showcasing latest additions, top downloads, and highly rated games.
     - Advanced filtering options based on genre, rating, and gameplay mode to fine-tune your search.
     - Detailed game summaries, including genre, themes, supported platforms, and more.
     - Downloadable game files, neatly packaged as zipped archives.
-5. System Management & Administration
+5. **System Management & Administration** 🛠️
     - User account and role management.
     - Whitelist access management.
     - Monitoring & management of library scan jobs.
     - Dashboard for insights into server and application settings.
-6. Download Management
+6. **Download Management** 📥
     - Oversight of user download activities.
     - Capabilities to clear pending downloads.
-7. Security Features
+7. **Security Features** 🔒
     - Implementation of industry-standard security practices.
     - Cross-Site Request Forgery (CSRF) protection.
     - Strict file upload validation to prevent security risks.
     - Defense against SQL injection through parameterized queries.
     - Secure password hashing and token-based email verification.
 
-## Known Issues
-Manual Folder Addition Screen: Currently, the manual folder addition functionality is experiencing issues. We're actively working on a fix and appreciate your patience.
+## ⚠️ Known Issues
+**Manual Folder Addition Screen**: Currently, the manual folder addition functionality is experiencing issues. We're actively working on a fix and appreciate your patience.
 
-# Sharewarez App Setup Guide
+# 🛠️ Sharewarez App Setup Guide
 
-Welcome to the setup guide for Sharewarez App. Follow read these instructions carefully before diving into things :)
+Welcome to the setup guide for Sharewarez App. Follow these instructions carefully before diving into things :)
 You can install SharewareZ manually, or use the Docker image. The following instructions are for the manual installation.
 
-## Prerequisites
+## 📋 Prerequisites
 
 Before you start, make sure you have the following prerequisites installed on your system:
 
-- **Linux**: 
+- **Linux**: 🐧
     - Python 3.11
     - pip
 
-- **Windows**: 
+- **Windows**: 🪟
     - Python 3.11
     - pip
-    - Microsoft Visual C++ 14.0 or greater is required. [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
+    - Microsoft Visual C++ 14.0 or greater is required. Microsoft C++ Build Tools.
 
-## 1. Setup Your Virtual Environment
+## 1️⃣ Setup Your Virtual Environment
 First, create and activate a virtual environment :
 
 note: in some configurations, you must type python3 instead of just python.
