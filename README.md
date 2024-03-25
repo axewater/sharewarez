@@ -64,18 +64,20 @@ Before you start, make sure you have the following prerequisites installed on yo
 First things first, let’s get that virtual environment up and running! 🏃‍♂️💨
 
 For Linux:
-
+```
 python -m venv venv
 source venv/bin/activate
 python -m pip install -r requirements.txt
+```
 
 🐧 Note: You might need to use python3 instead of python in some cases.
 
 For Windows:
-
+```
 python -m venv venv
 .\venv\Scripts\Activate
 python -m pip install -r requirements.txt
+```
 
 🪟 Remember: If python doesn’t do the trick, try python3!
 
@@ -83,10 +85,11 @@ python -m pip install -r requirements.txt
 Time to set up the database where all your game data will live! 🎮📚
 
 For Linux:
-
+```
 sudo apt install postgresql
 psql -U postgres -h localhost
 CREATE DATABASE sharewarez;
+```
 
 For Windows:
 
@@ -99,8 +102,7 @@ Fire up pgAdmin and connect to your PostgreSQL server.
 Right-click on “Databases” and select “New Database.”
 Name it sharewarez and hit “Save” or “OK.”
 🔧 Alternatively, for command-line enthusiasts:
-```
-SQL
+```SQL
 
 psql -U postgres
 CREATE DATABASE sharewarez;
