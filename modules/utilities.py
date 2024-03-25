@@ -14,6 +14,7 @@ from modules.models import (
 from modules import db, mail
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
+
 from PIL import Image as PILImage
 from PIL import ImageOps
 from datetime import datetime
@@ -459,11 +460,6 @@ def download_image(url, save_path):
         print(f"An error occurred while saving the image to {save_path}: {e}")        
         
 
-import os
-import zipfile
-from datetime import datetime
-# Assuming other necessary imports are already done
-
 def zip_game(download_request_id, app):
     with app.app_context():
         download_request = DownloadRequest.query.get(download_request_id)
@@ -473,50 +469,56 @@ def zip_game(download_request_id, app):
             print(f"No game found for DownloadRequest ID: {download_request_id}")
             return
 
-        print(f"Zipping game: {game.name}")
+        print(f"Processing game: {game.name}")
         
         zip_save_path = app.config['ZIP_SAVE_PATH']
-        output_zip_base = os.path.join(zip_save_path, game.uuid)
         source_folder = game.full_disk_path
         
         # Check if source folder exists
         if not os.path.exists(source_folder):
             print(f"Source folder does not exist: {source_folder}")
             return
-        
-        # Ensure the ZIP_SAVE_PATH exists, attempt to create if it doesn't
-        if not os.path.exists(zip_save_path):
-            try:
-                os.makedirs(zip_save_path)
-                print(f"Created missing directory: {zip_save_path}")
-            except Exception as e:
-                print(f"Failed to create directory {zip_save_path}: {e}")
-                return
-        
-        # Proceed to zip the game
-        try:
-            zip_file_path = output_zip_base + '.zip'
-            print(f"Zipping game folder: {source_folder} to {zip_file_path}.")
-            with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_STORED) as zipf:
-                for root, dirs, files in os.walk(source_folder):
-                    for file in files:
-                        file_path = os.path.join(root, file)
-                        zipf.write(file_path, os.path.relpath(file_path, source_folder))
-            print(f"Archive created at {zip_file_path}")
-                        
-            download_request.status = 'available'
-            download_request.zip_file_path = zip_file_path
-            download_request.completion_time = datetime.utcnow()
-            print(f"Download request updated: {download_request}")
-            db.session.commit()
-        except Exception as e:
-            error_message = str(e)
-            print(f"An error occurred while zipping: {error_message}")
 
-            download_request.status = 'failed'
-            download_request.zip_file_path = "Error: " + error_message
-            db.session.commit()
-            print(f"Failed to zip game for DownloadRequest ID: {download_request_id}, Error: {error_message}")
+        # List all files, case-insensitively excluding .NFO and .SFV files, and file_id.diz
+        files_in_directory = [f for f in os.listdir(source_folder) if os.path.isfile(os.path.join(source_folder, f))]
+        significant_files = [f for f in files_in_directory if not f.lower().endswith(('.nfo', '.sfv')) and not f.lower() == 'file_id.diz']
+
+        # If only one significant file remains, provide a direct link
+        if len(significant_files) == 1:
+            game_file_path = os.path.join(source_folder, significant_files[0])
+            print(f"Single significant file found, providing direct link: {game_file_path}")
+            update_download_request(download_request, 'available', game_file_path)
+            return
+        else:
+            # Proceed to zip the game
+            try:
+                if not os.path.exists(zip_save_path):
+                    os.makedirs(zip_save_path)
+                    print(f"Created missing directory: {zip_save_path}")
+                    
+                zip_file_path = os.path.join(zip_save_path, f"{game.uuid}.zip")
+                print(f"Zipping game folder: {source_folder} to {zip_file_path} with storage method.")
+                
+                with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_STORED) as zipf:
+                    for root, dirs, files in os.walk(source_folder):
+                        for file in files:
+                            file_path = os.path.join(root, file)
+                            # Ensure .NFO, .SFV, and file_id.diz files are still included in the zip
+                            zipf.write(file_path, os.path.relpath(file_path, source_folder))
+                print(f"Archive created at {zip_file_path}")
+                update_download_request(download_request, 'available', zip_file_path)
+                
+            except Exception as e:
+                error_message = str(e)
+                print(f"An error occurred: {error_message}")
+                update_download_request(download_request, 'failed', "Error: " + error_message)
+
+def update_download_request(download_request, status, file_path):
+    download_request.status = status
+    download_request.zip_file_path = file_path
+    download_request.completion_time = datetime.utcnow()
+    print(f"Download request updated: {download_request}")
+    db.session.commit()
 
 
         
@@ -851,10 +853,6 @@ def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patt
     # print("Extracted game names with paths:", game_names_with_paths)
     return game_names_with_paths
 
-
-
-import re
-
 def escape_special_characters(pattern):
     """Escape special characters in the pattern to prevent regex errors."""
     if not isinstance(pattern, str):
@@ -894,42 +892,6 @@ def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
 
     return cleaned_name
 
-
-
-
-
-def clean_game_name_old(filename, insensitive_patterns, sensitive_patterns):
-    # Step 1: Normalize separators for release group processing
-    # Replace underscores and dots with spaces for easier pattern matching
-    # Note: This step assumes dots not part of essential abbreviations or numeric versions are separators
-    filename = re.sub(r'(?<!\b[A-Z])\.(?![A-Z]\b)|_', ' ', filename)
-
-    # Step 2: Remove known release group patterns
-    for pattern in insensitive_patterns:
-        escaped_pattern = escape_special_characters(pattern)
-        filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename, flags=re.IGNORECASE)
-
-    for pattern, is_case_sensitive in sensitive_patterns:
-        escaped_pattern = escape_special_characters(pattern)
-        if is_case_sensitive:
-            filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename)
-        else:
-            filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename, flags=re.IGNORECASE)
-
-    # Step 3: Additional cleanup for version numbers, DLC mentions, etc.
-    filename = re.sub(r'\bv\d+(\.\d+)*', '', filename)  # Version numbers
-    filename = re.sub(r'Build\.\d+', '', filename)      # Build numbers
-    filename = re.sub(r'(\+|\-)\d+DLCs?', '', filename, flags=re.IGNORECASE)  # DLC mentions
-    filename = re.sub(r'Repack|Edition|Remastered|Remake|Proper|Dodi', '', filename, flags=re.IGNORECASE)
-
-    # Step 4: Normalize whitespace and re-title
-    filename = re.sub(r'\s+', ' ', filename).strip()
-    cleaned_name = ' '.join(filename.split()).title()
-
-    return cleaned_name
-
-
-from sqlalchemy.exc import SQLAlchemyError
 
 def load_release_group_patterns():
     try:
@@ -983,45 +945,3 @@ def comma_separated_urls(form, field):
         if not url_pattern.match(url.strip()):
             raise ValidationError('One or more URLs are invalid. Please provide valid YouTube embed URLs.')
 
-
-
-
-# def directory_scan_task(folder_path):
-#     with app.app_context():
-#         print(f"directory_scan_task Started: {folder_path} by {current_user.name} (id: {current_user.id})")
-#         
-#         insensitive_patterns, sensitive_patterns = load_release_group_patterns()
-#         game_names_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
-# 
-#         for game_info in game_names_with_paths:
-#             game_name = game_info['name']
-#             full_disk_path = game_info['full_path']
-#             print(f"directory_scan_task Processing: {game_name} in {full_disk_path}")
-#             game_added_successfully = retrieve_and_save_game(game_name, full_disk_path)
-#             if game_added_successfully:
-#                 print(f"directory_scan_task Game: {game_name} added successfully.")
-#             else:
-#                 print(f"directory_scan_task Failed to process {game_name}, adding to failed list.")
-
-# def run_scheduled_tasks():
-#     while True:
-#         try:
-#             schedule.run_pending()
-#         except Exception as e:
-#             print(f"An error occurred: {str(e)}")
-#         time.sleep(1)
-
-# Schedule the task for periodic execution, e.g., every day at 10 am
-# folder_path = 'e:\games'
-# if os.path.exists(folder_path):
-#     schedule.every().day.at("10:00").do(directory_scan_task, folder_path=folder_path)
-# else:
-#     print(f"Specified folder path: {folder_path} does not exist. The task is not scheduled.")
-
-# Start the scheduling thread
-# try:
-#     thread = Thread(target=run_scheduled_tasks)
-#     thread.start()
-#     print("Task scheduling thread started successfully.")
-# except Exception as e:
-#     print(f"An error occurred while starting the task scheduling thread: {str(e)}")
