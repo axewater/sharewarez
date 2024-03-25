@@ -1902,7 +1902,6 @@ def delete_all_games():
     return redirect(url_for('main.scan_management'))
 
 
-
 @bp.route('/download_game/<game_uuid>', methods=['GET'])
 @login_required
 def download_game(game_uuid):
@@ -1910,25 +1909,25 @@ def download_game(game_uuid):
     game = Game.query.filter_by(uuid=game_uuid).first_or_404()
     print(f"Game found: {game}")
 
-    print(f"Checking if there's already an active download request for user {current_user.id}: {DownloadRequest.query.filter_by(user_id=current_user.id, status='processing').first()}")
-    active_request = DownloadRequest.query.filter_by(user_id=current_user.id, status='processing').first()
-    if active_request:
-        flash(f"You already have an active download request for {active_request.game.name}. Please wait until it's completed.")
+    # Check for any existing download request for the same game by the current user, regardless of status
+    existing_request = DownloadRequest.query.filter_by(user_id=current_user.id, game_uuid=game_uuid).first()
+    
+    if existing_request:
+        flash("You already have a download request for this game in your basket. Please check your downloads page.", "info")
         return redirect(url_for('main.downloads'))
 
-
-    print(f"Creating a new download request for user {current_user.id}: {DownloadRequest.query.filter_by(user_id=current_user.id, status='processing').first()}")
+    print(f"Creating a new download request for user {current_user.id} for game {game_uuid}")
     new_request = DownloadRequest(
         user_id=current_user.id,
         game_uuid=game.uuid,
-        status='processing',
+        status='processing',  # Initial status, but could be updated later in your workflow
         download_size=game.size
     )
     db.session.add(new_request)
     game.times_downloaded += 1
     db.session.commit()
 
-
+    # Start the download process (potentially in a new thread as before)
     @copy_current_request_context
     def thread_function():
         print(f"Thread function started for download request {new_request.id}")
@@ -1937,8 +1936,9 @@ def download_game(game_uuid):
     thread = Thread(target=thread_function)
     thread.start()
     
-    flash("Your download request is being processed. You will be notified when the download is ready.")
+    flash("Your download request is being processed. You will be notified when the download is ready.", "info")
     return redirect(url_for('main.downloads'))
+
 
 
 
@@ -2059,19 +2059,24 @@ def clear_downloads():
 @login_required
 def delete_download(download_id):
     download_request = DownloadRequest.query.filter_by(id=download_id, user_id=current_user.id).first_or_404()
+    zip_save_path = current_app.config['ZIP_SAVE_PATH']  # Assuming this is where zipped files are stored
+
     if download_request.zip_file_path and os.path.exists(download_request.zip_file_path):
-        try:
-            os.remove(download_request.zip_file_path)
-            db.session.delete(download_request)
-            db.session.commit()
-            flash('Download deleted successfully.', 'success')
-        except Exception as e:
-            db.session.rollback()
-            flash(f'An error occurred: {e}', 'danger')
+        # Check if the file to delete is within the ZIP_SAVE_PATH directory
+        if os.path.commonpath([download_request.zip_file_path, zip_save_path]) == zip_save_path:
+            try:
+                os.remove(download_request.zip_file_path)
+                flash('Zipped download deleted successfully.', 'success')
+            except Exception as e:
+                db.session.rollback()
+                flash(f'An error occurred while deleting the zipped file: {e}', 'danger')
+        else:
+            flash('Only the download request was deleted, the original game file was not removed.', 'info')
     else:
-        db.session.delete(download_request)
-        db.session.commit()
-        flash('Download request deleted successfully.', 'success')
+        flash('No file found to delete, only the download request was removed.', 'info')
+
+    db.session.delete(download_request)
+    db.session.commit()
 
     return redirect(url_for('main.downloads'))
 
