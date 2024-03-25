@@ -99,12 +99,13 @@ Fire up pgAdmin and connect to your PostgreSQL server.
 Right-click on “Databases” and select “New Database.”
 Name it sharewarez and hit “Save” or “OK.”
 🔧 Alternatively, for command-line enthusiasts:
-
+```
 SQL
 
 psql -U postgres
 CREATE DATABASE sharewarez;
-Door AI gegenereerde code. Controleer en gebruik zorgvuldig. Meer informatie over veelgestelde vragen.
+```
+
 📧 3a. Setup with Mail Features Enabled
 Let’s enable those mail features to keep everyone connected! 📬✉️
 
