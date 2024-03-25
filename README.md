@@ -60,110 +60,68 @@ Before you start, make sure you have the following prerequisites installed on yo
     - pip
     - Microsoft Visual C++ 14.0 or greater is required. Microsoft C++ Build Tools.
 
-## 1️⃣ Setup Your Virtual Environment
-First, create and activate a virtual environment :
+## 🚀 1️⃣ Setup Your Virtual Environment
+First things first, let’s get that virtual environment up and running! 🏃‍♂️💨
 
-note: in some configurations, you must type python3 instead of just python.
+For Linux:
 
-**Linux:**
-```
 python -m venv venv
 source venv/bin/activate
 python -m pip install -r requirements.txt
 
-```
-**Windows:**
-```
+🐧 Note: You might need to use python3 instead of python in some cases.
+
+For Windows:
+
 python -m venv venv
 .\venv\Scripts\Activate
 python -m pip install -r requirements.txt
-```
 
-## 2. Install PostgreSQL
+🪟 Remember: If python doesn’t do the trick, try python3!
 
-Next, install PostgreSQL and create a database named `sharewarez`:
+🗃️ 2. Install PostgreSQL
+Time to set up the database where all your game data will live! 🎮📚
 
-**Linux:**
-```
+For Linux:
+
 sudo apt install postgresql
 psql -U postgres -h localhost
 CREATE DATABASE sharewarez;
-```
 
-**Windows:**
+For Windows:
 
-[Visit the official PostgreSQL website]
-https://www.postgresql.org/download/windows/
+Head over to the official PostgreSQL website and download the installer.
+Run the installer and launch Stack Builder.
+Choose to “Add a new server.”
+After adding the server:
 
-- Run the Installer
-- Launch Stack Builder
-- select the option to "Add a new server."
+Fire up pgAdmin and connect to your PostgreSQL server.
+Right-click on “Databases” and select “New Database.”
+Name it sharewarez and hit “Save” or “OK.”
+🔧 Alternatively, for command-line enthusiasts:
 
-Once the server is added, you can use pgAdmin, the graphical administration tool for PostgreSQL, to connect to the server and create the database.
-- Open pgAdmin and connect to the PostgreSQL server.
-- Right-click on "Databases" in the object browser and select "New Database."
-- Enter sharewarez as the database name and click "Save" or "OK" to create the database.
+SQL
 
-## Alternatively, if you prefer using the command line:
-
-
-Navigate to the directory where PostgreSQL is installed. By default, it is usually installed in C:\Program Files\PostgreSQL\<version>\bin.
-
-Run the following command to connect to the PostgreSQL server and create the sharewarez database:
-```
-sql
-Copy code
 psql -U postgres
 CREATE DATABASE sharewarez;
-```
-## 3a. Setup with Mail Features Enabled
+Door AI gegenereerde code. Controleer en gebruik zorgvuldig. Meer informatie over veelgestelde vragen.
+📧 3a. Setup with Mail Features Enabled
+Let’s enable those mail features to keep everyone connected! 📬✉️
 
-To set up the app with mail features:
+Create config.py: Copy config.py.example and rename it to config.py.
+Set a Secret Key: Whip up a secret key that’s as random as a dice roll. 🎲
+Enter Database URI: Fill in the DATABASE_URI with your database details.
+Configure SMTP Settings: Set up your mail server details so you can send out those important emails!
+🔑 Make sure to add the admin’s email to the INITIAL_WHITELIST for those admin superpowers!
 
-1. **Create `config.py`**: 
-- Copy `config.py.example`: Start by making a copy of `config.py.example` and rename it to `config.py`. This file will serve as the basis for your application's configuration. (sidenote: You can also use a .env file for some of the settings if you prefer)
+🔐 Grab your IGDB API Keys from the IGDB API Docs to connect with the gaming universe!
 
-- Set a Secret Key: Generate a secret key that is random and long. This key is crucial for securely signing your app's sessions and cookies. Use a combination of letters, numbers, and symbols to make it as secure as possible.
+🛠️ 3b. Setup without Mail (NO SMTP)
+Prefer to go postal-free? No problem! 📭❌
 
-- Enter Database URI: Specify the URI of your database in the `DATABASE_URI` setting. This URI should include the username, password, host, and database name you just created.
-
-- Configure SMTP Settings: To enable email sending capabilities for user registration and notifications, configure the SMTP settings as follows:
-    - `MAIL_SERVER`: The address of your mail server.
-    - `MAIL_PORT`: The port your mail server uses for outgoing mail.
-    - `MAIL_USE_TLS`: Set to True or False depending on your server's requirements.
-    - `MAIL_USERNAME`: Your mail server username.
-    - `MAIL_PASSWORD`: Your mail server password.
-
-- Ensure `INITIAL_WHITELIST` Contains the Admin's Email: Add the admin's email address to the `INITIAL_WHITELIST` in your configuration. This step is crucial for granting initial access and administrative privileges.
-
-- Obtain IGDB API Keys:
-        Visit the IGDB API Docs and follow the instructions to obtain your IGDB Client ID and Client Secret. These keys are necessary for making requests to the IGDB API.
-        Enter the `IGDB Client ID` and `Client Secret` into your `config.py`.
-
-- Setup `Base Folder` Access Restriction: Configure your web server to restrict access to the base folder of your application. This measure is important for security, ensuring that sensitive files and directories are not accessible from the web.
-
-2. **Database URI**: Should point to your newly created database.
-3. **IGDB API Keys**: Obtain your keys from [IGDB API Docs](https://api-docs.igdb.com/#getting-started).
-
-### Running the App
-
-- Run the app and register the first user with the email mentioned in `config.py`.
-```
-python app.py
-
-or on some systems:
-python3 app.py
-```
-- Restart the app. The first user is now an admin.
-
-## 3b. Setup without Mail (NO SMTP)
-
-For a setup without mail:
-
-1. **Create `config.py`**: Copy `config.py.example`.
-2. **Database URI**: Should point to your newly created database.
-
-### Initial Configuration
+Create config.py: copy config.py.example.
+Database URI: Point it to your shiny new `sharewarez` database.
+👩‍💻 Run setup.py to create an admin user and kickstart the app with app.py.
 
 - Run `setup.py` to create an admin user.
 - Start the application by running `app.py`.
