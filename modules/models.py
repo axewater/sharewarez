@@ -177,7 +177,7 @@ class Game(db.Model):
     date_identified = db.Column(db.DateTime, nullable=True)
     steam_url = db.Column(db.String, nullable=True)
     times_downloaded = db.Column(db.Integer, default=0)
-
+    nfo_content = db.Column(db.Text, nullable=True)
     images = db.relationship("Image", backref="game", lazy='dynamic')
     genres = db.relationship('Genre', secondary=game_genre_association, back_populates='games')
     game_modes = db.relationship("GameMode", secondary=game_game_mode_association, back_populates="games")
@@ -190,6 +190,8 @@ class Game(db.Model):
     publisher_id = db.Column(db.Integer, db.ForeignKey('publishers.id'), nullable=True)
     download_requests = db.relationship('DownloadRequest', back_populates='game', lazy='dynamic', cascade='delete')
     multiplayer_modes = db.relationship("MultiplayerMode", secondary=game_multiplayer_mode_association, back_populates="games")    
+    urls = db.relationship('GameURL', cascade='all, delete-orphan')
+
     size = db.Column(db.Float, nullable=False, default=0.0)
 
     def __repr__(self):
@@ -204,7 +206,7 @@ class GameURL(db.Model):
     url_type = db.Column(db.String, nullable=False)
     url = db.Column(db.String, nullable=False)
 
-    game = db.relationship('Game', backref=db.backref('urls', lazy=True))
+    game = db.relationship('Game', back_populates='urls')
 
     def __repr__(self):
         return f"<GameURL id={self.id}, game_uuid={self.game_uuid}, url_type={self.url_type}, url={self.url}>"

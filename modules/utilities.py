@@ -520,7 +520,13 @@ def update_download_request(download_request, status, file_path):
     print(f"Download request updated: {download_request}")
     db.session.commit()
 
-
+def read_first_nfo_content(full_disk_path):
+    for root, dirs, files in os.walk(full_disk_path):
+        for file in files:
+            if file.lower().endswith('.nfo'):
+                with open(os.path.join(root, file), 'r', encoding='utf-8', errors='ignore') as nfo_file:
+                    return nfo_file.read()
+    return None 
         
 def check_existing_game_by_igdb_id(igdb_id):
     return Game.query.filter_by(igdb_id=igdb_id).first()

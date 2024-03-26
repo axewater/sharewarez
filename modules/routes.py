@@ -34,13 +34,13 @@ from modules.forms import (
 )
 from modules.models import (
     User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, 
-    Platform, Genre, Theme, GameMode, MultiplayerMode, PlayerPerspective, Category, UserPreference
+    Platform, Genre, Theme, GameMode, MultiplayerMode, PlayerPerspective, Category, UserPreference, GameURL
 )
 from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
     get_game_by_uuid, escape_special_characters, enumerate_companies, make_igdb_api_request, load_release_group_patterns, check_existing_game_by_igdb_id,
     log_unmatched_folder, get_game_names_from_folder, clean_game_name, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_folder,
-    zip_game, retrieve_and_save_game, format_size, delete_game_images, get_folder_size_in_mb
+    zip_game, retrieve_and_save_game, format_size, delete_game_images, get_folder_size_in_mb, read_first_nfo_content
 )
 
 
@@ -992,7 +992,7 @@ def api_debug():
 @login_required
 @admin_required
 def add_game(game_name):
-    # print(f"Adding game: {game_name}")
+    print(f"Adding game: {game_name}")
 
     full_disk_path = session.get('game_paths', {}).get(game_name)
     
@@ -1002,6 +1002,8 @@ def add_game(game_name):
     
     game = retrieve_and_save_game(game_name, full_disk_path)
     if game:
+        # Read the first .NFO content and save it to the game
+        game.nfo_content = read_first_nfo_content(full_disk_path)
         if game_name in session.get('game_paths', {}):
             del session['game_paths'][game_name]
             
@@ -1074,6 +1076,7 @@ def add_game_manual():
                     db.session.add(publisher)
                     db.session.flush()
                 new_game.publisher = publisher
+            new_game.nfo_content = read_first_nfo_content(form.full_disk_path.data)
 
             # print("New game:", new_game)
             try:
@@ -1182,9 +1185,11 @@ def game_edit(game_uuid):
         print(f"Calculating folder size for {game.full_disk_path}.")
         new_folder_size_mb = get_folder_size_in_mb(game.full_disk_path)
         print(f"New folder size for {game.full_disk_path}: {format_size(new_folder_size_mb)}")
-        
+
+        game.nfo_content = read_first_nfo_content(game.full_disk_path)
+
         game.date_identified = datetime.utcnow()
-       
+               
         # DB commit and image update
         try:
             db.session.commit()
@@ -1760,7 +1765,8 @@ def delete_game(game_identifier):
 
     try:
         print(f"Found game to delete: {game_to_delete}")
-        
+        GameURL.query.filter_by(game_uuid=game_uuid_str).delete()
+
         delete_associations_for_game(game_to_delete)
         
         
