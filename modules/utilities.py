@@ -235,6 +235,9 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
             log_unmatched_folder(scan_job_id, full_disk_path, matched_status)
             return None
         else:
+            print(f"attempting to read NFO content for game {game_name} on {full_disk_path}.")
+            nfo_content = read_first_nfo_content(full_disk_path)
+            
             print(f"Calculating folder size for {full_disk_path}.")
             folder_size_mb = get_folder_size_in_mb(full_disk_path)
             print(f"Folder size for {full_disk_path}: {format_size(folder_size_mb)}")
@@ -311,6 +314,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
                 process_and_save_image(new_game.uuid, screenshot_id, 'screenshot')
             
             try:
+                new_game.nfo_content = nfo_content
                 for column in new_game.__table__.columns:
                     attr = getattr(new_game, column.name)
 
@@ -525,6 +529,7 @@ def read_first_nfo_content(full_disk_path):
         for file in files:
             if file.lower().endswith('.nfo'):
                 with open(os.path.join(root, file), 'r', encoding='utf-8', errors='ignore') as nfo_file:
+                    print(f"Found NFO file at {os.path.join(root, file)}")
                     return nfo_file.read()
     return None 
         
@@ -735,15 +740,15 @@ def get_cover_thumbnail_url(igdb_id):
     return None
 
 def scan_and_add_games(folder_path):
-    print(f"Starting scan for games in folder: {folder_path}")
-    # Create initial scan job entry
+    print(f"Starting auto scan for games in folder: {folder_path}")
+    # Create initial scan job
     scan_job_entry = ScanJob(
         folders={folder_path: True}, 
         content_type='Games', 
         status='Running', 
         is_enabled=True, 
         last_run=datetime.now(),
-        error_message=''  # Initialize with empty error message
+        error_message=''
     )
     
     db.session.add(scan_job_entry)
@@ -751,9 +756,9 @@ def scan_and_add_games(folder_path):
         db.session.commit()
     except SQLAlchemyError as e:
         print(f"Database error when adding ScanJob: {str(e)}")
-        return  # Early return as we cannot proceed without a ScanJob entry
+        return  # cannot proceed without ScanJob
 
-    # Check folder access permissions
+    # Check access perm
     if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
         error_message = f"Cannot access folder at path {folder_path}. Check permissions."
         print(error_message)
@@ -786,9 +791,9 @@ def scan_and_add_games(folder_path):
         except Exception as e:
             scan_job_entry.status = 'Failed'
             scan_job_entry.error_message += f" Failed to process {game_name}: {str(e)}; "
-            break  # Exit the loop if a game processing fails critically
+            break  # Exit loop if game processing fails critically
 
-    if scan_job_entry.status != 'Failed':  # Only update to 'Completed' if not already 'Failed'
+    if scan_job_entry.status != 'Failed':
         scan_job_entry.status = 'Completed'
     
     try:
