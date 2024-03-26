@@ -952,26 +952,7 @@ def scan_folder():
     return render_template('scan/scan_management.html', form=form, game_names_with_ids=game_names_with_ids)
 
 
-@bp.route('/old_scan_auto_folder', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def scan_auto_folder():
-    form = AutoScanForm()
-    if form.validate_on_submit():
-        folder_path = form.folder_path.data
-        @copy_current_request_context
-        def start_scan():
-            scan_and_add_games(folder_path)
-
-        thread = Thread(target=start_scan)
-        thread.start()
-
-        flash('Auto-scan started for folder: ' + folder_path, 'info')
-        return redirect(url_for('main.scan_auto_folder'))
-    
-    return render_template('scan/scan_auto_folder.html', form=form)
-
-   
+  
 @bp.route('/api_debug', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -1003,6 +984,7 @@ def add_game(game_name):
     game = retrieve_and_save_game(game_name, full_disk_path)
     if game:
         # Read the first .NFO content and save it to the game
+        print(f"Reading NFO content for game: {game_name}")
         game.nfo_content = read_first_nfo_content(full_disk_path)
         if game_name in session.get('game_paths', {}):
             del session['game_paths'][game_name]
