@@ -33,11 +33,11 @@
         {% endif %}
     </div>
 </div>
-<div id="deleteGameModal" class="modal" style="display:none; z-index=15;">
+<div id="deleteGameModal"  class="modal delete-game-modal" style="display:none; z-index=15;">
     <div class="modal-content">
         <span class="close-button">&times;</span>
         <h2>Warning!</h2>
-        <p>Deleting this game will remove it permanently from the database and delete its folder on disk. This action cannot be undone.</p>
+        <p>This action will DELETE THE GAME FROM DISK! This action cannot be undone.</p>
         <form action="#" method="post" id="deleteGameForm">
             <input type="hidden" name="game_uuid" id="deleteGameUuid">
             <button type="submit" class="delete-confirm btn btn-danger">Delete Game</button>

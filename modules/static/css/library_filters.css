@@ -19,6 +19,7 @@
 }
 
 
+
 .modal-backdrop {
     position: inherit;
 }
@@ -122,14 +123,6 @@
     max-width: 100%;
 }
 
-.sorting-dropdown {
-    display: flex;
-    flex-direction: row;
-    margin-top: 15px;
-    
-    gap: 8px;
-
-}
 
 .container-pagination {
     display: flex;
@@ -162,3 +155,125 @@
     height: 30px;
     border-radius: 5px;
 }
+
+
+
+/* Base styles for the filter panel */
+.container-filtersandsort {
+    background-color: rgba(50, 50, 50, 0.0); /* Dark background with opacity */
+    border-radius: 8px; /* Rounded corners for the panel */
+    color: #ccc; /* Light grey text for better readability */
+    padding: 15px; /* Some padding around the filters */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+}
+
+/* Style for dropdowns and buttons within the filter panel */
+.library-filters select.form-control,
+.library-filters button.btn {
+    background-color: rgba(0, 0, 0, 0.2); /* Slightly lighter than panel background for contrast */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border for elements */
+    color: #ddd; /* Text color */
+    border-radius: 4px; /* Rounded corners for inputs and buttons */
+    margin-bottom: 10px; /* Space between form groups */
+}
+
+/* Hover effect for interactive elements */
+.library-filters select.form-control:hover,
+.library-filters button.btn:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Light highlight on hover */
+}
+
+/* Style adjustments for the range input */
+.rating-slider {
+    -webkit-appearance: none; /* Override default appearance */
+    width: 100%; /* Full width */
+    background: transparent; /* Transparent background */
+}
+
+.rating-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #888; /* Neutral thumb color */
+    cursor: pointer; /* Cursor indication for sliding */
+}
+
+.rating-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 5px;
+    background: #ccc; /* Track color */
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+/* Styles for labels to align with the new design */
+.library-filters label {
+    display: block;
+    margin-bottom: .5rem;
+    color: #ccc; /* Light grey color for labels */
+}
+
+/* Update button style */
+.library-filters .btn-primary {
+    background-color: #007bff; /* Bootstrap primary color */
+    border-color: #007bff;
+    color: white;
+}
+
+/* Adjust the sorting dropdown and button to match the theme */
+.sorting-dropdown {
+    display: flex;
+    align-items: center;
+}
+
+/* Style for the dropdown options */
+.library-filters select.form-control {
+    background-color: rgba(0, 0, 0, 0.2); /* Slightly lighter than panel background for contrast */
+    color: #ddd; /* Text color for the options */
+}
+
+/* This is to style the dropdown box (not the options themselves) */
+.library-filters select.form-control:-moz-focusring {
+    color: transparent;
+    text-shadow: 0 0 0 #ddd;
+}
+
+/* Styles for option elements - this might not work in all browsers */
+.library-filters option {
+    background: rgba(50, 50, 50, 0.8); /* Matching dark theme for the dropdown */
+    color: #ccc; /* Light text color for readability */
+}
+
+/* For Webkit browsers like Chrome and Safari */
+.library-filters select.form-control::-webkit-calendar-picker-indicator {
+    filter: invert(1); /* Invert the color of the dropdown arrow */
+}
+
+
+
+.sorting-dropdown select,
+.sorting-dropdown .btn-secondary {
+    background-color: rgba(0, 0, 0, 0.2);
+    color: #ddd;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0px 5px;
+}
+
+.sorting-dropdown .btn-secondary {
+    margin-left: 5px;
+}
+
+@media (max-width: 768px) {
+    .container-filtersandsort {
+        padding: 10px;
+    }
+
+    .library-filters .form-group {
+        margin-bottom: 10px;
+    }
+}
+
+
