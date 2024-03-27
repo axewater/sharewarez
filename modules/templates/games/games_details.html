@@ -26,6 +26,21 @@
         </head>
 
         <body>
+            <!-- NFO Modal -->
+            <div class="modal fade" id="nfoModal" tabindex="-1" aria-labelledby="nfoModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="nfoModalLabel">{{ game.name }} - NFO</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- <pre> tag to maintain NFO file formatting -->
+                            <pre>{{ game.nfo_content }}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="game-card-gamename">
                 <h1>{{ game.name or 'Game Name Not Available' }}</h1>
             </div>
@@ -100,7 +115,6 @@
                         <div class="game-card-chips-list">
                             {% if items %}
                                 {% for item in items %}
-                                    <!-- Updated part: wrap items in a link -->
                                     <a href="{{ url_for('main.library', **{filter_type: item}) }}" class="chip-detailspage">{{ item }}</a>
                                 {% endfor %}
                             {% else %}
@@ -138,7 +152,8 @@
                         </div>
  
                         </div>
-                        <div class="game-card-weblinks">
+                        <div class="game-card-downloads">
+
                             {% if game.size %}
                             <div class="chip-size">
                                 {{ game.size }}
@@ -148,11 +163,15 @@
                                 <input type="submit" value="Download Now!" class="button-glass-download" data-game-uuid="{{ game.uuid }}">
                                 {{ form.csrf_token }}
                             </form>
-                            
-               
-                
-    
+                            {% if game.nfo_content and game.nfo_content.lower() != 'none' %}
+                            <!-- NFO Icon and Modal Trigger -->
+                            <div class="nfo-icon-container">
+                                <i class="fa fa-file-alt nfo-icon" data-bs-toggle="modal" data-bs-target="#nfoModal" title="View NFO"></i>
+                                <span class="nfo-text">NFO</span>
+                            </div>
+                        {% endif %}
                         </div>
+                        
                     </div>
                 </div>
                 {% if game.images and game.images|length > 0 %}

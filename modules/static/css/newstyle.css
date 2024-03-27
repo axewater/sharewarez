@@ -169,21 +169,6 @@ font-size: large;
     text-decoration: none;
 }
 
-.button-glass-download {
-    padding: 10px 85px;
-    
-    background: rgba(11, 200, 11, 0.999);
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: transform 0.3s;
-    font-size: 1rem;
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    margin: 5px; 
-    text-decoration: none;
-    width: 100%;
-}
 
 
 .button-glass-gamecard {
@@ -1052,8 +1037,8 @@ form textarea {
     color: white;
     margin: 25% auto;
     padding: 20px;
-    border: 15px solid #e10202;
-    width: 80%;
+
+    
   }
 
 
