@@ -201,3 +201,23 @@
     width: 60px;
 }
 
+.delete-game-modal .modal-content {
+    border: 20px solid #ff0000;
+    border-radius: 15px;
+}
+
+.delete-game-modal .close-button {
+    /* Unique styles for the close button */
+}
+
+.delete-game-modal h2 {
+    color: #ff0000; /* Red text for the warning heading */
+}
+
+.delete-game-modal .delete-confirm {
+    /* Unique styles for the delete confirmation button */
+}
+
+.delete-game-modal .delete-cancel {
+    /* Unique styles for the cancel button */
+}

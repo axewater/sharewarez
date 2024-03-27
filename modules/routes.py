@@ -1644,6 +1644,7 @@ def game_details(game_uuid):
             "developer": game.developer.name if game.developer else 'Not available',
             "publisher": game.publisher.name if game.publisher else 'Not available',
             "multiplayer_modes": [mode.name for mode in game.multiplayer_modes],
+            "nfo_content": game.nfo_content if game.nfo_content else 'none',
             "size": format_size(game.size),
             "date_identified": game.date_identified.strftime('%Y-%m-%d %H:%M:%S') if game.date_identified else 'Not available',
             "steam_url": game.steam_url if game.steam_url else 'Not available',
