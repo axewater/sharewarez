@@ -12,7 +12,7 @@ from modules.models import (
     Theme, GameMode, MultiplayerMode, PlayerPerspective, ScanJob, UnmatchedFolder, category_mapping, status_mapping, player_perspective_mapping
 )
 from modules import db, mail
-from sqlalchemy import func
+from sqlalchemy import func, String
 from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 
 from PIL import Image as PILImage
@@ -206,6 +206,11 @@ def website_category_to_string(category_id):
     return category_mapping.get(category_id, "unknown")
 
     
+def sanitize_string(input_string):
+    """Sanitize the input string by removing NUL bytes."""
+    if input_string:
+        return input_string.replace('\x00', '')
+    return input_string
     
 def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
     print(f"Finding a way to add {game_name} on {full_disk_path} to the library.")
@@ -236,12 +241,17 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
             return None
         else:
             print(f"attempting to read NFO content for game {game_name} on {full_disk_path}.")
-            nfo_content = read_first_nfo_content(full_disk_path)
+            nfo_content = sanitize_string(read_first_nfo_content(full_disk_path))
             
             print(f"Calculating folder size for {full_disk_path}.")
             folder_size_mb = get_folder_size_in_mb(full_disk_path)
             print(f"Folder size for {full_disk_path}: {format_size(folder_size_mb)}")
             new_game = create_game_instance(game_data=response_json[0], full_disk_path=full_disk_path, folder_size_mb=folder_size_mb)
+            # Sanitize string values in response_json
+            for key, value in response_json[0].items():
+                if isinstance(value, str):
+                    response_json[0][key] = sanitize_string(value)
+                    
             if 'genres' in response_json[0]:
                 for genre_data in response_json[0]['genres']:
                     genre_name = genre_data['name']
@@ -317,6 +327,12 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
                 new_game.nfo_content = nfo_content
                 for column in new_game.__table__.columns:
                     attr = getattr(new_game, column.name)
+
+                for column in new_game.__table__.columns:
+                    if isinstance(column.type, String):
+                        attr = getattr(new_game, column.name)
+                        sanitized_attr = sanitize_string(attr)
+                        setattr(new_game, column.name, sanitized_attr)
 
                 db.session.commit()
                 print(f"Game and its images saved successfully : {new_game.name}.")
@@ -876,6 +892,12 @@ def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
     # Normalize separators: Replace underscores and dots with spaces, except when dots are part of versioning or abbreviations
     filename = re.sub(r'(?<!\.\d)(?<!\d\.)(?<!\b[A-Z])\.(?![A-Z]\b)|_', ' ', filename)
 
+    # Define a regex pattern for version numbers, including those prefixed by 'v', covering 2-4 digit sequences
+    version_pattern = r'\bv?\d+(\.\d+){1,3}'
+
+    # Remove version numbers early in the cleanup process
+    filename = re.sub(version_pattern, '', filename)
+
     # Remove known release group patterns
     for pattern in insensitive_patterns:
         escaped_pattern = escape_special_characters(pattern)
@@ -892,7 +914,6 @@ def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
     filename = re.sub(r'\b([IVXLCDM]+|[0-9]+)(?:[^\w]|$)', r' \1 ', filename)  # Space out roman numerals and numbers
 
     # Additional cleanup for version numbers, DLC mentions, etc.
-    filename = re.sub(r'\bv\d+(\.\d+)*', '', filename)  # Version numbers
     filename = re.sub(r'Build\.\d+', '', filename)      # Build numbers
     filename = re.sub(r'(\+|\-)\d+DLCs?', '', filename, flags=re.IGNORECASE)  # DLC mentions
     filename = re.sub(r'Repack|Edition|Remastered|Remake|Proper|Dodi', '', filename, flags=re.IGNORECASE)
@@ -902,6 +923,7 @@ def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
     cleaned_name = ' '.join(filename.split()).title()
 
     return cleaned_name
+
 
 
 def load_release_group_patterns():

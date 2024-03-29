@@ -264,6 +264,7 @@
 
 .sorting-dropdown .btn-secondary {
     margin-left: 5px;
+    padding: 2px 7px;
 }
 
 @media (max-width: 768px) {

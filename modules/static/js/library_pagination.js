@@ -183,7 +183,7 @@ $(document).ready(function() {
       $('#gamesContainer').empty();
 
       if(games.length === 0) {
-          $('#gamesContainer').append('<p>No games found.</p>');
+          $('#gamesContainer').append('<p>No games found.<br> Go to your Dashboard and scan your games folder</p>');
           return;
       }
 
