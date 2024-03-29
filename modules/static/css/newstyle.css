@@ -39,14 +39,19 @@ body {
     position: fixed;
     bottom: 5px;
     left: 5px;
-    background-color: #2d3141; 
     color: #ecf0f1;
     border-radius: 25px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.5); /* Stronger shadow for depth */
     cursor: pointer;
     transition: all 0.3s ease;
-
+    background-color: transparent; /* Transparent background for the main menu */
+    border: 2px solid transparent; /* Transparent border by default */
 }
+
+.user-account-icon:hover, .user-account-menu:hover {
+    border-color: #ecf0f1; /* White border on hover */
+}
+
 
 .user-account-icon {
     display: flex;
@@ -90,7 +95,8 @@ body {
 }
 
 .account-menu-option:hover {
-    background-color: #34495e; /* Slightly lighter blue for hover effect */
+    background-color: rgba(255, 255, 255, 0.1); /* Subtle highlight for options on hover */
+    border-color: #ecf0f1; /* White border on hover */
 }
 
 /* To hide and show the menu with a class */
