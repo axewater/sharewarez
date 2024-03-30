@@ -77,45 +77,31 @@
                 </div>
             </form>
 
-            <div class="glass-panel-scanfolder">
-                <h2>Scan Jobs</h2>
+            <div class="glass-panel-scanfolder container mt-4">
+                <h2>Scan Jobs Management</h2>
                 <p>(you can only have 1 scan job 'Running' at a time)</p>
                 <form action="{{ url_for('main.clear_all_scan_jobs') }}" method="post">
                      {{ csrf_form.csrf_token }}
                     <input type="submit" value="Clear All" class="btn btn-danger" onclick="return confirm('Delete ALL jobs?');">
                 </form>
-                <table class="table">
+                <table class="table mt-3">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Folders</th>
+                            <th>Folder</th>
                             <th>Status</th>
                             <th>Error message</th>
                             <th>Last Run</th>
-                            <th>Next Run</th>
+                            <th>Total folders</th>
+                            <th>Games found</th>
+                            <th>Failed folders</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {% for job in jobs %}
-                        <tr>
-                            <td>{{ job.id.split('-')[0] }}</td>
-                            <td>{{ job.folders }}</td>
-                            <td>{{ job.status }}</td>
-                            <td>{{ job.error_message }}</td>
-                            <td>{{ job.last_run.strftime('%Y-%m-%d %H:%M:%S') if job.last_run else '' }}</td>
-                            <td>{{ job.next_run.strftime('%Y-%m-%d %H:%M:%S') if job.next_run else 'None' }}</td>
-
-                            
-                            <td>
-                                <form action="{{ url_for('main.delete_scan_job', job_id=job.id) }}" method="post">
-                                    {{ csrf_form.csrf_token }}
-                                    <input type="submit" value="Delete" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this scan job?');">
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
+                    <tbody id="jobsTableBody">
+                        <!-- Scan job rows will be dynamically populated here -->
                     </tbody>
+                    
                 </table>
             </div>
         </div>
@@ -267,5 +253,48 @@
 </div>
 <script src="{{ url_for('static', filename='js/scan_management.js') }}"></script>
 
-            
+<script>
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const updateScanJobs = () => {
+            fetch('/api/scan_jobs_status', {cache: 'no-store'})
+                .then(response => response.json())
+                .then(data => {
+                    const jobsTableBody = document.querySelector('#jobsTableBody');
+                    jobsTableBody.innerHTML = '';
+                    data.forEach(job => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${job.id}</td>
+                            <td>${Object.keys(job.folders).join(', ')}</td>
+                            <td>${job.status}</td>
+                            <td>${job.error_message}</td>
+                            <td>${job.last_run}</td>
+                            <td>${job.total_folders}</td>
+                            <td>${job.folders_success}</td>
+                            <td>${job.folders_failed}</td>
+                            <td>
+                                <!-- Conditional rendering for Cancel button, if job status is 'Running' -->
+                                ${job.status === 'Running' ? 
+                                    `<form action="/cancel_scan_job/${job.id}" method="post">
+                                        <input type="hidden" name="csrf_token" value="${csrfToken}">
+                                        <button type="submit" class="btn btn-warning btn-sm">Cancel Scan</button>
+                                    </form>` : ''}
+                            </td>
+                        `;
+                        jobsTableBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error fetching scan jobs status:', error));
+        };
+    
+    // Run immediately on load
+    updateScanJobs();
+
+    // Then update every 5 seconds
+    setInterval(updateScanJobs, 5000);
+    });
+    </script>
+    
 {% endblock %}
