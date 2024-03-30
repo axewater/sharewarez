@@ -205,18 +205,12 @@ def website_category_to_string(category_id):
     }
     return category_mapping.get(category_id, "unknown")
 
-    
-def sanitize_string(input_string):
-    """Sanitize the input string by removing NUL bytes."""
-    if input_string:
-        return input_string.replace('\x00', '')
-    return input_string
+
     
 def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
     print(f"Finding a way to add {game_name} on {full_disk_path} to the library.")
-    existing_game_by_path = Game.query.filter_by(full_disk_path=full_disk_path).first()
+    existing_game_by_path = check_existing_game_by_path(full_disk_path)
     if existing_game_by_path:
-        print(f"Skipping {game_name} on {full_disk_path} (path already in library).")
         return existing_game_by_path 
 
     response_json = make_igdb_api_request(current_app.config['IGDB_API_ENDPOINT'],
@@ -241,16 +235,12 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
             return None
         else:
             print(f"attempting to read NFO content for game {game_name} on {full_disk_path}.")
-            nfo_content = sanitize_string(read_first_nfo_content(full_disk_path))
-            
+            nfo_content = read_first_nfo_content(full_disk_path)            
             print(f"Calculating folder size for {full_disk_path}.")
             folder_size_mb = get_folder_size_in_mb(full_disk_path)
             print(f"Folder size for {full_disk_path}: {format_size(folder_size_mb)}")
             new_game = create_game_instance(game_data=response_json[0], full_disk_path=full_disk_path, folder_size_mb=folder_size_mb)
-            # Sanitize string values in response_json
-            for key, value in response_json[0].items():
-                if isinstance(value, str):
-                    response_json[0][key] = sanitize_string(value)
+            
                     
             if 'genres' in response_json[0]:
                 for genre_data in response_json[0]['genres']:
@@ -328,11 +318,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
                 for column in new_game.__table__.columns:
                     attr = getattr(new_game, column.name)
 
-                for column in new_game.__table__.columns:
-                    if isinstance(column.type, String):
-                        attr = getattr(new_game, column.name)
-                        sanitized_attr = sanitize_string(attr)
-                        setattr(new_game, column.name, sanitized_attr)
+
 
                 db.session.commit()
                 print(f"Game and its images saved successfully : {new_game.name}.")
@@ -351,6 +337,22 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
         flash(error_message)
         return None
  
+def check_existing_game_by_path(full_disk_path):
+    """
+    Checks if a game already exists in the library by its disk path.
+
+    Parameters:
+    - full_disk_path: The full disk path of the game to check.
+
+    Returns:
+    - The existing Game object if found, None otherwise.
+    """
+    existing_game_by_path = Game.query.filter_by(full_disk_path=full_disk_path).first()
+    if existing_game_by_path:
+        print(f"Skipping {existing_game_by_path.name} on {full_disk_path} (path already in library).")
+        return existing_game_by_path 
+    return None
+
 
 def format_size(size_in_mb):
     try:
