@@ -426,3 +426,12 @@ class UserPreference(db.Model):
 
     user = db.relationship('User', backref=db.backref('preferences', uselist=False))
 
+class GlobalSettings(db.Model):
+    __tablename__ = 'global_settings'
+
+    id = db.Column(db.Integer, primary_key=True)
+    settings = db.Column(JSONEncodedDict)  # Store all settings in a single JSON-encoded column
+    last_updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    def __repr__(self):
+        return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'
