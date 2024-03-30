@@ -6,64 +6,64 @@
         <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
     </div>
     <h2>Manage SharewareZ Settings</h2>
-
+    <p>(not all settings functional at this time, sorry)
     <div id="settingsSavedNotification" class="alert alert-success" role="alert" style="display: none;">
         Settings saved successfully, Captain!
     </div>
-      
-    <form id="settingsForm">
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="showSystemLogo">
-            <label class="form-check-label" for="showSystemLogo">
-                Show System Logo?
-            </label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="showHelpButton">
-            <label class="form-check-label" for="showHelpButton">
-                Show Help Button
-            </label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="advancedFiltersEnabled">
-            <label class="form-check-label" for="advancedFiltersEnabled">
-                Advanced Filters Enabled?
-            </label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="allowUsersToInviteOthers">
-            <label class="form-check-label" for="allowUsersToInviteOthers">
-                Allow Users to Invite Others?
-            </label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="enableWebLinksOnDetailsPage">
-            <label class="form-check-label" for="enableWebLinksOnDetailsPage">
-                Enable (Show) Weblinks on Details Page
-            </label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="enableServerStatusFeature">
-            <label class="form-check-label" for="enableServerStatusFeature">
-                Enable/Disable Server Status Feature
-            </label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="enableNewsletterFeature">
-            <label class="form-check-label" for="enableNewsletterFeature">
-                Enable/Disable Newsletter Feature
-            </label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="storeImagesInGamesFolder">
-            <label class="form-check-label" for="storeImagesInGamesFolder">
-                Store Images in Games Folder Under .swimages Subfolder
-            </label>
-        </div>
-        <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
-    </form>
+    <div class="settingsform-admin">
+        <form id="settingsForm">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="showSystemLogo">
+                <label class="form-check-label" for="showSystemLogo">
+                    Show System Logo?
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="showHelpButton">
+                <label class="form-check-label" for="showHelpButton">
+                    Show Help Button
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="advancedFiltersEnabled">
+                <label class="form-check-label" for="advancedFiltersEnabled">
+                    Advanced Filters Enabled?
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="allowUsersToInviteOthers">
+                <label class="form-check-label" for="allowUsersToInviteOthers">
+                    Allow Users to Invite Others?
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="enableWebLinksOnDetailsPage">
+                <label class="form-check-label" for="enableWebLinksOnDetailsPage">
+                    Enable (Show) Weblinks on Details Page
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="enableServerStatusFeature">
+                <label class="form-check-label" for="enableServerStatusFeature">
+                    Enable/Disable Server Status Feature
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="enableNewsletterFeature">
+                <label class="form-check-label" for="enableNewsletterFeature">
+                    Enable/Disable Newsletter Feature
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="storeImagesInGamesFolder">
+                <label class="form-check-label" for="storeImagesInGamesFolder">
+                    Store Images in Games Folder Under .swimages Subfolder
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
+        </form>
+    </div>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Settings form DOMContentLoaded event triggered.");
@@ -125,5 +125,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-{% endblock %}
 
+<style>
+.settingsform-admin {
+    background-color: #000; /* Or any color you prefer */
+    padding: 20px;
+    border-radius: 15px;
+}
+.settingsform-admin .form-check-label {
+    color: #fff; /* Ensuring labels are readable against the dark background */
+}
+</style>
+{% endblock %}
