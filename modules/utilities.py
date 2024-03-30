@@ -766,7 +766,10 @@ def scan_and_add_games(folder_path):
         status='Running', 
         is_enabled=True, 
         last_run=datetime.now(),
-        error_message=''
+        error_message='',
+        total_folders=0,
+        folders_success=0,
+        folders_failed=0
     )
     
     db.session.add(scan_job_entry)
@@ -791,6 +794,14 @@ def scan_and_add_games(folder_path):
     try:
         insensitive_patterns, sensitive_patterns = load_release_group_patterns()
         game_names_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
+        scan_job_entry.total_folders = len(game_names_with_paths)
+        db.session.commit()
+        if not game_names_with_paths:
+            print(f"No games found in folder: {folder_path}")
+            scan_job_entry.status = 'Completed'  # Or 'Failed', depending on your criteria
+            scan_job_entry.error_message = "No games found."
+            db.session.commit()
+            return
     except Exception as e:
         scan_job_entry.status = 'Failed'
         scan_job_entry.error_message = str(e)
@@ -799,16 +810,32 @@ def scan_and_add_games(folder_path):
         return
 
     for game_info in game_names_with_paths:
+        db.session.refresh(scan_job_entry)  # Check if the job is still enabled
+        if not scan_job_entry.is_enabled:
+            scan_job_entry.status = 'Failed'
+            scan_job_entry.error_message = 'Scan cancelled by the captain'
+            db.session.commit()
+            return  # Stop processing if cancelled
+        
         game_name = game_info['name']
         full_disk_path = game_info['full_path']
         
         try:
             success = process_game_with_fallback(game_name, full_disk_path, scan_job_entry.id)
-            if not success:
-                print(f"Failed to process game {game_name} after fallback attempts.")
+            if success:
+                scan_job_entry.folders_success += 1
+                
+            else:
+                scan_job_entry.folders_failed += 1
+                print(f"Failed to process game {game_name} after fallback attempts.")   
+            db.session.commit()
         except Exception as e:
+            print(f"Failed to process game {game_name}: {e}")
+            scan_job_entry.folders_failed += 1
             scan_job_entry.status = 'Failed'
             scan_job_entry.error_message += f" Failed to process {game_name}: {str(e)}; "
+            db.session.commit()
+
             break  # Exit loop if game processing fails critically
 
     if scan_job_entry.status != 'Failed':

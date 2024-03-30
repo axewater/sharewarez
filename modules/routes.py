@@ -1340,6 +1340,10 @@ def scan_management():
 
     active_tab = session.get('active_tab', 'auto')
     print(f"Passing Active tab: {active_tab}")
+
+    jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
+    print(f"Jobs: {jobs}")
+
     return render_template('scan/scan_management.html', 
                            auto_form=auto_form, 
                            manual_form=manual_form, 
@@ -1382,6 +1386,22 @@ def handle_auto_scan(auto_form):
     else:
         flash('Auto-scan form validation failed.', 'error')
     return redirect(url_for('main.scan_management'))
+
+
+@bp.route('/cancel_scan_job/<job_id>', methods=['POST'])
+@login_required
+@admin_required
+def cancel_scan_job(job_id):
+    job = ScanJob.query.get(job_id)
+    if job and job.status == 'Running':
+        job.is_enabled = False
+        db.session.commit()
+        flash('Scan job has been canceled.', 'info')
+    else:
+        flash('Scan job not found or not in a cancellable state.', 'error')
+    return redirect(url_for('main.scan_management'))
+
+
 
 def handle_manual_scan(manual_form):
     session['active_tab'] = 'manual'
@@ -1511,6 +1531,26 @@ def clear_only_unmatched_folders():
         print(e)  # For debugging
     return redirect(url_for('main.scan_management'))
 
+
+
+@bp.route('/api/scan_jobs_status', methods=['GET'])
+@login_required
+@admin_required
+def scan_jobs_status():
+    jobs = ScanJob.query.all()
+    jobs_data = [{
+        'id': job.id,
+        'folders': job.folders,
+        'status': job.status,
+        'total_folders': job.total_folders,
+        'folders_success': job.folders_success,
+        'folders_failed': job.folders_failed,
+        'error_message': job.error_message,
+        'last_run': job.last_run.strftime('%Y-%m-%d %H:%M:%S') if job.last_run else '',
+        'next_run': job.next_run.strftime('%Y-%m-%d %H:%M:%S') if job.next_run else ''
+    } for job in jobs]
+    print(f'Scan jobs data: {jobs_data}')
+    return jsonify(jobs_data)
 
 
 @bp.route('/update_unmatched_folder_status', methods=['POST'])
