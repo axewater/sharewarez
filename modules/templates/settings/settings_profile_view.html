@@ -26,6 +26,7 @@
             <p><strong>Name:</strong> {{ current_user.name }}</p>
             <p><strong>Email:</strong> {{ current_user.email }}</p>
             <p><strong>About:</strong> {{ current_user.about }}</p>
+            <p><strong>Invites:</strong> {{ current_user.invites_quota }}</p>
         </div>
         <p style="text-align: center;">
             <a href="{{ url_for('main.settings_profile_edit') }}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Edit Profile</a>

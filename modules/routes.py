@@ -1548,7 +1548,25 @@ def admin_status_page():
     }
     return render_template('admin/status_page.html', config_values=config_values, system_info=system_info)
 
+@bp.route('/admin/manage_invites', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def manage_invites():
 
+    if request.method == 'POST':
+        user_id = request.form.get('user_id')
+        invites_number = int(request.form.get('invites_number'))
+
+        user = User.query.filter_by(user_id=user_id).first()
+        if user:
+            user.invite_quota += invites_number
+            db.session.commit()
+            flash('Invites updated successfully.', 'success')
+        else:
+            flash('User not found.', 'error')
+
+    users = User.query.all()
+    return render_template('admin/manage_invites.html', users=users)
 
 @bp.route('/delete_scan_job/<job_id>', methods=['POST'])
 @login_required
