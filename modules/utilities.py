@@ -305,14 +305,18 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
                 video_urls = [f"https://www.youtube.com/embed/{video['video_id']}" for video in response_json[0]['videos']]
                 videos_comma_separated = ','.join(video_urls)
                 new_game.video_urls = videos_comma_separated
-
+            
+            print(f"DEBUG Committing changes to database (1).")
+            db.session.commit()
             print(f"Processing images for game: {new_game.name}.")
             if 'cover' in response_json[0]:
                 process_and_save_image(new_game.uuid, response_json[0]['cover'], 'cover')
-            
+            print(f"DEBUG Committing changes to database (2).")
+            db.session.commit()
             for screenshot_id in response_json[0].get('screenshots', []):
                 process_and_save_image(new_game.uuid, screenshot_id, 'screenshot')
-            
+            print(f"DEBUG Committing changes to database (3).")
+            db.session.commit()
             try:
                 new_game.nfo_content = nfo_content
                 for column in new_game.__table__.columns:
@@ -320,6 +324,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
 
 
 
+                print(f"DEBUG Committing changes to database (4).")
                 db.session.commit()
                 print(f"Game and its images saved successfully : {new_game.name}.")
                 # flash("Game and its images saved successfully.")
@@ -548,8 +553,11 @@ def read_first_nfo_content(full_disk_path):
             if file.lower().endswith('.nfo'):
                 with open(os.path.join(root, file), 'r', encoding='utf-8', errors='ignore') as nfo_file:
                     print(f"Found NFO file at {os.path.join(root, file)}")
-                    return nfo_file.read()
-    return None 
+                    content = nfo_file.read()
+                    sanitized_content = content.replace('\x00', '')  # Remove NULL bytes
+                    return sanitized_content
+    return None
+
         
 def check_existing_game_by_igdb_id(igdb_id):
     return Game.query.filter_by(igdb_id=igdb_id).first()

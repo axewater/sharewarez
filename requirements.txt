@@ -28,3 +28,4 @@ schedule
 psycopg2-binary
 greenlet==3.0.3
 typing_extensions==4.10.0
+sqlalchemy_utils
