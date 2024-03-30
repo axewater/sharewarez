@@ -96,6 +96,7 @@ def create_admin_user(database_uri):
     # Create tables if they don't exist
     Base.metadata.create_all(engine)
 
+
     try:
         # Check if can connect to database
         engine.connect()
