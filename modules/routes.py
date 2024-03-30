@@ -293,22 +293,17 @@ def create_user():
     # Render the registration form
     return render_template('admin/create_user.html', form=form)
 
-# Route for the user creation success page
 @bp.route('/admin/user_created')
 @login_required
 @admin_required
 def user_created():
     return render_template('admin/create_user_done.html')
 
-
-
-
 @bp.route('/api/current_user_role', methods=['GET'])
 @login_required
 def get_current_user_role():
     print(f"Route: /api/current_user_role - {current_user.role}")
     return jsonify({'role': current_user.role}), 200
-
 
 @bp.route('/api/check_username', methods=['POST'])
 @login_required
@@ -323,7 +318,6 @@ def check_username():
     print(f"Checking username: {username}")
     existing_user = User.query.filter(func.lower(User.name) == func.lower(username)).first()
     return jsonify({"exists": existing_user is not None})
-
 
 @bp.route('/delete_avatar/<path:avatar_path>', methods=['POST'])
 @login_required
@@ -340,7 +334,6 @@ def delete_avatar(avatar_path):
         flash(f'Avatar image {full_avatar_path} not found.')
 
     return redirect(url_for('main.bot_generator'))
-
 
 @bp.route('/settings_account', methods=['GET', 'POST'])
 @login_required
@@ -443,14 +436,11 @@ def settings_profile_edit():
 
     return render_template('settings/settings_profile_edit.html', form=form, avatarpath=current_user.avatarpath)
 
-
-
 @bp.route('/settings_profile_view', methods=['GET'])
 @login_required
 def settings_profile_view():
     print("Route: Settings profile view")
     return render_template('settings/settings_profile_view.html')
-
 
 @bp.route('/settings_password', methods=['GET', 'POST'])
 @login_required
@@ -502,12 +492,6 @@ def settings_panel():
         form.default_sort_order.data = current_user.preferences.default_sort_order
 
     return render_template('settings/settings_panel.html', form=form)
-
-
-
-######################################## ADMIN ROUTES #####################################################
-######################################## ADMIN ROUTES #####################################################
-
 
 
 @bp.route('/admin/newsletter', methods=['GET', 'POST'])
@@ -970,41 +954,21 @@ def api_debug():
     return render_template('scan/scan_apidebug.html', form=form, api_response=api_response)
 
 
-@bp.route('/add_game/<game_name>')
-@login_required
-@admin_required
-def add_game(game_name):
-    print(f"Adding game: {game_name}")
-
-    full_disk_path = session.get('game_paths', {}).get(game_name)
-    
-    if not full_disk_path:
-        flash("Could not find the game's disk path.", "error")
-        return redirect(url_for('main.scan_folder'))
-    
-    game = retrieve_and_save_game(game_name, full_disk_path)
-    if game:
-        # Read the first .NFO content and save it to the game
-        print(f"Reading NFO content for game: {game_name}")
-        game.nfo_content = read_first_nfo_content(full_disk_path)
-        if game_name in session.get('game_paths', {}):
-            del session['game_paths'][game_name]
-            
-            if not session['game_paths']:
-                del session['game_paths']
-        
-        flash("Game added successfully.", "success")
-        print(f"Game {game_name} added successfully.")
-        return render_template('scan/scan_add_game.html', game=game)
-    else:
-        flash("Game not found or API error occurred.", "error")
-        return redirect(url_for('main.scan_folder'))
-
 
 @bp.route('/add_game_manual', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def add_game_manual():
+    if is_scan_job_running():
+        flash('Cannot add a new game while a scan job is running. Please try again later.', 'error')
+        print("Attempt to add a new game while a scan job is running.")
+        
+        # Determine redirection based on from_unmatched
+        from_unmatched = request.args.get('from_unmatched', 'false') == 'true'
+        if from_unmatched:
+            return redirect(url_for('main.scan_management'))
+        else:
+            return redirect(url_for('main.library'))
     # print(f"Received {request.method} request")
     full_disk_path = request.args.get('full_disk_path', None)
     from_unmatched = request.args.get('from_unmatched', 'false') == 'true'  # Detect origin
@@ -1104,7 +1068,13 @@ def game_edit(game_uuid):
     form = AddGameForm(obj=game)  # Pre-populate form
     
     if form.validate_on_submit():
+        if is_scan_job_running():
+            flash('Cannot edit the game while a scan job is running. Please try again later.', 'error')
+            # Re-render the template with the current form data
+            return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, action="edit")
+
         # Check if any other game has the same igdb_id and is not the current game
+        
         existing_game_with_igdb_id = Game.query.filter(
             Game.igdb_id == form.igdb_id.data,
             Game.id != game.id 
@@ -1205,6 +1175,10 @@ def game_edit(game_uuid):
 @login_required
 @admin_required
 def edit_game_images(game_uuid):
+    if is_scan_job_running():
+        # Inform the user that editing images might not be possible at the moment
+        flash('Image editing might be restricted while a scan job is running. Please try again later.', 'warning')
+
     game = Game.query.filter_by(uuid=game_uuid).first_or_404()
     cover_image = Image.query.filter_by(game_uuid=game_uuid, image_type='cover').first()
     screenshots = Image.query.filter_by(game_uuid=game_uuid, image_type='screenshot').all()
@@ -1216,11 +1190,16 @@ def edit_game_images(game_uuid):
 @admin_required
 def upload_image(game_uuid):
     print(f"Uploading image for game {game_uuid}")
+    if is_scan_job_running():
+        print(f"Attempt to upload image for game UUID: {game_uuid} while scan job is running")
+        flash('Cannot upload images while a scan job is running. Please try again later.', 'error')
+        return jsonify({'error': 'Cannot upload images while a scan job is running. Please try again later.'}), 403
+
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
 
     file = request.files['file']
-    image_type = request.form.get('image_type', 'screenshot')  # Default to 'screenshot' if not provided
+    image_type = request.form.get('image_type', 'screenshot')  # Default to 'screenshot'
 
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
@@ -1295,7 +1274,10 @@ def upload_image(game_uuid):
 @login_required
 @admin_required
 def delete_image():
-    print(request.json)
+    if is_scan_job_running():
+        print("Attempt to delete image while scan job is running")
+        return jsonify({'error': 'Cannot delete images while a scan job is running. Please try again later.'}), 403
+
     try:
         data = request.get_json()
         if not data or 'image_id' not in data:
@@ -1726,8 +1708,23 @@ def admin_dashboard():
 def delete_game_route(game_uuid):
     print(f"Route: /delete_game - {current_user.name} - {current_user.role} method: {request.method} UUID: {game_uuid}")
     
+    if is_scan_job_running():
+        print(f"Error: Attempt to delete game UUID: {game_uuid} while scan job is running")
+        flash('Cannot delete the game while a scan job is running. Please try again later.', 'error')
+        return redirect(url_for('main.library'))
     delete_game(game_uuid)
     return redirect(url_for('main.library'))
+
+def is_scan_job_running():
+    """
+    Check if there is any scan job with the status 'Running'.
+    
+    Returns:
+        bool: True if there is a running scan job, False otherwise.
+    """
+    running_scan_job = ScanJob.query.filter_by(status='Running').first()
+    return running_scan_job is not None
+
 
 def delete_game(game_identifier):
     """Delete a game by UUID or Game object."""
@@ -1819,6 +1816,10 @@ def delete_full_game():
     if not game_uuid:
         print(f"Route: /delete_full_game - Game UUID is required.")
         return jsonify({'status': 'error', 'message': 'Game UUID is required.'}), 400
+
+    if is_scan_job_running():
+        print(f"Error: Attempt to delete full game UUID: {game_uuid} while scan job is running")
+        return jsonify({'status': 'error', 'message': 'Cannot delete the game while a scan job is running. Please try again later.'}), 403
 
     game_to_delete = Game.query.filter_by(uuid=game_uuid).first()
     print(f"Route: /delete_full_game - Game to delete: {game_to_delete}")
