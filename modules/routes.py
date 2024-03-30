@@ -3,7 +3,7 @@ import sys,ast, uuid, json, random, requests, html, os, re, shutil, traceback, t
 from threading import Thread
 from config import Config
 from flask import Flask, render_template, flash, redirect, url_for, request, Blueprint, jsonify, session, abort, current_app, send_from_directory
-from flask import copy_current_request_context
+from flask import copy_current_request_context, g
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_wtf import FlaskForm
 from flask_mail import Message as MailMessage
@@ -14,7 +14,7 @@ from sqlalchemy import func, Integer, Text, case
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
-from modules import db, mail
+from modules import db, mail, cache
 from functools import wraps
 from uuid import uuid4
 from datetime import datetime, timedelta
@@ -50,6 +50,7 @@ has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
+
 
 @bp.before_app_request
 def initial_setup():
@@ -92,6 +93,21 @@ def initial_setup():
     except SQLAlchemyError as e:
         db.session.rollback()
         print(f'error upgrading user to admin: {e}')
+
+@bp.context_processor
+@cache.cached(timeout=500, key_prefix='global_settings')
+def inject_settings():
+    settings_record = GlobalSettings.query.first()
+    if settings_record:
+        # Provide a default value in case the setting key doesn't exist
+        show_logo = settings_record.settings.get('showSystemLogo', False)
+        show_help_button = settings_record.settings.get('showHelpButton', False)
+    else:
+        # Default values if no settings_record is found
+        show_logo = True
+        show_help_button = True
+
+    return dict(show_logo=show_logo, show_help_button=show_help_button)
 
 
 @bp.route('/login', methods=['GET', 'POST'])
@@ -1468,6 +1484,8 @@ def manage_settings():
         settings_record.settings = new_settings
         settings_record.last_updated = datetime.utcnow()
         db.session.commit()
+        cache.delete('global_settings')
+
         flash('SharewareZ Settings updated successfully, Captain!', 'success')
         return jsonify({'message': 'Settings updated successfully'}), 200
 

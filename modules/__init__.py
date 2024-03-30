@@ -14,13 +14,15 @@ from config import Config
 from modules.routes_site import site_bp
 from modules.filters import setup_filters
 from urllib.parse import urlparse
-
+from flask_caching import Cache
 
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 mail = Mail()
-from flask_apscheduler import APScheduler
+cache = Cache(config={'CACHE_TYPE': 'simple'})
+
+# from flask_apscheduler import APScheduler
 
 
 def check_postgres_port_open(host, port, retries=5, delay=2):
@@ -62,11 +64,12 @@ def create_app():
     login_manager.init_app(app)
     mail.init_app(app)
     login_manager.login_view = 'main.login'
-
-    scheduler = APScheduler()
-    scheduler.init_app(app)
-    scheduler.start()
-
+    cache.init_app(app)
+    
+    # scheduling disabled at this time
+    #scheduler = APScheduler()
+    #scheduler.init_app(app)
+    #scheduler.start()
     with app.app_context():
         from . import routes, models
         #_upgrade()

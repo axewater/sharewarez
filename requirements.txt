@@ -20,6 +20,7 @@ urllib3==2.0.2
 Werkzeug==2.3.4
 WTForms
 flask_migrate
+flask_caching
 authlib
 Flask-APScheduler
 wtforms-sqlalchemy
