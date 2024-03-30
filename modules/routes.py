@@ -104,18 +104,21 @@ def inject_settings():
         show_help_button = settings_record.settings.get('showHelpButton', False)
         enable_web_links = settings_record.settings.get('enableWebLinksOnDetailsPage', False)
         enable_server_status = settings_record.settings.get('enableServerStatusFeature', False)
+        enable_newsletter = settings_record.settings.get('enableNewsletterFeature', False)  # Added setting
     else:
-        # no settings_record found
+        # Default values if no settings_record is found
         show_logo = True
         show_help_button = True
         enable_web_links = True
         enable_server_status = True
+        enable_newsletter = True  # Consider what your default should be
 
     return dict(
         show_logo=show_logo, 
         show_help_button=show_help_button, 
         enable_web_links=enable_web_links,
-        enable_server_status=enable_server_status
+        enable_server_status=enable_server_status,
+        enable_newsletter=enable_newsletter  # Make sure to return it
     )
 
 @bp.route('/login', methods=['GET', 'POST'])
@@ -522,6 +525,13 @@ def settings_panel():
 @login_required
 @admin_required
 def newsletter():
+    settings_record = GlobalSettings.query.first()
+    enable_newsletter = settings_record.settings.get('enableNewsletterFeature', False) if settings_record else False
+
+    if not enable_newsletter:
+        flash('Newsletter feature is disabled.', 'warning')
+        print("ADMIN NEWSLETTER: Newsletter feature is disabled.")
+        return redirect(url_for('admin.dashboard'))
     print("ADMIN NEWSLETTER: Request method:", request.method)
     form = NewsletterForm()
     users = User.query.all()
