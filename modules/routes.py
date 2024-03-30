@@ -99,16 +99,24 @@ def initial_setup():
 def inject_settings():
     settings_record = GlobalSettings.query.first()
     if settings_record:
-        # Provide a default value in case the setting key doesn't exist
+        # Fetch existing settings
         show_logo = settings_record.settings.get('showSystemLogo', False)
         show_help_button = settings_record.settings.get('showHelpButton', False)
+        enable_web_links = settings_record.settings.get('enableWebLinksOnDetailsPage', False)
+        enable_server_status = settings_record.settings.get('enableServerStatusFeature', False)
     else:
-        # Default values if no settings_record is found
+        # no settings_record found
         show_logo = True
         show_help_button = True
+        enable_web_links = True
+        enable_server_status = True
 
-    return dict(show_logo=show_logo, show_help_button=show_help_button)
-
+    return dict(
+        show_logo=show_logo, 
+        show_help_button=show_help_button, 
+        enable_web_links=enable_web_links,
+        enable_server_status=enable_server_status
+    )
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -1500,6 +1508,14 @@ def manage_settings():
 @login_required
 @admin_required
 def admin_status_page():
+    
+    settings_record = GlobalSettings.query.first()
+    enable_server_status = settings_record.settings.get('enableServerStatusFeature', False) if settings_record else False
+
+    if not enable_server_status:
+        flash('Server Status feature is disabled.', 'warning')
+        return redirect(url_for('admin.dashboard'))
+    
     uptime = datetime.now() - app_start_time
     config_values = {item: getattr(Config, item) for item in dir(Config) if not item.startswith("__")}
     

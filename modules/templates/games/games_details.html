@@ -96,6 +96,7 @@
                                 <div class="emptyrating">Not rated</div>
                             {% endif %}
                             {% if game.urls and game.urls|length > 0 %}
+                            {% if enable_web_links %}
                             <div class="game-card-links">
                                 <!-- Iterate through URLs and create icon links -->
                                 {% for link in game.urls %}
@@ -104,6 +105,8 @@
                                     </a>
                                 {% endfor %}
                             </div>
+                        {% endif %}
+                        
                         {% endif %}
                         
                         </div>
