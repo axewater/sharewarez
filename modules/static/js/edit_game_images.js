@@ -13,23 +13,34 @@ function uploadFile(file, gameUuid, csrfToken, imageType) {
             'X-CSRF-Token': csrfToken,
         }),
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            // If the server responded with an error status, throw an error
+            return response.json().then(data => {
+                throw new Error(data.error || 'Upload failed');
+            });
+        }
+        return response.json();
+    })
     .then(data => {
         console.log('Upload response:', data);
         if (data.url) {
-            if (imageType === 'cover') {
-                displayCoverImage(data);
-            } else {
-                displayImage(data); // Existing function for screenshots
-            }
         } else {
-            alert('Upload failed');
+            throw new Error('Upload succeeded but no URL was returned.');
         }
     })
     .catch(error => {
         console.error('Error:', error);
+        var errorModalMessage = document.getElementById('errorModalMessage');
+        errorModalMessage.textContent = error.message;
+        
+        var errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+        errorModal.show();
     });
+    
+    
 }
+
 
 
 
@@ -69,10 +80,6 @@ function displayCoverImage(data) {
 
 function deleteImage(imageId) {
     console.log('Deleting image with ID:', imageId);
-    console.log('Preparing fetch request with headers:', {
-        'Content-Type': 'application/json',
-    });
-    console.log('JSON body to send:', JSON.stringify({ image_id: imageId }));
     var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
     fetch('/delete_image', {
@@ -86,10 +93,11 @@ function deleteImage(imageId) {
     })
     .then(response => {
         console.log('Network response:', response);
-        console.log('Response headers:', Array.from(response.headers.entries())); // Log all response headers
         if (!response.ok) {
-            console.log('Network error response body:', response.statusText);
-            throw new Error('Network response was not ok');
+            // If the server responded with an error status, throw an error
+            return response.json().then(data => {
+                throw new Error(data.error || 'Deletion failed');
+            });
         }
         return response.json();
     })
@@ -99,9 +107,14 @@ function deleteImage(imageId) {
     })
     .catch((error) => {
         console.error('Error:', error);
-        console.error('Error response:', error);
+        var errorModalMessage = document.getElementById('errorModalMessage');
+        errorModalMessage.textContent = error.message;
+        
+        var errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+        errorModal.show();
     });
 }
+
 
 
 
