@@ -399,6 +399,9 @@ class ScanJob(db.Model):
     last_run = db.Column(db.DateTime, nullable=True)
     next_run = db.Column(db.DateTime, nullable=True)
     error_message = db.Column(db.String(512))
+    total_folders = db.Column(db.Integer, default=0)
+    folders_success = db.Column(db.Integer, default=0)
+    folders_failed = db.Column(db.Integer, default=0)
 
 
 class UnmatchedFolder(db.Model):
