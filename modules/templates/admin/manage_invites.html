@@ -1,0 +1,38 @@
+<!-- admin/manage_invites.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Manage User Invites</h2>
+    <div class="table-responsive">
+        <table class="table">
+          <thead class="table-dark">
+            <tr>
+              <th scope="col">User</th>
+              <th scope="col">Current Invites</th>
+              <th scope="col">Add Invites</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+            <tr>
+              <td>{{ user.name }}</td>
+              <td>{{ user.invite_quota }}</td>
+              <td>
+                <form action="{{ url_for('main.manage_invites') }}" method="POST" class="d-flex gap-2">
+             
+                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                  <input type="hidden" name="user_id" value="{{ user.user_id }}">
+                  <div class="flex-grow-1">
+                    <input type="number" name="invites_number" min="1" value="1" class="form-control">
+                  </div>
+                  <button type="submit" class="btn btn-primary">Add</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
