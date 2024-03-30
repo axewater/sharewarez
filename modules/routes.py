@@ -34,7 +34,7 @@ from modules.forms import (
 )
 from modules.models import (
     User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, 
-    Platform, Genre, Theme, GameMode, MultiplayerMode, PlayerPerspective, Category, UserPreference, GameURL
+    Platform, Genre, Theme, GameMode, MultiplayerMode, PlayerPerspective, Category, UserPreference, GameURL, GlobalSettings
 )
 from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
@@ -1451,6 +1451,32 @@ def handle_delete_unmatched(all):
         flash('An error occurred while deleting unmatched folders.', 'error')
     return redirect(url_for('main.scan_management'))
     
+
+@bp.route('/admin/settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def manage_settings():
+    if request.method == 'POST':
+        new_settings = request.json  # Assuming settings are sent as JSON in the request body
+        # Validate new_settings to ensure it's a valid JSON and adheres to your expected structure
+
+        settings_record = GlobalSettings.query.first()
+        if not settings_record:
+            settings_record = GlobalSettings(settings={})
+            db.session.add(settings_record)
+        
+        settings_record.settings = new_settings
+        settings_record.last_updated = datetime.utcnow()
+        db.session.commit()
+        flash('SharewareZ Settings updated successfully, Captain!', 'success')
+        return jsonify({'message': 'Settings updated successfully'}), 200
+
+    else:  # GET request
+        settings_record = GlobalSettings.query.first()
+        current_settings = settings_record.settings if settings_record else {}
+        # Convert settings to the appropriate format for the template if necessary
+        return render_template('admin/admin_settings.html', current_settings=current_settings)
+
 
 @bp.route('/admin/status_page')
 @login_required

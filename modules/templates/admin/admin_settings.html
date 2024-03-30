@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="glass-panel">
+    <h2>Manage SharewareZ Settings</h2>
+
+    <div id="settingsSavedNotification" class="alert alert-success" role="alert" style="display: none;">
+        Settings saved successfully, Captain!
+    </div>
+      
+    <form id="settingsForm">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="showSystemLogo">
+            <label class="form-check-label" for="showSystemLogo">
+                Show System Logo?
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="showHelpButton">
+            <label class="form-check-label" for="showHelpButton">
+                Show Help Button
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="advancedFiltersEnabled">
+            <label class="form-check-label" for="advancedFiltersEnabled">
+                Advanced Filters Enabled?
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="allowUsersToInviteOthers">
+            <label class="form-check-label" for="allowUsersToInviteOthers">
+                Allow Users to Invite Others?
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="enableWebLinksOnDetailsPage">
+            <label class="form-check-label" for="enableWebLinksOnDetailsPage">
+                Enable (Show) Weblinks on Details Page
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="enableServerStatusFeature">
+            <label class="form-check-label" for="enableServerStatusFeature">
+                Enable/Disable Server Status Feature
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="enableNewsletterFeature">
+            <label class="form-check-label" for="enableNewsletterFeature">
+                Enable/Disable Newsletter Feature
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="storeImagesInGamesFolder">
+            <label class="form-check-label" for="storeImagesInGamesFolder">
+                Store Images in Games Folder Under .swimages Subfolder
+            </label>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Settings form DOMContentLoaded event triggered.");
+
+    const currentSettings = {{ current_settings|tojson }};
+    console.log("Current settings loaded:", currentSettings);
+
+    // Apply current settings to form
+    Object.keys(currentSettings).forEach(function(key) {
+        const input = document.getElementById(key);
+        if(input && input.type === 'checkbox') {
+            input.checked = currentSettings[key];
+        } else if(input) {
+            input.value = currentSettings[key];
+        }
+        console.log("Applied setting for:", key, "; Value:", currentSettings[key]);
+    });
+
+    // Form submission handler
+    document.getElementById('settingsForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        console.log("Form submit event triggered.");
+
+        const settings = {
+            showSystemLogo: document.getElementById('showSystemLogo').checked,
+            showHelpButton: document.getElementById('showHelpButton').checked,
+            advancedFiltersEnabled: document.getElementById('advancedFiltersEnabled').checked,
+            allowUsersToInviteOthers: document.getElementById('allowUsersToInviteOthers').checked,
+            enableWebLinksOnDetailsPage: document.getElementById('enableWebLinksOnDetailsPage').checked,
+            enableServerStatusFeature: document.getElementById('enableServerStatusFeature').checked,
+            enableNewsletterFeature: document.getElementById('enableNewsletterFeature').checked,
+            storeImagesInGamesFolder: document.getElementById('storeImagesInGamesFolder').checked
+        };
+        console.log("Settings to be saved:", settings);
+
+        fetch('/admin/settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify(settings)
+        })
+        .then(response => {
+            console.log("Fetch response received.");
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error('Network response was not ok.');
+        })
+        .then(data => {
+            console.log("Response data:", data);
+            alert('Settings updated successfully');
+        })
+        .catch(error => {
+            console.error('Fetch operation error:', error);
+            alert('Error updating settings');
+        });
+    });
+});
+</script>
+{% endblock %}
+
