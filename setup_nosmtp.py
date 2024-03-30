@@ -3,17 +3,26 @@
 import os, sys
 from datetime import datetime
 from uuid import uuid4
-from sqlalchemy import create_engine, text, Column, Integer, String, Boolean, DateTime
+from sqlalchemy import create_engine, text, Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session
 from sqlalchemy.orm.exc import NoResultFound
-
+from flask import Flask
 from urllib.parse import urlparse
 from werkzeug.security import generate_password_hash
 from config import Config
 from getpass import getpass
 
+from modules.models import User, db
+
 DATABASE_URI = Config.SQLALCHEMY_DATABASE_URI
+
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
+    db.init_app(app)
+    return app
+
 
 parsed_uri = urlparse(DATABASE_URI)
 
@@ -50,6 +59,8 @@ class User(Base):
     email_verification_token = Column(String(256), nullable=True)
     password_reset_token = Column(String(256), nullable=True)
     token_creation_time = Column(DateTime, nullable=True)
+    invited_by = Column(String(36), ForeignKey('users.user_id'), nullable=True)
+    invite_quota = Column(Integer, default=0)
 
 def check_and_create_database(database_uri):
     parsed_uri = urlparse(database_uri)
@@ -85,63 +96,68 @@ def check_and_create_database(database_uri):
 
 
 
-def create_admin_user(database_uri):
-    check_and_create_database(database_uri)
+
+
+
+def create_admin_user(database_uri, app):
+    with app.app_context():
+        check_and_create_database(database_uri)
     
-    engine = create_engine(database_uri)
-    Base.metadata.bind = engine
-    DBSession = sessionmaker(bind=engine)
-    session = scoped_session(DBSession)
+        engine = create_engine(database_uri)
+        Base.metadata.bind = engine
+        DBSession = sessionmaker(bind=engine)
+        session = scoped_session(DBSession)
 
-    # Create tables if they don't exist
-    Base.metadata.create_all(engine)
+        # Create tables if they don't exist
+        Base.metadata.create_all(engine)
 
 
-    try:
-        # Check if can connect to database
-        engine.connect()
-    except Exception as e:
-        print("Database connection failed. Edit the database URI in setup.py.")
-        print("Error details:", e)
-        return
-    print("Database connection successful.")
-    # Check if the admin user already exists
-    username = input("Enter admin username: ")
-    try:
-        existing_user = session.query(User).filter_by(name=username).one()
-        # If the following line is executed, it means the user was found, so we print a message and return.
-        print(f"User '{username}' already exists. No action taken.")
-        return
-    except NoResultFound:
-        # If no result found, it means the user does not exist, and we can proceed to create a new one.
-        pass
+        try:
+            # Check if can connect to database
+            engine.connect()
+        except Exception as e:
+            print("Database connection failed. Edit the database URI in setup.py.")
+            print("Error details:", e)
+            return
+        print("Database connection successful.")
+        # Check if the admin user already exists
+        username = input("Enter admin username: ")
+        try:
+            existing_user = session.query(User).filter_by(name=username).one()
+            # If the following line is executed, it means the user was found, so we print a message and return.
+            print(f"User '{username}' already exists. No action taken.")
+            return
+        except NoResultFound:
+            # If no result found, it means the user does not exist, and we can proceed to create a new one.
+            pass
 
-    # Prompt for admin credentials
-    password = getpass("Enter admin password: ")  # Securely capture password without echoing
-    hashed_password = generate_password_hash(password)
+        # Prompt for admin credentials
+        password = getpass("Enter admin password: ")  # Securely capture password without echoing
+        hashed_password = generate_password_hash(password)
 
-    # Create and insert the admin user
-    admin_user = User(
-        name=username,
-        email="nosmtp@setup.now",
-        password_hash=hashed_password,
-        role="admin",
-        state=True,
-        is_email_verified=True,
-        about="Auto-generated admin account"
-    )
-    session.add(admin_user)
+        # Create and insert the admin user
+        admin_user = User(
+            name=username,
+            email="nosmtp@setup.now",
+            password_hash=hashed_password,
+            role="admin",
+            state=True,
+            is_email_verified=True,
+            about="Auto-generated admin account"
+        )
+        session.add(admin_user)
 
-    try:
-        session.commit()
-        print("Admin user created successfully.")
-    except Exception as e:
-        session.rollback()
-        print("Failed to create admin user. Error details:", e)
-    finally:
-        session.remove()
+        try:
+            session.commit()
+            print("Admin user created successfully.")
+        except Exception as e:
+            session.rollback()
+            print("Failed to create admin user. Error details:", e)
+        finally:
+            session.remove()
 
 
 if __name__ == '__main__':
+    app = create_app()
     DATABASE_URI = Config.SQLALCHEMY_DATABASE_URI
-    create_admin_user(DATABASE_URI)
+    create_admin_user(DATABASE_URI, app)

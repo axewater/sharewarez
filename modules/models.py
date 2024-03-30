@@ -243,7 +243,8 @@ class User(db.Model):
     email_verification_token = db.Column(db.String(256), nullable=True)
     password_reset_token = db.Column(db.String(256), nullable=True)
     token_creation_time = db.Column(db.DateTime, nullable=True)
-
+    invite_quota = db.Column(db.Integer, default=0)  # Adjusted based on admin settings
+    
     def set_password(self, password):
         # Now using Argon2 to hash new passwords
         self.password_hash = ph.hash(password)
@@ -435,3 +436,17 @@ class GlobalSettings(db.Model):
 
     def __repr__(self):
         return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'
+    
+    
+class InviteToken(db.Model):
+    __tablename__ = 'invite_tokens'
+
+    id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(256), nullable=False, unique=True)
+    creator_user_id = db.Column(db.String(36), db.ForeignKey('users.user_id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    expires_at = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(days=2), nullable=False)
+    used = db.Column(db.Boolean, default=False, nullable=False)
+
+    def __repr__(self):
+        return f'<InviteToken {self.token}, Creator: {self.creator_user_id}, Expires: {self.expires_at}>'
