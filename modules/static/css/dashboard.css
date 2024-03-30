@@ -36,3 +36,22 @@
     width: 500px;
 
 }
+
+.admin-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.captains-image {
+    max-width: 100px;
+    max-height: 100px;
+    width: auto;
+    height: auto;
+    border-radius: 15px;
+
+    display: block;
+    margin: 0 auto;
+
+
+}

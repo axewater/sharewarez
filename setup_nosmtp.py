@@ -1,12 +1,15 @@
 # This script creates a user without configuring SMTP
 
-import os
+import os, sys
 from datetime import datetime
 from uuid import uuid4
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
+from sqlalchemy import create_engine, text, Column, Integer, String, Boolean, DateTime
+from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session  # Updated import here
+from urllib.parse import urlparse
 from werkzeug.security import generate_password_hash
 from config import Config
+from getpass import getpass
 
 DATABASE_URI = Config.SQLALCHEMY_DATABASE_URI
 
@@ -30,7 +33,43 @@ class User(Base):
     password_reset_token = Column(String(256), nullable=True)
     token_creation_time = Column(DateTime, nullable=True)
 
-def create_admin_user():
+def check_and_create_database(database_uri):
+    parsed_uri = urlparse(database_uri)
+    db_name = parsed_uri.path[1:]  # Extract database name
+    superuser_uri = f"{parsed_uri.scheme}://{parsed_uri.username}:{parsed_uri.password}@{parsed_uri.hostname}:{parsed_uri.port}/postgres"
+
+    engine = create_engine(superuser_uri, isolation_level="AUTOCOMMIT")
+    try:
+        db_check_uri = f"{parsed_uri.scheme}://{parsed_uri.username}:{parsed_uri.password}@{parsed_uri.hostname}:{parsed_uri.port}/{db_name}"
+        if not database_exists(db_check_uri):
+            create_database(db_check_uri)
+            print(f"Database '{db_name}' created successfully.")
+        else:
+            user_choice = input(f"Database '{db_name}' already exists. Do you want to delete and start over? (y/n): ")
+            if user_choice.lower() == 'y':
+                with engine.connect() as conn:
+                    # Ensure all connections are terminated
+                    conn.execute(text(f"""
+                        SELECT pg_terminate_backend(pg_stat_activity.pid)
+                        FROM pg_stat_activity
+                        WHERE pg_stat_activity.datname = '{db_name}';
+                    """))
+                    # Drop the database
+                    conn.execute(text(f"DROP DATABASE {db_name}"))
+                    print(f"Database '{db_name}' dropped.")
+                    create_database(db_check_uri)
+                    print(f"Database '{db_name}' created successfully.")
+            else:
+                print("Continuing without modifying the database.")
+    except Exception as e:
+        print(f"Failed to check or create the database. Error details: {e}")
+        sys.exit(1)
+
+
+
+def create_admin_user(database_uri):
+    check_and_create_database(database_uri)
+
     engine = create_engine(DATABASE_URI)
     Base.metadata.bind = engine
     DBSession = sessionmaker(bind=engine)
@@ -74,4 +113,5 @@ def create_admin_user():
         session.remove()
 
 if __name__ == '__main__':
-    create_admin_user()
+    DATABASE_URI = Config.SQLALCHEMY_DATABASE_URI
+    create_admin_user(DATABASE_URI)
