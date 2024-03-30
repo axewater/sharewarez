@@ -531,7 +531,7 @@ def newsletter():
     if not enable_newsletter:
         flash('Newsletter feature is disabled.', 'warning')
         print("ADMIN NEWSLETTER: Newsletter feature is disabled.")
-        return redirect(url_for('admin.dashboard'))
+        return redirect(url_for('main.admin_dashboard'))
     print("ADMIN NEWSLETTER: Request method:", request.method)
     form = NewsletterForm()
     users = User.query.all()
@@ -1524,7 +1524,7 @@ def admin_status_page():
 
     if not enable_server_status:
         flash('Server Status feature is disabled.', 'warning')
-        return redirect(url_for('admin.dashboard'))
+        return redirect(url_for('main.admin_dashboard'))
     
     uptime = datetime.now() - app_start_time
     config_values = {item: getattr(Config, item) for item in dir(Config) if not item.startswith("__")}
