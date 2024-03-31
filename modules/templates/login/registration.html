@@ -6,6 +6,16 @@
     <link rel="stylesheet" href="/static/css/newstyle.css">
 </head>
 <body>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="flashes">
+        {% for message in messages %}
+        <div class="flash">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
     <div class="container-login">
 
                 <div class="content-login">
@@ -15,17 +25,9 @@
                         (You can only register if your email has been whitelisted)
 
 
-                    {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                    <div class="flashes">
-                        {% for message in messages %}
-                        <div class="flash">{{ message }}</div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                    {% endwith %}
 
-                    <form action="/register" method="post">
+                        <form action="{{ url_for('main.register', token=request.args.get('token')) }}" method="post">
+
                         {{ form.csrf_token }}
                         <div class="form-group">
                             {{ form.username.label }}

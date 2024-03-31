@@ -167,14 +167,16 @@ def register():
 
     # Attempt to get the invite token from the query parameters
     invite_token_from_url = request.args.get('token')
+    print(f"Invite token from URL: {invite_token_from_url}")
     invite = None
     if invite_token_from_url:
         invite = InviteToken.query.filter_by(token=invite_token_from_url, used=False).first()
+        print(f"Invite found: {invite}")
         if invite and invite.expires_at >= datetime.utcnow():
             # The invite is valid; skip the whitelist check later
             pass
         else:
-            invite = None  # Invalidate the invite if it doesn't meet criteria
+            invite = None  # Invalidate
             flash('The invite is invalid or has expired.', 'warning')
             return redirect(url_for('main.register'))
 
@@ -222,9 +224,14 @@ def register():
             user.set_password(form.password.data)
             db.session.add(user)
             db.session.commit()
+            print(f"Invite Token from URL: {invite_token_from_url}")
+
             if invite:
+                print(f"Found valid invite: {invite.token}, expires at: {invite.expires_at}, used: {invite.used}")
                 invite.used = True
                 db.session.commit()
+            else:
+                print("No valid invite found or invite expired/used.")
             # Verification email
             verification_token = user.email_verification_token
             confirm_url = url_for('main.confirm_email', token=verification_token, _external=True)
