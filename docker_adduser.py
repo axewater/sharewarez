@@ -1,14 +1,19 @@
-import os, socket, time
+import os
+import socket
+import time
 from datetime import datetime
 from uuid import uuid4
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
-from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session  # Updated import here
+from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session
 from werkzeug.security import generate_password_hash
 from urllib.parse import urlparse
-
-# Editable database URI
-#DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://sharewarez:!Piratingin2024!@localhost/sharewarez')
 from config import Config
+
+# Load environment variables
+SHAREWAREZ_USERNAME = os.getenv('SHAREWAREZ_USERNAME', 'admin')
+SHAREWAREZ_PASSWORD = os.getenv('SHAREWAREZ_PASSWORD', 'admindocker')
+
+# Setup Database URI from config
 config = Config()
 DATABASE_URI = config.SQLALCHEMY_DATABASE_URI
 
@@ -32,34 +37,26 @@ class User(Base):
     password_reset_token = Column(String(256), nullable=True)
     token_creation_time = Column(DateTime, nullable=True)
 
-
-
 def check_postgres_port_open(host, port, retries=5, delay=2):
-    """
-    Checks if the PostgreSQL port is open by attempting to create a socket connection.
-    If the connection attempt fails, it waits for 'delay' seconds and retries.
-    
-    :param host: The hostname or IP address of the PostgreSQL server.
-    :param port: The port number of the PostgreSQL server.
-    :param retries: Maximum number of retries.
-    :param delay: Delay in seconds between retries.
-    :return: True if the port is open, False otherwise.
-    """
     for attempt in range(retries):
         try:
             with socket.create_connection((host, port), timeout=10):
                 print(f"Connection to PostgreSQL on port {port} successful.")
                 return True
         except (socket.timeout, ConnectionRefusedError):
-            print(f"Connection to PostgreSQL on port {port} failed. Attempt {attempt + 1} of {retries}.")
+            print(f"Connection attempt {attempt + 1} of {retries}. Retrying in {delay} seconds...")
             time.sleep(delay)
+    print("Failed to connect to PostgreSQL after multiple attempts.")
     return False
 
-def create_admin_user():
-    parsed_url = urlparse(DATABASE_URI)
-    check_postgres_port_open(parsed_url.hostname, 5432, 60, 2);
+def create_admin_user(database_uri):
+    parsed_uri = urlparse(database_uri)
+    # Ensure the database server is accessible
+    if not check_postgres_port_open(parsed_uri.hostname, parsed_uri.port or 5432):
+        print("Exiting due to database connectivity issues.")
+        return
 
-    engine = create_engine(DATABASE_URI)
+    engine = create_engine(database_uri)
     Base.metadata.bind = engine
     DBSession = sessionmaker(bind=engine)
     session = scoped_session(DBSession)
@@ -67,28 +64,17 @@ def create_admin_user():
     # Create tables if they don't exist
     Base.metadata.create_all(engine)
 
-    try:
-        # Check if can connect to database
-        engine.connect()
-    except Exception as e:
-        print("Database connection failed. Edit the database URI in setup.py.")
-        print("Error details:", e)
+    # Check if the admin user already exists
+    existing_user = session.query(User).filter_by(name=SHAREWAREZ_USERNAME).first()
+    if existing_user:
+        print("Admin user already exists. No action taken.")
         return
 
-    # Check if the admin user already exists
-    existing_admin_user = session.query(User).filter_by(role="admin").first()
-    if existing_admin_user:
-        print("Admin user already exists. No action taken.")
-        return  # Stop the function if an admin user already exists
-
-    username = os.getenv('APP_USERNAME', 'admin')
-    password = os.getenv('APP_PASSWORD', 'admin')
-    hashed_password = generate_password_hash(password)
-
     # Create and insert the admin user
+    hashed_password = generate_password_hash(SHAREWAREZ_PASSWORD)
     admin_user = User(
-        name=username,
-        email="nosmtp@setup.now",
+        name=SHAREWAREZ_USERNAME,
+        email="admin@sharewarez.com",  # Assuming a placeholder email
         password_hash=hashed_password,
         role="admin",
         state=True,
@@ -106,7 +92,5 @@ def create_admin_user():
     finally:
         session.remove()
 
-
 if __name__ == '__main__':
-    print(DATABASE_URI)
-    create_admin_user()
+    create_admin_user(DATABASE_URI)
