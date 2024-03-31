@@ -1,3 +1,4 @@
+
 # 🎮 Welcome to SharewareZ v1.1.0 🚀
 SharewareZ transforms any game folder into a dynamic, searchable library. With IGDB integration, it indexes games and adds cover images, screenshots, and metadata for easy filtering. Plus, you can invite friends to download games from your library.
 
@@ -9,44 +10,23 @@ SharewareZ transforms any game folder into a dynamic, searchable library. With I
 ***[SharewareZ promotes legal use of its application]***
 
 ## 🌟 Features Overview
-1. **User Authentication** 🔐
-    - Secure sign-up and sign-in processes with email verification.
-    - Password recovery system.
+2. **Game Library Management** 🎲
+    - Automated scanning of folders to catalog games.
+    - Library page includes Steam-style popup with screenshot slideshow.
+    - Filtering options based on genre, rating, and gameplay modes
+    - Discovery page showcasing latest additions, top downloads, and highly rated games.
+3. **Download games** 💻
+    - Auto-zip. Folders with multiple files are zipped on demand.
+    - NFO files are indexed and viewable on games details page.
+1. **User and Role management** 🔐
     - Role-based access control for admins and regular users.
-2. **User Profile** 👤
-    - Customizable user profiles with editable information.
-    - Support for avatar uploads.
-3. **Game Management** 🎲
-    - Automated scanning of specified folders to catalog games.
-    - Integration with IGDB to fetch comprehensive game details.
-    - Full CRUD (Create, Read, Update, Delete) capabilities for managing your game library.
-4. **Library Browsing & Discoverability** 🔍
-    - A dynamic discovery page showcasing latest additions, top downloads, and highly rated games.
-    - Advanced filtering options based on genre, rating, and gameplay mode to fine-tune your search.
-    - Detailed game summaries, including genre, themes, supported platforms, and more.
-    - Downloadable game files, neatly packaged as zipped archives.
-5. **System Management & Administration** 🛠️
-    - User account and role management.
-    - Whitelist access management.
-    - Monitoring & management of library scan jobs.
-    - Dashboard for insights into server and application settings.
-6. **Download Management** 📥
-    - Oversight of user download activities.
-    - Capabilities to clear pending downloads.
-7. **Security Features** 🔒
-    - Implementation of industry-standard security practices.
-    - Cross-Site Request Forgery (CSRF) protection.
-    - Strict file upload validation to prevent security risks.
-    - Defense against SQL injection through parameterized queries.
-    - Secure password hashing and token-based email verification.
-
-## ⚠️ Known Issues
-**Manual Folder Addition Screen**: Currently, the manual folder addition functionality is experiencing issues. We're actively working on a fix and appreciate your patience.
+    - User invite system. Optionally grant invites to users, by admin.
 
 # 🛠️ Sharewarez App Setup Guide
 
-Welcome to the setup guide for Sharewarez App. Follow these instructions carefully before diving into things :)
-You can install SharewareZ manually, or use the Docker image. The following instructions are for the manual installation.
+Read these instructions carefully before diving into things :)
+You can install SharewareZ manually, or use the Docker image.
+The following instructions are for the manual installation.
 
 ## 📋 Prerequisites
 
@@ -55,93 +35,101 @@ Before you start, make sure you have the following prerequisites installed on yo
 - **Linux**: 🐧
     - Python 3.11
     - pip
+    - git
 
 - **Windows**: 🪟
     - Python 3.11
     - pip
-    - Microsoft Visual C++ 14.0 or greater is required. Microsoft C++ Build Tools.
+    - git [Git for Windows (github.com)](https://github.com/git-for-windows)
+    - Microsoft Visual C++ 14.0 or greater is required (VC_redist.x64.exe) [Download Visual Studio Tools (microsoft.com)](https://visualstudio.microsoft.com/downloads/)
 
-## 🚀 1️⃣ Setup Your Virtual Environment
-First things first, let’s get that virtual environment up and running! 🏃‍♂️💨
+## 🚀 1️⃣ Download SharewareZ files
+First things first, git clone that treasure onto your system:
+(open a command prompt)
+```
+git clone https://github.com/axewater/sharewarez/
+cd sharewarez
+```
 
-For Linux:
+## 🕶️ 1️⃣ Setup Your Virtual Environment
+Let’s get a virtual environment up and running! 🏃‍♂️ This will keep the libraries used by the app all in 1 place💨
+
+🐧For Linux: 
 ```
 python -m venv venv
 source venv/bin/activate
 python -m pip install -r requirements.txt
 ```
+📝Note: You might need to use `python3` instead of python in some cases.
 
-🐧 Note: You might need to use python3 instead of python in some cases.
-
-For Windows:
+🪟 For Windows: 
 ```
 python -m venv venv
 .\venv\Scripts\Activate
 python -m pip install -r requirements.txt
 ```
 
-🪟 Remember: If python doesn’t do the trick, try python3!
+ 🤔Remember: If python doesn’t do the trick, try python3!
 
-🗃️ 2. Install PostgreSQL
+## 🗃️ 2. Install PostgreSQL
 Time to set up the database where all your game data will live! 🎮📚
 
-For Linux:
+🐧For Linux:
 ```
 sudo apt install postgresql
 psql -U postgres -h localhost
 CREATE DATABASE sharewarez;
 ```
 
-For Windows:
+🪟For Windows:
 
-Head over to the official PostgreSQL website and download the installer.
-Run the installer and launch Stack Builder.
-Choose to “Add a new server.”
-After adding the server:
+- Download PostgreSQL server for Windows [PostgreSQL: Windows installers](https://www.postgresql.org/download/windows/)
+- Run the installer and launch `Stack Builder`
+- Choose `Add a new server`
+- use pgAdmin to connect to your PostgreSQL server.
+- Right-click on `Databases` and select `New Database`
+- Name it **sharewarez** and hit `Save` or `OK`
 
-Fire up pgAdmin and connect to your PostgreSQL server.
-Right-click on “Databases” and select “New Database.”
-Name it sharewarez and hit “Save” or “OK.”
-🔧 Alternatively, for command-line enthusiasts:
-```SQL
-
+🔧 Alternatively, using command-line:
+```
+SQL
 psql -U postgres
 CREATE DATABASE sharewarez;
 ```
+## 📧 3a. Setup with Mail Features Enabled
+📬Why do I need to setup SMTP settings ?
+✉️ Mail is required for user self-service. Registration, password resets and the invite system all work by sending 'secure links' to a user's email.
 
-📧 3a. Setup with Mail Features Enabled
-Let’s enable those mail features to keep everyone connected! 📬✉️
+- **Create 'config.py'**: Copy `config.py.example` and rename it to `config.py`.
+- **Set a Secret Key**: This key is used for securing session cookies, it's important you have your own unique key here. Just put 32 (for instance) random🎲 characters there.
+- **Enter Database URI**: Fill in the DATABASE_URI with your database details.
+- **Configure SMTP Settings**: Set up your mail server 📬details to enable online user registration, invites and pw resets. Usually your ISP will have an SMTP server you can use here.
 
-Create config.py: Copy config.py.example and rename it to config.py.
-Set a Secret Key: Whip up a secret key that’s as random as a dice roll. 🎲
-Enter Database URI: Fill in the DATABASE_URI with your database details.
-Configure SMTP Settings: Set up your mail server details so you can send out those important emails!
-🔑 Make sure to add the admin’s email to the INITIAL_WHITELIST for those admin superpowers!
+🔑 Make sure to add the admin’s email to the `INITIAL_WHITELIST` for your admin account! This will be the only email address that can register the first account. The first account is automatically admin.
 
-🔐 Grab your IGDB API Keys from the IGDB API Docs to connect with the gaming universe!
+🔐 Get your IGDB API Keys from [IGDB API docs](https://api-docs.igdb.com/#getting-started). Follow the steps outlined there and put the keys in your `config.py`
 
 🛠️ 3b. Setup without Mail (NO SMTP)
-Prefer to go postal-free? No problem! 📭❌
+📭❌Single user system ? Whatever your reason, you can easily setup the application without SMTP. No mail? No problem!
 
-Create config.py: copy config.py.example.
-Database URI: Point it to your shiny new `sharewarez` database.
-👩‍💻 Run setup.py to create an admin user and kickstart the app with app.py.
-
+- Create 'config.py': copy 'config.py.example' file supplied.
+- Database URI: Point it to your `sharewarez` database.
 - Run `setup_nosmtp.py` to create an admin user.
 - Start the application by running `app.py`.
+
+## ⚠️ Known Issues
+**Upgrading from older versions**: Unfortunately we do not support backward compatibility with older databases. Use `config_nosmtp.py` to recreate the database.
+**Rare scan bug**: If your scan seems to have stopped, start it again (you may have to clear the entry in the list). This only occurs very rarely (once per 500 games for me).
+**Server settings bug**: If you open server settings and change any settings, some settings may not apply the correct defaults resulting in settings like 'display logo' to disable themselves. Just go to settings and apply settings as needed.
 
 ### Other notes
 
 - Use the admin panel to create any additional users as needed.
-- The app runs on port 5001, you can simply change this in app.py
+- The app runs on port `5001`, you can simply change this in `app.py`
 
 ### Docker image
 ```
 docker pull kapitanczarnobrod/sharewarez:1.1.0
 ```
-
-**Make sure to setup the correct paths to your warez folder (Windows and Linux)**
-
 ---
-
-Thank you for setting up the Sharewarez App. For further assistance, please open an issue on this repository.
+Thank you for setting up the Sharewarez App. For further assistance, please open an issue on this repository or join my Discord.
