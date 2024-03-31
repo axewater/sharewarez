@@ -42,8 +42,4 @@ def favicon():
 
 
 
-@site_bp.route('/admin/beta', methods=['GET'])
-def beta():
-    return render_template('admin/beta.html') 
-
 
