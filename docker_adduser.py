@@ -1,13 +1,15 @@
-import os
-import socket
-import time
+import os, sys, socket, time
 from datetime import datetime
 from uuid import uuid4
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
+from sqlalchemy import create_engine, text, Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session
 from werkzeug.security import generate_password_hash
 from urllib.parse import urlparse
 from config import Config
+from sqlalchemy.orm.exc import NoResultFound
+from flask import Flask
+
+from modules.models import User, db
 
 # Load environment variables
 SHAREWAREZ_USERNAME = os.getenv('SHAREWAREZ_USERNAME', 'admin')
@@ -36,6 +38,8 @@ class User(Base):
     email_verification_token = Column(String(256), nullable=True)
     password_reset_token = Column(String(256), nullable=True)
     token_creation_time = Column(DateTime, nullable=True)
+    invited_by = Column(String(36), ForeignKey('users.user_id'), nullable=True)
+    invite_quota = Column(Integer, default=100)
 
 def check_postgres_port_open(host, port, retries=5, delay=2):
     for attempt in range(retries):
