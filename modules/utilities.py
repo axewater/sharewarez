@@ -1,5 +1,5 @@
 #/modules/utilities.py
-import re, requests, shutil, os, zipfile
+import re, requests, shutil, os, zipfile, smtplib, socket
 from functools import wraps
 from flask import flash, redirect, url_for, request, current_app, flash
 from flask_login import current_user, login_user
@@ -19,6 +19,84 @@ from PIL import Image as PILImage
 from PIL import ImageOps
 from datetime import datetime
 from wtforms.validators import ValidationError
+
+def is_server_reachable(server, port):
+    """
+    Check if the mail server is reachable.
+    """
+    try:
+        # Attempt to open a connection to the mail server
+        with socket.create_connection((server, port), timeout=5) as connection:
+            return True
+    except Exception as e:
+        # Print or log the error if needed
+        print(f"Error connecting to mail server: {e}")
+        return False
+    
+def send_email(to, subject, template):
+    """
+    Send an email with error handling and pre-send check.
+    """
+    # Mail server details from configuration
+    mail_server = current_app.config['MAIL_SERVER']
+    mail_port = current_app.config['MAIL_PORT']
+    mail_username = current_app.config['MAIL_USERNAME']
+    mail_password = current_app.config['MAIL_PASSWORD']
+    mail_use_tls = current_app.config['MAIL_USE_TLS']
+
+    # Check if mail server is reachable
+    if not is_server_reachable(mail_server, mail_port):
+        print(f"Mail server {mail_server}:{mail_port} is unreachable. Email not sent.")
+        flash(f"Mail server {mail_server}:{mail_port} is unreachable. Email not sent.")
+        return
+
+    # Attempt to send email
+    try:
+        # Send email
+        msg = MailMessage(
+            subject,
+            sender=current_app.config['MAIL_DEFAULT_SENDER'],
+            recipients=[to],
+            html=template
+        )
+        mail.send(msg)
+        print(f"Email sent to {to} with subject {subject}")
+        flash(f"Email sent to {to} with subject {subject}")
+    except Exception as e:
+        # Handle specific errors if needed
+        print(f"Error sending email: {e}")
+
+def send_password_reset_email(user_email, token):
+    reset_url = url_for('main.reset_password', token=token, _external=True)
+    msg = MailMessage(
+        'Avast Ye! Password Reset Request Arrr!',
+        sender='Blackbeard@Sharewarez.com', 
+        recipients=[user_email]
+    )
+    msg.body = '''Ahoy there!
+
+Ye be wantin' to reset yer password, aye? No worries, we got ye covered! Unfortunately, yer email client doesn't support HTML messages. For a plain sailing, please ensure ye can view HTML emails.
+
+Fair winds and followin' seas,
+
+Captain Blackbeard
+'''
+    msg.html = f'''<p>Ahoy there!</p>
+
+<p>Ye be wantin' to reset yer password, aye? No worries, we got ye covered! Jus' click on the link below to set a new course for yer password:</p>
+
+<p><a href="{reset_url}">Password Reset Link</a></p>
+
+<p>If ye didn't request this, ye can just ignore this message and continue sailin' the digital seas.</p>
+
+<p>Fair winds and followin' seas,</p>
+
+<p>Captain Blackbeard</p>
+
+<p>P.S. If ye be havin' any troubles, send a message to the crew at <a href="mailto:Blackbeard@Sharewarez.com">Blackbeard@Sharewarez.com</a>, and we'll help ye navigate yer way back into yer account! Arrr!</p>
+'''
+    mail.send(msg)
+
 
 
 def _authenticate_and_redirect(username, password):
@@ -562,8 +640,6 @@ def read_first_nfo_content(full_disk_path):
 def check_existing_game_by_igdb_id(igdb_id):
     return Game.query.filter_by(igdb_id=igdb_id).first()
 
-
-
 def log_unmatched_folder(scan_job_id, folder_path, matched_status):
     existing_unmatched_folder = UnmatchedFolder.query.filter_by(folder_path=folder_path).first()
 
@@ -583,9 +659,6 @@ def log_unmatched_folder(scan_job_id, folder_path, matched_status):
             print(f"Failed to log unmatched folder due to a database error: {folder_path}")
     else:
         print(f"Unmatched folder already logged for: {folder_path}. Skipping.")
-
-
-
 
 def refresh_images_in_background(game_uuid):
     with current_app.app_context():
@@ -658,7 +731,6 @@ def delete_game_images(game_uuid):
             print(f"Error committing image deletion changes to the database: {e}")
 
 
-
 def square_image(image, size):
     image.thumbnail((size, size))
     if image.size[0] != size or image.size[1] != size:
@@ -681,47 +753,6 @@ def get_game_by_uuid(game_uuid):
 
 def escape_special_characters(pattern):
     return re.escape(pattern)
-
-
-def send_email(to, subject, template):
-    msg = MailMessage(
-        subject,
-        sender='blackbeard@sharewarez.com',
-        recipients=[to],
-        html=template
-    )
-    mail.send(msg)
-
-def send_password_reset_email(user_email, token):
-    reset_url = url_for('main.reset_password', token=token, _external=True)
-    msg = MailMessage(
-        'Avast Ye! Password Reset Request Arrr!',
-        sender='Blackbeard@Sharewarez.com', 
-        recipients=[user_email]
-    )
-    msg.body = '''Ahoy there!
-
-Ye be wantin' to reset yer password, aye? No worries, we got ye covered! Unfortunately, yer email client doesn't support HTML messages. For a plain sailing, please ensure ye can view HTML emails.
-
-Fair winds and followin' seas,
-
-Captain Blackbeard
-'''
-    msg.html = f'''<p>Ahoy there!</p>
-
-<p>Ye be wantin' to reset yer password, aye? No worries, we got ye covered! Jus' click on the link below to set a new course for yer password:</p>
-
-<p><a href="{reset_url}">Password Reset Link</a></p>
-
-<p>If ye didn't request this, ye can just ignore this message and continue sailin' the digital seas.</p>
-
-<p>Fair winds and followin' seas,</p>
-
-<p>Captain Blackbeard</p>
-
-<p>P.S. If ye be havin' any troubles, send a message to the crew at <a href="mailto:Blackbeard@Sharewarez.com">Blackbeard@Sharewarez.com</a>, and we'll help ye navigate yer way back into yer account! Arrr!</p>
-'''
-    mail.send(msg)
 
 
 
