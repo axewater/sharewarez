@@ -14,6 +14,8 @@ from sqlalchemy import func, Integer, Text, case
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
+from werkzeug.security import generate_password_hash, check_password_hash
+
 from modules import db, mail, cache
 from functools import wraps
 from uuid import uuid4
@@ -30,11 +32,11 @@ from modules.forms import (
     UserPasswordForm, UserDetailForm, EditProfileForm, NewsletterForm, WhitelistForm, EditUserForm, 
     UserManagementForm, ScanFolderForm, IGDBApiForm, ClearDownloadRequestsForm, CsrfProtectForm, 
     AddGameForm, LoginForm, ResetPasswordRequestForm, AutoScanForm, UpdateUnmatchedFolderForm, 
-    ReleaseGroupForm, RegistrationForm, CreateUserForm, UserPreferencesForm, CsrfForm
+    ReleaseGroupForm, RegistrationForm, CreateUserForm, UserPreferencesForm, InviteForm, CsrfForm
 )
 from modules.models import (
     User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, 
-    Platform, Genre, Theme, GameMode, MultiplayerMode, PlayerPerspective, Category, UserPreference, GameURL, GlobalSettings
+    Platform, Genre, Theme, GameMode, MultiplayerMode, PlayerPerspective, Category, UserPreference, GameURL, GlobalSettings, InviteToken
 )
 from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
@@ -120,6 +122,10 @@ def inject_settings():
         enable_server_status=enable_server_status,
         enable_newsletter=enable_newsletter  # Make sure to return it
     )
+
+@bp.context_processor
+def utility_processor():
+    return dict(datetime=datetime)
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -284,6 +290,41 @@ def reset_password(token):
 
     return render_template('login/reset_password.html', form=form, token=token)
 
+
+@bp.route('/login/invites', methods=['GET', 'POST'])
+@login_required
+def invites():
+    form = InviteForm()
+    if form.validate_on_submit():
+        email = request.form.get('email')
+        # Ensure the user has invites left to send
+        current_invites = InviteToken.query.filter_by(creator_user_id=current_user.user_id, used=False).count()
+        if current_user.invite_quota > current_invites:
+            token = str(uuid.uuid4())
+            invite_token = InviteToken(token=token, creator_user_id=current_user.user_id)
+            db.session.add(invite_token)
+            db.session.commit()
+
+            invite_url = url_for('main.register', token=token, _external=True, _scheme='https')
+
+            send_invite_email(email, invite_url)
+
+            flash('Invite sent successfully. The invite expires after 48 hours.', 'success')
+        else:
+            flash('You have reached your invite limit.', 'danger')
+        return redirect(url_for('main.invites'))
+
+    invites = InviteToken.query.filter_by(creator_user_id=current_user.user_id, used=False).all()
+    current_invites_count = len(invites)
+    remaining_invites = max(0, current_user.invite_quota - current_invites_count)
+
+    return render_template('/login/invites.html', form=form, invites=invites, invite_quota=current_user.invite_quota, remaining_invites=remaining_invites)
+
+
+def send_invite_email(email, invite_url):
+    subject = "You're Invited!"
+    html_content = render_template('login/invite_email.html', invite_url=invite_url)
+    send_email(email, subject, html_content)
 
 
 @bp.route('/admin/create_user', methods=['GET', 'POST'])
@@ -519,6 +560,8 @@ def settings_panel():
         form.default_sort_order.data = current_user.preferences.default_sort_order
 
     return render_template('settings/settings_panel.html', form=form)
+
+
 
 
 @bp.route('/admin/newsletter', methods=['GET', 'POST'])
