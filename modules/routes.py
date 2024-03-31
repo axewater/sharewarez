@@ -562,6 +562,7 @@ def account_pw():
 
 @bp.route('/settings_panel', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def settings_panel():
     # print("Request method:", request.method)  # Debug line
     print("Route: /settings_panel")
