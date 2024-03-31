@@ -36,6 +36,7 @@
         <!-- Expandable User Account Menu -->
         <div id="userAccountMenu" class="user-account-menu hide">
             <a href="{{ url_for('main.settings_profile_view') }}" class="account-menu-option">Profile</a>
+            <a href="{{ url_for('main.invites') }}" class="account-menu-option">Invites</a>
             <a href="{{ url_for('main.settings_panel') }}" class="account-menu-option">Preferences</a>
             <a href="{{ url_for('main.account_pw') }}" class="account-menu-option">Change Password</a>
             <a href="{{ url_for('site.logout') }}" class="account-menu-option">Logout</a>

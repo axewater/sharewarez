@@ -1015,7 +1015,7 @@ def scan_folder():
 
 
   
-@bp.route('/api_debug', methods=['GET', 'POST'])
+@bp.route('/admin/api_debug', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def api_debug():
