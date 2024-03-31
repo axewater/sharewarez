@@ -164,6 +164,21 @@ def register():
 
     print("Route: /register")
 
+
+    # Attempt to get the invite token from the query parameters
+    invite_token_from_url = request.args.get('token')
+    invite = None
+    if invite_token_from_url:
+        invite = InviteToken.query.filter_by(token=invite_token_from_url, used=False).first()
+        if invite and invite.expires_at >= datetime.utcnow():
+            # The invite is valid; skip the whitelist check later
+            pass
+        else:
+            invite = None  # Invalidate the invite if it doesn't meet criteria
+            flash('The invite is invalid or has expired.', 'warning')
+            return redirect(url_for('main.register'))
+
+
     form = RegistrationForm()
     if form.validate_on_submit():
         try:
@@ -173,11 +188,12 @@ def register():
                 print(f"Debug: Email already in use - {email_address}")
                 flash('This email is already in use. Please use a different email or log in.')
                 return redirect(url_for('main.register'))
-            whitelist = Whitelist.query.filter(func.lower(Whitelist.email) == email_address).first()
-            if not whitelist:
-                flash('Your email is not whitelisted.')
-                return redirect(url_for('main.register'))
-
+                    # Proceed with the whitelist check only if no valid invite token is provided
+            if not invite:
+                whitelist = Whitelist.query.filter(func.lower(Whitelist.email) == email_address).first()
+                if not whitelist:
+                    flash('Your email is not whitelisted.')
+                    return redirect(url_for('main.register'))
 
             existing_user = User.query.filter_by(name=form.username.data).first()
             if existing_user is not None:
@@ -195,22 +211,27 @@ def register():
             user = User(
                 user_id=user_uuid,
                 name=form.username.data,
-                email=form.email.data,
+                email=form.email.data.lower(),  # Ensuring email is stored in lowercase
                 role='user',
                 is_email_verified=False,
                 email_verification_token=s.dumps(form.email.data, salt='email-confirm'),
                 token_creation_time=datetime.utcnow(),
-                created=datetime.utcnow()
+                created=datetime.utcnow(),
+                invited_by=invite.creator_user_id if invite else None
             )
             user.set_password(form.password.data)
             db.session.add(user)
             db.session.commit()
-            # verification email
-            token = user.email_verification_token
-            confirm_url = url_for('main.confirm_email', token=token, _external=True)
+            if invite:
+                invite.used = True
+                db.session.commit()
+            # Verification email
+            verification_token = user.email_verification_token
+            confirm_url = url_for('main.confirm_email', token=verification_token, _external=True)
             html = render_template('login/registration_activate.html', confirm_url=confirm_url)
             subject = "Please confirm your email"
             send_email(user.email, subject, html)
+
 
             flash('A confirmation email has been sent via email.', 'success')
             return redirect(url_for('site.index'))
@@ -535,6 +556,8 @@ def account_pw():
 @bp.route('/settings_panel', methods=['GET', 'POST'])
 @login_required
 def settings_panel():
+    # print("Request method:", request.method)  # Debug line
+    print("Route: /settings_panel")
     form = UserPreferencesForm()
     if request.method == 'POST' and form.validate_on_submit():
         # Ensure preferences exist
