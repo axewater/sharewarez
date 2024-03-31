@@ -1,6 +1,48 @@
-<!-- templates/email/invite_email.html -->
-<p>Hello,</p>
-<p>You have been invited to join our exciting platform. Please use the link below to register:</p>
-<a href="{{ invite_url }}">{{ invite_url }}</a>
-<p>This invite expires automatically after 48 hours. If not used by then, the invite is returned to the sender.</p>
-<p>Best regards,<br>Your Team</p>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SharewareZ !</title>
+    <style>
+        body {
+            background-color: #f3f4f6;
+            color: #333;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 20px;
+        }
+        .container {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: 20px auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #007bff;
+        }
+        a {
+            background-color: #007bff;
+            color: #ffffff;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        p {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Ahoy, Future Crewmate!</h2>
+        <p>Greetings,</p>
+        <p>A grand adventure awaits ye on the horizon. Ye've been chosen to join our crew at ShareWareZ, a place of boundless digital treasures and voyages. To claim yer spot and embark on this exciting journey, use the parchment link below:</p>
+        <a href="{{ invite_url }}">Register for Yer Adventure</a>
+        <p>Bear in mind, this map to treasure and glory vanishes in the blink of an eye, or precisely after 48 hours. Should ye not claim it by then, it shall return from whence it came.</p>
+        <p>Fair winds and following seas,<br>Your ShareWareZ Crew</p>
+    </div>
+</body>
+</html>
+
