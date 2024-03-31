@@ -118,9 +118,9 @@ CREATE DATABASE sharewarez;
 - Start the application by running `app.py`.
 
 ## ⚠️ Known Issues
-**Upgrading from older versions**: Unfortunately we do not support backward compatibility with older databases. Use `config_nosmtp.py` to recreate the database.
-**Rare scan bug**: If your scan seems to have stopped, start it again (you may have to clear the entry in the list). This only occurs very rarely (once per 500 games for me).
-**Server settings bug**: If you open server settings and change any settings, some settings may not apply the correct defaults resulting in settings like 'display logo' to disable themselves. Just go to settings and apply settings as needed.
+- **Upgrading from older versions**: Unfortunately we do not support backward compatibility with older databases. Use `config_nosmtp.py` to recreate the database.
+- **Rare scan bug**: If your scan seems to have stopped, start it again (you may have to clear the entry in the list). This only occurs very rarely (once per 500 games for me).
+- **Server settings bug**: If you open server settings and change any settings, some settings may not apply the correct defaults resulting in settings like 'display logo' to disable themselves. Just go to settings and apply settings as needed.
 
 ### Other notes
 
