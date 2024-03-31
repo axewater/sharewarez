@@ -45,6 +45,10 @@ class ScanFolderForm(FlaskForm):
     cancel = SubmitField('Cancel')
 
 
+class InviteForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email(message='Invalid email.')], render_kw={"placeholder": "Enter email to invite"})
+    submit = SubmitField('Send Invite')
+
 class UserDetailForm(FlaskForm):
     submit = SubmitField('Save')
     cancel = SubmitField('Cancel')

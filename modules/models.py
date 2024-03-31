@@ -9,6 +9,8 @@ from argon2 import PasswordHasher
 from datetime import datetime
 import uuid, json
 from uuid import uuid4
+from datetime import datetime, timedelta
+
 
 from enum import Enum as PyEnum
 
@@ -244,6 +246,7 @@ class User(db.Model):
     password_reset_token = db.Column(db.String(256), nullable=True)
     token_creation_time = db.Column(db.DateTime, nullable=True)
     invite_quota = db.Column(db.Integer, default=0)  # Adjusted based on admin settings
+    invited_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     
     def set_password(self, password):
         # Now using Argon2 to hash new passwords
