@@ -913,6 +913,10 @@ def browse_games():
         query = query.order_by(Game.first_release_date.asc() if sort_order == 'asc' else Game.first_release_date.desc())
     elif sort_by == 'size':
         query = query.order_by(Game.size.asc() if sort_order == 'asc' else Game.size.desc())
+    elif sort_by == 'date_identified':
+        query = query.order_by(Game.date_identified.asc() if sort_order == 'asc' else Game.date_identified.desc())
+
+
 
         
     # Pagination
