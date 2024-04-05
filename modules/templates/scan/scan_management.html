@@ -268,7 +268,7 @@
                     data.forEach(job => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                            <td>${job.id}</td>
+                            <td>${job.id.substring(0, 8)}</td>
                             <td>${Object.keys(job.folders).join(', ')}</td>
                             <td>${job.status}</td>
                             <td>${job.error_message}</td>
