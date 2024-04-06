@@ -50,44 +50,69 @@
             <h3>Automatic Folder Scan</h3>
             <form action="" method="post">
                 {{ auto_form.hidden_tag() }}
+
+                <!-- Library Name -->
                 <div class="form-group">
-                    {{ auto_form.scan_mode.label }}
-                    {{ auto_form.folder_path(class="form-control") }} 
-                    {% if auto_form.folder_path.errors %}
-                        {% for error in auto_form.folder_path.errors %}
-                            <div class="alert alert-danger">{{ error }}</div>
-                        {% endfor %}
-                    {% endif %}
-                    {% for subfield in auto_form.scan_mode %}
-                        <div class="form-check">
-                            {{ subfield(class="form-check-input") }}
-                            {{ subfield.label(class="form-check-label") }}
-                        </div>
-                    {% endfor %}
-                    {% if auto_form.scan_mode.errors %}
-                        {% for error in auto_form.scan_mode.errors %}
+                    {{ auto_form.library_name.label }}
+                    {{ auto_form.library_name(class="form-control", id="libraryName") }}
+                    {% if auto_form.library_name.errors %}
+                        {% for error in auto_form.library_name.errors %}
                             <div class="alert alert-danger">{{ error }}</div>
                         {% endfor %}
                     {% endif %}
                 </div>
-                <div class="form-group">
 
-                    <button id="browseFoldersBtn" type="button" class="btn btn-info" data-browse-url="{{ url_for('main.browse_folders_ss') }}">Browse Folders</button>
-                    <button type="submit" name="submit" value="AutoScan" class="btn btn-primary">Start On-Demand Scan</button>
-
-                    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
-                        <img src="/static/newstyle/searching_small.gif" alt="Loading...">
+                    <!-- Library Platform -->
+                    <div class="form-group">
+                        {{ auto_form.library_platform.label }}
+                        {{ auto_form.library_platform(class="form-control", id="libraryPlatform") }}
+                        {% if auto_form.library_platform.errors %}
+                            {% for error in auto_form.library_platform.errors %}
+                                <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
                     </div>
-                    <button id="upFolderBtn" type="button" class="btn btn-secondary" style="display: none;">Up</button>
 
-                    <div id="folderContents">
-                        
+                    <!-- Scan Mode -->
+                    <div class="form-group">
+                        {{ auto_form.scan_mode.label }}
+                        {% for subfield in auto_form.scan_mode %}
+                            <div class="form-check">
+                                {{ subfield(class="form-check-input") }}
+                                {{ subfield.label(class="form-check-label") }}
+                            </div>
+                        {% endfor %}
+                        {% if auto_form.scan_mode.errors %}
+                            {% for error in auto_form.scan_mode.errors %}
+                                <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
                     </div>
-                 
-                    
+
+                    <!-- Folder Path -->
+                    <div class="form-group">
+                        {{ auto_form.folder_path.label }}
+                        {{ auto_form.folder_path(class="form-control") }}
+                        {% if auto_form.folder_path.errors %}
+                            {% for error in auto_form.folder_path.errors %}
+                                <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                
+                <!-- Scan and Browse Buttons -->
+
+         
+            <div class="form-group">
+                <button id="browseFoldersBtn" type="button" class="btn btn-info" data-browse-url="{{ url_for('main.browse_folders_ss') }}">Browse Folders</button>
+                <button type="submit" name="submit" value="AutoScan" class="btn btn-primary">Start On-Demand Scan</button>
+                <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                    <img src="/static/newstyle/searching_small.gif" alt="Loading...">
                 </div>
-            </form>
-
+                <button id="upFolderBtn" type="button" class="btn btn-secondary" style="display: none;">Up</button>
+                <div id="folderContents"></div>
+            </div>
+        </form>
             <div class="glass-panel-scanfolder container mt-4">
                 <h2>Scan Jobs Management</h2>
                 <p>(you can only have 1 scan job 'Running' at a time)</p>
@@ -302,6 +327,27 @@
                 .catch(error => console.error('Error fetching scan jobs status:', error));
         };
     
+
+        var libraryPlatform = document.getElementById('libraryPlatform');
+        var libraryName = document.getElementById('libraryName');
+
+        // Set default library name based on existing platform selection
+        if(libraryPlatform.value) {
+            libraryName.value = 'My ' + libraryPlatform.value.charAt(0).toUpperCase() + libraryPlatform.value.slice(1) + ' Games';
+        }
+
+        libraryPlatform.addEventListener('change', function() {
+            var platform = this.value;
+            if(platform) {
+                libraryName.value = 'My ' + platform.charAt(0).toUpperCase() + platform.slice(1) + ' Games';
+            } else {
+                libraryName.value = 'My Games';
+            }
+        });
+
+
+
+
     // Run immediately on load
     updateScanJobs();
 

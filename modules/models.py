@@ -84,6 +84,38 @@ game_developer_association = db.Table(
     db.Column('developer_id', db.Integer, db.ForeignKey('developers.id'), primary_key=True)
 )
 
+class LibraryPlatform(PyEnum):
+    UNSUPPORTED = "unsupported"
+    N64 = "n64"
+    GB = "gb"
+    GBA = "gba"
+    NDS = "nds"
+    NES = "nes"
+    SNES = "snes"
+    PSX = "psx"
+    VB = "vb"
+    SEGA_MD = "segaMD"
+    SEGA_MS = "segaMS"
+    SEGA_CD = "segaCD"
+    LYNX = "lynx"
+    SEGA_32X = "sega32x"
+    JAGUAR = "jaguar"
+    SEGA_GG = "segaGG"
+    SEGA_SATURN = "segaSaturn"
+    ATARI_7800 = "atari7800"
+    ATARI_2600 = "atari2600"
+    PCE = "pce"
+    PCFX = "pcfx"
+    NGP = "ngp"
+    WS = "ws"
+    COLECO = "coleco"
+    VICE_X64SC = "vice_x64sc"
+    VICE_X128 = "vice_x128"
+    VICE_XVIC = "vice_xvic"
+    VICE_XPLUS4 = "vice_xplus4"
+    VICE_XPET = "vice_xpet"
+
+
 
 class Category(PyEnum):
     MAIN_GAME = "Main Game"
@@ -117,6 +149,7 @@ category_mapping = {
     12: Category.PACK,
     13: Category.UPDATE
 }
+
 
 
 
@@ -194,6 +227,8 @@ class Game(db.Model):
     multiplayer_modes = db.relationship("MultiplayerMode", secondary=game_multiplayer_mode_association, back_populates="games")    
     urls = db.relationship('GameURL', cascade='all, delete-orphan')
     file_type = db.Column(db.String, nullable=True) 
+    library_name = db.Column(db.String(512), nullable=True)
+    library_platform = db.Column(db.Enum(LibraryPlatform), default=LibraryPlatform.UNSUPPORTED, nullable=False)
     
     size = db.Column(db.Float, nullable=False, default=0.0)
 
