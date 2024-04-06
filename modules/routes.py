@@ -788,6 +788,7 @@ def library():
 
     # Extract filters from request arguments
     page = request.args.get('page', 1, type=int)
+    library_name = request.args.get('library_name')
     # Only override per_page, sort_by, and sort_order if the URL parameters are provided
     per_page = request.args.get('per_page', type=int) or per_page
     genre = request.args.get('genre')
@@ -798,8 +799,9 @@ def library():
     sort_by = request.args.get('sort_by') or sort_by
     sort_order = request.args.get('sort_order') or sort_order
 
-    print(f"Filters: {genre}, {rating}, {game_mode}, {player_perspective}, {theme}")
+    print(f"LIBRARY: Filters: {library_name}, {genre}, {rating}, {game_mode}, {player_perspective}, {theme}")
     filters = {
+        'library_name': library_name,
         'genre': genre,
         'rating': rating,
         'game_mode': game_mode,
@@ -830,6 +832,8 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
     query = Game.query.options(joinedload(Game.genres))
 
     # Filtering logic
+    if filters.get('library_name'):
+        query = query.filter(Game.library_name == filters['library_name'])
     if filters.get('genre'):
         query = query.filter(Game.genres.any(Genre.name == filters['genre']))
     if filters.get('rating') is not None:
@@ -841,6 +845,8 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
     if filters.get('theme'):
         query = query.filter(Game.themes.any(Theme.name == filters['theme']))
 
+    print(f"get_games: Filters: {filters}")
+    
     # Sorting logic
     if sort_by == 'name':
         query = query.order_by(Game.name.asc() if sort_order == 'asc' else Game.name.desc())
@@ -853,7 +859,7 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
     elif sort_by == 'date_identified':
         query = query.order_by(Game.date_identified.asc() if sort_order == 'asc' else Game.date_identified.desc())
 
-
+    print(f"get_games: Sorting by {sort_by} {sort_order}")
     # Pagination
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     games = pagination.items
@@ -886,10 +892,12 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
 @bp.route('/browse_games')
 @login_required
 def browse_games():
+    print(f"Route: /browse_games - {current_user.name}")
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
     
     # Filters
+    library_name = request.args.get('library_name')
     category = request.args.get('category')
     genre = request.args.get('genre')
     rating = request.args.get('rating', type=int)
@@ -899,9 +907,11 @@ def browse_games():
     sort_by = request.args.get('sort_by', 'name')  # Adding sort_by parameter
     sort_order = request.args.get('sort_order', 'asc')  # Adding sort_order parameter
 
-
+    print(f"browse_games: Filters: {library_name}, {category}, {genre}, {rating}, {game_mode}, {player_perspective}, {theme}")
     query = Game.query.options(joinedload(Game.genres))
-
+    if library_name:
+        print(f"browse_games: Library name: {library_name}")
+        query = query.filter(Game.library_name == library_name)
     if category:
         query = query.filter(Game.category.has(Category.name == category))
     if genre:
@@ -938,7 +948,7 @@ def browse_games():
 
     # Get game data
     game_data = []
-
+    print(f"browse_games: Games: {games} in library name {library_name}")
     for game in games:
         cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
         cover_url = cover_image.url if cover_image else 'newstyle/default_cover.jpg'
@@ -952,7 +962,8 @@ def browse_games():
             'summary': game.summary,
             'url': game.url,
             'size': game_size_formatted,
-            'genres': genres
+            'genres': genres,
+            'library_name': game.library_name
         })
 
     return jsonify({
@@ -1449,6 +1460,7 @@ def scan_management():
     if request.method == 'POST':
         submit_action = request.form.get('submit')
         if submit_action == 'AutoScan':
+            print("gedoe")
             return handle_auto_scan(auto_form)
         elif submit_action == 'ManualScan':
             return handle_manual_scan(manual_form)
@@ -1481,6 +1493,7 @@ def scan_management():
 
 
 def handle_auto_scan(auto_form):
+    print("handle_auto_scan: Handling auto-scan form submission.")
     if auto_form.validate_on_submit():
         # Check 4 scan job 'running' status
         running_job = ScanJob.query.filter_by(status='Running').first()
@@ -1493,7 +1506,7 @@ def handle_auto_scan(auto_form):
         scan_mode = auto_form.scan_mode.data
         library_name = auto_form.library_name.data
         library_platform = auto_form.library_platform.data
-        
+        print(f"Auto-scan form submitted. Folder path: {folder_path}, scan mode: {scan_mode}, library name: {library_name}, platform: {library_platform}")
         # Prepend the base path
         base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
         full_path = os.path.join(base_dir, folder_path)
@@ -1509,8 +1522,8 @@ def handle_auto_scan(auto_form):
         thread = Thread(target=start_scan)
         thread.start()
         
-        flash(f'Started auto scan at folder: {full_path} with mode: {scan_mode}, library name: {library_name}, and platform: {library_platform}', 'info')
-        print(f'Started auto scan at folder: {full_path} with mode: {scan_mode}, library name: {library_name}, and platform: {library_platform}', 'info')
+        flash(f'handle_auto_scan: Started at folder: {full_path} with mode: {scan_mode}, library name: {library_name}, and platform: {library_platform}', 'info')
+        print(f'handle_auto_scan: Started at folder: {full_path} with mode: {scan_mode}, library name: {library_name}, and platform: {library_platform}', 'info')
         session['active_tab'] = 'auto'
     else:
         flash(f"Auto-scan form validation failed: {auto_form.errors}")
@@ -1587,8 +1600,7 @@ def handle_delete_unmatched(all):
 @admin_required
 def manage_settings():
     if request.method == 'POST':
-        new_settings = request.json  # Assuming settings are sent as JSON in the request body
-        # Validate new_settings to ensure it's a valid JSON and adheres to your expected structure
+        new_settings = request.json
 
         settings_record = GlobalSettings.query.first()
         if not settings_record:
@@ -1922,7 +1934,6 @@ def refresh_game_images(game_uuid):
 @bp.route('/admin/dashboard')
 @login_required
 @admin_required
-
 def admin_dashboard():
     pass
     return render_template('admin/admin_dashboard.html')
@@ -2295,6 +2306,20 @@ def delete_download(download_id):
     db.session.commit()
 
     return redirect(url_for('main.downloads'))
+
+
+@bp.route('/api/get_libraries')
+def get_libraries():
+    print("/api/get_libraries : Fetching libraries")
+    libraries_query = Game.query.with_entities(Game.library_name).distinct().all()
+    print(f"Libraries found (pre-filter): {libraries_query}")
+    
+    libraries = [lib[0] for lib in libraries_query if lib[0] is not None]
+    print(f"Filtered libraries (post-filter): {libraries}")
+    
+    return jsonify(libraries)
+
+
 
 
 @bp.route('/api/game_screenshots/<game_uuid>')
