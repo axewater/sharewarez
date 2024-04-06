@@ -129,7 +129,7 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def create_game_instance(game_data, full_disk_path, folder_size_mb):
+def create_game_instance(game_data, full_disk_path, folder_size_mb, library_platform=None, library_name=None):
     try:
         if not isinstance(game_data, dict):
             raise ValueError("create_game_instance game_data is not a dictionary")
@@ -151,6 +151,8 @@ def create_game_instance(game_data, full_disk_path, folder_size_mb):
             
         print(f"create_game_instance Creating game instance for '{game_data.get('name')}' with UUID: {game_data.get('id')}.")
         new_game = Game(
+            library_name=library_name,
+            library_platform=library_platform,
             igdb_id=game_data['id'],
             name=game_data['name'],
             summary=game_data.get('summary'),
@@ -291,7 +293,7 @@ def website_category_to_string(category_id):
 
 
     
-def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
+def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_name=None, library_platform=None):
     print(f"Finding a way to add {game_name} on {full_disk_path} to the library.")
     existing_game_by_path = check_existing_game_by_path(full_disk_path)
     if existing_game_by_path:
@@ -323,7 +325,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
             print(f"Calculating folder size for {full_disk_path}.")
             folder_size_mb = get_folder_size_in_mb(full_disk_path)
             print(f"Folder size for {full_disk_path}: {format_size(folder_size_mb)}")
-            new_game = create_game_instance(game_data=response_json[0], full_disk_path=full_disk_path, folder_size_mb=folder_size_mb)
+            new_game = create_game_instance(game_data=response_json[0], full_disk_path=full_disk_path, folder_size_mb=folder_size_mb, library_platform=library_platform, library_name=library_name)
             
                     
             if 'genres' in response_json[0]:
@@ -832,8 +834,8 @@ def get_cover_thumbnail_url(igdb_id):
 
     return None
 
-def scan_and_add_games(folder_path, scan_mode='folders'):
-    print(f"Starting auto scan for games in folder: {folder_path}")
+def scan_and_add_games(folder_path, scan_mode='folders', library_name=None, library_platform=None):
+    print(f"Starting auto scan for games in folder: {folder_path} with scan mode: {scan_mode} and library name: {library_name} for platform: {library_platform}")
     # Create initial scan job
     scan_job_entry = ScanJob(
         folders={folder_path: True}, 
@@ -905,7 +907,7 @@ def scan_and_add_games(folder_path, scan_mode='folders'):
         full_disk_path = game_info['full_path']
         
         try:
-            success = process_game_with_fallback(game_name, full_disk_path, scan_job_entry.id)
+            success = process_game_with_fallback(game_name, full_disk_path, scan_job_entry.id, library_name, library_platform)
             if success:
                 scan_job_entry.folders_success += 1
                 
@@ -932,7 +934,7 @@ def scan_and_add_games(folder_path, scan_mode='folders'):
         print(f"Database error when finalizing ScanJob: {str(e)}")
 
         
-def process_game_with_fallback(game_name, full_disk_path, scan_job_id):
+def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_name, library_platform):
     
     existing_unmatched_folder = UnmatchedFolder.query.filter_by(folder_path=full_disk_path).first()
     if existing_unmatched_folder:
@@ -945,7 +947,7 @@ def process_game_with_fallback(game_name, full_disk_path, scan_job_id):
         return True 
 
     print(f'Game does not exist in database: {game_name} at {full_disk_path}')
-    if not try_add_game(game_name, full_disk_path, scan_job_id, check_exists=False):
+    if not try_add_game(game_name, full_disk_path, scan_job_id, check_exists=False, library_name=library_name, library_platform=library_platform):
         parts = game_name.split()
         for i in range(len(parts) - 1, 0, -1):
             fallback_name = ' '.join(parts[:i])
@@ -959,8 +961,8 @@ def process_game_with_fallback(game_name, full_disk_path, scan_job_id):
     return False
 
 
-def try_add_game(game_name, full_disk_path, scan_job_id, check_exists=True):
-    print(f"try_add_game: {game_name} at {full_disk_path}")
+def try_add_game(game_name, full_disk_path, scan_job_id, check_exists=True, library_name=None, library_platform=None):
+    print(f"try_add_game: {game_name} at {full_disk_path} with scan job ID: {scan_job_id} and check_exists: {check_exists} for library: {library_name} on platform: {library_platform}")
     """
     Attempt to add a game to the database. Now includes a check_exists flag to skip redundant checks.
     """
@@ -970,7 +972,7 @@ def try_add_game(game_name, full_disk_path, scan_job_id, check_exists=True):
             print(f"Game already exists in database: {game_name} at {full_disk_path}")
             return False
 
-    game = retrieve_and_save_game(game_name, full_disk_path, scan_job_id)
+    game = retrieve_and_save_game(game_name, full_disk_path, scan_job_id, library_name, library_platform)
     return game is not None
 
 def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns):

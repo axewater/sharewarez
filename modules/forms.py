@@ -1,4 +1,5 @@
 # forms.py
+import re
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SelectField, BooleanField, SubmitField, PasswordField, TextAreaField, RadioField, FloatField, DateTimeField, ValidationError, HiddenField
 from flask_wtf.file import FileField, FileAllowed, FileRequired
@@ -7,10 +8,14 @@ from wtforms.widgets import TextInput
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField
 from wtforms.widgets import ListWidget, CheckboxInput
 from wtforms.fields import URLField, DateField
-from modules.models import Status, Category, genre_choices, game_mode_choices, theme_choices, platform_choices, player_perspective_choices, developer_choices, publisher_choices
+from modules.models import Status, Category, genre_choices, game_mode_choices, theme_choices, platform_choices, player_perspective_choices, developer_choices, publisher_choices, LibraryPlatform
 from urllib.parse import urlparse
 from modules.utilities import comma_separated_urls
 
+
+def validate_library_name(form, field):
+    if not re.match("^[a-zA-Z0-9_\- !\(\)\.]*$", field.data):
+        raise ValidationError('Library name can only contain letters, numbers, spaces, underscores, and - ! ( ) .')
 
 class UpdateUnmatchedFolderForm(FlaskForm):
     folder_id = HiddenField('Folder ID', validators=[DataRequired()])
@@ -27,8 +32,10 @@ class ResetPasswordRequestForm(FlaskForm):
     submit = SubmitField('Request Password Reset')
 
 class AutoScanForm(FlaskForm):
-    folder_path = StringField('Folder Path', validators=[DataRequired()])
-    scan_mode = RadioField('Scan Mode', choices=[('folders', 'My Games are Folders'), ('files', 'My Games are Files')], default='folders')
+    folder_path = StringField('Browse Folder Path', validators=[DataRequired()])
+    library_name = StringField('Library Name', validators=[DataRequired(), validate_library_name])
+    library_platform = SelectField('Select Platform', choices=[(choice.name, choice.value) for choice in LibraryPlatform], validators=[DataRequired()])
+    scan_mode = RadioField('Select Scan Mode', choices=[('folders', 'My Games are Folders'), ('files', 'My Games are Files')], default='folders')
     submit = SubmitField('AutoScan')
 
 class WhitelistForm(FlaskForm):
@@ -183,4 +190,6 @@ class UserPreferencesForm(FlaskForm):
     default_sort = SelectField('Default Sort', choices=default_sort_choices)
     default_sort_order = SelectField('Default Sort Order', choices=default_sort_order_choices)
     submit = SubmitField('Save Preferences')
+
+
 
