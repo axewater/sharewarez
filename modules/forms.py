@@ -28,6 +28,7 @@ class ResetPasswordRequestForm(FlaskForm):
 
 class AutoScanForm(FlaskForm):
     folder_path = StringField('Folder Path', validators=[DataRequired()])
+    scan_mode = RadioField('Scan Mode', choices=[('folders', 'Folders'), ('files', 'Files')], default='folders')
     submit = SubmitField('AutoScan')
 
 class WhitelistForm(FlaskForm):

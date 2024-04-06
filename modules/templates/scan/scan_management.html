@@ -51,10 +51,21 @@
             <form action="" method="post">
                 {{ auto_form.hidden_tag() }}
                 <div class="form-group">
-                    {{ auto_form.folder_path.label }}
-                    {{ auto_form.folder_path(class="form-control") }}
+                    {{ auto_form.scan_mode.label }}
+                    {{ auto_form.folder_path(class="form-control") }} 
                     {% if auto_form.folder_path.errors %}
                         {% for error in auto_form.folder_path.errors %}
+                            <div class="alert alert-danger">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    {% for subfield in auto_form.scan_mode %}
+                        <div class="form-check">
+                            {{ subfield(class="form-check-input") }}
+                            {{ subfield.label(class="form-check-label") }}
+                        </div>
+                    {% endfor %}
+                    {% if auto_form.scan_mode.errors %}
+                        {% for error in auto_form.scan_mode.errors %}
                             <div class="alert alert-danger">{{ error }}</div>
                         {% endfor %}
                     {% endif %}
