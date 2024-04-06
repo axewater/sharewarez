@@ -52,7 +52,7 @@ has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
-
+app_version = '1.2.0'
 
 @bp.before_app_request
 def initial_setup():
@@ -728,6 +728,18 @@ def get_user(user_id):
         print(f"User not found with id: {user_id}")
         return jsonify({'error': 'User not found'}), 404
 
+
+@bp.route('/rom-test')
+@login_required
+@admin_required  
+def rom_test():
+    print("Route: /rom-test")
+    return render_template('/games/playrom.html')
+
+
+@bp.route('/data/<path:filename>')
+def data_redirect(filename):
+    return send_from_directory('emulatorjs', filename)
 
 @bp.route('/api/genres')
 @login_required
@@ -1610,6 +1622,7 @@ def admin_status_page():
     uptime = datetime.now() - app_start_time
     config_values = {item: getattr(Config, item) for item in dir(Config) if not item.startswith("__")}
     
+    
     try:
         hostname = socket.gethostname()
         ip_address = socket.gethostbyname(hostname)
@@ -1627,7 +1640,7 @@ def admin_status_page():
         'Uptime': str(uptime),
         'Current Time': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
-    return render_template('admin/status_page.html', config_values=config_values, system_info=system_info)
+    return render_template('admin/status_page.html', config_values=config_values, system_info=system_info, app_version=app_version)
 
 @bp.route('/admin/manage_invites', methods=['GET', 'POST'])
 @login_required
