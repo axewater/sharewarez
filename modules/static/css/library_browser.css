@@ -88,13 +88,28 @@
     }
 }
 
+.modal-content-search button.close {
+    background-color: #495057;
+    color: white;
+    border: 1px solid #495057;
+    border-radius: 4px;
+}
+
+.modal-content-search button.close:hover {
+    background-color: #343a40;
+}
+
 .search-result {
     padding: 5px;
     cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .search-result:hover, .search-result.selected {
-    background-color: #f0f0f0;
+    /* background-color: #f0f0f0; */
+    background-color: #495057;
+    color: #fff;
+
 }
 
 
