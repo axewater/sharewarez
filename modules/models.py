@@ -246,7 +246,7 @@ class User(db.Model):
     email_verification_token = db.Column(db.String(256), nullable=True)
     password_reset_token = db.Column(db.String(256), nullable=True)
     token_creation_time = db.Column(db.DateTime, nullable=True)
-    invite_quota = db.Column(db.Integer, default=0)  # Adjusted based on admin settings
+    invite_quota = db.Column(db.Integer, default=0) 
     invited_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     
     def set_password(self, password):
