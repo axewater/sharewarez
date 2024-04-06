@@ -294,7 +294,7 @@ def website_category_to_string(category_id):
 
     
 def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_name=None, library_platform=None):
-    print(f"Finding a way to add {game_name} on {full_disk_path} to the library.")
+    print(f"Finding a way to add {game_name} on {full_disk_path} to the library {library_name} on {library_platform}.")
     existing_game_by_path = check_existing_game_by_path(full_disk_path)
     if existing_game_by_path:
         return existing_game_by_path 
@@ -876,9 +876,9 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_name=None, libr
 
         # Use patterns in function calls
         if scan_mode == 'folders':
-            game_names_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
+            game_names_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns, library_name, library_platform)
         elif scan_mode == 'files':
-            game_names_with_paths = get_game_names_from_files(folder_path, supported_extensions, insensitive_patterns, sensitive_patterns)
+            game_names_with_paths = get_game_names_from_files(folder_path, supported_extensions, insensitive_patterns, sensitive_patterns, library_name, library_platform)
 
         scan_job_entry.total_folders = len(game_names_with_paths)
         db.session.commit()
@@ -975,13 +975,13 @@ def try_add_game(game_name, full_disk_path, scan_job_id, check_exists=True, libr
     game = retrieve_and_save_game(game_name, full_disk_path, scan_job_id, library_name, library_platform)
     return game is not None
 
-def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns):
-    print(f"get_game_names_from_folder Processing folder: {folder_path}")
+def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns, library_name=None, library_platform=None):
+    print(f"get_game_names_from_folder Processing folder: {folder_path} for library: {library_name} on platform: {library_platform}")
     if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
         print(f"Error: The folder '{folder_path}' does not exist or is not readable.")
         flash(f"Error: The folder '{folder_path}' does not exist or is not readable.")
         return []
-
+    
     folder_contents = os.listdir(folder_path)
     # print("Folder contents before filtering:", folder_contents)
 
@@ -995,8 +995,8 @@ def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patt
     # print("Extracted game names with paths:", game_names_with_paths)
     return game_names_with_paths
 
-def get_game_names_from_files(folder_path, extensions, insensitive_patterns, sensitive_patterns):
-    # print(f"get_game_names_from_files Processing files in folder: {folder_path}")
+def get_game_names_from_files(folder_path, extensions, insensitive_patterns, sensitive_patterns, library_name=None, library_platform=None):
+    print(f"get_game_names_from_files Processing files in folder: {folder_path} for library: {library_name} on platform: {library_platform}")
     if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
         print(f"Error: The path '{folder_path}' does not exist or is not readable.")
         return []
