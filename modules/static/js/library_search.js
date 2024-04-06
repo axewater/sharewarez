@@ -1,4 +1,19 @@
+
+
 $(document).ready(function() {
+
+    function debounce(func, timeout) {
+        let timer;
+        return function() {
+            var context = this, args = arguments;
+            clearTimeout(timer);
+            timer = setTimeout(function() {
+                func.apply(context, args);
+            }, timeout);
+        };
+    }
+    
+
     var selectedIndex = -1; // No selection initially
 
     $(document).on('keypress', function(e) {
@@ -46,6 +61,8 @@ $(document).ready(function() {
         console.log("Navigating to UUID:", gameUuid); // Debugging line to ensure UUID is captured
         window.location.href = '/game_details/' + gameUuid;
     });
+
+    
 });
 
 function updateSelection() {
@@ -54,7 +71,7 @@ function updateSelection() {
         .focus(); // Optionally, focus the selected result for accessibility
 }
 
-function fetchSearchResults(query) {
+const fetchSearchResults = debounce(function(query) {
     if (query.length < 2) { // Minimum query length
         $('#searchResults').empty();
         return;
@@ -73,10 +90,22 @@ function fetchSearchResults(query) {
             }).join('');
             $('#searchResults').html(html);
             selectedIndex = -1; 
+            
+            $('#searchResults .search-result').on('focus', function() {
+                $('#searchResults .search-result').removeClass('selected');
+                $(this).addClass('selected');
+                selectedIndex = $(this).index();
+                console.log("Selected index:", selectedIndex);
+            }).on('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    $(this).click();
+                }
+            });
+
         },
         error: function(xhr, status, error) {
             console.error("Search error:", error);
         }
     });
-}
+}, 250);
 
