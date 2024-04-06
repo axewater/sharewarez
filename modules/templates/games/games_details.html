@@ -100,9 +100,13 @@
                             <div class="game-card-links">
                                 <!-- Iterate through URLs and create icon links -->
                                 {% for link in game.urls %}
-                                    <a href="{{ link.url }}" target="_blank" class="game-link-icon" title="{{ link.type|capitalize }}">
-                                        <i class="fas {{ link.icon }}"></i>
-                                    </a>
+                                    
+                                    <div class="game-link-icon-container">
+                                        <a href="{{ link.url }}" target="_blank" class="game-link-icon" title="{{ link.type|capitalize }}">
+                                            <i class="fas {{ "fa-solid fa-globe" if link.icon == "fa-brands fa-wikimedia" else link.icon }}"></i>
+                                        </a>
+                                    </div>
+                                    
                                 {% endfor %}
                             </div>
                         {% endif %}
