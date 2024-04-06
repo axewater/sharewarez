@@ -193,7 +193,8 @@ class Game(db.Model):
     download_requests = db.relationship('DownloadRequest', back_populates='game', lazy='dynamic', cascade='delete')
     multiplayer_modes = db.relationship("MultiplayerMode", secondary=game_multiplayer_mode_association, back_populates="games")    
     urls = db.relationship('GameURL', cascade='all, delete-orphan')
-
+    file_type = db.Column(db.String, nullable=True) 
+    
     size = db.Column(db.Float, nullable=False, default=0.0)
 
     def __repr__(self):

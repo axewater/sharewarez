@@ -131,19 +131,25 @@ def admin_required(f):
 
 def create_game_instance(game_data, full_disk_path, folder_size_mb):
     try:
+        if not isinstance(game_data, dict):
+            raise ValueError("create_game_instance game_data is not a dictionary")
+
         category_id = game_data.get('category')
         category_enum = category_mapping.get(category_id, None)
         status_id = game_data.get('status')
         status_enum = status_mapping.get(status_id, None)
         player_perspective_id = game_data.get('player_perspective')
         player_perspective_enum = player_perspective_mapping.get(player_perspective_id, None)
-        
+        print(f"create_game_instance Player perspective ID: {player_perspective_id}, Enum: {player_perspective_enum}")
         if 'videos' in game_data:
+            print(f"create_game_instance Videos found for '{game_data.get('name')}'.")
             video_urls = [f"https://www.youtube.com/watch?v={video['video_id']}" for video in game_data['videos']]
             videos_comma_separated = ','.join(video_urls)
         else:
+            print(f"create_game_instance No videos found for '{game_data.get('name')}'.")
             videos_comma_separated = ""
-        
+            
+        print(f"create_game_instance Creating game instance for '{game_data.get('name')}' with UUID: {game_data.get('id')}.")
         new_game = Game(
             igdb_id=game_data['id'],
             name=game_data['name'],
@@ -172,13 +178,13 @@ def create_game_instance(game_data, full_disk_path, folder_size_mb):
         db.session.add(new_game)
         db.session.flush()
         
-        print(f"Game instance created for '{new_game.name}' with UUID: {new_game.uuid}. Proceeding to fetch URLs.")
+        print(f"create_game_instance Game instance created for '{new_game.name}' with UUID: {new_game.uuid}. Proceeding to fetch URLs.")
         
         fetch_and_store_game_urls(new_game.uuid, game_data['id'])
         
-        print(f"Finished processing game '{new_game.name}'. URLs (if any) have been fetched and stored.")
+        print(f"create_game_instance Finished processing game '{new_game.name}'. URLs (if any) have been fetched and stored.")
     except Exception as e:
-        print(f"Error during the game instance creation or URL fetching for game '{game_data.get('name')}'. Error: {e}")
+        print(f"create_game_instance Error during the game instance creation or URL fetching for game '{game_data.get('name')}'. Error: {e}")
     
     return new_game
 
@@ -384,16 +390,16 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
                 videos_comma_separated = ','.join(video_urls)
                 new_game.video_urls = videos_comma_separated
             
-            print(f"DEBUG Committing changes to database (1).")
+            # print(f"DEBUG Committing changes to database (1).")
             db.session.commit()
             print(f"Processing images for game: {new_game.name}.")
             if 'cover' in response_json[0]:
                 process_and_save_image(new_game.uuid, response_json[0]['cover'], 'cover')
-            print(f"DEBUG Committing changes to database (2).")
+            # print(f"DEBUG Committing changes to database (2).")
             db.session.commit()
             for screenshot_id in response_json[0].get('screenshots', []):
                 process_and_save_image(new_game.uuid, screenshot_id, 'screenshot')
-            print(f"DEBUG Committing changes to database (3).")
+            # print(f"DEBUG Committing changes to database (3).")
             db.session.commit()
             try:
                 new_game.nfo_content = nfo_content
@@ -402,7 +408,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None):
 
 
 
-                print(f"DEBUG Committing changes to database (4).")
+                # print(f"DEBUG Committing changes to database (4).")
                 db.session.commit()
                 print(f"Game and its images saved successfully : {new_game.name}.")
                 # flash("Game and its images saved successfully.")
@@ -459,50 +465,78 @@ def get_folder_size_in_mb(folder_path):
     return total_size / (1024 * 1024)
 
 def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
+    print(f"Enumerating companies for game {game_instance.name} with IGDB ID {igdb_game_id}.")
+    if not involved_company_ids:
+        print("No company IDs provided for enumeration.")
+        return
+
     company_ids_str = ','.join(map(str, involved_company_ids))
-
-    response_json = make_igdb_api_request(
-        "https://api.igdb.com/v4/involved_companies",
-        f"""fields company.name, developer, publisher, game;
-            where game={igdb_game_id} & id=({company_ids_str});"""
-    )
-    
-    for company in response_json:
-        company_name = company['company']['name'][:50]  # Truncate the name to 50 characters
-
-        is_developer = company.get('developer', False)
-        is_publisher = company.get('publisher', False)
-
-        if is_developer:
-            developer = Developer.query.filter_by(name=company_name).first()
-            if not developer:
-                developer = Developer(name=company_name)
-                db.session.add(developer)
-            
-            game_instance.developer = developer
-        
-        if is_publisher:
-            
-            publisher = Publisher.query.filter_by(name=company_name).first()
-            if not publisher:
-                publisher = Publisher(name=company_name)
-                db.session.add(publisher)
-            game_instance.publisher = publisher
+    print(f"Company IDs: {company_ids_str}")
 
     try:
+        response_json = make_igdb_api_request(
+            "https://api.igdb.com/v4/involved_companies",
+            f"""fields company.name, developer, publisher, game;
+                where game={igdb_game_id} & id=({company_ids_str});"""
+        )
+
+        if not isinstance(response_json, list):
+            print(f"Unexpected response structure: {response_json}")
+            return
+
+        print(f"Involved companies response: {response_json}")
+        for company_data in response_json:
+            company_info = company_data.get('company')
+            if not isinstance(company_info, dict) or 'name' not in company_info:
+                print(f"Unexpected company data structure or missing name: {company_data}")
+                continue  # Skip to the next iteration
+
+            company_name = company_info['name'][:50]  # Safely access 'name' and truncate to 50 characters
+
+            is_developer = company_data.get('developer', False)
+            is_publisher = company_data.get('publisher', False)
+
+            if is_developer:
+                print(f"Company {company_name} is a developer.")
+                developer = Developer.query.filter_by(name=company_name).first()
+                if not developer:
+                    print(f"Creating new developer: {company_name}")
+                    developer = Developer(name=company_name)
+                    db.session.add(developer)
+
+                print(f"Assigning developer {developer.name} to game {game_instance.name}.")
+                game_instance.developers.append(developer)  # Ensure this matches your relationship attribute
+
+            if is_publisher:
+                print(f"Company {company_name} is a publisher.")
+                publisher = Publisher.query.filter_by(name=company_name).first()
+                if not publisher:
+                    # print(f"Creating new publisher: {company_name}")
+                    publisher = Publisher(name=company_name)
+                    db.session.add(publisher)
+                # print(f"Assigning publisher {publisher.name} to game {game_instance.name}.")
+                game_instance.publishers.append(publisher)  # Ensure this matches your relationship attribute
+    except Exception as e:
+        print(f"Failed to enumerate companies due to an error: {e}")
+        return
+
+    try:
+        print(f"DEBUG Committing changes to database.")
         db.session.commit()
     except Exception as e:
         db.session.rollback()
         print(f"Failed to enumerate companies due to a database error: {e}")
 
 
+
 def make_igdb_api_request(endpoint_url, query_params):
+    # print(f"make_igdb_api_request {endpoint_url} with query: {query_params}")
     client_id = current_app.config['IGDB_CLIENT_ID']
     client_secret = current_app.config['IGDB_CLIENT_SECRET']
     access_token = get_access_token(client_id, client_secret) 
 
     if not access_token:
-        return {"error": "Failed to retrieve access token"}
+        return {"error": "make_igdb_api_request Failed to retrieve access token"}
 
     headers = {
         'Client-ID': client_id,
@@ -510,19 +544,21 @@ def make_igdb_api_request(endpoint_url, query_params):
     }
 
     try:
+        # print(f"make_igdb_api_request Attempting to make a request to {endpoint_url} with headers: {headers} and query: {query_params}")
         response = requests.post(endpoint_url, headers=headers, data=query_params)
         response.raise_for_status()
         data = response.json()
+        # print(f"make_igdb_api_request Response from IGDB API: {data}")
         return response.json()
 
     except requests.RequestException as e:
-        return {"error": f"API Request failed: {e}"}
+        return {"error": f"make_igdb_api_request API Request failed: {e}"}
 
     except ValueError:
-        return {"error": "Invalid JSON in response"}
+        return {"error": "make_igdb_api_request Invalid JSON in response"}
 
     except Exception as e:
-        return {"error": f"An unexpected error occurred: {e}"}
+        return {"error": f"make_igdb_api_request An unexpected error occurred: {e}"}
     
 
 def download_image(url, save_path):
@@ -553,7 +589,7 @@ def download_image(url, save_path):
             if os.access(directory, os.W_OK):
                 with open(save_path, 'wb') as f:
                     f.write(response.content)
-                print(f"Image successfully saved to {save_path}")
+                # print(f"Image successfully saved to {save_path}")
             else:
                 print(f"Error: The directory '{directory}' is not writable. Please check permissions.")
         else:
@@ -796,7 +832,7 @@ def get_cover_thumbnail_url(igdb_id):
 
     return None
 
-def scan_and_add_games(folder_path):
+def scan_and_add_games(folder_path, scan_mode='folders'):
     print(f"Starting auto scan for games in folder: {folder_path}")
     # Create initial scan job
     scan_job_entry = ScanJob(
@@ -830,14 +866,23 @@ def scan_and_add_games(folder_path):
             print(f"Database error when updating ScanJob with error: {str(e)}")
         return
 
+    # Load patterns before they are used
+    insensitive_patterns, sensitive_patterns = load_release_group_patterns()
+
     try:
-        insensitive_patterns, sensitive_patterns = load_release_group_patterns()
-        game_names_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
+        supported_extensions = ["7z", "rar", "zip", "arj", "iso", "exe", "bin", "rom", "nes", "unf", "fds", "smc", "sfc", "fig", "swc", "n64", "v64", "z64", "gb", "gbc", "gba", "sms", "gen", "smd", "gg", "img", "a26", "a52", "a78", "col", "ng", "pce", "d64", "t64", "crt", "z80", "tap", "adf", "uae"]
+
+        # Use patterns in function calls
+        if scan_mode == 'folders':
+            game_names_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
+        elif scan_mode == 'files':
+            game_names_with_paths = get_game_names_from_files(folder_path, supported_extensions, insensitive_patterns, sensitive_patterns)
+
         scan_job_entry.total_folders = len(game_names_with_paths)
         db.session.commit()
         if not game_names_with_paths:
             print(f"No games found in folder: {folder_path}")
-            scan_job_entry.status = 'Completed'  # Or 'Failed', depending on your criteria
+            scan_job_entry.status = 'Completed'
             scan_job_entry.error_message = "No games found."
             db.session.commit()
             return
@@ -894,7 +939,6 @@ def process_game_with_fallback(game_name, full_disk_path, scan_job_id):
         print(f"Skipping processing for already logged unmatched folder: {full_disk_path}")
         return False
 
-    # print(f"Checking if game already exists in database: {game_name} at {full_disk_path}")
     existing_game = Game.query.filter_by(full_disk_path=full_disk_path).first()
     if existing_game:
         print(f"Game already exists in database: {game_name} at {full_disk_path}")
@@ -916,6 +960,7 @@ def process_game_with_fallback(game_name, full_disk_path, scan_job_id):
 
 
 def try_add_game(game_name, full_disk_path, scan_job_id, check_exists=True):
+    print(f"try_add_game: {game_name} at {full_disk_path}")
     """
     Attempt to add a game to the database. Now includes a check_exists flag to skip redundant checks.
     """
@@ -929,7 +974,7 @@ def try_add_game(game_name, full_disk_path, scan_job_id, check_exists=True):
     return game is not None
 
 def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns):
-    print(f"Processing folder: {folder_path}")
+    print(f"get_game_names_from_folder Processing folder: {folder_path}")
     if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
         print(f"Error: The folder '{folder_path}' does not exist or is not readable.")
         flash(f"Error: The folder '{folder_path}' does not exist or is not readable.")
@@ -948,6 +993,33 @@ def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patt
     # print("Extracted game names with paths:", game_names_with_paths)
     return game_names_with_paths
 
+def get_game_names_from_files(folder_path, extensions, insensitive_patterns, sensitive_patterns):
+    # print(f"get_game_names_from_files Processing files in folder: {folder_path}")
+    if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
+        print(f"Error: The path '{folder_path}' does not exist or is not readable.")
+        return []
+
+    # print(f"Scanning files in folder: {folder_path}")
+    file_contents = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+    # print(f"Files found in folder: {file_contents}")
+    game_names_with_paths = []
+    for file_name in file_contents:
+        # print(f"Checking file: {file_name}")
+        extension = file_name.split('.')[-1].lower()
+        if extension in extensions:
+            # print(f"Found supported file: {file_name}")
+            # Extract the game name without the extension
+            game_name_without_extension = '.'.join(file_name.split('.')[:-1])
+            # Clean the game name
+            cleaned_game_name = clean_game_name(game_name_without_extension, insensitive_patterns, sensitive_patterns)
+            # print(f"Extracted and cleaned game name: {cleaned_game_name}")
+            full_path = os.path.join(folder_path, file_name)
+            
+            game_names_with_paths.append({'name': cleaned_game_name, 'full_path': full_path, 'file_type': extension})
+            # print(f"Added cleaned game name with path: {cleaned_game_name} at {full_path}")
+
+    return game_names_with_paths
+
 def escape_special_characters(pattern):
     """Escape special characters in the pattern to prevent regex errors."""
     if not isinstance(pattern, str):
@@ -957,38 +1029,56 @@ def escape_special_characters(pattern):
 
 
 def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
-    # Normalize separators: Replace underscores and dots with spaces, except when dots are part of versioning or abbreviations
-    filename = re.sub(r'(?<!\.\d)(?<!\d\.)(?<!\b[A-Z])\.(?![A-Z]\b)|_', ' ', filename)
+    # print(f"Original filename: {filename}")
+    
+    # Check and remove 'setup' at the start, case-insensitive
+    if filename.lower().startswith('setup'):
+        filename = filename[len('setup'):].lstrip("_").lstrip("-").lstrip()  # Remove 'setup', leading underscores, hyphens, and whitespace
+        print(f"After removing 'setup': {filename}")
 
-    # Define a regex pattern for version numbers, including those prefixed by 'v', covering 2-4 digit sequences
+    # Normalize separators
+    filename = re.sub(r'(?<!\.\d)(?<!\d\.)(?<!\b[A-Z])\.(?![A-Z]\b)|_', ' ', filename)
+    # print(f"After normalizing separators: {filename}")
+
+    # Define a regex pattern for version numbers
     version_pattern = r'\bv?\d+(\.\d+){1,3}'
 
-    # Remove version numbers early in the cleanup process
+    # Remove version numbers
     filename = re.sub(version_pattern, '', filename)
+    # print(f"After removing version numbers: {filename}")
 
     # Remove known release group patterns
     for pattern in insensitive_patterns:
-        escaped_pattern = escape_special_characters(pattern)
+        escaped_pattern = re.escape(pattern)  # Assume escape_special_characters is similar to re.escape
         filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename, flags=re.IGNORECASE)
+    # print(f"After removing insensitive patterns: {filename}")
 
     for pattern, is_case_sensitive in sensitive_patterns:
-        escaped_pattern = escape_special_characters(pattern)
+        escaped_pattern = re.escape(pattern)
         if is_case_sensitive:
             filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename)
         else:
             filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename, flags=re.IGNORECASE)
+    # print(f"After removing sensitive patterns: {filename}")
 
-    # Handle cases where a single number may indicate a sequel or version
-    filename = re.sub(r'\b([IVXLCDM]+|[0-9]+)(?:[^\w]|$)', r' \1 ', filename)  # Space out roman numerals and numbers
+    # Handle cases with numerals and versions
+    filename = re.sub(r'\b([IVXLCDM]+|[0-9]+)(?:[^\w]|$)', r' \1 ', filename)
+    # print(f"After spacing out numerals and versions: {filename}")
 
-    # Additional cleanup for version numbers, DLC mentions, etc.
-    filename = re.sub(r'Build\.\d+', '', filename)      # Build numbers
-    filename = re.sub(r'(\+|\-)\d+DLCs?', '', filename, flags=re.IGNORECASE)  # DLC mentions
+    # Cleanup for versions, DLCs, etc.
+    filename = re.sub(r'Build\.\d+', '', filename)
+    filename = re.sub(r'(\+|\-)\d+DLCs?', '', filename, flags=re.IGNORECASE)
     filename = re.sub(r'Repack|Edition|Remastered|Remake|Proper|Dodi', '', filename, flags=re.IGNORECASE)
+    # print(f"After additional cleanups: {filename}")
+
+    # Remove trailing numbers enclosed in brackets
+    filename = re.sub(r'\(\d+\)$', '', filename).strip()
+    # print(f"After removing trailing numbers in brackets: {filename}")
 
     # Normalize whitespace and re-title
     filename = re.sub(r'\s+', ' ', filename).strip()
     cleaned_name = ' '.join(filename.split()).title()
+    print(f"Final cleaned name: {cleaned_name}")
 
     return cleaned_name
 
@@ -996,7 +1086,6 @@ def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
 
 def load_release_group_patterns():
     try:
-        # Assuming ReleaseGroup is a model that contains release group information
         # Fetching insensitive patterns (not case-sensitive)
         insensitive_patterns = [
             "-" + rg.rlsgroup for rg in ReleaseGroup.query.filter(ReleaseGroup.rlsgroup != None).all()
@@ -1011,17 +1100,17 @@ def load_release_group_patterns():
             is_case_sensitive = False
             if pattern.lower() == 'yes':
                 is_case_sensitive = True
-                pattern = "-" + rg.rlsgroup  # Assume the pattern needs to be prefixed for sensitive matches
+                pattern = "-" + rg.rlsgroup
                 sensitive_patterns.append((pattern, is_case_sensitive))
-                pattern = "." + rg.rlsgroup  # Adding period-prefixed pattern as well
+                pattern = "." + rg.rlsgroup
                 sensitive_patterns.append((pattern, is_case_sensitive))
             elif pattern.lower() == 'no':
                 pattern = "-" + rg.rlsgroup
                 sensitive_patterns.append((pattern, is_case_sensitive))
-                pattern = "." + rg.rlsgroup  # Adding period-prefixed pattern for insensitivity
+                pattern = "." + rg.rlsgroup
                 sensitive_patterns.append((pattern, is_case_sensitive))
         
-        # print("Loaded release groups:", ", ".join(insensitive_patterns + [p[0] for p in sensitive_patterns]))
+        
 
         return insensitive_patterns, sensitive_patterns
     except SQLAlchemyError as e:
@@ -1037,7 +1126,7 @@ def format_size(size_in_mb):
 
 
 def comma_separated_urls(form, field):
-    # print(f"comma_separated_urls: {field.data}")
+    
     urls = field.data.split(',')
     url_pattern = re.compile(
         r'^(https?:\/\/)?(www\.)?youtube\.com\/embed\/[\w-]+$'

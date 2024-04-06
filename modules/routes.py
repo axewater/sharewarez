@@ -1478,7 +1478,8 @@ def handle_auto_scan(auto_form):
             return redirect(url_for('main.scan_management'))
     
         folder_path = auto_form.folder_path.data
-
+        scan_mode = auto_form.scan_mode.data
+        
         # Prepend the base path
         base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
         full_path = os.path.join(base_dir, folder_path)
@@ -1489,14 +1490,16 @@ def handle_auto_scan(auto_form):
 
         @copy_current_request_context
         def start_scan():
-            scan_and_add_games(full_path)
+            scan_and_add_games(full_path, scan_mode)
 
         thread = Thread(target=start_scan)
         thread.start()
-        flash('Auto-scan started for folder: ' + full_path, 'info') 
+        
+        flash(f'Started auto scan at folder: {full_path} with mode: {scan_mode}', 'info')
         session['active_tab'] = 'auto'
     else:
-        flash('Auto-scan form validation failed.', 'error')
+        flash(f"Auto-scan form validation failed: {auto_form.errors}")
+        print(f"Auto-scan form validation failed: {auto_form.errors}")
     return redirect(url_for('main.scan_management'))
 
 
@@ -2312,20 +2315,27 @@ def get_company_role():
             return jsonify({'error': 'No data found or error in response.'}), 404
 
         for company_data in response_json:
-            company_name = company_data['company']['name']
+            company_info = company_data.get('company')
+            if isinstance(company_info, dict):  # Ensure company_info is a dictionary
+                company_name = company_info.get('name', 'Unknown Company')
+            else:
+                print(f"Unexpected data structure for company info: {company_info}")
+                continue  # Skip this iteration
+
             role = 'Not Found'
             if company_data.get('developer', False):
                 role = 'Developer'
             elif company_data.get('publisher', False):
                 role = 'Publisher'
 
-            print(f"Company {company_name} role: {role} (igdb_id=game_igdb_id, company_id={company_id})")
+            print(f"Company {company_name} role: {role} (igdb_id={game_igdb_id}, company_id={company_id})")
             return jsonify({
                 'game_igdb_id': game_igdb_id,
                 'company_id': company_id,
                 'company_name': company_name,
                 'role': role
             }), 200
+
             
         
         return jsonify({'error': 'Company with given ID not found in the specified game.'}), 404
