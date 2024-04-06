@@ -1491,6 +1491,8 @@ def handle_auto_scan(auto_form):
     
         folder_path = auto_form.folder_path.data
         scan_mode = auto_form.scan_mode.data
+        library_name = auto_form.library_name.data
+        library_platform = auto_form.library_platform.data
         
         # Prepend the base path
         base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
@@ -1502,12 +1504,13 @@ def handle_auto_scan(auto_form):
 
         @copy_current_request_context
         def start_scan():
-            scan_and_add_games(full_path, scan_mode)
+            scan_and_add_games(full_path, scan_mode, library_name, library_platform)
 
         thread = Thread(target=start_scan)
         thread.start()
         
-        flash(f'Started auto scan at folder: {full_path} with mode: {scan_mode}', 'info')
+        flash(f'Started auto scan at folder: {full_path} with mode: {scan_mode}, library name: {library_name}, and platform: {library_platform}', 'info')
+        print(f'Started auto scan at folder: {full_path} with mode: {scan_mode}, library name: {library_name}, and platform: {library_platform}', 'info')
         session['active_tab'] = 'auto'
     else:
         flash(f"Auto-scan form validation failed: {auto_form.errors}")
