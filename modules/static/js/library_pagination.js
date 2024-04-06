@@ -33,6 +33,35 @@ $(document).ready(function() {
   $('#sortOrderToggle').text(sortOrder === 'asc' ? '^' : '~');
 
 
+  function populateLibraries(callback) {
+    $.ajax({
+        url: '/api/get_libraries',
+        method: 'GET',
+        success: function(response) {
+            var librarySelect = $('#libraryNameSelect');
+            librarySelect.empty().append($('<option>', { value: '', text: 'All Libraries' }));
+            response.forEach(function(library) {
+                librarySelect.append($('<option>', {
+                    value: library,
+                    text: library
+                }));
+            });
+            if (typeof callback === "function") callback();
+        },
+        error: function(xhr, status, error) {
+            console.error("Error fetching libraries:", error);
+        }
+    }).done(function() {
+        var initialParams = getUrlParams();
+        if (initialParams.library_name) {
+            $('#libraryNameSelect').val(initialParams.library_name);
+        }
+    });
+}
+
+
+
+
   function populateGenres(callback) {
     $.ajax({
         url: '/api/genres',
@@ -144,6 +173,7 @@ $(document).ready(function() {
     var urlParams = getUrlParams(); // Get URL parameters
     page = page || urlParams.page || 1; // Use URL parameter for page if available
     var filters = {
+      library_name: $('#libraryNameSelect').val() || undefined,
       page: page,
       per_page: $('#perPageSelect').val() || 20,
       category: $('#categorySelect').val() || urlParams.category,
@@ -328,6 +358,7 @@ function createPopupMenuHtml(game) {
  
 
   // Initialize filter dropdowns and fetch games on load
+  populateLibraries();
   populateGenres();
   populateThemes();
   populateGameModes();
