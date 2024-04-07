@@ -36,7 +36,7 @@ from modules.forms import (
 )
 from modules.models import (
     User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, 
-    Platform, Genre, Theme, GameMode, MultiplayerMode, PlayerPerspective, Category, UserPreference, GameURL, GlobalSettings, InviteToken
+    Platform, Genre, Theme, GameMode, MultiplayerMode, PlayerPerspective, Category, UserPreference, GameURL, GlobalSettings, InviteToken, LibraryImage
 )
 from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
@@ -844,6 +844,9 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
         query = query.filter(Game.player_perspectives.any(PlayerPerspective.name == filters['player_perspective']))
     if filters.get('theme'):
         query = query.filter(Game.themes.any(Theme.name == filters['theme']))
+    if filters.get('library_name'):
+        query = query.filter(Game.library_name == filters['library_name'])
+
 
     # print(f"get_games: Filters: {filters}")
     
@@ -2174,7 +2177,6 @@ def download_game(game_uuid):
 @bp.route('/discover')
 @login_required
 def discover():
-    # Define a helper function to fetch game details
     def fetch_game_details(games_query, limit=5):
         games = games_query.limit(limit).all()
         game_details = []
@@ -2188,25 +2190,31 @@ def discover():
                 'cover_url': cover_url,
                 'summary': game.summary,
                 'url': game.url,
-                'size': format_size(game.size),
+                'size': format_size(game.size),  # Ensure format_size is defined or imported
                 'genres': [genre.name for genre in game.genres],
                 'first_release_date': game.first_release_date.strftime('%Y-%m-%d') if game.first_release_date else 'Not available',
-                # Add any additional fields you need
             })
         return game_details
 
-    # Using the helper function to fetch games for each category
+    # Fetch libraries with image URLs
+    libraries_query = Game.query.with_entities(Game.library_name).distinct().all()
+    libraries = []
+    for lib in libraries_query:
+        if lib[0]:
+            library_image = LibraryImage.query.filter_by(library_name=lib[0]).first()
+            image_url = library_image.image_url if library_image else url_for('static', filename='newstyle/default_library.jpg')
+            libraries.append({'name': lib[0], 'image_url': image_url})
+
+    # Use the helper function to fetch games for each category
     latest_games = fetch_game_details(Game.query.order_by(Game.date_created.desc()))
     most_downloaded_games = fetch_game_details(Game.query.order_by(Game.times_downloaded.desc()))
     highest_rated_games = fetch_game_details(Game.query.filter(Game.rating != None).order_by(Game.rating.desc()))
 
     return render_template('games/discover.html', 
-                           latest_games=latest_games, 
-                           most_downloaded_games=most_downloaded_games, 
-                           highest_rated_games=highest_rated_games)
-
-
-
+                           latest_games=latest_games,
+                           most_downloaded_games=most_downloaded_games,
+                           highest_rated_games=highest_rated_games,
+                           libraries=libraries)
 
 
 @bp.route('/download_zip/<download_id>')
@@ -2312,14 +2320,19 @@ def delete_download(download_id):
 
 @bp.route('/api/get_libraries')
 def get_libraries():
-    # print("/api/get_libraries : Fetching libraries")
     libraries_query = Game.query.with_entities(Game.library_name).distinct().all()
-    # print(f"Libraries found (pre-filter): {libraries_query}")
-    
-    libraries = [lib[0] for lib in libraries_query if lib[0] is not None]
-    print(f"/api/get_libraries: Filtered : {libraries}")
-    
+    libraries = []
+    for lib in libraries_query:
+        if lib[0]:
+            image = LibraryImage.query.filter_by(library_name=lib[0]).first()
+            libraries.append({
+                'name': lib[0],
+                'image_url': image.image_url if image else url_for('static', filename='newstyle/default_library.jpg')
+            })
+    # tell the user what we are returning
+    print(f"Returning {len(libraries)} libraries.")
     return jsonify(libraries)
+
 
 
 
