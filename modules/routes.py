@@ -40,9 +40,9 @@ from modules.models import (
 )
 from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
-    get_game_by_uuid, escape_special_characters, enumerate_companies, make_igdb_api_request, load_release_group_patterns, check_existing_game_by_igdb_id,
-    log_unmatched_folder, get_game_names_from_folder, clean_game_name, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_folder,
-    zip_game, retrieve_and_save_game, format_size, delete_game_images, get_folder_size_in_mb, read_first_nfo_content
+    get_game_by_uuid, make_igdb_api_request, load_release_group_patterns, check_existing_game_by_igdb_id,
+    get_game_names_from_folder, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_folder,
+    zip_game, format_size, delete_game_images, get_folder_size_in_mb, read_first_nfo_content
 )
 
 
@@ -187,7 +187,7 @@ def register():
             email_address = form.email.data.lower()
             existing_user_email = User.query.filter(func.lower(User.email) == email_address).first()
             if existing_user_email:
-                print(f"Debug: Email already in use - {email_address}")
+                print(f"/register: Email already in use - {email_address}")
                 flash('This email is already in use. Please use a different email or log in.')
                 return redirect(url_for('main.register'))
                     # Proceed with the whitelist check only if no valid invite token is provided
@@ -199,21 +199,21 @@ def register():
 
             existing_user = User.query.filter_by(name=form.username.data).first()
             if existing_user is not None:
-                print(f"Debug: User already exists - {form.username.data}")
+                print(f"/register: User already exists - {form.username.data}")
                 flash('User already exists. Please Log in.')
                 return redirect(url_for('main.register'))
 
             user_uuid = str(uuid4())
             existing_uuid = User.query.filter_by(user_id=user_uuid).first()
             if existing_uuid is not None:
-                print("Debug: UUID collision detected.")
+                print("/register: UUID collision detected.")
                 flash('An error occurred while registering. Please try again.')
                 return redirect(url_for('main.register'))
 
             user = User(
                 user_id=user_uuid,
                 name=form.username.data,
-                email=form.email.data.lower(),  # Ensuring email is stored in lowercase
+                email=form.email.data.lower(),  # Ensuring lowercase
                 role='user',
                 is_email_verified=False,
                 email_verification_token=s.dumps(form.email.data, salt='email-confirm'),
@@ -398,13 +398,13 @@ def user_created():
 @bp.route('/api/current_user_role', methods=['GET'])
 @login_required
 def get_current_user_role():
-    print(f"Route: /api/current_user_role - {current_user.role}")
+    # print(f"Route: /api/current_user_role - {current_user.role}")
     return jsonify({'role': current_user.role}), 200
 
 @bp.route('/api/check_username', methods=['POST'])
 @login_required
 def check_username():
-    print(F"Route: /api/check_username - {current_user.name} - {current_user.role}")
+    # print(F"Route: /api/check_username - {current_user.name} - {current_user.role}")
     data = request.get_json()
     username = data.get('username')
 
@@ -776,7 +776,7 @@ def library():
     print(f"LIBRARY: current_user: {current_user} req :", request.method)
     # Ensure user preferences are loaded or default ones are created
     if not current_user.preferences:
-        print("User preferences not found, creating default...")
+        print("LIBRARY: User preferences not found, creating default...")
         current_user.preferences = UserPreference(user_id=current_user.id)
         db.session.add(current_user.preferences)
         db.session.commit()
@@ -799,7 +799,7 @@ def library():
     sort_by = request.args.get('sort_by') or sort_by
     sort_order = request.args.get('sort_order') or sort_order
 
-    print(f"LIBRARY: Filters: {library_name}, {genre}, {rating}, {game_mode}, {player_perspective}, {theme}")
+    # print(f"LIBRARY: Filters: {library_name}, {genre}, {rating}, {game_mode}, {player_perspective}, {theme}")
     filters = {
         'library_name': library_name,
         'genre': genre,
@@ -845,7 +845,7 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
     if filters.get('theme'):
         query = query.filter(Game.themes.any(Theme.name == filters['theme']))
 
-    print(f"get_games: Filters: {filters}")
+    # print(f"get_games: Filters: {filters}")
     
     # Sorting logic
     if sort_by == 'name':
@@ -859,7 +859,7 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
     elif sort_by == 'date_identified':
         query = query.order_by(Game.date_identified.asc() if sort_order == 'asc' else Game.date_identified.desc())
 
-    print(f"get_games: Sorting by {sort_by} {sort_order}")
+    # print(f"get_games: Sorting by {sort_by} {sort_order}")
     # Pagination
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     games = pagination.items
@@ -907,7 +907,7 @@ def browse_games():
     sort_by = request.args.get('sort_by', 'name')  # Adding sort_by parameter
     sort_order = request.args.get('sort_order', 'asc')  # Adding sort_order parameter
 
-    print(f"browse_games: Filters: {library_name}, {category}, {genre}, {rating}, {game_mode}, {player_perspective}, {theme}")
+    # print(f"browse_games: Filters: {library_name}, {category}, {genre}, {rating}, {game_mode}, {player_perspective}, {theme}")
     query = Game.query.options(joinedload(Game.genres))
     if library_name:
         print(f"browse_games: Library name: {library_name}")
@@ -921,7 +921,7 @@ def browse_games():
     if game_mode:
         query = query.filter(Game.game_modes.any(GameMode.name == game_mode))
     if player_perspective:
-        print(f'player_perspective query: {player_perspective}')
+        # print(f'player_perspective query: {player_perspective}')
         query = query.filter(Game.player_perspectives.any(PlayerPerspective.name == player_perspective))
     if theme:
         query = query.filter(Game.themes.any(Theme.name == theme))
@@ -948,7 +948,7 @@ def browse_games():
 
     # Get game data
     game_data = []
-    print(f"browse_games: Games: {games} in library name {library_name}")
+    # print(f"browse_games: Games: {games} in library name {library_name}")
     for game in games:
         cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
         cover_url = cover_image.url if cover_image else 'newstyle/default_cover.jpg'
@@ -987,25 +987,25 @@ def browse_folders_ss():
     print(f'SS folder browser: Requested path: {req_path}', file=sys.stderr)
     # Handle the default path case
     if not req_path:
-        print(f'No default path provided; using base directory: {base_dir}', file=sys.stderr)
+        print(f'SS folder browser: No default path provided; using base directory: {base_dir}', file=sys.stderr)
         req_path = ''
         folder_path = base_dir
     else:
         # Safely construct the folder path to prevent directory traversal vulnerabilities
         folder_path = os.path.abspath(os.path.join(base_dir, req_path))
-        print(f'Folder path: {folder_path}', file=sys.stderr)
+        print(f'SS folder browser: Folder path: {folder_path}', file=sys.stderr)
         # Prevent directory traversal outside the base directory
         if not folder_path.startswith(base_dir):
-            print(f'Access denied: {folder_path} outside of base directory: {base_dir}', file=sys.stderr)
+            print(f'SS folder browser: Access denied: {folder_path} outside of base directory: {base_dir}', file=sys.stderr)
             return jsonify({'error': 'Access denied'}), 403
 
     if os.path.isdir(folder_path):
         # List directory contents; distinguish between files and directories
-        print(f'Folder contents: {os.listdir(folder_path)}', file=sys.stderr)
+        # print(f'Folder contents: {os.listdir(folder_path)}', file=sys.stderr)
         contents = [{'name': item, 'isDir': os.path.isdir(os.path.join(folder_path, item))} for item in os.listdir(folder_path)]
         return jsonify(contents)
     else:
-        return jsonify({'error': 'Folder not found'}), 404
+        return jsonify({'error': 'SS folder browser: Folder not found'}), 404
 
 
 
@@ -1205,6 +1205,7 @@ def game_edit(game_uuid):
     if form.validate_on_submit():
         if is_scan_job_running():
             flash('Cannot edit the game while a scan job is running. Please try again later.', 'error')
+            print("Attempt to edit a game while a scan job is running by user:", current_user.name)
             # Re-render the template with the current form data
             return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, action="edit")
 
@@ -1300,7 +1301,7 @@ def game_edit(game_uuid):
             flash('An error occurred while updating the game. Please try again.', 'error')
 
     if request.method == 'POST':
-        print(f"Form validation failed: {form.errors}")
+        print(f"/game_edit/: Form validation failed: {form.errors}")
 
     # For GET or if form fails
     return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, action="edit")
@@ -1460,7 +1461,6 @@ def scan_management():
     if request.method == 'POST':
         submit_action = request.form.get('submit')
         if submit_action == 'AutoScan':
-            print("gedoe")
             return handle_auto_scan(auto_form)
         elif submit_action == 'ManualScan':
             return handle_manual_scan(manual_form)
@@ -1475,10 +1475,10 @@ def scan_management():
     game_names_with_ids = [{'name': name, 'full_path': path} for name, path in game_paths_dict.items()]
 
     active_tab = session.get('active_tab', 'auto')
-    print(f"Passing Active tab: {active_tab}")
+    # print(f"Passing Active tab: {active_tab}")
 
     jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
-    print(f"Jobs: {jobs}")
+    # print(f"Jobs: {jobs}")
 
     return render_template('scan/scan_management.html', 
                            auto_form=auto_form, 
@@ -1506,12 +1506,13 @@ def handle_auto_scan(auto_form):
         scan_mode = auto_form.scan_mode.data
         library_name = auto_form.library_name.data
         library_platform = auto_form.library_platform.data
-        print(f"Auto-scan form submitted. Folder path: {folder_path}, scan mode: {scan_mode}, library name: {library_name}, platform: {library_platform}")
+        print(f"handle_auto_scan: Auto-scan form submitted. Folder path: {folder_path}, scan mode: {scan_mode}, library name: {library_name}, platform: {library_platform}")
         # Prepend the base path
         base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
         full_path = os.path.join(base_dir, folder_path)
         if not os.path.exists(full_path) or not os.access(full_path, os.R_OK):
             flash(f"Cannot access folder: {full_path}. Please check the path and permissions.", 'error')
+            print(f"Cannot access folder: {full_path}. Please check the path and permissions.", 'error')
             session['active_tab'] = 'auto'
             return redirect(url_for('main.library'))
 
@@ -1539,7 +1540,8 @@ def cancel_scan_job(job_id):
     if job and job.status == 'Running':
         job.is_enabled = False
         db.session.commit()
-        flash('Scan job has been canceled.', 'info')
+        flash(f"Scan job {job_id} has been canceled.")
+        print(f"Scan job {job_id} has been canceled.")
     else:
         flash('Scan job not found or not in a cancellable state.', 'error')
     return redirect(url_for('main.scan_management'))
@@ -1549,7 +1551,7 @@ def cancel_scan_job(job_id):
 def handle_manual_scan(manual_form):
     session['active_tab'] = 'manual'
     if manual_form.validate_on_submit():
-        # Check 4 scan job 'running' status
+        # check job status
         running_job = ScanJob.query.filter_by(status='Running').first()
         if running_job:
             flash('A scan is already in progress. Please wait until the current scan completes.', 'error')
@@ -1746,7 +1748,7 @@ def scan_jobs_status():
         'last_run': job.last_run.strftime('%Y-%m-%d %H:%M:%S') if job.last_run else '',
         'next_run': job.next_run.strftime('%Y-%m-%d %H:%M:%S') if job.next_run else ''
     } for job in jobs]
-    print(f'Scan jobs data: {jobs_data}')
+    # print(f'Scan jobs data: {jobs_data}')
     return jsonify(jobs_data)
 
 
@@ -2310,12 +2312,12 @@ def delete_download(download_id):
 
 @bp.route('/api/get_libraries')
 def get_libraries():
-    print("/api/get_libraries : Fetching libraries")
+    # print("/api/get_libraries : Fetching libraries")
     libraries_query = Game.query.with_entities(Game.library_name).distinct().all()
-    print(f"Libraries found (pre-filter): {libraries_query}")
+    # print(f"Libraries found (pre-filter): {libraries_query}")
     
     libraries = [lib[0] for lib in libraries_query if lib[0] is not None]
-    print(f"Filtered libraries (post-filter): {libraries}")
+    print(f"/api/get_libraries: Filtered : {libraries}")
     
     return jsonify(libraries)
 
