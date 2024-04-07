@@ -1,6 +1,7 @@
 # modules/models.py
 from modules import db
 from sqlalchemy import Table, Column, Integer, String, ForeignKey, Float, DateTime, Enum
+from sqlalchemy.dialects.sqlite import TEXT as SQLite_TEXT
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import TypeDecorator, TEXT
 from sqlalchemy.types import Enum as SQLEnum
@@ -10,8 +11,6 @@ from datetime import datetime
 import uuid, json
 from uuid import uuid4
 from datetime import datetime, timedelta
-
-
 from enum import Enum as PyEnum
 
 
@@ -86,6 +85,9 @@ game_developer_association = db.Table(
 
 class LibraryPlatform(PyEnum):
     UNSUPPORTED = "unsupported"
+    PCWIN = "pcwin"
+    PCDOS = "pcdos"
+    MAC = "mac"
     N64 = "n64"
     GB = "gb"
     GBA = "gba"
@@ -426,7 +428,7 @@ def publisher_choices():
     return Publisher.query.all()
 
 
-from sqlalchemy.dialects.sqlite import TEXT as SQLite_TEXT
+
 
 class ScanJob(db.Model):
     __tablename__ = 'scan_jobs'
