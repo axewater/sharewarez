@@ -238,6 +238,16 @@ class Game(db.Model):
         return f"<Game id={self.id}, name={self.name}>"
     
 
+class LibraryImage(db.Model):
+    __tablename__ = 'library_images'
+    id = db.Column(db.Integer, primary_key=True)
+    library_name = db.Column(db.String(255), unique=True, nullable=False)
+    image_url = db.Column(db.String(255), nullable=True)  # Path or URL to the image
+
+    def __repr__(self):
+        return f'<LibraryImage {self.library_name}: {self.image_url}>'
+
+
 class GameURL(db.Model):
     __tablename__ = 'game_urls'
 
