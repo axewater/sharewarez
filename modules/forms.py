@@ -115,7 +115,8 @@ class IGDBApiForm(FlaskForm):
         ('https://api.igdb.com/v4/covers', 'Covers'),
         ('https://api.igdb.com/v4/game_videos', 'Game Videos'),
         ('https://api.igdb.com/v4/keywords', 'Keywords'),
-        ('https://api.igdb.com/v4/involved_companies', 'InvolvedCompanies')
+        ('https://api.igdb.com/v4/involved_companies', 'InvolvedCompanies'),
+        ('https://api.igdb.com/v4/platforms', 'Platforms'),
 
     ], validators=[DataRequired()])
     query = TextAreaField('Query', validators=[DataRequired()])

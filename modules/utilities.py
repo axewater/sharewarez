@@ -291,6 +291,39 @@ def website_category_to_string(category_id):
     }
     return category_mapping.get(category_id, "unknown")
 
+PLATFORM_IDS = {
+    "PCWIN": 6,
+    "PCDOS": 13,
+    "N64": 4,
+    "GB": 33,
+    "GBA": 24,
+    "NDS": 20,
+    "NES": 18,
+    "SNES": 19,
+    "PSX": 7,
+    "VB": 87,
+    "SEGA_MD": 29,
+    "SEGA_MS": 86,
+    "SEGA_CD": 78,
+    "LYNX": 61,
+    "SEGA_32X": 30,
+    "JAGUAR": 62,
+    "SEGA_GG": 35,
+    "SEGA_SATURN": 32,
+    "ATARI_7800": 60,
+    "ATARI_2600": 59,
+    "PCE": 128,
+    "PCFX": 274,
+    "NGP": 119,
+    "WS": 57,
+    "COLECO": 68,
+    "VICE_X64SC": 15,
+    "VICE_X128": 15,
+    "VICE_XVIC": 71,
+    "VICE_XPLUS4": 94,
+    "VICE_XPET": 90,
+    "OTHER": None,  # Assuming "Other/Mixed" has no specific ID
+}
 
     
 def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_name=None, library_platform=None):
@@ -299,14 +332,22 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
     if existing_game_by_path:
         return existing_game_by_path 
 
-    response_json = make_igdb_api_request(current_app.config['IGDB_API_ENDPOINT'],
-        f"""fields id, name, cover, summary, url, release_dates.date, platforms.name, genres.name, themes.name, game_modes.name,
-                   screenshots, videos.video_id, first_release_date, aggregated_rating, involved_companies, player_perspectives.name,
-                   aggregated_rating_count, rating, rating_count, slug, status, category, total_rating, 
-                   total_rating_count;
-            search "{game_name}"; limit 1;
-        """)
-    # print(f"retrieve_and_save Response JSON: {response_json}")
+
+    platform_id = PLATFORM_IDS.get(library_platform)
+    # inform the user if we are performing a focussed platform search
+    if platform_id:
+        print(f"Performing a platform-specific search for {game_name} on {library_platform} (ID: {platform_id}).")
+   
+    query_fields = """fields id, name, cover, summary, url, release_dates.date, platforms.name, genres.name, themes.name, game_modes.name,
+                      screenshots, videos.video_id, first_release_date, aggregated_rating, involved_companies, player_perspectives.name,
+                      aggregated_rating_count, rating, rating_count, slug, status, category, total_rating, 
+                      total_rating_count;"""
+    query_filter = f'search "{game_name}"; limit 1;'
+    if platform_id is not None:
+        query_filter += f' where platforms = ({platform_id});'
+
+    response_json = make_igdb_api_request(current_app.config['IGDB_API_ENDPOINT'], query_fields + query_filter)
+    print(f"retrieve_and_save Response JSON: {response_json}")
     if 'error' not in response_json and response_json:
 
         igdb_id = response_json[0].get('id')
@@ -507,7 +548,7 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
                     db.session.add(developer)
 
                 print(f"Assigning developer {developer.name} to game {game_instance.name}.")
-                game_instance.developers.append(developer)  # Ensure this matches your relationship attribute
+                game_instance.developer = developer
 
             if is_publisher:
                 print(f"Company {company_name} is a publisher.")
@@ -517,7 +558,7 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
                     publisher = Publisher(name=company_name)
                     db.session.add(publisher)
                 # print(f"Assigning publisher {publisher.name} to game {game_instance.name}.")
-                game_instance.publishers.append(publisher)  # Ensure this matches your relationship attribute
+                game_instance.publisher = publisher
     except Exception as e:
         print(f"Failed to enumerate companies due to an error: {e}")
         return
