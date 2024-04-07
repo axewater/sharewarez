@@ -140,16 +140,16 @@ def create_game_instance(game_data, full_disk_path, folder_size_mb, library_plat
         status_enum = status_mapping.get(status_id, None)
         player_perspective_id = game_data.get('player_perspective')
         player_perspective_enum = player_perspective_mapping.get(player_perspective_id, None)
-        print(f"create_game_instance Player perspective ID: {player_perspective_id}, Enum: {player_perspective_enum}")
+        # print(f"create_game_instance Player perspective ID: {player_perspective_id}, Enum: {player_perspective_enum}")
         if 'videos' in game_data:
-            print(f"create_game_instance Videos found for '{game_data.get('name')}'.")
+            # print(f"create_game_instance Videos found for '{game_data.get('name')}'.")
             video_urls = [f"https://www.youtube.com/watch?v={video['video_id']}" for video in game_data['videos']]
             videos_comma_separated = ','.join(video_urls)
         else:
-            print(f"create_game_instance No videos found for '{game_data.get('name')}'.")
+            # print(f"create_game_instance No videos found for '{game_data.get('name')}'.")
             videos_comma_separated = ""
             
-        print(f"create_game_instance Creating game instance for '{game_data.get('name')}' with UUID: {game_data.get('id')}.")
+        print(f"create_game_instance Creating game instance for '{game_data.get('name')}' with UUID: {game_data.get('id')} in library '{library_name}' on platform '{library_platform}'.")
         new_game = Game(
             library_name=library_name,
             library_platform=library_platform,
@@ -180,7 +180,7 @@ def create_game_instance(game_data, full_disk_path, folder_size_mb, library_plat
         db.session.add(new_game)
         db.session.flush()
         
-        print(f"create_game_instance Game instance created for '{new_game.name}' with UUID: {new_game.uuid}. Proceeding to fetch URLs.")
+        # print(f"create_game_instance Game instance created for '{new_game.name}' with UUID: {new_game.uuid}. Proceeding to fetch URLs.")
         
         fetch_and_store_game_urls(new_game.uuid, game_data['id'])
         
@@ -195,12 +195,12 @@ def create_game_instance(game_data, full_disk_path, folder_size_mb, library_plat
 def fetch_and_store_game_urls(game_uuid, igdb_id):
     try:
         website_query = f'fields url, category; where game={igdb_id};'
-        print(f"Fetching URLs for game IGDB ID {igdb_id} with query: {website_query}.")
+        # print(f"Fetching URLs for game IGDB ID {igdb_id} with query: {website_query}.")
         
         websites_response = make_igdb_api_request('https://api.igdb.com/v4/websites', website_query)
         
         if websites_response and 'error' not in websites_response:
-            print(f"Retrieved URLs for game IGDB ID {igdb_id} : {websites_response}.")
+            # print(f"Retrieved URLs for game IGDB ID {igdb_id} : {websites_response}.")
             for website in websites_response:
                 print(f"Storing URL: {website.get('url')}, Category: {website.get('category')}.")
                 
@@ -422,7 +422,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
     else:
         if scan_job_id:
             pass
-        print(f"Failed to match: {game_name} using IGDB API.")
+        print(f"IGDB match failed: {game_name} in library : {library_name} on platform : {library_platform}.")
         error_message = "No game data found for the given name or failed to retrieve data from IGDB API."
         # print(error_message)
         flash(error_message)
@@ -951,7 +951,7 @@ def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_n
         parts = game_name.split()
         for i in range(len(parts) - 1, 0, -1):
             fallback_name = ' '.join(parts[:i])
-            if try_add_game(fallback_name, full_disk_path, scan_job_id, check_exists=False):
+            if try_add_game(fallback_name, full_disk_path, scan_job_id, check_exists=False, library_name=library_name, library_platform=library_platform):
                 return True
     else:
         print(f'Skipping duplicate game: {game_name} at {full_disk_path}')

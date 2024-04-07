@@ -1,5 +1,6 @@
 
 
+
 $(document).ready(function() {
 
     function debounce(func, timeout) {
@@ -62,50 +63,51 @@ $(document).ready(function() {
         window.location.href = '/game_details/' + gameUuid;
     });
 
+    function updateSelection() {
+        $('#searchResults .search-result').removeClass('selected')
+            .eq(selectedIndex).addClass('selected')
+            .focus(); // Optionally, focus the selected result for accessibility
+    }
+    
+    const fetchSearchResults = debounce(function(query) {
+        if (query.length < 2) { // Minimum query length
+            $('#searchResults').empty();
+            return;
+        }
+    
+        // AJAX call to server to fetch search results
+        $.ajax({
+            url: '/api/search', // Your search API endpoint
+            method: 'GET',
+            data: { query: query },
+            success: function(response) {
+                // Assume response is an array of suggestions
+                console.log("Search results:", response);
+                var html = response.map(function(item) {
+                    return `<div class="search-result" data-game-uuid="${item.uuid}" tabindex="0">${item.name}</div>`;
+                }).join('');
+                $('#searchResults').html(html);
+                selectedIndex = -1; 
+                
+                $('#searchResults .search-result').on('focus', function() {
+                    $('#searchResults .search-result').removeClass('selected');
+                    $(this).addClass('selected');
+                    selectedIndex = $(this).index();
+                    console.log("Selected index:", selectedIndex);
+                }).on('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        $(this).click();
+                    }
+                });
+    
+            },
+            error: function(xhr, status, error) {
+                console.error("Search error:", error);
+            }
+        });
+    }, 250);
+    
+    
     
 });
-
-function updateSelection() {
-    $('#searchResults .search-result').removeClass('selected')
-        .eq(selectedIndex).addClass('selected')
-        .focus(); // Optionally, focus the selected result for accessibility
-}
-
-const fetchSearchResults = debounce(function(query) {
-    if (query.length < 2) { // Minimum query length
-        $('#searchResults').empty();
-        return;
-    }
-
-    // AJAX call to server to fetch search results
-    $.ajax({
-        url: '/api/search', // Your search API endpoint
-        method: 'GET',
-        data: { query: query },
-        success: function(response) {
-            // Assume response is an array of suggestions
-            console.log("Search results:", response);
-            var html = response.map(function(item) {
-                return `<div class="search-result" data-game-uuid="${item.uuid}" tabindex="0">${item.name}</div>`;
-            }).join('');
-            $('#searchResults').html(html);
-            selectedIndex = -1; 
-            
-            $('#searchResults .search-result').on('focus', function() {
-                $('#searchResults .search-result').removeClass('selected');
-                $(this).addClass('selected');
-                selectedIndex = $(this).index();
-                console.log("Selected index:", selectedIndex);
-            }).on('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    $(this).click();
-                }
-            });
-
-        },
-        error: function(xhr, status, error) {
-            console.error("Search error:", error);
-        }
-    });
-}, 250);
 
