@@ -22,8 +22,27 @@
     <div class="glass-panel">
 
         <h1 style="text-align: center;">Discover Loot</h1>
-
+        
             <div class="game-discovery-container" id="gamesContainer">
+                <section>
+                    <div class="discover-category-label">
+                        Libraries
+                    </div>
+                    <div class="libraries-list">
+                        {% for library in libraries %}
+                            <div class="library-item">
+                                <!-- Wrap the image and library name in an <a> tag -->
+                                <a href="{{ url_for('main.library', library_name=library['name']) }}" class="library-link">
+                                    <img src="{{ library['image_url'] }}" alt="{{ library['name'] }}" class="game-cover">
+                                    <span class="library-name">{{ library['name'] }}</span>
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+                
+                
+                
                 <section>
                     <div class="discover-category-label">
                         Latest Games Added

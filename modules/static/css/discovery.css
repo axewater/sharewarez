@@ -59,7 +59,12 @@
     
 }
 
-
+.libraries-list .game-cover {
+    max-width: 300px; /* Max width for library images */
+    height: auto; /* Keep aspect ratio intact */
+    display: block; /* If you want images to be block level elements */
+    margin: 0 auto; /* This centers the image within its container */
+}
 
 .game-cover::before {
     z-index: 12;
