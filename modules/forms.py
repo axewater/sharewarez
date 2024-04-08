@@ -33,10 +33,10 @@ class ResetPasswordRequestForm(FlaskForm):
 
 class AutoScanForm(FlaskForm):
     folder_path = StringField('Browse Folder Path', validators=[DataRequired()])
-    library_name = StringField('Library Name', validators=[DataRequired(), validate_library_name])
-    library_platform = SelectField('Select Platform', choices=[(choice.name, choice.value) for choice in LibraryPlatform], validators=[DataRequired()])
+    library_uuid = SelectField('Select Library', coerce=str, validators=[DataRequired()])
     scan_mode = RadioField('Select Scan Mode', choices=[('folders', 'My Games are Folders'), ('files', 'My Games are Files')], default='folders')
     submit = SubmitField('AutoScan')
+
 
 class WhitelistForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
