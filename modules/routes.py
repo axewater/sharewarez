@@ -32,11 +32,11 @@ from modules.forms import (
     UserPasswordForm, UserDetailForm, EditProfileForm, NewsletterForm, WhitelistForm, EditUserForm, 
     UserManagementForm, ScanFolderForm, IGDBApiForm, ClearDownloadRequestsForm, CsrfProtectForm, 
     AddGameForm, LoginForm, ResetPasswordRequestForm, AutoScanForm, UpdateUnmatchedFolderForm, 
-    ReleaseGroupForm, RegistrationForm, CreateUserForm, UserPreferencesForm, InviteForm, CsrfForm
+    ReleaseGroupForm, RegistrationForm, CreateUserForm, UserPreferencesForm, InviteForm, LibraryForm, CsrfForm
 )
 from modules.models import (
     User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, 
-    Platform, Genre, Theme, GameMode, MultiplayerMode, PlayerPerspective, Category, UserPreference, GameURL, GlobalSettings, InviteToken, LibraryImage
+    Platform, Genre, Theme, GameMode, MultiplayerMode, PlayerPerspective, Category, UserPreference, GameURL, GlobalSettings, InviteToken, LibraryImage, Library, LibraryPlatform
 )
 from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
@@ -161,9 +161,7 @@ def login():
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.login'))
-
     print("Route: /register")
-
 
     # Attempt to get the invite token from the query parameters
     invite_token_from_url = request.args.get('token')
@@ -179,8 +177,6 @@ def register():
             invite = None  # Invalidate
             flash('The invite is invalid or has expired.', 'warning')
             return redirect(url_for('main.register'))
-
-
     form = RegistrationForm()
     if form.validate_on_submit():
         try:
@@ -466,7 +462,7 @@ def settings_profile_edit():
         file = form.avatar.data
         if file:
             # Ensure UPLOAD_FOLDER exists
-            upload_folder = current_app.config['UPLOAD_FOLDER']
+            upload_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'avatars_users')
             if not os.path.exists(upload_folder):
                 try:
                     # Safe check to avoid creating 'static' directly
@@ -729,18 +725,6 @@ def get_user(user_id):
         return jsonify({'error': 'User not found'}), 404
 
 
-@bp.route('/rom-test')
-@login_required
-@admin_required  
-def rom_test():
-    print("Route: /rom-test")
-    return render_template('/games/playrom.html')
-
-
-@bp.route('/data/<path:filename>')
-def data_redirect(filename):
-    return send_from_directory('emulatorjs', filename)
-
 @bp.route('/api/genres')
 @login_required
 def get_genres():
@@ -788,7 +772,7 @@ def library():
 
     # Extract filters from request arguments
     page = request.args.get('page', 1, type=int)
-    library_name = request.args.get('library_name')
+    library_uuid = request.args.get('library_uuid')
     # Only override per_page, sort_by, and sort_order if the URL parameters are provided
     per_page = request.args.get('per_page', type=int) or per_page
     genre = request.args.get('genre')
@@ -801,7 +785,7 @@ def library():
 
     # print(f"LIBRARY: Filters: {library_name}, {genre}, {rating}, {game_mode}, {player_perspective}, {theme}")
     filters = {
-        'library_name': library_name,
+        'library_name': library_uuid,
         'genre': genre,
         'rating': rating,
         'game_mode': game_mode,
@@ -832,8 +816,9 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
     query = Game.query.options(joinedload(Game.genres))
 
     # Filtering logic
-    if filters.get('library_name'):
-        query = query.filter(Game.library_name == filters['library_name'])
+    if filters.get('library_uuid'):
+        query = query.join(Library).filter(Game.library_uuid == filters['library_uuid'])
+
     if filters.get('genre'):
         query = query.filter(Game.genres.any(Genre.name == filters['genre']))
     if filters.get('rating') is not None:
@@ -890,6 +875,75 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
 
     return game_data, pagination.total, pagination.pages, page
 
+@bp.route('/libraries')
+def libraries():
+    libraries = Library.query.all()
+    return render_template('libraries/libraries.html', libraries=libraries)
+
+@bp.route('/library/add', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def add_library():
+    form = LibraryForm()
+    form.platform.choices = [(platform.name, platform.value) for platform in LibraryPlatform]
+
+    if form.validate_on_submit():
+        file = form.image.data
+        if file:
+            # Validate file size (< 5 MB)
+            file.seek(0, os.SEEK_END)
+            file_length = file.tell()
+            if file_length > 5 * 1024 * 1024:  # 5MB limit
+                flash('File size is too large. Maximum allowed is 5 MB.', 'error')
+                return render_template('add_library.html', form=form)
+
+            # Reset file pointer after checking size
+            file.seek(0)
+
+            upload_folder = current_app.config['UPLOAD_FOLDER']
+            print(f"Upload folder now: {upload_folder}")
+            if not os.path.exists(upload_folder):
+                os.makedirs(upload_folder, exist_ok=True)
+
+            filename = secure_filename(file.filename)
+            uuid_filename = str(uuid4()) + '.' + filename.rsplit('.', 1)[1].lower()
+            image_folder = os.path.join(upload_folder, 'images')
+            print(f"Image folder: {image_folder}")
+            if not os.path.exists(image_folder):
+                os.makedirs(image_folder, exist_ok=True)
+            image_path = os.path.join(image_folder, uuid_filename)
+            print(f"Image path: {image_path}")
+            file.save(image_path)
+
+            # Resize image if necessary (maximum size 400x1000)
+            img = PILImage.open(image_path)
+            if img.width > 400 or img.height > 1000:
+                img.thumbnail((400, 1000), PILImage.ANTIALIAS)
+                img.save(image_path)
+
+            image_url = url_for('static', filename=os.path.join('/library/images/', uuid_filename))
+            print(f"Image URL: {image_url}")
+        else:
+            print("No image file provided.")
+            image_url = url_for('static', filename='/newstyle/default_library.jpg')
+
+        # Add or update library information in the database
+        library = Library(
+            name=form.name.data,
+            platform=form.platform.data,
+            image_url=image_url
+        )
+        db.session.add(library)
+        try:
+            db.session.commit()
+            flash('Library added successfully!', 'success')
+            return redirect(url_for('main.libraries'))
+        except Exception as e:
+            db.session.rollback()
+            flash('Failed to add library. Please try again.', 'error')
+            print(f"Error saving library: {e}")
+
+    return render_template('libraries/add_library.html', form=form)
 
 
 @bp.route('/browse_games')
@@ -900,7 +954,7 @@ def browse_games():
     per_page = request.args.get('per_page', 20, type=int)
     
     # Filters
-    library_name = request.args.get('library_name')
+    library_uuid = request.args.get('library_uuid')
     category = request.args.get('category')
     genre = request.args.get('genre')
     rating = request.args.get('rating', type=int)
@@ -912,9 +966,8 @@ def browse_games():
 
     # print(f"browse_games: Filters: {library_name}, {category}, {genre}, {rating}, {game_mode}, {player_perspective}, {theme}")
     query = Game.query.options(joinedload(Game.genres))
-    if library_name:
-        print(f"browse_games: Library name: {library_name}")
-        query = query.filter(Game.library_name == library_name)
+    if library_uuid:
+        query = query.filter(Game.library_uuid == library_uuid)
     if category:
         query = query.filter(Game.category.has(Category.name == category))
     if genre:
@@ -966,7 +1019,7 @@ def browse_games():
             'url': game.url,
             'size': game_size_formatted,
             'genres': genres,
-            'library_name': game.library_name
+            'library_uuid': game.library_uuid
         })
 
     return jsonify({
@@ -2173,7 +2226,6 @@ def download_game(game_uuid):
 
 
 
-
 @bp.route('/discover')
 @login_required
 def discover():
@@ -2190,31 +2242,36 @@ def discover():
                 'cover_url': cover_url,
                 'summary': game.summary,
                 'url': game.url,
-                'size': format_size(game.size),  # Ensure format_size is defined or imported
+                'size': format_size(game.size),
                 'genres': [genre.name for genre in game.genres],
                 'first_release_date': game.first_release_date.strftime('%Y-%m-%d') if game.first_release_date else 'Not available',
+                # Optionally include library information here
             })
         return game_details
 
-    # Fetch libraries with image URLs
-    libraries_query = Game.query.with_entities(Game.library_name).distinct().all()
+    # Fetch libraries directly from the Library model
+    libraries_query = Library.query.all()
     libraries = []
     for lib in libraries_query:
-        if lib[0]:
-            library_image = LibraryImage.query.filter_by(library_name=lib[0]).first()
-            image_url = library_image.image_url if library_image else url_for('static', filename='newstyle/default_library.jpg')
-            libraries.append({'name': lib[0], 'image_url': image_url})
+        libraries.append({
+            'uuid': lib.uuid,
+            'name': lib.name,
+            'image_url': lib.image_url if lib.image_url else url_for('static', filename='newstyle/default_library.jpg'),
+            # Include the platform if needed
+            'platform': lib.platform.name,
+        })
 
     # Use the helper function to fetch games for each category
     latest_games = fetch_game_details(Game.query.order_by(Game.date_created.desc()))
     most_downloaded_games = fetch_game_details(Game.query.order_by(Game.times_downloaded.desc()))
     highest_rated_games = fetch_game_details(Game.query.filter(Game.rating != None).order_by(Game.rating.desc()))
 
-    return render_template('games/discover.html', 
+    return render_template('games/discover.html',
                            latest_games=latest_games,
                            most_downloaded_games=most_downloaded_games,
                            highest_rated_games=highest_rated_games,
                            libraries=libraries)
+
 
 
 @bp.route('/download_zip/<download_id>')
@@ -2317,19 +2374,19 @@ def delete_download(download_id):
 
     return redirect(url_for('main.downloads'))
 
-
 @bp.route('/api/get_libraries')
 def get_libraries():
-    libraries_query = Game.query.with_entities(Game.library_name).distinct().all()
-    libraries = []
-    for lib in libraries_query:
-        if lib[0]:
-            image = LibraryImage.query.filter_by(library_name=lib[0]).first()
-            libraries.append({
-                'name': lib[0],
-                'image_url': image.image_url if image else url_for('static', filename='newstyle/default_library.jpg')
-            })
-    # tell the user what we are returning
+    # Direct query to the Library model
+    libraries_query = Library.query.all()
+    libraries = [
+        {
+            'uuid': lib.uuid,
+            'name': lib.name,
+            'image_url': lib.image_url if lib.image_url else url_for('static', filename='newstyle/default_library.jpg')
+        } for lib in libraries_query
+    ]
+
+    # Logging the count of libraries returned
     print(f"Returning {len(libraries)} libraries.")
     return jsonify(libraries)
 
@@ -2473,3 +2530,19 @@ def check_scan_status():
     is_active = active_job is not None
     return jsonify({"is_active": is_active})
 
+
+
+###### BETA TESTING BELOW #######
+
+
+@bp.route('/rom-test')
+@login_required
+@admin_required  
+def rom_test():
+    print("Route: /rom-test")
+    return render_template('/games/playrom.html')
+
+
+@bp.route('/data/<path:filename>')
+def data_redirect(filename):
+    return send_from_directory('emulatorjs', filename)

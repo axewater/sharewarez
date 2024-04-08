@@ -32,7 +32,6 @@ $(document).ready(function() {
   sortOrder = userDefaultSortOrder || 'asc'; // Use user preference or default
   $('#sortOrderToggle').text(sortOrder === 'asc' ? '^' : '~');
 
-
   function populateLibraries(callback) {
     $.ajax({
         url: '/api/get_libraries',
@@ -42,8 +41,8 @@ $(document).ready(function() {
             librarySelect.empty().append($('<option>', { value: '', text: 'All Libraries' }));
             response.forEach(function(library) {
                 librarySelect.append($('<option>', {
-                    value: library,
-                    text: library
+                    value: library.uuid, // Use library UUID as the value
+                    text: library.name // Use library name as the display text
                 }));
             });
             if (typeof callback === "function") callback();
@@ -53,11 +52,13 @@ $(document).ready(function() {
         }
     }).done(function() {
         var initialParams = getUrlParams();
-        if (initialParams.library_name) {
-            $('#libraryNameSelect').val(initialParams.library_name);
+        // Adjusted to check for library_uuid instead of library_name
+        if (initialParams.library_uuid) {
+            $('#libraryNameSelect').val(initialParams.library_uuid);
         }
     });
 }
+
 
 
 
