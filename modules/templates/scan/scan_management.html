@@ -46,32 +46,21 @@
     <div class="tab-content">
         <!-- Auto Scan Tab -->
         <div id="autoScan" class="glass-panel tab-pane active"><br>
-            
             <h3>Automatic Folder Scan</h3>
+            {% if libraries|length > 0 %}
             <form action="" method="post">
                 {{ auto_form.hidden_tag() }}
-
-                <!-- Library Name -->
+                
+                <!-- Library Dropdown -->
                 <div class="form-group">
-                    {{ auto_form.library_name.label }}
-                    {{ auto_form.library_name(class="form-control", id="libraryName") }}
-                    {% if auto_form.library_name.errors %}
-                        {% for error in auto_form.library_name.errors %}
+                    {{ auto_form.library_uuid.label }}
+                    {{ auto_form.library_uuid(class="form-control", id="libraryUuid") }}
+                    {% if auto_form.library_uuid.errors %}
+                        {% for error in auto_form.library_uuid.errors %}
                             <div class="alert alert-danger">{{ error }}</div>
                         {% endfor %}
                     {% endif %}
                 </div>
-
-                    <!-- Library Platform -->
-                    <div class="form-group">
-                        {{ auto_form.library_platform.label }}
-                        {{ auto_form.library_platform(class="form-control", id="libraryPlatform") }}
-                        {% if auto_form.library_platform.errors %}
-                            {% for error in auto_form.library_platform.errors %}
-                                <div class="alert alert-danger">{{ error }}</div>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
 
                     <!-- Scan Mode -->
                     <div class="form-group">
@@ -113,6 +102,9 @@
                 <div id="folderContents"></div>
             </div>
         </form>
+        {% else %}
+        <p>You have no Libraries!, go to <a href="{{ url_for('main.libraries') }}">Library Manager</a> and create one.</p>
+        {% endif %}
             <div class="glass-panel-scanfolder container mt-4">
                 <h2>Scan Jobs Management</h2>
                 <p>(you can only have 1 scan job 'Running' at a time)</p>
