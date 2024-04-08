@@ -12,9 +12,15 @@
         <div class="row h-100">
             <!-- Row 1: Library Manager, Server Settings, Server Info -->
             <div class="col-3 d-flex align-items-stretch">
-                <a href="{{ url_for('main.scan_management') }}" class="btn btn-primary dashboard-button">
+                <a href="{{ url_for('main.libraries') }}" class="btn btn-primary dashboard-button">
                     <i class="fas fa-book dashboard-icon"></i>
                     Library Manager
+                </a>
+            </div>
+            <div class="col-3 d-flex align-items-stretch">
+                <a href="{{ url_for('main.scan_management') }}" class="btn btn-primary dashboard-button">
+                    <i class="fas fa-book dashboard-icon"></i>
+                    Games Scanner
                 </a>
             </div>
             <div class="col-3 d-flex align-items-stretch">

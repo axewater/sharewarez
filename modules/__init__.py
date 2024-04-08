@@ -54,7 +54,7 @@ def create_app():
     app.config.from_object(Config)
     csrf = CSRFProtect(app)
     app.config['WTF_CSRF_HEADERS'] = ['X-CSRFToken', 'X-CSRF-Token']
-    app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/library/avatars_users')
+    app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/library')
 
     parsed_url = urlparse(app.config['SQLALCHEMY_DATABASE_URI'])
     check_postgres_port_open(parsed_url.hostname, 5432, 60, 2);
