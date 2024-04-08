@@ -52,7 +52,7 @@ $(document).ready(function() {
         }
     }).done(function() {
         var initialParams = getUrlParams();
-        // Adjusted to check for library_uuid instead of library_name
+        // Adjusted to check for library_uuid
         if (initialParams.library_uuid) {
             $('#libraryNameSelect').val(initialParams.library_uuid);
         }
@@ -174,7 +174,7 @@ $(document).ready(function() {
     var urlParams = getUrlParams(); // Get URL parameters
     page = page || urlParams.page || 1; // Use URL parameter for page if available
     var filters = {
-      library_name: $('#libraryNameSelect').val() || undefined,
+      library_uuid: $('#libraryNameSelect').val() || undefined,
       page: page,
       per_page: $('#perPageSelect').val() || 20,
       category: $('#categorySelect').val() || urlParams.category,

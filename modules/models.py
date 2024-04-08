@@ -144,14 +144,7 @@ class Library(db.Model):
     name = db.Column(db.String(255), nullable=False)
     image_url = db.Column(db.String(255), nullable=True)
     platform = db.Column(db.Enum(LibraryPlatform), nullable=False)
-    
-    # Relation to games
     games = db.relationship('Game', backref='library', lazy=True)
-
-
-
-
-
 
 
 
@@ -475,6 +468,8 @@ class ScanJob(db.Model):
     total_folders = db.Column(db.Integer, default=0)
     folders_success = db.Column(db.Integer, default=0)
     folders_failed = db.Column(db.Integer, default=0)
+    library_uuid = db.Column(db.String(36), db.ForeignKey('libraries.uuid'), nullable=True)  # Add this line
+    library = db.relationship('Library', backref=db.backref('scan_jobs', lazy=True))
 
 
 class UnmatchedFolder(db.Model):

@@ -754,126 +754,6 @@ def get_player_perspectives():
     perspectives_list = [{'id': perspective.id, 'name': perspective.name} for perspective in perspectives]
     return jsonify(perspectives_list)
 
-@bp.route('/library')
-@login_required
-def library():
-    print(f"LIBRARY: current_user: {current_user} req :", request.method)
-    # Ensure user preferences are loaded or default ones are created
-    if not current_user.preferences:
-        print("LIBRARY: User preferences not found, creating default...")
-        current_user.preferences = UserPreference(user_id=current_user.id)
-        db.session.add(current_user.preferences)
-        db.session.commit()
-
-    # Start with user prefs or default
-    per_page = current_user.preferences.items_per_page if current_user.preferences else 20
-    sort_by = current_user.preferences.default_sort if current_user.preferences else 'name'
-    sort_order = current_user.preferences.default_sort_order if current_user.preferences else 'asc'
-
-    # Extract filters from request arguments
-    page = request.args.get('page', 1, type=int)
-    library_uuid = request.args.get('library_uuid')
-    # Only override per_page, sort_by, and sort_order if the URL parameters are provided
-    per_page = request.args.get('per_page', type=int) or per_page
-    genre = request.args.get('genre')
-    rating = request.args.get('rating', type=int)
-    game_mode = request.args.get('game_mode')
-    player_perspective = request.args.get('player_perspective')
-    theme = request.args.get('theme')
-    sort_by = request.args.get('sort_by') or sort_by
-    sort_order = request.args.get('sort_order') or sort_order
-
-    # print(f"LIBRARY: Filters: {library_name}, {genre}, {rating}, {game_mode}, {player_perspective}, {theme}")
-    filters = {
-        'library_name': library_uuid,
-        'genre': genre,
-        'rating': rating,
-        'game_mode': game_mode,
-        'player_perspective': player_perspective,
-        'theme': theme
-    }
-    # Filter out None values
-    filters = {k: v for k, v in filters.items() if v is not None}
-
-    game_data, total, pages, current_page = get_games(page, per_page, sort_by=sort_by, sort_order=sort_order, **filters)
-
-    context = {
-        'games': game_data,
-        'total': total,
-        'pages': pages,
-        'current_page': current_page,
-        'user_per_page': per_page,
-        'user_default_sort': sort_by,
-        'user_default_sort_order': sort_order,
-        'filters': filters,
-        'form': CsrfForm()
-    }
-    #print(f"LIBRARY: context: {context}")
-    return render_template('games/library_browser.html', **context)
-
-
-def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
-    query = Game.query.options(joinedload(Game.genres))
-
-    # Filtering logic
-    if filters.get('library_uuid'):
-        query = query.join(Library).filter(Game.library_uuid == filters['library_uuid'])
-
-    if filters.get('genre'):
-        query = query.filter(Game.genres.any(Genre.name == filters['genre']))
-    if filters.get('rating') is not None:
-        query = query.filter(Game.rating >= filters['rating'])
-    if filters.get('game_mode'):
-        query = query.filter(Game.game_modes.any(GameMode.name == filters['game_mode']))
-    if filters.get('player_perspective'):
-        query = query.filter(Game.player_perspectives.any(PlayerPerspective.name == filters['player_perspective']))
-    if filters.get('theme'):
-        query = query.filter(Game.themes.any(Theme.name == filters['theme']))
-    if filters.get('library_name'):
-        query = query.filter(Game.library_name == filters['library_name'])
-
-
-    # print(f"get_games: Filters: {filters}")
-    
-    # Sorting logic
-    if sort_by == 'name':
-        query = query.order_by(Game.name.asc() if sort_order == 'asc' else Game.name.desc())
-    elif sort_by == 'rating':
-        query = query.order_by(Game.rating.asc() if sort_order == 'asc' else Game.rating.desc())
-    elif sort_by == 'first_release_date':
-        query = query.order_by(Game.first_release_date.asc() if sort_order == 'asc' else Game.first_release_date.desc())
-    elif sort_by == 'size':
-        query = query.order_by(Game.size.asc() if sort_order == 'asc' else Game.size.desc())
-    elif sort_by == 'date_identified':
-        query = query.order_by(Game.date_identified.asc() if sort_order == 'asc' else Game.date_identified.desc())
-
-    # print(f"get_games: Sorting by {sort_by} {sort_order}")
-    # Pagination
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-    games = pagination.items
-
-    game_data = []
-    for game in games:
-        cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
-        cover_url = cover_image.url if cover_image else "newstyle/default_cover.jpg"
-        genres = [genre.name for genre in game.genres]
-        game_size_formatted = format_size(game.size)
-        first_release_date_formatted = game.first_release_date.strftime('%Y-%m-%d') if game.first_release_date else 'Not available'
-
-
-        game_data.append({
-            'id': game.id,
-            'uuid': game.uuid,
-            'name': game.name,
-            'cover_url': cover_url,
-            'summary': game.summary,
-            'url': game.url,
-            'size': game_size_formatted,
-            'genres': genres,
-            'first_release_date': first_release_date_formatted
-        })
-
-    return game_data, pagination.total, pagination.pages, page
 
 @bp.route('/libraries')
 def libraries():
@@ -946,6 +826,125 @@ def add_library():
     return render_template('libraries/add_library.html', form=form)
 
 
+@bp.route('/library')
+@login_required
+def library():
+    print(f"LIBRARY: current_user: {current_user} req :", request.method)
+    # Ensure user preferences are loaded or default ones are created
+    if not current_user.preferences:
+        print("LIBRARY: User preferences not found, creating default...")
+        current_user.preferences = UserPreference(user_id=current_user.id)
+        db.session.add(current_user.preferences)
+        db.session.commit()
+
+    # Start with user prefs or default
+    per_page = current_user.preferences.items_per_page if current_user.preferences else 20
+    sort_by = current_user.preferences.default_sort if current_user.preferences else 'name'
+    sort_order = current_user.preferences.default_sort_order if current_user.preferences else 'asc'
+
+    # Extract filters from request arguments
+    page = request.args.get('page', 1, type=int)
+    library_uuid = request.args.get('library_uuid')
+    # Only override per_page, sort_by, and sort_order if the URL parameters are provided
+    per_page = request.args.get('per_page', type=int) or per_page
+    genre = request.args.get('genre')
+    rating = request.args.get('rating', type=int)
+    game_mode = request.args.get('game_mode')
+    player_perspective = request.args.get('player_perspective')
+    theme = request.args.get('theme')
+    sort_by = request.args.get('sort_by') or sort_by
+    sort_order = request.args.get('sort_order') or sort_order
+
+    filters = {
+        'library_uuid': library_uuid,
+        'genre': genre,
+        'rating': rating,
+        'game_mode': game_mode,
+        'player_perspective': player_perspective,
+        'theme': theme
+    }
+    # Filter out None values
+    filters = {k: v for k, v in filters.items() if v is not None}
+
+    game_data, total, pages, current_page = get_games(page, per_page, sort_by=sort_by, sort_order=sort_order, **filters)
+
+    context = {
+        'games': game_data,
+        'total': total,
+        'pages': pages,
+        'current_page': current_page,
+        'user_per_page': per_page,
+        'user_default_sort': sort_by,
+        'user_default_sort_order': sort_order,
+        'filters': filters,
+        'form': CsrfForm()
+    }
+    #print(f"LIBRARY: context: {context}")
+    return render_template('games/library_browser.html', **context)
+
+
+def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
+    query = Game.query.options(joinedload(Game.genres))
+
+    # Filtering logic
+    if filters.get('library_uuid'):
+        query = query.filter(Game.library_uuid == filters['library_uuid'])
+
+    if filters.get('genre'):
+        query = query.filter(Game.genres.any(Genre.name == filters['genre']))
+    if filters.get('rating') is not None:
+        query = query.filter(Game.rating >= filters['rating'])
+    if filters.get('game_mode'):
+        query = query.filter(Game.game_modes.any(GameMode.name == filters['game_mode']))
+    if filters.get('player_perspective'):
+        query = query.filter(Game.player_perspectives.any(PlayerPerspective.name == filters['player_perspective']))
+    if filters.get('theme'):
+        query = query.filter(Game.themes.any(Theme.name == filters['theme']))
+
+
+
+    # print(f"get_games: Filters: {filters}")
+    
+    # Sorting logic
+    if sort_by == 'name':
+        query = query.order_by(Game.name.asc() if sort_order == 'asc' else Game.name.desc())
+    elif sort_by == 'rating':
+        query = query.order_by(Game.rating.asc() if sort_order == 'asc' else Game.rating.desc())
+    elif sort_by == 'first_release_date':
+        query = query.order_by(Game.first_release_date.asc() if sort_order == 'asc' else Game.first_release_date.desc())
+    elif sort_by == 'size':
+        query = query.order_by(Game.size.asc() if sort_order == 'asc' else Game.size.desc())
+    elif sort_by == 'date_identified':
+        query = query.order_by(Game.date_identified.asc() if sort_order == 'asc' else Game.date_identified.desc())
+
+    # print(f"get_games: Sorting by {sort_by} {sort_order}")
+    # Pagination
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    games = pagination.items
+
+    game_data = []
+    for game in games:
+        cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
+        cover_url = cover_image.url if cover_image else "newstyle/default_cover.jpg"
+        genres = [genre.name for genre in game.genres]
+        game_size_formatted = format_size(game.size)
+        first_release_date_formatted = game.first_release_date.strftime('%Y-%m-%d') if game.first_release_date else 'Not available'
+
+
+        game_data.append({
+            'id': game.id,
+            'uuid': game.uuid,
+            'name': game.name,
+            'cover_url': cover_url,
+            'summary': game.summary,
+            'url': game.url,
+            'size': game_size_formatted,
+            'genres': genres,
+            'first_release_date': first_release_date_formatted
+        })
+
+    return game_data, pagination.total, pagination.pages, page
+
 @bp.route('/browse_games')
 @login_required
 def browse_games():
@@ -964,7 +963,6 @@ def browse_games():
     sort_by = request.args.get('sort_by', 'name')  # Adding sort_by parameter
     sort_order = request.args.get('sort_order', 'asc')  # Adding sort_order parameter
 
-    # print(f"browse_games: Filters: {library_name}, {category}, {genre}, {rating}, {game_mode}, {player_perspective}, {theme}")
     query = Game.query.options(joinedload(Game.genres))
     if library_uuid:
         query = query.filter(Game.library_uuid == library_uuid)
@@ -1004,7 +1002,6 @@ def browse_games():
 
     # Get game data
     game_data = []
-    # print(f"browse_games: Games: {games} in library name {library_name}")
     for game in games:
         cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
         cover_url = cover_image.url if cover_image else 'newstyle/default_cover.jpg'
@@ -1098,6 +1095,7 @@ def downloads():
 @login_required
 @admin_required
 def scan_folder():
+    ## to be fixed broken again after update
     form = ScanFolderForm()
     game_names_with_ids = None
     
@@ -1134,7 +1132,7 @@ def scan_folder():
 @admin_required
 def api_debug():
     form = IGDBApiForm()
-    api_response = None  # Initialize variable to store API response
+    api_response = None
 
     if form.validate_on_submit():
         selected_endpoint = form.endpoint.data
@@ -1143,6 +1141,176 @@ def api_debug():
         api_response = make_igdb_api_request(selected_endpoint, query_params)
         
     return render_template('scan/scan_apidebug.html', form=form, api_response=api_response)
+
+
+
+
+@bp.route('/scan_management', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def scan_management():
+    auto_form = AutoScanForm()
+    manual_form = ScanFolderForm()
+    # Populate the libraries choices for the auto_form's library_uuid field
+    libraries = Library.query.all()
+    print(f"/scan_management: Libraries: {libraries}")
+    auto_form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in libraries]
+
+    jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
+    csrf_form = CsrfProtectForm()
+    unmatched_folders = UnmatchedFolder.query.order_by(UnmatchedFolder.status.desc()).all()
+    unmatched_form = UpdateUnmatchedFolderForm() 
+
+    try:
+        game_count = Game.query.count()  # Fetch the game count here
+    except Exception as e:
+        flash(f"Error fetching game count: {e}", "error")
+        game_count = 0
+        
+    if request.method == 'POST':
+        submit_action = request.form.get('submit')
+        if submit_action == 'AutoScan':
+            return handle_auto_scan(auto_form)
+        elif submit_action == 'ManualScan':
+            return handle_manual_scan(manual_form)
+        elif submit_action == 'DeleteAllUnmatched':
+            return handle_delete_unmatched(all=True)
+        elif submit_action == 'DeleteOnlyUnmatched':
+            return handle_delete_unmatched(all=False)
+        else:
+            flash("Unrecognized action.", "error")
+            return redirect(url_for('main.scan_management'))
+    game_paths_dict = session.get('game_paths', {})
+    game_names_with_ids = [{'name': name, 'full_path': path} for name, path in game_paths_dict.items()]
+
+    active_tab = session.get('active_tab', 'auto')
+    # print(f"Passing Active tab: {active_tab}")
+
+    jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
+    # print(f"Jobs: {jobs}")
+
+    return render_template('scan/scan_management.html', 
+                           auto_form=auto_form, 
+                           manual_form=manual_form, 
+                           jobs=jobs, 
+                           csrf_form=csrf_form, 
+                           active_tab=active_tab, 
+                           unmatched_folders=unmatched_folders, 
+                           unmatched_form=unmatched_form,
+                           game_count=game_count,
+                           libraries=libraries,
+                           game_names_with_ids=game_names_with_ids) 
+
+
+def handle_auto_scan(auto_form):
+    print("handle_auto_scan: function running.")
+    if auto_form.validate_on_submit():
+        
+        running_job = ScanJob.query.filter_by(status='Running').first()
+        if running_job:
+            flash('A scan is already in progress. Please wait until the current scan completes.', 'error')
+            session['active_tab'] = 'auto'
+            return redirect(url_for('main.scan_management'))
+    
+        library_uuid = auto_form.library_uuid.data
+        library = Library.query.filter_by(uuid=library_uuid).first()
+        if not library:
+            flash('Selected library does not exist.', 'error')
+            return redirect(url_for('main.scan_management'))
+        
+        folder_path = auto_form.folder_path.data
+        
+        scan_mode = auto_form.scan_mode.data
+        
+        print(f"Auto-scan form submitted. Library: {library.name}, Folder: {folder_path}, Scan mode: {scan_mode}")
+        # Prepend the base path
+        base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
+        full_path = os.path.join(base_dir, folder_path)
+        if not os.path.exists(full_path) or not os.access(full_path, os.R_OK):
+            flash(f"Cannot access folder: {full_path}. Please check the path and permissions.", 'error')
+            print(f"Cannot access folder: {full_path}. Please check the path and permissions.", 'error')
+            session['active_tab'] = 'auto'
+            return redirect(url_for('main.library'))
+
+        @copy_current_request_context
+        def start_scan():
+            scan_and_add_games(full_path, scan_mode, library_uuid)
+
+        thread = Thread(target=start_scan)
+        thread.start()
+        
+        flash(f"Auto-scan started for folder: {full_path} and library name: {library}", 'info')
+        session['active_tab'] = 'auto'
+    else:
+        flash(f"Auto-scan form validation failed: {auto_form.errors}")
+        print(f"Auto-scan form validation failed: {auto_form.errors}")
+    return redirect(url_for('main.scan_management'))
+
+
+@bp.route('/cancel_scan_job/<job_id>', methods=['POST'])
+@login_required
+@admin_required
+def cancel_scan_job(job_id):
+    job = ScanJob.query.get(job_id)
+    if job and job.status == 'Running':
+        job.is_enabled = False
+        db.session.commit()
+        flash(f"Scan job {job_id} has been canceled.")
+        print(f"Scan job {job_id} has been canceled.")
+    else:
+        flash('Scan job not found or not in a cancellable state.', 'error')
+    return redirect(url_for('main.scan_management'))
+
+
+
+def handle_manual_scan(manual_form):
+    session['active_tab'] = 'manual'
+    if manual_form.validate_on_submit():
+        # check job status
+        running_job = ScanJob.query.filter_by(status='Running').first()
+        if running_job:
+            flash('A scan is already in progress. Please wait until the current scan completes.', 'error')
+            session['active_tab'] = 'manual'
+            return redirect(url_for('main.scan_management'))
+        
+        folder_path = manual_form.folder_path.data
+        base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
+        full_path = os.path.join(base_dir, folder_path)
+        print(f"Manual scan form submitted. Full path: {full_path}")
+
+        if os.path.exists(full_path) and os.access(full_path, os.R_OK):
+            print("Folder exists and can be accessed.")
+            insensitive_patterns, sensitive_patterns = load_release_group_patterns()
+            games_with_paths = get_game_names_from_folder(full_path, insensitive_patterns, sensitive_patterns)
+            session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
+            print(f"Found {len(session['game_paths'])} games in the folder.")
+            flash('Manual scan processed for folder: ' + full_path, 'info')
+            
+        else:
+            flash("Folder does not exist or cannot be accessed.", "error")
+    else:
+        flash('Manual scan form validation failed.', 'error')
+        
+    print("Game paths: ", session.get('game_paths', {}))
+    return redirect(url_for('main.scan_management'))
+
+def handle_delete_unmatched(all):
+    try:
+        if all:
+            print("Deleting all unmatched folders")
+            UnmatchedFolder.query.delete()
+            flash('All unmatched folders deleted successfully.', 'success')
+        else:
+            print("Deleting only unmatched folders")
+            UnmatchedFolder.query.filter(UnmatchedFolder.status.ilike('unmatched')).delete()
+            flash('Unmatched folders with status "unmatched" deleted successfully.', 'success')
+        db.session.commit()
+        session['active_tab'] = 'unmatched'
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while deleting unmatched folders.', 'error')
+    return redirect(url_for('main.scan_management'))
+    
 
 
 
@@ -1497,161 +1665,7 @@ def delete_image():
         return jsonify({'error': 'An unexpected error occurred while deleting the image'}), 500
 
 
-@bp.route('/scan_management', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def scan_management():
-    auto_form = AutoScanForm()
-    manual_form = ScanFolderForm()
-    jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
-    csrf_form = CsrfProtectForm()
-    unmatched_folders = UnmatchedFolder.query.order_by(UnmatchedFolder.status.desc()).all()
-    unmatched_form = UpdateUnmatchedFolderForm() 
 
-    try:
-        game_count = Game.query.count()  # Fetch the game count here
-    except Exception as e:
-        flash(f"Error fetching game count: {e}", "error")
-        game_count = 0
-        
-    if request.method == 'POST':
-        submit_action = request.form.get('submit')
-        if submit_action == 'AutoScan':
-            return handle_auto_scan(auto_form)
-        elif submit_action == 'ManualScan':
-            return handle_manual_scan(manual_form)
-        elif submit_action == 'DeleteAllUnmatched':
-            return handle_delete_unmatched(all=True)
-        elif submit_action == 'DeleteOnlyUnmatched':
-            return handle_delete_unmatched(all=False)
-        else:
-            flash("Unrecognized action.", "error")
-            return redirect(url_for('main.scan_management'))
-    game_paths_dict = session.get('game_paths', {})
-    game_names_with_ids = [{'name': name, 'full_path': path} for name, path in game_paths_dict.items()]
-
-    active_tab = session.get('active_tab', 'auto')
-    # print(f"Passing Active tab: {active_tab}")
-
-    jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
-    # print(f"Jobs: {jobs}")
-
-    return render_template('scan/scan_management.html', 
-                           auto_form=auto_form, 
-                           manual_form=manual_form, 
-                           jobs=jobs, 
-                           csrf_form=csrf_form, 
-                           active_tab=active_tab, 
-                           unmatched_folders=unmatched_folders, 
-                           unmatched_form=unmatched_form,
-                           game_count=game_count,
-                           game_names_with_ids=game_names_with_ids) 
-
-
-def handle_auto_scan(auto_form):
-    print("handle_auto_scan: Handling auto-scan form submission.")
-    if auto_form.validate_on_submit():
-        # Check 4 scan job 'running' status
-        running_job = ScanJob.query.filter_by(status='Running').first()
-        if running_job:
-            flash('A scan is already in progress. Please wait until the current scan completes.', 'error')
-            session['active_tab'] = 'auto'
-            return redirect(url_for('main.scan_management'))
-    
-        folder_path = auto_form.folder_path.data
-        scan_mode = auto_form.scan_mode.data
-        library_name = auto_form.library_name.data
-        library_platform = auto_form.library_platform.data
-        print(f"handle_auto_scan: Auto-scan form submitted. Folder path: {folder_path}, scan mode: {scan_mode}, library name: {library_name}, platform: {library_platform}")
-        # Prepend the base path
-        base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
-        full_path = os.path.join(base_dir, folder_path)
-        if not os.path.exists(full_path) or not os.access(full_path, os.R_OK):
-            flash(f"Cannot access folder: {full_path}. Please check the path and permissions.", 'error')
-            print(f"Cannot access folder: {full_path}. Please check the path and permissions.", 'error')
-            session['active_tab'] = 'auto'
-            return redirect(url_for('main.library'))
-
-        @copy_current_request_context
-        def start_scan():
-            scan_and_add_games(full_path, scan_mode, library_name, library_platform)
-
-        thread = Thread(target=start_scan)
-        thread.start()
-        
-        flash(f'handle_auto_scan: Started at folder: {full_path} with mode: {scan_mode}, library name: {library_name}, and platform: {library_platform}', 'info')
-        print(f'handle_auto_scan: Started at folder: {full_path} with mode: {scan_mode}, library name: {library_name}, and platform: {library_platform}', 'info')
-        session['active_tab'] = 'auto'
-    else:
-        flash(f"Auto-scan form validation failed: {auto_form.errors}")
-        print(f"Auto-scan form validation failed: {auto_form.errors}")
-    return redirect(url_for('main.scan_management'))
-
-
-@bp.route('/cancel_scan_job/<job_id>', methods=['POST'])
-@login_required
-@admin_required
-def cancel_scan_job(job_id):
-    job = ScanJob.query.get(job_id)
-    if job and job.status == 'Running':
-        job.is_enabled = False
-        db.session.commit()
-        flash(f"Scan job {job_id} has been canceled.")
-        print(f"Scan job {job_id} has been canceled.")
-    else:
-        flash('Scan job not found or not in a cancellable state.', 'error')
-    return redirect(url_for('main.scan_management'))
-
-
-
-def handle_manual_scan(manual_form):
-    session['active_tab'] = 'manual'
-    if manual_form.validate_on_submit():
-        # check job status
-        running_job = ScanJob.query.filter_by(status='Running').first()
-        if running_job:
-            flash('A scan is already in progress. Please wait until the current scan completes.', 'error')
-            session['active_tab'] = 'manual'
-            return redirect(url_for('main.scan_management'))
-        
-        folder_path = manual_form.folder_path.data
-        base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
-        full_path = os.path.join(base_dir, folder_path)
-        print(f"Manual scan form submitted. Full path: {full_path}")
-
-        if os.path.exists(full_path) and os.access(full_path, os.R_OK):
-            print("Folder exists and can be accessed.")
-            insensitive_patterns, sensitive_patterns = load_release_group_patterns()
-            games_with_paths = get_game_names_from_folder(full_path, insensitive_patterns, sensitive_patterns)
-            session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
-            print(f"Found {len(session['game_paths'])} games in the folder.")
-            flash('Manual scan processed for folder: ' + full_path, 'info')
-            
-        else:
-            flash("Folder does not exist or cannot be accessed.", "error")
-    else:
-        flash('Manual scan form validation failed.', 'error')
-        
-    print("Game paths: ", session.get('game_paths', {}))
-    return redirect(url_for('main.scan_management'))
-
-def handle_delete_unmatched(all):
-    try:
-        if all:
-            print("Deleting all unmatched folders")
-            UnmatchedFolder.query.delete()
-            flash('All unmatched folders deleted successfully.', 'success')
-        else:
-            print("Deleting only unmatched folders")
-            UnmatchedFolder.query.filter(UnmatchedFolder.status.ilike('unmatched')).delete()
-            flash('Unmatched folders with status "unmatched" deleted successfully.', 'success')
-        db.session.commit()
-        session['active_tab'] = 'unmatched'
-    except Exception as e:
-        db.session.rollback()
-        flash('An error occurred while deleting unmatched folders.', 'error')
-    return redirect(url_for('main.scan_management'))
-    
 
 @bp.route('/admin/settings', methods=['GET', 'POST'])
 @login_required

@@ -8,7 +8,7 @@ from datetime import datetime
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from modules.models import (
-    User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, Platform, Genre, Publisher, Developer, GameURL,
+    User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, Platform, Genre, Publisher, Developer, GameURL, Library,
     Theme, GameMode, MultiplayerMode, PlayerPerspective, ScanJob, UnmatchedFolder, category_mapping, status_mapping, player_perspective_mapping
 )
 from modules import db, mail
@@ -129,10 +129,16 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def create_game_instance(game_data, full_disk_path, folder_size_mb, library_platform=None, library_name=None):
+def create_game_instance(game_data, full_disk_path, folder_size_mb, library_uuid):
     try:
         if not isinstance(game_data, dict):
             raise ValueError("create_game_instance game_data is not a dictionary")
+
+        # Fetch library details using library_uuid
+        library = Library.query.filter_by(uuid=library_uuid).first()
+        if not library:
+            print(f"Library with UUID {library_uuid} not found.")
+            return None
 
         category_id = game_data.get('category')
         category_enum = category_mapping.get(category_id, None)
@@ -149,10 +155,9 @@ def create_game_instance(game_data, full_disk_path, folder_size_mb, library_plat
             # print(f"create_game_instance No videos found for '{game_data.get('name')}'.")
             videos_comma_separated = ""
             
-        print(f"create_game_instance Creating game instance for '{game_data.get('name')}' with UUID: {game_data.get('id')} in library '{library_name}' on platform '{library_platform}'.")
+        print(f"create_game_instance Creating game instance for '{game_data.get('name')}' with UUID: {game_data.get('id')} in library '{library.name}' on platform '{library.platform.name}'.")
         new_game = Game(
-            library_name=library_name,
-            library_platform=library_platform,
+            library_uuid=library_uuid,
             igdb_id=game_data['id'],
             name=game_data['name'],
             summary=game_data.get('summary'),
@@ -326,18 +331,27 @@ PLATFORM_IDS = {
 }
 
     
-def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_name=None, library_platform=None):
-    print(f"Finding a way to add {game_name} on {full_disk_path} to the library {library_name} on {library_platform}.")
+def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_uuid=None):
+    print(f"rns Retrieving and saving game: {game_name} on {full_disk_path} to library with UUID {library_uuid}.")
+    # Fetch the library using the UUID
+    library = Library.query.filter_by(uuid=library_uuid).first()
+    if not library:
+        print(f"rns Library with UUID {library_uuid} not found.")
+        return None
+    
+    print(f"rns Finding a way to add {game_name} on {full_disk_path} to the library with UUID {library_uuid}.")
+
     existing_game_by_path = check_existing_game_by_path(full_disk_path)
     if existing_game_by_path:
         return existing_game_by_path 
 
-
-    platform_id = PLATFORM_IDS.get(library_platform)
-    # inform the user if we are performing a focussed platform search
-    if platform_id:
-        print(f"Performing a platform-specific search for {game_name} on {library_platform} (ID: {platform_id}).")
-   
+    print(f"rns No existing game found for {game_name} on {full_disk_path}. Proceeding to retrieve game data from IGDB API.")
+    platform_id = PLATFORM_IDS.get(library.platform.name)
+    print(f"rns Platform ID for {library.platform.name}: {platform_id}")
+    if platform_id is None:
+        print(f"No platform ID found for platform {library.platform.name}. Proceeding without a platform-specific search.")
+    else:
+        print(f"Performing a platform-specific search for {game_name} on platform ID: {platform_id}.")
     query_fields = """fields id, name, cover, summary, url, release_dates.date, platforms.name, genres.name, themes.name, game_modes.name,
                       screenshots, videos.video_id, first_release_date, aggregated_rating, involved_companies, player_perspectives.name,
                       aggregated_rating_count, rating, rating_count, slug, status, category, total_rating, 
@@ -366,7 +380,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
             print(f"Calculating folder size for {full_disk_path}.")
             folder_size_mb = get_folder_size_in_mb(full_disk_path)
             print(f"Folder size for {full_disk_path}: {format_size(folder_size_mb)}")
-            new_game = create_game_instance(game_data=response_json[0], full_disk_path=full_disk_path, folder_size_mb=folder_size_mb, library_platform=library_platform, library_name=library_name)
+            new_game = create_game_instance(game_data=response_json[0], full_disk_path=full_disk_path, folder_size_mb=folder_size_mb, library_uuid=library.uuid)
             
                     
             if 'genres' in response_json[0]:
@@ -463,7 +477,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
     else:
         if scan_job_id:
             pass
-        print(f"IGDB match failed: {game_name} in library : {library_name} on platform : {library_platform}.")
+        print(f"IGDB match failed: {game_name} in library {library.name} on platform {library.platform.name}.")
         error_message = "No game data found for the given name or failed to retrieve data from IGDB API."
         # print(error_message)
         flash(error_message)
@@ -875,15 +889,23 @@ def get_cover_thumbnail_url(igdb_id):
 
     return None
 
-def scan_and_add_games(folder_path, scan_mode='folders', library_name=None, library_platform=None):
-    print(f"Starting auto scan for games in folder: {folder_path} with scan mode: {scan_mode} and library name: {library_name} for platform: {library_platform}")
+def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None):
+    # First, find the library and its platform
+    library = Library.query.filter_by(uuid=library_uuid).first()
+    if not library:
+        print(f"Library with UUID {library_uuid} not found.")
+        return
+
+    print(f"Starting auto scan for games in folder: {folder_path} with scan mode: {scan_mode} and library UUID: {library_uuid} for platform: {library.platform.name}")
+
     # Create initial scan job
     scan_job_entry = ScanJob(
-        folders={folder_path: True}, 
-        content_type='Games', 
-        status='Running', 
-        is_enabled=True, 
+        folders={folder_path: True},
+        content_type='Games',
+        status='Running',
+        is_enabled=True,
         last_run=datetime.now(),
+        library_uuid=library_uuid,
         error_message='',
         total_folders=0,
         folders_success=0,
@@ -917,9 +939,9 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_name=None, libr
 
         # Use patterns in function calls
         if scan_mode == 'folders':
-            game_names_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns, library_name, library_platform)
+            game_names_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
         elif scan_mode == 'files':
-            game_names_with_paths = get_game_names_from_files(folder_path, supported_extensions, insensitive_patterns, sensitive_patterns, library_name, library_platform)
+            game_names_with_paths = get_game_names_from_files(folder_path, supported_extensions, insensitive_patterns, sensitive_patterns)
 
         scan_job_entry.total_folders = len(game_names_with_paths)
         db.session.commit()
@@ -948,7 +970,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_name=None, libr
         full_disk_path = game_info['full_path']
         
         try:
-            success = process_game_with_fallback(game_name, full_disk_path, scan_job_entry.id, library_name, library_platform)
+            success = process_game_with_fallback(game_name, full_disk_path, scan_job_entry.id, library_uuid)
             if success:
                 scan_job_entry.folders_success += 1
                 
@@ -975,49 +997,65 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_name=None, libr
         print(f"Database error when finalizing ScanJob: {str(e)}")
 
         
-def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_name, library_platform):
-    
+def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_uuid):
+    # Fetch library details based on library_uuid
+    library = Library.query.filter_by(uuid=library_uuid).first()
+    if not library:
+        print(f"Library with UUID {library_uuid} not found.")
+        return False
+
+    # Log skipping of processing for already matched or unmatched folders
     existing_unmatched_folder = UnmatchedFolder.query.filter_by(folder_path=full_disk_path).first()
     if existing_unmatched_folder:
         print(f"Skipping processing for already logged unmatched folder: {full_disk_path}")
         return False
 
-    existing_game = Game.query.filter_by(full_disk_path=full_disk_path).first()
+    # Check if the game already exists in the database
+    existing_game = Game.query.filter_by(full_disk_path=full_disk_path, library_uuid=library_uuid).first()
     if existing_game:
         print(f"Game already exists in database: {game_name} at {full_disk_path}")
         return True 
 
     print(f'Game does not exist in database: {game_name} at {full_disk_path}')
-    if not try_add_game(game_name, full_disk_path, scan_job_id, check_exists=False, library_name=library_name, library_platform=library_platform):
+    # Try to add the game, now using library_uuid
+    if not try_add_game(game_name, full_disk_path, scan_job_id, library_uuid=library_uuid, check_exists=False):
+        # Attempt fallback game name processing
         parts = game_name.split()
         for i in range(len(parts) - 1, 0, -1):
             fallback_name = ' '.join(parts[:i])
-            if try_add_game(fallback_name, full_disk_path, scan_job_id, check_exists=False, library_name=library_name, library_platform=library_platform):
+            if try_add_game(fallback_name, full_disk_path, scan_job_id, library_uuid=library_uuid, check_exists=False):
                 return True
     else:
         print(f'Skipping duplicate game: {game_name} at {full_disk_path}')
         return True
+
+    # If the game does not match, log it as unmatched
     matched_status = 'Unmatched'
-    log_unmatched_folder(scan_job_id, full_disk_path, matched_status)
+    log_unmatched_folder(scan_job_id, full_disk_path, matched_status, library_uuid)
     return False
 
 
-def try_add_game(game_name, full_disk_path, scan_job_id, check_exists=True, library_name=None, library_platform=None):
-    print(f"try_add_game: {game_name} at {full_disk_path} with scan job ID: {scan_job_id} and check_exists: {check_exists} for library: {library_name} on platform: {library_platform}")
-    """
-    Attempt to add a game to the database. Now includes a check_exists flag to skip redundant checks.
-    """
+
+def try_add_game(game_name, full_disk_path, scan_job_id, library_uuid, check_exists=True):
+    print(f"try_add_game: {game_name} at {full_disk_path} with scan job ID: {scan_job_id}, check_exists: {check_exists}, and library UUID: {library_uuid}")
+    
+    # Fetch the library details using the library_uuid, if necessary
+    library = Library.query.filter_by(uuid=library_uuid).first()
+    if not library:
+        print(f"Library with UUID {library_uuid} not found.")
+        return False
+
     if check_exists:
         existing_game = Game.query.filter_by(full_disk_path=full_disk_path).first()
         if existing_game:
             print(f"Game already exists in database: {game_name} at {full_disk_path}")
             return False
 
-    game = retrieve_and_save_game(game_name, full_disk_path, scan_job_id, library_name, library_platform)
+    game = retrieve_and_save_game(game_name, full_disk_path, scan_job_id, library_uuid)
     return game is not None
 
-def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns, library_name=None, library_platform=None):
-    print(f"get_game_names_from_folder Processing folder: {folder_path} for library: {library_name} on platform: {library_platform}")
+def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns):
+    
     if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
         print(f"Error: The folder '{folder_path}' does not exist or is not readable.")
         flash(f"Error: The folder '{folder_path}' does not exist or is not readable.")
@@ -1036,8 +1074,8 @@ def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patt
     # print("Extracted game names with paths:", game_names_with_paths)
     return game_names_with_paths
 
-def get_game_names_from_files(folder_path, extensions, insensitive_patterns, sensitive_patterns, library_name=None, library_platform=None):
-    print(f"get_game_names_from_files Processing files in folder: {folder_path} for library: {library_name} on platform: {library_platform}")
+def get_game_names_from_files(folder_path, extensions, insensitive_patterns, sensitive_patterns):
+    
     if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
         print(f"Error: The path '{folder_path}' does not exist or is not readable.")
         return []
