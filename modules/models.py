@@ -137,6 +137,24 @@ class Category(PyEnum):
     PACK = "Pack"
     UPDATE = "Update"
 
+class Library(db.Model):
+    __tablename__ = 'libraries'
+    
+    uuid = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid4()))
+    name = db.Column(db.String(255), nullable=False)
+    image_url = db.Column(db.String(255), nullable=True)
+    platform = db.Column(db.Enum(LibraryPlatform), nullable=False)
+    
+    # Relation to games
+    games = db.relationship('Game', backref='library', lazy=True)
+
+
+
+
+
+
+
+
 category_mapping = {
     0: Category.MAIN_GAME,
     1: Category.DLC_ADDON,
@@ -233,7 +251,8 @@ class Game(db.Model):
     file_type = db.Column(db.String, nullable=True) 
     library_name = db.Column(db.String(512), nullable=True)
     library_platform = db.Column(db.Enum(LibraryPlatform), default=LibraryPlatform.UNSUPPORTED, nullable=False)
-    
+    library_uuid = db.Column(db.String(36), db.ForeignKey('libraries.uuid'), nullable=False)
+
     size = db.Column(db.Float, nullable=False, default=0.0)
 
     def __repr__(self):
