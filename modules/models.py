@@ -83,6 +83,8 @@ game_developer_association = db.Table(
     db.Column('developer_id', db.Integer, db.ForeignKey('developers.id'), primary_key=True)
 )
 
+
+# this has to go away
 class LibraryPlatform(PyEnum):
     UNSUPPORTED = "unsupported"
     PCWIN = "pcwin"
