@@ -13,7 +13,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy import func, Integer, Text, case
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
-from werkzeug.datastructures import FileStorage
+
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from modules import db, mail, cache
@@ -24,7 +24,7 @@ from PIL import Image as PILImage
 from PIL import ImageOps
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from authlib.jose import jwt
-from authlib.jose.errors import DecodeError
+
 from urllib.parse import unquote
 
 
@@ -36,7 +36,7 @@ from modules.forms import (
 )
 from modules.models import (
     User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, 
-    Platform, Genre, Theme, GameMode, MultiplayerMode, PlayerPerspective, Category, UserPreference, GameURL, GlobalSettings, InviteToken, LibraryImage, Library, LibraryPlatform
+    Genre, Theme, GameMode, PlayerPerspective, Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, LibraryPlatform
 )
 from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
@@ -845,6 +845,9 @@ def library():
     # Extract filters from request arguments
     page = request.args.get('page', 1, type=int)
     library_uuid = request.args.get('library_uuid')
+    print(f"LIBRARY: reqarg library_uuid: {library_uuid}")
+    library_name = request.args.get('library_name')
+    print(f"LIBRARY: reqarg library_name: {library_name}")
     # Only override per_page, sort_by, and sort_order if the URL parameters are provided
     per_page = request.args.get('per_page', type=int) or per_page
     genre = request.args.get('genre')
@@ -866,8 +869,23 @@ def library():
     # Filter out None values
     filters = {k: v for k, v in filters.items() if v is not None}
 
-    game_data, total, pages, current_page = get_games(page, per_page, sort_by=sort_by, sort_order=sort_order, **filters)
+    # Determine the appropriate library filter to use
+    if library_uuid:
+        print(f'filtering by library_uuid: {library_uuid}')
+        filters['library_uuid'] = library_uuid
+    elif library_name:
+        print(f'filtering by library_name: {library_name}')
+        library = Library.query.filter_by(name=library_name).first()
+        if library:
+            print(f'Library found: {library}')
+            filters['library_uuid'] = library.uuid
+        else:
+            flash('Library not found.', 'error')
+            return redirect(url_for('main.library'))
 
+
+    game_data, total, pages, current_page = get_games(page, per_page, sort_by=sort_by, sort_order=sort_order, **filters)
+    
     context = {
         'games': game_data,
         'total': total,
@@ -879,12 +897,24 @@ def library():
         'filters': filters,
         'form': CsrfForm()
     }
-    #print(f"LIBRARY: context: {context}")
+    print(f"LIBRARY: context: {context}")
     return render_template('games/library_browser.html', **context)
 
 
 def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
     query = Game.query.options(joinedload(Game.genres))
+
+    # Resolve library_name to library_uuid if necessary
+    if 'library_name' in filters and filters['library_name']:
+        library = Library.query.filter_by(name=filters['library_name']).first()
+        if library:
+            filters['library_uuid'] = library.uuid
+        else:
+            return [], 0, 0, page  # No such library exists, return empty
+
+
+    if 'library_uuid' in filters and filters['library_uuid']:
+        query = query.filter(Game.library.has(Library.uuid == filters['library_uuid']))
 
     # Filtering logic
     if filters.get('library_uuid'):
@@ -1334,8 +1364,12 @@ def add_game_manual():
     game_name = os.path.basename(full_disk_path) if full_disk_path else ''
 
     form = AddGameForm()
+
+    # Populate the choices for the library_uuid field
+    form.library_uuid.choices = [(str(library.uuid), library.name) for library in Library.query.order_by(Library.name).all()]
+    print(f'agm Library choices: {form.library_uuid.choices}')
     if request.method == 'GET' and full_disk_path:
-        # Only pre-fill form on GET request
+        # pre-fill form on GET request
         form.full_disk_path.data = full_disk_path
         form.name.data = game_name
     if request.method == 'POST':
@@ -1347,7 +1381,7 @@ def add_game_manual():
                 return render_template('games/manual_game_add.html', form=form)
             # print("Form data:", form.data)
             
-            # Create new_game instance
+            # Create new_game instance (put form data into the object)
             new_game = Game(
                 igdb_id=form.igdb_id.data,
                 name=form.name.data,
@@ -1358,7 +1392,8 @@ def add_game_manual():
                 category=form.category.data,
                 status=form.status.data,
                 first_release_date=form.first_release_date.data,
-                video_urls=form.video_urls.data 
+                video_urls=form.video_urls.data,
+                library_uuid=form.library_uuid.data
             )
             new_game.genres = form.genres.data
             new_game.game_modes = form.game_modes.data
@@ -1425,7 +1460,8 @@ def add_game_manual():
 def game_edit(game_uuid):
     game = Game.query.filter_by(uuid=game_uuid).first_or_404()
     form = AddGameForm(obj=game)  # Pre-populate form
-    
+    form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in Library.query.order_by(Library.name).all()]
+
     if form.validate_on_submit():
         if is_scan_job_running():
             flash('Cannot edit the game while a scan job is running. Please try again later.', 'error')
@@ -1446,6 +1482,7 @@ def game_edit(game_uuid):
             return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, action="edit")
         
         
+        game.library_uuid = form.library_uuid.data
         game.igdb_id = form.igdb_id.data
         game.name = form.name.data
         game.summary = form.summary.data
@@ -1809,6 +1846,7 @@ def scan_jobs_status():
     jobs = ScanJob.query.all()
     jobs_data = [{
         'id': job.id,
+        'library_name': job.library.name,
         'folders': job.folders,
         'status': job.status,
         'total_folders': job.total_folders,

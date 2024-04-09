@@ -12,11 +12,6 @@ from modules.models import Status, Category, genre_choices, game_mode_choices, t
 from urllib.parse import urlparse
 from modules.utilities import comma_separated_urls
 
-
-def validate_library_name(form, field):
-    if not re.match("^[a-zA-Z0-9_\- !\(\)\.]*$", field.data):
-        raise ValidationError('Library name can only contain letters, numbers, spaces, underscores, and - ! ( ) .')
-
 class UpdateUnmatchedFolderForm(FlaskForm):
     folder_id = HiddenField('Folder ID', validators=[DataRequired()])
     new_status = HiddenField('New Status', default='Ignore')
@@ -143,7 +138,7 @@ class AddGameForm(FlaskForm):
     player_perspectives = QuerySelectMultipleField('Player Perspectives', query_factory=player_perspective_choices, get_label='name', widget=ListWidget(prefix_label=False), option_widget=CheckboxInput())
     developer = StringField('Developer', validators=[Optional()])
     publisher = StringField('Publisher', validators=[Optional()])
-
+    library_uuid = SelectField('Library', coerce=str, validators=[DataRequired()])
     submit = SubmitField('Save')    
     
 class ClearDownloadRequestsForm(FlaskForm):

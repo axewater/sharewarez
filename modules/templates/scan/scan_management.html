@@ -106,8 +106,11 @@
         <p>You have no Libraries!, go to <a href="{{ url_for('main.libraries') }}">Library Manager</a> and create one.</p>
         {% endif %}
             <div class="glass-panel-scanfolder container mt-4">
-                <h2>Scan Jobs Management</h2>
-                <p>(you can only have 1 scan job 'Running' at a time)</p>
+                <div class="scanjobs-header-text">
+                    <h2>Scan Jobs Management</h2>
+                    <p>(You can only have 1 scan job 'Running' at a time!)</p>
+                </div>
+                
                 <form action="{{ url_for('main.clear_all_scan_jobs') }}" method="post">
                      {{ csrf_form.csrf_token }}
                     <input type="submit" value="Clear All" class="btn btn-danger" onclick="return confirm('Delete ALL jobs?');">
@@ -116,6 +119,7 @@
                     <thead>
                         <tr>
                             <th>ID</th>
+                            <th>Library</th>
                             <th>Folder</th>
                             <th>Status</th>
                             <th>Error message</th>
@@ -297,6 +301,7 @@
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td>${job.id.substring(0, 8)}</td>
+                            <td>${job.library_name || 'N/A'}</td> <!-- Display Library Name -->
                             <td>${Object.keys(job.folders).join(', ')}</td>
                             <td>${job.status}</td>
                             <td>${job.error_message}</td>
@@ -320,23 +325,7 @@
         };
     
 
-        var libraryPlatform = document.getElementById('libraryPlatform');
-        var libraryName = document.getElementById('libraryName');
-
-        // Set default library name based on existing platform selection
-        if(libraryPlatform.value) {
-            libraryName.value = 'My ' + libraryPlatform.value.charAt(0).toUpperCase() + libraryPlatform.value.slice(1) + ' Games';
-        }
-
-        libraryPlatform.addEventListener('change', function() {
-            var platform = this.value;
-            if(platform) {
-                libraryName.value = 'My ' + platform.charAt(0).toUpperCase() + platform.slice(1) + ' Games';
-            } else {
-                libraryName.value = 'My Games';
-            }
-        });
-
+        
 
 
 

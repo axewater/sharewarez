@@ -21,7 +21,7 @@
     {% elif from_unmatched %}
     <title>Edit Unmatched Folder Entry</title>
     {% else %}
-    <title>Add Game Manually</title>
+    <title>(re-)Identify Game</title>
     {% endif %}
   
 </head>
@@ -30,17 +30,30 @@
 
         
         <form method="POST" action="">
-            <div class="glass-panel-addgame-top">
-                
-                {% if action == "edit" %}
-                <h2>Edit Game Entry</h2>
-                {% elif from_unmatched %}
-                <h2>Edit Unmatched Folder Entry</h2>
-                {% else %}
-                <h2>Add Game Manually</h2>
-                {% endif %}
-                
-                <button type="submit" class="btn btn-primary">Save</button>
+            <div class="glass-panel-addgame-top d-flex justify-content-between align-items-center">
+                <div>
+                    {% if action == "edit" %}
+                    <h2>Edit Game Entry</h2>
+                    {% elif from_unmatched %}
+                    <h2>Edit Unmatched Folder Entry</h2>
+                    {% else %}
+                    <h2>(re-)Identify Game</h2>
+                    {% endif %}
+                    <!-- Library Dropdown -->
+                    <div class="form-group" style="width: 400px;">
+                        <label for="library_uuid">Library</label>
+                        {{ form.library_uuid(class="form-control") }}
+                        {% if form.library_uuid.errors %}
+                            {% for error in form.library_uuid.errors %}
+                                <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+    <!-- Button positioned within the top panel for better layout control -->
+    <div style="align-self: flex-end; margin-top: 10px;">
+        <button type="submit" class="btn btn-primary">Save</button>
+    </div>
             </div>
             {{ form.hidden_tag() }}
             <div class="form-group">
