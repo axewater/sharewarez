@@ -243,7 +243,6 @@ class Game(db.Model):
     urls = db.relationship('GameURL', cascade='all, delete-orphan')
     file_type = db.Column(db.String, nullable=True) 
     library_name = db.Column(db.String(512), nullable=True)
-    library_platform = db.Column(db.Enum(LibraryPlatform), default=LibraryPlatform.UNSUPPORTED, nullable=False)
     library_uuid = db.Column(db.String(36), db.ForeignKey('libraries.uuid'), nullable=False)
 
     size = db.Column(db.Float, nullable=False, default=0.0)
@@ -252,14 +251,6 @@ class Game(db.Model):
         return f"<Game id={self.id}, name={self.name}>"
     
 
-class LibraryImage(db.Model):
-    __tablename__ = 'library_images'
-    id = db.Column(db.Integer, primary_key=True)
-    library_name = db.Column(db.String(255), unique=True, nullable=False)
-    image_url = db.Column(db.String(255), nullable=True)  # Path or URL to the image
-
-    def __repr__(self):
-        return f'<LibraryImage {self.library_name}: {self.image_url}>'
 
 
 class GameURL(db.Model):

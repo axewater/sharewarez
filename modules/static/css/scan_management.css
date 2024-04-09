@@ -36,6 +36,36 @@ th {
     cursor: pointer;
 }
 
+.tab-content {
+    gap: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding-bottom: 5px;
+    padding-top: 5px;
+    margin-bottom: 10px;    
+}
+
+.scanjobs-header-text {
+    padding-left: 15px;
+    padding-top: 10px;
+    justify-content: space-between;
+}
+
+/* Spacing between form groups */
+.form-group {
+    margin-bottom: 20px; /* Adjust spacing as needed */
+}
+
+/* Control width of the library dropdown */
+#libraryUuid {
+    width: auto; /* Adjust to make it fit content or set a max-width */
+    display: inline-block; /* Makes width auto-adjust to content */
+    max-width: 100%; /* Prevents it from extending beyond its container */
+    min-width: 100px; /* Adjust to make it fit content or set a min-width */
+}
+
+
 .loading-spinner {
     position: fixed; /* or absolute */
     top: 5%;
@@ -45,3 +75,4 @@ th {
     border-radius: 15px;
 
 }
+
