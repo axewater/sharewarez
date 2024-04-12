@@ -1,4 +1,4 @@
-# 🎮 Welcome to SharewareZ v1.1.0 🚀
+# 🎮 Welcome to SharewareZ v1.2.0 🚀
 SharewareZ transforms any game folder into a dynamic, searchable library. With IGDB integration, it indexes games and adds cover images, screenshots, and metadata for easy filtering. Plus, you can invite friends to download games from your library.
 
 **⚠️ THIS IS A BETA APPLICATION - USE AT YOUR OWN RISK ⚠️**
@@ -10,6 +10,7 @@ SharewareZ transforms any game folder into a dynamic, searchable library. With I
 
 ## 🌟 Features Overview
 2. **Game Library Management** 🎲
+    - Multiple library support.
     - Automated scanning of folders to catalog games.
     - Library page includes Steam-style popup with screenshot slideshow.
     - Filtering options based on genre, rating, and gameplay modes
@@ -118,7 +119,6 @@ CREATE DATABASE sharewarez;
 
 ## ⚠️ Known Issues
 - **Upgrading from older versions**: Unfortunately we do not support backward compatibility with older databases. Use `config_nosmtp.py` to recreate the database.
-- **Rare scan bug**: If your scan seems to have stopped, start it again (you may have to clear the entry in the list). This only occurs very rarely (once per 500 games for me).
 - **Server settings bug**: If you open server settings and change any settings, some settings may not apply the correct defaults resulting in settings like 'display logo' to disable themselves. Just go to settings and apply settings as needed.
 
 ### Other notes
@@ -128,7 +128,7 @@ CREATE DATABASE sharewarez;
 
 ### Docker image
 ```
-docker pull kapitanczarnobrod/sharewarez:1.1.0
+docker pull kapitanczarnobrod/sharewarez:1.2.0:latest
 ```
 ---
 Thank you for setting up the Sharewarez App. For further assistance, please open an issue on this repository or join my Discord.
