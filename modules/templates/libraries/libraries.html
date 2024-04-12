@@ -8,7 +8,8 @@
             <div>Add Library</div>
         </a>
         {% for library in libraries %}
-            <a href="#" class="list-group-item list-group-item-action">
+            <!-- Updated href to include library_uuid as a query parameter -->
+            <a href="{{ url_for('main.scan_management', library_uuid=library.uuid) }}" class="list-group-item list-group-item-action">
                 <img src="{{ library.image_url or url_for('static', filename='default-image.jpg') }}" alt="{{ library.name }}" style="width: 50px; height: 50px; object-fit: cover;" class="me-3 rounded">
                 <div>{{ library.name }} - {{ library.platform.name }}</div>
             </a>
