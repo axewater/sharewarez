@@ -56,6 +56,7 @@ $(document).ready(function() {
         if (initialParams.library_uuid) {
             $('#libraryNameSelect').val(initialParams.library_uuid);
         }
+        fetchFilteredGames();
     });
 }
 

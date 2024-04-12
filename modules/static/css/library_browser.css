@@ -116,7 +116,7 @@
 .pagination .page-link {
     padding-left: 3.8rem;
     padding-right: 3.8rem;
-    background-color: #343a40;
+    background-color: #2a2c35;
     color: #ffffff;
     border: 1px solid #343a40;
 }
@@ -136,7 +136,7 @@
 
 .pagination .page-item.disabled .page-link {
     color: #6c757d;
-    background-color: #343a40;
+    background-color: #2a2c35;
     border-color: #343a40;
 }
 
