@@ -16,7 +16,7 @@ class Config(object):
     MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
     MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', 'blackbeard@sharewarez.com')
     REMEMBER_COOKIE_DURATION = timedelta(days=int(os.getenv('REMEMBER_COOKIE_DURATION', 30)))
-    INITIAL_WHITELIST = os.getenv('INITIAL_WHITELIST', 'wateraxe@gmail.com')
+    INITIAL_WHITELIST = os.getenv('INITIAL_WHITELIST', 'kapitanczarnobrody@proton.me')
     IGDB_CLIENT_ID = os.getenv('IGDB_CLIENT_ID', 'get this from IGDB')
     IGDB_CLIENT_SECRET = os.getenv('IGDB_CLIENT_SECRET', 'get this from IGDB')
     IGDB_API_ENDPOINT = os.getenv('IGDB_API_ENDPOINT', 'https://api.igdb.com/v4/games')

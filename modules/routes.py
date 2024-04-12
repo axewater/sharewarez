@@ -756,6 +756,8 @@ def get_player_perspectives():
 
 
 @bp.route('/libraries')
+@login_required
+@admin_required
 def libraries():
     libraries = Library.query.all()
     return render_template('libraries/libraries.html', libraries=libraries)
@@ -845,9 +847,7 @@ def library():
     # Extract filters from request arguments
     page = request.args.get('page', 1, type=int)
     library_uuid = request.args.get('library_uuid')
-    print(f"LIBRARY: reqarg library_uuid: {library_uuid}")
     library_name = request.args.get('library_name')
-    print(f"LIBRARY: reqarg library_name: {library_name}")
     # Only override per_page, sort_by, and sort_order if the URL parameters are provided
     per_page = request.args.get('per_page', type=int) or per_page
     genre = request.args.get('genre')
@@ -1107,8 +1107,8 @@ def browse_folders_ss():
     if os.path.isdir(folder_path):
         # List directory contents; distinguish between files and directories
         # print(f'Folder contents: {os.listdir(folder_path)}', file=sys.stderr)
-        contents = [{'name': item, 'isDir': os.path.isdir(os.path.join(folder_path, item))} for item in os.listdir(folder_path)]
-        return jsonify(contents)
+        contents = [{'name': item, 'isDir': os.path.isdir(os.path.join(folder_path, item))} for item in sorted(os.listdir(folder_path))]
+        return jsonify(sorted(contents, key=lambda x: (not x['isDir'], x['name'].lower())))
     else:
         return jsonify({'error': 'SS folder browser: Folder not found'}), 404
 
