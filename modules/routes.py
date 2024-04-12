@@ -897,8 +897,30 @@ def library():
         'filters': filters,
         'form': CsrfForm()
     }
-    print(f"LIBRARY: context: {context}")
-    return render_template('games/library_browser.html', **context)
+    games = game_data
+    total = total
+    pages = pages
+    current_page = current_page
+    user_per_page = per_page
+    user_default_sort = sort_by
+    user_default_sort_order = sort_order
+    filters = filters
+    form = CsrfForm()
+
+    # print(f"LIBRARY: context: {locals()}")  # Updated for debugging purposes
+
+    return render_template(
+        'games/library_browser.html',
+        games=games,
+        total=total,
+        pages=pages,
+        current_page=current_page,
+        user_per_page=user_per_page,
+        user_default_sort=user_default_sort,
+        user_default_sort_order=user_default_sort_order,
+        filters=filters,
+        form=form
+    )
 
 
 def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
