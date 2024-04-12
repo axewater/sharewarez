@@ -60,10 +60,11 @@
 }
 
 .libraries-list .game-cover {
-    max-width: 300px; /* Max width for library images */
+    max-width: 150px; /* Max width for library images */
     height: auto; /* Keep aspect ratio intact */
     display: block; /* If you want images to be block level elements */
     margin: 0 auto; /* This centers the image within its container */
+
 }
 
 .game-cover::before {
@@ -80,6 +81,51 @@
     visibility: hidden;
     opacity: 1;
 }
+
+.library-item {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.library-link {
+    text-decoration: none; /* Removes underline from links */
+    color: inherit; /* Ensures the link color is consistent with the surrounding text */
+    display: block; /* Block display to enable better control over layout */
+}
+
+.library-name {
+    display: block;
+    background-color: black;
+    color: white;
+    border: 1px solid white;
+    border-radius: 15px;
+    padding: 5px 5px;
+    margin-top: 8px;
+    max-width: calc(100% - 20px);
+    box-sizing: border-box;
+    white-space: normal;
+    overflow-wrap: break-word; 
+    font-size: 0.8em; /* Smaller font size, adjust as needed */
+}
+
+
+
+
+.library-cover {
+    max-width: 150px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    padding: 5px;
+    border: 1px solid rgb(49, 49, 49);
+    border-radius: 15px;
+}
+
+.library-cover:hover {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transform: scale(1.1);
+}
+
 
 .game-card:hover .game-cover::before {
     animation: shimmerAnimation 1s linear forwards;
