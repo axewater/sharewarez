@@ -76,3 +76,15 @@ th {
 
 }
 
+.folder-item:hover {
+    background-color: #1671cd; /* Light gray background on hover, change as needed */
+    cursor: pointer; /* Changes the mouse cursor to a pointer to indicate it's clickable */
+    padding: 1px;
+    border-radius: 10px;
+}
+
+.scanandbrowse {
+    
+    padding: 5px;
+    
+}
