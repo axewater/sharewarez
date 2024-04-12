@@ -1195,30 +1195,27 @@ def api_debug():
     return render_template('scan/scan_apidebug.html', form=form, api_response=api_response)
 
 
-
-
 @bp.route('/scan_management', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def scan_management():
     auto_form = AutoScanForm()
     manual_form = ScanFolderForm()
-    # Populate the libraries choices for the auto_form's library_uuid field
+
     libraries = Library.query.all()
-    print(f"/scan_management: Libraries: {libraries}")
     auto_form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in libraries]
+
+    selected_library_uuid = request.args.get('library_uuid')
+    if selected_library_uuid:
+        auto_form.library_uuid.data = selected_library_uuid  # Pre-select the library in the dropdown
 
     jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
     csrf_form = CsrfProtectForm()
     unmatched_folders = UnmatchedFolder.query.order_by(UnmatchedFolder.status.desc()).all()
     unmatched_form = UpdateUnmatchedFolderForm() 
 
-    try:
-        game_count = Game.query.count()  # Fetch the game count here
-    except Exception as e:
-        flash(f"Error fetching game count: {e}", "error")
-        game_count = 0
-        
+    game_count = Game.query.count()  # Fetch the game count here
+
     if request.method == 'POST':
         submit_action = request.form.get('submit')
         if submit_action == 'AutoScan':
@@ -1232,14 +1229,10 @@ def scan_management():
         else:
             flash("Unrecognized action.", "error")
             return redirect(url_for('main.scan_management'))
+
     game_paths_dict = session.get('game_paths', {})
     game_names_with_ids = [{'name': name, 'full_path': path} for name, path in game_paths_dict.items()]
-
     active_tab = session.get('active_tab', 'auto')
-    # print(f"Passing Active tab: {active_tab}")
-
-    jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
-    # print(f"Jobs: {jobs}")
 
     return render_template('scan/scan_management.html', 
                            auto_form=auto_form, 
@@ -1251,7 +1244,7 @@ def scan_management():
                            unmatched_form=unmatched_form,
                            game_count=game_count,
                            libraries=libraries,
-                           game_names_with_ids=game_names_with_ids) 
+                           game_names_with_ids=game_names_with_ids)
 
 
 def handle_auto_scan(auto_form):
