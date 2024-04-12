@@ -372,7 +372,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
         if existing_game_with_same_igdb_id:
             print(f"Duplicate game found with same IGDB ID {igdb_id} but different folder path. Logging as duplicate.")
             matched_status = 'Duplicate'
-            log_unmatched_folder(scan_job_id, full_disk_path, matched_status)
+            log_unmatched_folder(scan_job_id, full_disk_path, matched_status, library_uuid=library_uuid)
             return None
         else:
             print(f"attempting to read NFO content for game {game_name} on {full_disk_path}.")
@@ -733,7 +733,7 @@ def read_first_nfo_content(full_disk_path):
 def check_existing_game_by_igdb_id(igdb_id):
     return Game.query.filter_by(igdb_id=igdb_id).first()
 
-def log_unmatched_folder(scan_job_id, folder_path, matched_status):
+def log_unmatched_folder(scan_job_id, folder_path, matched_status, library_uuid=None):
     existing_unmatched_folder = UnmatchedFolder.query.filter_by(folder_path=folder_path).first()
 
     if existing_unmatched_folder is None:
@@ -741,6 +741,7 @@ def log_unmatched_folder(scan_job_id, folder_path, matched_status):
             folder_path=folder_path,
             failed_time=datetime.utcnow(),
             content_type='Games',
+            library_uuid=library_uuid,
             status=matched_status
         )
         try:
@@ -935,7 +936,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None):
     insensitive_patterns, sensitive_patterns = load_release_group_patterns()
 
     try:
-        supported_extensions = ["7z", "rar", "zip", "arj", "iso", "exe", "bin", "rom", "nes", "unf", "fds", "smc", "sfc", "fig", "swc", "n64", "v64", "z64", "gb", "gbc", "gba", "sms", "gen", "smd", "gg", "img", "a26", "a52", "a78", "col", "ng", "pce", "d64", "t64", "crt", "z80", "tap", "adf", "uae"]
+        supported_extensions = ["7z", "rar", "zip", "arj", "iso", "exe", "bin", "rom", "nes", "unf", "fds", "smc", "sfc", "fig", "swc", "n64", "v64", "z64", "gb", "gbc", "gba", "sms", "gen", "smd", "gg", "img", "a26", "a52", "a78", "col", "ng", "pce", "d64", "t64", "crt", "z80", "tap", "adf", "uae", "lnx"]
 
         # Use patterns in function calls
         if scan_mode == 'folders':
@@ -1082,23 +1083,24 @@ def get_game_names_from_files(folder_path, extensions, insensitive_patterns, sen
 
     # print(f"Scanning files in folder: {folder_path}")
     file_contents = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
-    # print(f"Files found in folder: {file_contents}")
+    print(f"Files found in folder: {file_contents}")
     game_names_with_paths = []
     for file_name in file_contents:
-        # print(f"Checking file: {file_name}")
+        print(f"Checking file: {file_name}")
         extension = file_name.split('.')[-1].lower()
         if extension in extensions:
-            # print(f"Found supported file: {file_name}")
+            print(f"Found supported file: {file_name}")
             # Extract the game name without the extension
             game_name_without_extension = '.'.join(file_name.split('.')[:-1])
             # Clean the game name
             cleaned_game_name = clean_game_name(game_name_without_extension, insensitive_patterns, sensitive_patterns)
-            # print(f"Extracted and cleaned game name: {cleaned_game_name}")
+            print(f"Extracted and cleaned game name: {cleaned_game_name}")
             full_path = os.path.join(folder_path, file_name)
             
             game_names_with_paths.append({'name': cleaned_game_name, 'full_path': full_path, 'file_type': extension})
-            # print(f"Added cleaned game name with path: {cleaned_game_name} at {full_path}")
+            print(f"Added cleaned game name with path: {cleaned_game_name} at {full_path}")
 
+    print(f"Game names with paths extracted from files: {game_names_with_paths}")
     return game_names_with_paths
 
 def escape_special_characters(pattern):
@@ -1110,7 +1112,7 @@ def escape_special_characters(pattern):
 
 
 def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
-    # print(f"Original filename: {filename}")
+    print(f"Original filename: {filename}")
     
     # Check and remove 'setup' at the start, case-insensitive
     if filename.lower().startswith('setup'):

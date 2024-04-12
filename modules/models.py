@@ -466,6 +466,7 @@ class ScanJob(db.Model):
 class UnmatchedFolder(db.Model):
     __tablename__ = 'unmatched_folders'
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    library_uuid = db.Column(db.String(36), db.ForeignKey('libraries.uuid'), nullable=True)  # Add this line
     scan_job_id = db.Column(db.String(36), db.ForeignKey('scan_jobs.id'))
     folder_path = db.Column(db.String)
     failed_time = db.Column(db.DateTime)

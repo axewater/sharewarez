@@ -143,9 +143,9 @@ function fetchFolders(path, folderContentsId, spinnerId, upButtonId, inputFieldI
             });
             $('.folder-item').click(function() {
                 var newPath = $(this).data('path');
-                window[currentPathVar] = newPath; // Update the correct path variable
+                window[currentPathVar] = newPath; 
                 fetchFolders(newPath, folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar);
-                $(inputFieldId).val(newPath); // Update the input field with the new path
+                $(inputFieldId).val(newPath); 
             });
             if (path) {
                 $(upButtonId).show();
