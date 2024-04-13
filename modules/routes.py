@@ -52,7 +52,7 @@ has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
-app_version = '1.2.0'
+app_version = '1.2.1'
 
 @bp.before_app_request
 def initial_setup():
@@ -1212,9 +1212,22 @@ def scan_management():
 
     jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
     csrf_form = CsrfProtectForm()
-    unmatched_folders = UnmatchedFolder.query.order_by(UnmatchedFolder.status.desc()).all()
+    unmatched_folders = UnmatchedFolder.query\
+                        .join(Library)\
+                        .with_entities(UnmatchedFolder, Library.name, Library.platform)\
+                        .order_by(UnmatchedFolder.status.desc()).all()
     unmatched_form = UpdateUnmatchedFolderForm() 
-
+    # Packaging data with platform details
+    unmatched_folders_with_platform = []
+    for unmatched, lib_name, lib_platform in unmatched_folders:
+        platform_id = PLATFORM_IDS.get(lib_platform.name) if lib_platform else None
+        unmatched_folders_with_platform.append({
+            "folder": unmatched,
+            "library_name": lib_name,
+            "platform_name": lib_platform.name if lib_platform else '',
+            "platform_id": platform_id
+        })
+        
     game_count = Game.query.count()  # Fetch the game count here
 
     if request.method == 'POST':
@@ -1241,7 +1254,7 @@ def scan_management():
                            jobs=jobs, 
                            csrf_form=csrf_form, 
                            active_tab=active_tab, 
-                           unmatched_folders=unmatched_folders, 
+                           unmatched_folders=unmatched_folders_with_platform,
                            unmatched_form=unmatched_form,
                            game_count=game_count,
                            libraries=libraries,
@@ -1384,6 +1397,17 @@ def add_game_manual():
     # Populate the choices for the library_uuid field
     form.library_uuid.choices = [(str(library.uuid), library.name) for library in Library.query.order_by(Library.name).all()]
     print(f'agm Library choices: {form.library_uuid.choices}')
+    # Fetch library details for displaying on the form
+    library_uuid = request.args.get('library_uuid')
+    library = Library.query.filter_by(uuid=library_uuid).first()
+    if library:
+        library_name = library.name
+        platform_name = library.platform.name  # Accessing enum name
+        platform_id = PLATFORM_IDS.get(library.platform.name)  # Get platform ID using the enum name
+    else:
+        library_name = platform_name = ''
+        platform_id = None
+    
     if request.method == 'GET' and full_disk_path:
         # pre-fill form on GET request
         form.full_disk_path.data = full_disk_path
@@ -1467,8 +1491,16 @@ def add_game_manual():
                 flash('An error occurred while adding the game. Please try again.', 'error')
         else:
             print(f"Form validation failed: {form.errors}")
-    return render_template('games/manual_game_add.html', form=form, from_unmatched=from_unmatched, action="add")
-
+    return render_template(
+        'games/manual_game_add.html',
+        form=form,
+        from_unmatched=from_unmatched,
+        action="add",
+        library_uuid=library_uuid,
+        library_name=library_name,
+        platform_name=platform_name,
+        platform_id=platform_id
+    )
 
 @bp.route('/game_edit/<game_uuid>', methods=['GET', 'POST'])
 @login_required
@@ -2682,17 +2714,3 @@ def check_scan_status():
 
 
 
-###### BETA TESTING BELOW #######
-
-
-@bp.route('/rom-test')
-@login_required
-@admin_required  
-def rom_test():
-    print("Route: /rom-test")
-    return render_template('/games/playrom.html')
-
-
-@bp.route('/data/<path:filename>')
-def data_redirect(filename):
-    return send_from_directory('emulatorjs', filename)
