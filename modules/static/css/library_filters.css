@@ -246,7 +246,12 @@
     filter: invert(1);
 }
 
-
+.game-edit-library-labels {
+    display: flex;
+    flex-direction: column;
+    
+    margin-bottom: 10px;
+}
 
 .sorting-dropdown select,
 .sorting-dropdown .btn-secondary {

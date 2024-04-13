@@ -212,12 +212,32 @@ $(document).ready(function() {
   }
 
   function updateGamesContainer(games) {
-      $('#gamesContainer').empty();
+    $('#gamesContainer').empty();
 
-      if(games.length === 0) {
-          $('#gamesContainer').append('<p>No games found.<br> Go to your Dashboard and scan your games folder</p>');
-          return;
-      }
+    if (games.length === 0) {
+        // Fetch the current user's role from the server
+        $.ajax({
+            url: '/api/current_user_role',  // Ensure this URL is correct and accessible
+            method: 'GET',
+            success: function(response) {
+                let message;  // Declare the message variable here for wider scope
+                if (response.role === 'admin') {
+                    // Dynamic URL for the Library Manager
+                    message = `<p>You have no Libraries!<br> Go to <a href="${libraryManagerUrl}">Library Manager</a> and create one.</p>`;
+                } else {
+                    // User is not an admin, show a generic message
+                    message = '<p>No games or libraries found. Complain to the Captain of this vessel!</p>';
+                }
+                // Append the message to the gamesContainer
+                $('#gamesContainer').append(message);
+            },
+            error: function() {
+                // Handle errors, e.g., if the endpoint is unreachable
+                $('#gamesContainer').append('<p>Error fetching user role. Please try again later.</p>');
+            }
+        });
+        return;
+    }
 
       games.forEach(function(game) {
           var gameCardHtml = createGameCardHtml(game);

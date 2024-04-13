@@ -39,10 +39,13 @@
                     {% else %}
                     <h2>(re-)Identify Game</h2>
                     {% endif %}
-                    <!-- Library Dropdown -->
-                    <div class="form-group" style="width: 400px;">
-                        <label for="library_uuid">Library</label>
-                        {{ form.library_uuid(class="form-control") }}
+                    <!-- Library -->
+                    <div class="form-group game-edit-library-labels" style="width: 400px;">
+                        <span id="library_display">Library Name: {{ library_name }}</span>
+                        
+                        <span id="platform_display">Platform: {{ platform_name }}</span>
+                        <span id="platform_id" style="display:none;">{{ platform_id }}</span>
+
                         {% if form.library_uuid.errors %}
                             {% for error in form.library_uuid.errors %}
                                 <div class="alert alert-danger">{{ error }}</div>
