@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     
+    var platformDisplay = document.querySelector('#platform_display');
+    const platformId = document.querySelector('#platform_id').textContent; 
     const igdbIdInput = document.querySelector('#igdb_id');
     const fullPathInput = document.querySelector('#full_disk_path');
     const nameInput = document.querySelector('#name');
@@ -12,6 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
     fullPathFeedback.id = 'full_disk_path_feedback';
     fullPathInput.parentNode.insertBefore(fullPathFeedback, fullPathInput.nextSibling);
 
+
+    
     $(submitButton).tooltip({
         title: "Incomplete entry",
         placement: "top",
@@ -189,6 +193,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    
+    
     igdbIdInput.addEventListener('keypress', function(event) {
         triggerClickOnEnter(event, document.querySelector('#search-igdb-btn'));
     });
@@ -243,9 +249,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelector('#search-igdb').addEventListener('click', function() {
         const gameName = nameInput.value;
+        const platformId = document.querySelector('#platform_id').textContent; // Retrieve the platform ID from the HTML
+
         console.log(`Initiating IGDB search for name: ${gameName}`);
         if (gameName) {
-            fetch(`/search_igdb_by_name?name=${encodeURIComponent(gameName)}`)
+            fetch(`/search_igdb_by_name?name=${encodeURIComponent(gameName)}&platform_id=${encodeURIComponent(platformId)}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log("API Response (IGDB name Search):", data);

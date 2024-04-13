@@ -32,14 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
             new bootstrap.Tab(document.querySelector('#autoScan-tab')).show();
     }
 
-    var deleteAllGamesBtn = document.getElementById('deleteAllGamesBtn');
-    if (deleteAllGamesBtn) {
-        deleteAllGamesBtn.addEventListener('click', function() {
-            console.log("Showing delete warning modal.");
-            var deleteWarningModal = new bootstrap.Modal(document.getElementById('deleteWarningModal'));
-            deleteWarningModal.show();
-        });
-    }
+
 
 
     document.querySelectorAll('.delete-folder-form').forEach(form => {

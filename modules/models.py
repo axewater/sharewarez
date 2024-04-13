@@ -84,42 +84,6 @@ game_developer_association = db.Table(
 )
 
 
-# this has to go away
-class LibraryPlatform(PyEnum):
-    UNSUPPORTED = "unsupported"
-    PCWIN = "pcwin"
-    PCDOS = "pcdos"
-    MAC = "mac"
-    N64 = "n64"
-    GB = "gb"
-    GBA = "gba"
-    NDS = "nds"
-    NES = "nes"
-    SNES = "snes"
-    PSX = "psx"
-    VB = "vb"
-    SEGA_MD = "segaMD"
-    SEGA_MS = "segaMS"
-    SEGA_CD = "segaCD"
-    LYNX = "lynx"
-    SEGA_32X = "sega32x"
-    JAGUAR = "jaguar"
-    SEGA_GG = "segaGG"
-    SEGA_SATURN = "segaSaturn"
-    ATARI_7800 = "atari7800"
-    ATARI_2600 = "atari2600"
-    PCE = "pce"
-    PCFX = "pcfx"
-    NGP = "ngp"
-    WS = "ws"
-    COLECO = "coleco"
-    VICE_X64SC = "vice_x64sc"
-    VICE_X128 = "vice_x128"
-    VICE_XVIC = "vice_xvic"
-    VICE_XPLUS4 = "vice_xplus4"
-    VICE_XPET = "vice_xpet"
-
-
 
 class Category(PyEnum):
     MAIN_GAME = "Main Game"
@@ -136,6 +100,52 @@ class Category(PyEnum):
     PORT = "Port"
     PACK = "Pack"
     UPDATE = "Update"
+    
+# this has to go away
+class LibraryPlatform(PyEnum):
+    OTHER = "Other"
+    PCWIN = "PC Windows"
+    PCDOS = "PC DOS"
+    MAC = "Mac"
+    NES = "Nintendo Entertainment System (NES)"
+    SNES = "Super Nintendo Entertainment System (SNES)"
+    NGC = "Nintendo GameCube"
+    N64 = "Nintendo 64"
+    GB = "Nintendo GameBoy"
+    GBA = "Nintendo GameBoy Advance"
+    NDS = "Nintendo DS"
+    VB = "Nintendo Virtual Boy"
+    XBOX = "Xbox"
+    X360 = "Xbox 360"
+    XONE = "Xbox One"
+    XSX = "Xbox Series X"
+    PSX = "Sony Playstation (PSX)"
+    PS2 = "Sony PS2"
+    PS3 = "Sony PS3"
+    PS4 = "Sony PS4"
+    PS5 = "Sony PS5"
+    SEGA_MD = "Sega Mega Drive/Genesis (MD)"
+    SEGA_MS = "Sega Master System (MS)"
+    SEGA_CD = "Sega CD"
+    LYNX = "Atari Lynx"
+    SEGA_32X = "Sega 32X"
+    JAGUAR = "Atari Jaguar"
+    SEGA_GG = "Sega Game Gear (GG)"
+    SEGA_SATURN = "Sega Saturn"
+    ATARI_7800 = "Atari 7800"
+    ATARI_2600 = "Atari 2600"
+    PCE = "PC Engine"
+    PCFX = "PC-FX"
+    NGP = "Neo Geo Pocket"
+    WS = "WonderSwan"
+    COLECO = "ColecoVision"
+    VICE_X64SC = "Commodore 64 (VIC-20)"
+    VICE_X128 = "Commodore 128"
+    VICE_XVIC = "Commodore VIC-20"
+    VICE_XPLUS4 = "Commodore Plus/4"
+    VICE_XPET = "Commodore PET"
+
+
 
 class Library(db.Model):
     __tablename__ = 'libraries'
@@ -145,6 +155,7 @@ class Library(db.Model):
     image_url = db.Column(db.String(255), nullable=True)
     platform = db.Column(db.Enum(LibraryPlatform), nullable=False)
     games = db.relationship('Game', backref='library', lazy=True)
+    unmatched_folders = relationship("UnmatchedFolder", backref='library', cascade="all, delete-orphan")
 
 
 
@@ -466,7 +477,7 @@ class ScanJob(db.Model):
 class UnmatchedFolder(db.Model):
     __tablename__ = 'unmatched_folders'
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    library_uuid = db.Column(db.String(36), db.ForeignKey('libraries.uuid'), nullable=True)  # Add this line
+    library_uuid = db.Column(db.String(36), ForeignKey('libraries.uuid', ondelete="CASCADE"), nullable=True)
     scan_job_id = db.Column(db.String(36), db.ForeignKey('scan_jobs.id'))
     folder_path = db.Column(db.String)
     failed_time = db.Column(db.DateTime)
