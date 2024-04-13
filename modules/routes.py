@@ -42,7 +42,7 @@ from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
     get_game_by_uuid, make_igdb_api_request, load_release_group_patterns, check_existing_game_by_igdb_id,
     get_game_names_from_folder, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_folder,
-    zip_game, format_size, delete_game_images, get_folder_size_in_mb, read_first_nfo_content
+    zip_game, format_size, delete_game_images, get_folder_size_in_mb, read_first_nfo_content, PLATFORM_IDS
 )
 
 
@@ -760,7 +760,8 @@ def get_player_perspectives():
 @admin_required
 def libraries():
     libraries = Library.query.all()
-    return render_template('libraries/libraries.html', libraries=libraries)
+    csrf_form = CsrfProtectForm()
+    return render_template('libraries/libraries.html', libraries=libraries, csrf_form=csrf_form)
 
 @bp.route('/library/add', methods=['GET', 'POST'])
 @login_required
@@ -1476,7 +1477,10 @@ def game_edit(game_uuid):
     game = Game.query.filter_by(uuid=game_uuid).first_or_404()
     form = AddGameForm(obj=game)  # Pre-populate form
     form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in Library.query.order_by(Library.name).all()]
-
+    platform_id = PLATFORM_IDS.get(game.library.platform.value.upper(), None)
+    platform_name = game.library.platform.value
+    library_name = game.library.name
+    print(f"game_edit1 Platform ID: {platform_id}, Platform Name: {platform_name} Library Name: {library_name}")
     if form.validate_on_submit():
         if is_scan_job_running():
             flash('Cannot edit the game while a scan job is running. Please try again later.', 'error')
@@ -1494,7 +1498,7 @@ def game_edit(game_uuid):
         if existing_game_with_igdb_id is not None:
             # Inform user that igdb_id already in use
             flash(f'The IGDB ID {form.igdb_id.data} is already used by another game.', 'error')
-            return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, action="edit")
+            return render_template('games/manual_game_add.html', form=form, library_name=library_name, game_uuid=game_uuid, action="edit")
         
         
         game.library_uuid = form.library_uuid.data
@@ -1508,8 +1512,8 @@ def game_edit(game_uuid):
         game.aggregated_rating = form.aggregated_rating.data
         game.first_release_date = form.first_release_date.data
         game.status = form.status.data
+
         category_str = form.category.data 
-        
         category_str = category_str.replace('Category.', '')
         if category_str in Category.__members__:
             game.category = Category[category_str]
@@ -1580,7 +1584,19 @@ def game_edit(game_uuid):
         print(f"/game_edit/: Form validation failed: {form.errors}")
 
     # For GET or if form fails
-    return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, action="edit")
+    print(f"game_edit2 Platform ID: {platform_id}, Platform Name: {platform_name}, Library Name: {library_name}")
+    return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, platform_id=platform_id, platform_name=platform_name, library_name=library_name, action="edit")
+
+@bp.route('/get_platform_by_library/<library_uuid>')
+@login_required
+@admin_required
+def get_platform_by_library(library_uuid):
+    library = Library.query.filter_by(uuid=library_uuid).first()
+    if library:
+        platform_name = library.platform.name
+        platform_id = PLATFORM_IDS.get(library.platform.value.upper(), None)
+        return jsonify({'platform_name': platform_name, 'platform_id': platform_id})
+    return jsonify({'error': 'Library not found'}), 404
 
 
 @bp.route('/edit_game_images/<game_uuid>', methods=['GET'])
@@ -2254,6 +2270,60 @@ def delete_all_games():
     return redirect(url_for('main.scan_management'))
 
 
+@bp.route('/delete_full_library/<library_uuid>', methods=['POST'])
+@bp.route('/delete_full_library/KILL_ALL_LIBRARIES', methods=['POST'])
+@login_required
+@admin_required
+def delete_full_library(library_uuid=None):
+    print(f"Route: /delete_full_library - {current_user.name} - {current_user.role} method: {request.method} UUID: {library_uuid}")
+    try:
+        if library_uuid == "KILL_ALL_LIBRARIES":
+            print(f"KILL ALL Deleting all libraries and their games.")
+            libraries = Library.query.all()
+            for library in libraries:
+                games_to_delete = Game.query.filter_by(library_uuid=library.uuid).all()
+                for game in games_to_delete:
+                    try:
+                        delete_game(game.uuid)
+                    except FileNotFoundError as fnfe:
+                        print(f'File not found for game with UUID {game.uuid}: {fnfe}')
+                        flash(f'File not found for game with UUID {game.uuid}. Skipping...', 'info')
+                    except Exception as e:
+                        print(f'Error deleting game with UUID {game.uuid}: {e}')
+                        flash(f'Error deleting game with UUID {game.uuid}: {e}', 'error')
+                db.session.delete(library)
+            flash('All libraries and their games have been deleted.', 'success')
+        elif library_uuid:
+            library = Library.query.filter_by(uuid=library_uuid).first()
+            if library:
+                print(f"Deleting full library: {library}")
+                games_to_delete = Game.query.filter_by(library_uuid=library.uuid).all()
+                for game in games_to_delete:
+                    try:
+                        delete_game(game.uuid)
+                    except FileNotFoundError as fnfe:
+                        print(f'File not found for game with UUID {game.uuid}: {fnfe}')
+                        flash(f'File not found for game with UUID {game.uuid}. Skipping...', 'info')
+                    except Exception as e:
+                        print(f'Error deleting game with UUID {game.uuid}: {e}')
+                        flash(f'Error deleting game with UUID {game.uuid}: {e}', 'error')
+                db.session.delete(library)
+                flash(f'Library "{library.name}" and all its games have been deleted.', 'success')
+            else:
+                flash('Library not found.', 'error')
+        else:
+            flash('No operation specified.', 'error')
+
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error during deletion: {str(e)}", 'error')
+
+    return redirect(url_for('main.libraries'))
+
+
+
+
 @bp.route('/download_game/<game_uuid>', methods=['GET'])
 @login_required
 def download_game(game_uuid):
@@ -2570,22 +2640,35 @@ def search_igdb_by_id():
 @login_required
 def search_igdb_by_name():
     game_name = request.args.get('name')
+    platform_id = request.args.get('platform_id')
+
     if game_name:
+        # Start with basic search and expand the query conditionally
         query = f"""
             fields id, name, cover.url, summary, url, release_dates.date, platforms.name, genres.name, themes.name, game_modes.name,
                    screenshots.url, videos.video_id, first_release_date, aggregated_rating, involved_companies, player_perspectives.name,
                    aggregated_rating_count, rating, rating_count, slug, status, category, total_rating, 
                    total_rating_count;
-            where name ~ *"{game_name}"*; limit 10;
-        """
-        
+            search "{game_name}";"""
+
+        # Check if a platform_id was provided and is valid
+        if platform_id and platform_id.isdigit():
+            # Append the platform filter to the existing search query
+            query += f" where platforms = ({platform_id});"
+        else:
+            query += ";"
+
+        query += " limit 10;"  # Set a limit to the number of results
+
         results = make_igdb_api_request('https://api.igdb.com/v4/games', query)
-        
+
         if 'error' not in results:
             return jsonify({'results': results})
         else:
             return jsonify({'error': results['error']})
     return jsonify({'error': 'No game name provided'})
+
+
 
 
 @bp.route('/check_scan_status', methods=['GET'])
