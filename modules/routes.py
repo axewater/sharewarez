@@ -1877,18 +1877,18 @@ def scan_jobs_status():
     jobs = ScanJob.query.all()
     jobs_data = [{
         'id': job.id,
-        'library_name': job.library.name,
+        'library_name': job.library.name if job.library else 'No Library Assigned',
         'folders': job.folders,
         'status': job.status,
         'total_folders': job.total_folders,
         'folders_success': job.folders_success,
         'folders_failed': job.folders_failed,
         'error_message': job.error_message,
-        'last_run': job.last_run.strftime('%Y-%m-%d %H:%M:%S') if job.last_run else '',
-        'next_run': job.next_run.strftime('%Y-%m-%d %H:%M:%S') if job.next_run else ''
+        'last_run': job.last_run.strftime('%Y-%m-%d %H:%M:%S') if job.last_run else 'Not Available',
+        'next_run': job.next_run.strftime('%Y-%m-%d %H:%M:%S') if job.next_run else 'Not Scheduled'
     } for job in jobs]
-    # print(f'Scan jobs data: {jobs_data}')
     return jsonify(jobs_data)
+
 
 
 @bp.route('/update_unmatched_folder_status', methods=['POST'])
