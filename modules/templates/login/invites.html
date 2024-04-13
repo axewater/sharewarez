@@ -25,11 +25,16 @@
             <div>
                 Invite Link: <span class="text-primary">{{ url_for('main.register', token=invite.token, _external=True) }}</span><br>
                 Status: <strong>{{ "Used" if invite.used else "Pending" }}</strong><br>
-                Expires in: <strong>{{ (invite.expires_at - datetime.utcnow()).total_seconds() // 3600 }} hours</strong>
+                Expires in: 
+                {% set seconds_remaining = (invite.expires_at - datetime.utcnow()).total_seconds() %}
+                {% if seconds_remaining > 0 %}
+                    <strong>{{ seconds_remaining // 3600 }} hours</strong>
+                {% else %}
+                    <strong class="text-danger">INVITE EXPIRED</strong>
+                {% endif %}
             </div>
-            <button type="button" class="btn btn-outline-secondary btn-sm" {% if invite.used %}disabled{% endif %}
+            <button type="button" class="btn btn-outline-secondary btn-sm" {% if invite.used or seconds_remaining <= 0 %}disabled{% endif %}
             onclick="copyToClipboard(this, '{{ url_for('main.register', token=invite.token, _external=True) }}')">Copy Invite URL</button>
-
         </div>
         {% else %}
         <div class="list-group-item">You have no active invites. Invite some pirates onto your crew!</div>
