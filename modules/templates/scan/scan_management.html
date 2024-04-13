@@ -205,45 +205,54 @@
                         <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to clear all unmatched folders? This cannot be undone.');">Clear Unmatched</button>
                     </form>
                 </div>
-                <table class="table" style="border-radius: 15px";>
+                <table class="table" style="border-radius: 15px;">
                     <thead>
                         <tr>
                             <th>Folder Path</th>
                             <th>Status</th>
+                            <th>Library</th>
+                            <th>Platform</th>
+                            <th>Platform ID</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for folder in unmatched_folders %}
+                        {% for item in unmatched_folders %}
                         <tr>
-                            <td>{{ folder.folder_path }}</td>
-                            <td>{{ folder.status }}</td>
+                            <td>{{ item.folder.folder_path }}</td>
+                            <td>{{ item.folder.status }}</td>
+                            <td>{{ item.library_name }}</td>
+                            <td>{{ item.platform_name }}</td>
+                            <td>{{ item.platform_id }}</td>
                             <td>
                                 <form method="post" action="{{ url_for('main.update_unmatched_folder_status') }}" data-csrf="{{ csrf_token() }}" style="display: inline;">
                                     {{ csrf_form.csrf_token }}
-                                    <input type="hidden" name="folder_id" value="{{ folder.id }}">
+                                    <input type="hidden" name="folder_id" value="{{ item.folder.id }}">
                                     <input type="hidden" name="new_status" value="Ignore">
                                     <input type="submit" class="btn btn-secondary btn-sm" value="Ignore">
                                 </form>
-
+                
                                 <form class="delete-folder-form" style="display: inline;">
                                     {{ csrf_form.csrf_token }}
-                                    <input type="hidden" name="folder_path" value="{{ folder.folder_path }}">
+                                    <input type="hidden" name="folder_path" value="{{ item.folder.folder_path }}">
                                     <button type="submit" class="btn btn-danger btn-sm">Delete Folder</button>
                                 </form>
-
-
-                                <!-- New Edit Form -->
+                
                                 <form action="{{ url_for('main.add_game_manual') }}" method="GET" style="display: inline;">
-                                    <input type="hidden" name="full_disk_path" value="{{ folder.folder_path }}">
+                                    <input type="hidden" name="full_disk_path" value="{{ item.folder.folder_path }}">
+                                    <input type="hidden" name="library_uuid" value="{{ item.folder.library.uuid }}"> 
+                                    <input type="hidden" name="platform_name" value="{{ item.platform_name }}">
+                                    <input type="hidden" name="platform_id" value="{{ item.platform_id }}">
                                     <input type="hidden" name="from_unmatched" value="true">
                                     <input type="submit" class="btn btn-primary btn-sm" value="Identify">
                                 </form>
+                                
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+                
             </div>
 
         </div>

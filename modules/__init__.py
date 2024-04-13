@@ -65,14 +65,9 @@ def create_app():
     mail.init_app(app)
     login_manager.login_view = 'main.login'
     cache.init_app(app)
-    
-    # scheduling disabled at this time
-    #scheduler = APScheduler()
-    #scheduler.init_app(app)
-    #scheduler.start()
+
     with app.app_context():
         from . import routes, models
-        #_upgrade()
         db.create_all()
         insert_default_release_groups()
     app.register_blueprint(routes.bp)
