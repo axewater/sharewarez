@@ -12,33 +12,29 @@
         {% endif %}
     {% endwith %}
 </div>
+<body data-base-delete-url="{{ url_for('main.delete_full_library', library_uuid='') }}">
+    <!-- Rest of your HTML -->
+</body>
 
 <!-- Bootstrap Modal for Warning Confirmation -->
 <div class="modal fade" id="deleteWarningModal" tabindex="-1" role="dialog" aria-labelledby="deleteWarningModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="deleteWarningModalLabel">Confirm Deletion</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                Are you sure you want to delete all games? This action cannot be undone.
+                Are you sure you want to delete this item? This action cannot be undone.
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <!-- Updated form action to point to the delete_full_library route with the special keyword -->
-                <form action="{{ url_for('main.delete_full_library', library_uuid='KILL_ALL_LIBRARIES') }}" method="post">
-                    {{ csrf_form.csrf_token }}
-                    <button type="submit" class="btn btn-danger">Confirm Delete All Libraries</button>
-                </form>
+                <button type="button" class="btn btn-danger" id="confirmDeleteButton">Confirm Delete</button>
             </div>
-            
         </div>
     </div>
 </div>
-
 <!-- Back to Dashboard Button -->
 <div class="container mt-3">
     <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
@@ -58,15 +54,19 @@
                     <img src="{{ library.image_url or url_for('static', filename='default-image.jpg') }}" alt="{{ library.name }}" style="width: 50px; height: 50px; object-fit: cover;" class="me-3 rounded">
                     <span>{{ library.name }} - {{ library.platform.name }}</span>
                 </div>
-                <form action="{{ url_for('main.delete_full_library', library_uuid=library.uuid) }}" method="post">
-                    {{ csrf_form.csrf_token }}
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
+                <div>
+                    <a href="{{ url_for('main.scan_management', library_uuid=library.uuid) }}" class="btn btn-secondary">Scan Games</a>
+                    <form action="{{ url_for('main.delete_full_library', library_uuid=library.uuid) }}" method="post" style="display: inline-block;">
+                        {{ csrf_form.csrf_token }}
+                        <button type="button" class="btn btn-danger delete-btn" data-toggle="modal" data-target="#deleteWarningModal" data-library-uuid="{{ library.uuid }}">Delete</button>
+                    </form>
+                </div>
             </div>
         {% endfor %}
     </div>
 </div>
 
+{% if libraries %}
 <div class="glass-panel-scanfolder" style="margin-left: 15px; max-width: 600px;">
     <!-- Include Delete All Games functionality -->
     <div id="deleteLibrary" class="mt-4">
@@ -75,7 +75,7 @@
         <p>Total # of games currently in all libraries: <strong>{{ game_count }}</strong></p>
         <button id="deleteAllGamesBtn" class="btn btn-danger" data-toggle="modal" data-target="#deleteWarningModal">Delete All Libraries</button>
     </div>
-
+    {% endif %}
     
 </div>
 <script src="{{ url_for('static', filename='js/library_manager.js') }}"></script>
