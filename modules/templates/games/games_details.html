@@ -48,7 +48,7 @@
                 <div class="game-card-q1">
                     
                     {% if game.images and game.images|length > 0 %}
-						<div class="screenshot-gallery">
+						<div class="game-card-coverimage">
 							{% for image in game.images %}
 								{% if 'cover' in image.url %}
 									<img src="{{ url_for('static', filename='library/images/' + image.url) }}" alt="{{ game.name }} Cover Image" class="game-card-coverimage animated-entry">
