@@ -229,7 +229,9 @@ $(document).ready(function() {
                     message = '<p>No games or libraries found. Complain to the Captain of this vessel!</p>';
                 }
                 // Append the message to the gamesContainer
-                $('#gamesContainer').append(message);
+				if( $('#gamesContainer').empty() ){
+					$('#gamesContainer').append(message);
+				}
             },
             error: function() {
                 // Handle errors, e.g., if the endpoint is unreachable
