@@ -48,11 +48,14 @@
                 <div class="game-card-q1">
                     
                     {% if game.images and game.images|length > 0 %}
-                        <div class="game-card-coverimage">
-                            <img src="{{ url_for('static', filename='library/images/' + game.images[0].url) }}" alt="{{ game.name }} Cover Image" class="game-card-coverimage animated-entry">
-                        </div>
-                    {% endif %}
-
+						<div class="game-card-coverimage">
+							{% for image in game.images %}
+								{% if 'cover' in image.url %}
+									<img src="{{ url_for('static', filename='library/images/' + image.url) }}" alt="{{ game.name }} Cover Image" class="game-card-coverimage animated-entry">
+								{% endif %}
+							{% endfor %}
+						</div>
+					{% endif %}
                     
                     <div class="game-card-text-summary">
                         {% if game.summary and game.summary|length > 340 %}
@@ -181,10 +184,12 @@
                         
                     </div>
                 </div>
-                {% if game.images and game.images|length > 0 %}
+			{% if game.images and game.images|length > 0 %}
                 <div class="screenshot-gallery">
                     {% for image in game.images %}
-                        <img src="{{ url_for('static', filename='library/images/' + image.url) }}" alt="{{ game.name }} Screenshot" class="screenshot-image" onclick="openModal();currentSlide({{ loop.index }})">
+						{% if 'cover' not in image.url %}
+							<img src="{{ url_for('static', filename='library/images/' + image.url) }}" alt="{{ game.name }} Screenshot" class="screenshot-image" onclick="openModal();currentSlide({{ loop.index }})">
+						{% endif %}
                     {% endfor %}
                 </div>
             {% endif %}
