@@ -2716,3 +2716,9 @@ def check_scan_status():
 
 
 
+@bp.route('/help')
+def helpfaq():
+    print("Route: /help")
+    return render_template('site/help.html')
+
+
