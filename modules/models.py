@@ -256,7 +256,7 @@ class Game(db.Model):
     library_name = db.Column(db.String(512), nullable=True)
     library_uuid = db.Column(db.String(36), db.ForeignKey('libraries.uuid'), nullable=False)
 
-    size = db.Column(db.Float, nullable=False, default=0.0)
+    size = db.Column(db.BigInteger, nullable=False, default=0)
 
     def __repr__(self):
         return f"<Game id={self.id}, name={self.name}>"

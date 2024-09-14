@@ -129,7 +129,7 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def create_game_instance(game_data, full_disk_path, folder_size_mb, library_uuid):
+def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_uuid):
     try:
         if not isinstance(game_data, dict):
             raise ValueError("create_game_instance game_data is not a dictionary")
@@ -175,7 +175,7 @@ def create_game_instance(game_data, full_disk_path, folder_size_mb, library_uuid
             total_rating_count=game_data.get('total_rating_count'),
             video_urls=videos_comma_separated,
             full_disk_path=full_disk_path,
-            size=folder_size_mb,
+            size=folder_size_bytes,
             date_created=datetime.utcnow(),
             date_identified=datetime.utcnow(),
             steam_url='',
@@ -388,9 +388,9 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
             print(f"attempting to read NFO content for game {game_name} on {full_disk_path}.")
             nfo_content = read_first_nfo_content(full_disk_path)            
             print(f"Calculating folder size for {full_disk_path}.")
-            folder_size_mb = get_folder_size_in_mb(full_disk_path)
-            print(f"Folder size for {full_disk_path}: {format_size(folder_size_mb)}")
-            new_game = create_game_instance(game_data=response_json[0], full_disk_path=full_disk_path, folder_size_mb=folder_size_mb, library_uuid=library.uuid)
+            folder_size_bytes = get_folder_size_in_bytes(full_disk_path)
+            print(f"Folder size for {full_disk_path}: {format_size(folder_size_bytes)}")
+            new_game = create_game_instance(game_data=response_json[0], full_disk_path=full_disk_path, folder_size_bytes=folder_size_bytes, library_uuid=library.uuid)
             
                     
             if 'genres' in response_json[0]:
@@ -509,27 +509,14 @@ def check_existing_game_by_path(full_disk_path):
         return existing_game_by_path 
     return None
 
-
-def format_size(size_in_mb):
-    try:
-        if size_in_mb is None:
-            return '0 MB'  # Fallback value if size_in_mb is None
-        elif size_in_mb >= 1024:
-            return f"{size_in_mb / 1024:.2f} GB"
-        else:
-            return f"{size_in_mb:.2f} MB"
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return '0 MB'  # Fallback value for any other errors
-
-def get_folder_size_in_mb(folder_path):
+def get_folder_size_in_bytes(folder_path):
     total_size = 0
     for dirpath, dirnames, filenames in os.walk(folder_path):
         for f in filenames:
             fp = os.path.join(dirpath, f)
             if os.path.exists(fp):
                 total_size += os.path.getsize(fp)
-    return total_size / (1024 * 1024)
+    return total_size
 
 def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
     print(f"Enumerating companies for game {game_instance.name} with IGDB ID {igdb_game_id}.")
@@ -1210,13 +1197,37 @@ def load_release_group_patterns():
         print(f"An error occurred while fetching release group patterns: {e}")
         return [], []
 
-def format_size(size_in_mb):
-    if size_in_mb >= 1024:
-        size_in_gb = size_in_mb / 1024
-        return f"{size_in_gb:.2f} GB"
-    else:
-        return f"{int(size_in_mb)} MB"
 
+def format_size(size_in_bytes):
+    try:
+        if size_in_bytes is None:
+            return '0 MB'  # Fallback value if size_in_bytes is None
+        else:
+            # Define size units
+            units = ['KB', 'MB', 'GB', 'TB', 'PB', 'EB']
+            size = size_in_bytes / 1024  # Start with KB
+            unit_index = 0
+            while size >= 1024 and unit_index < len(units) - 1:
+                size /= 1024
+                unit_index += 1
+            return f"{size:.2f} {units[unit_index]}"
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return '0 MB'  # Fallback value for any other errors
+
+
+
+def get_folder_size_in_bytes(folder_path):
+    if os.path.isfile(folder_path):
+        return os.path.getsize(folder_path)
+    
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(folder_path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            if os.path.exists(fp):
+                total_size += os.path.getsize(fp)
+    return max(total_size, 1)  # Ensure the size is at least 1 byte
 
 def comma_separated_urls(form, field):
     
