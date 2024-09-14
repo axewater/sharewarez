@@ -101,7 +101,7 @@ CREATE DATABASE sharewarez;
 📬Why do I need to setup SMTP settings ?
 ✉️ Mail is required for user self-service. Registration, password resets and the invite system all work by sending 'secure links' to a user's email.
 
-- **Create 'config.py'**: Copy `config.py.example` and rename it to `config.py`.
+- **Create 'config.py'**: Copy `config.example` and rename it to `config.py`.
 - **Set a Secret Key**: This key is used for securing session cookies, it's important you have your own unique key here. Just put 32 (for instance) random🎲 characters there.
 - **Enter Database URI**: Fill in the DATABASE_URI with your database details.
 - **Configure SMTP Settings**: Set up your mail server 📬details to enable online user registration, invites and pw resets. Usually your ISP will have an SMTP server you can use here.
@@ -113,7 +113,7 @@ CREATE DATABASE sharewarez;
 🛠️ 3b. Setup without Mail (NO SMTP)
 📭❌Single user system ? Whatever your reason, you can easily setup the application without SMTP. No mail? No problem!
 
-- Create 'config.py': copy 'config.py.example' file supplied.
+- Create 'config.py': copy 'config.example' file supplied.
 - Database URI: Point it to your `sharewarez` database.
 - Run `setup_nosmtp.py` to create an admin user.
 - Start the application by running `app.py`.

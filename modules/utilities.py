@@ -70,7 +70,7 @@ def send_password_reset_email(user_email, token):
     reset_url = url_for('main.reset_password', token=token, _external=True)
     msg = MailMessage(
         'Avast Ye! Password Reset Request Arrr!',
-        sender='Blackbeard@Sharewarez.com', 
+        sender=current_app.config['MAIL_DEFAULT_SENDER'], 
         recipients=[user_email]
     )
     msg.body = '''Ahoy there!
@@ -93,7 +93,7 @@ Captain Blackbeard
 
 <p>Captain Blackbeard</p>
 
-<p>P.S. If ye be havin' any troubles, send a message to the crew at <a href="mailto:Blackbeard@Sharewarez.com">Blackbeard@Sharewarez.com</a>, and we'll help ye navigate yer way back into yer account! Arrr!</p>
+<p>P.S. If ye be havin' any troubles, send a message to the crew at <a href="mailto:{current_app.config['MAIL_DEFAULT_SENDER']}">{current_app.config['MAIL_DEFAULT_SENDER']}</a>, and we'll help ye navigate yer way back into yer account! Arrr!</p>
 '''
     mail.send(msg)
 
