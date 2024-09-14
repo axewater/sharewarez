@@ -345,19 +345,33 @@ function createPopupMenuHtml(game) {
       }
   });
 
-  $('#filterForm').on('submit', function(e) {
-      e.preventDefault();
-      fetchFilteredGames(1);
-  });
+    $('#filterForm').on('submit', function(e) {
+        e.preventDefault();
+        fetchFilteredGames(1);
+    });
 
-  $('#ratingSlider').on('input', function() {
-      $('#ratingValue').text($(this).val());
-  });
+    $('#ratingSlider').on('input', function() {
+        $('#ratingValue').text($(this).val());
+    });
 
+    $('#clearFilters').click(function() {
+        // Reset all select elements to their first option
+        $('#libraryNameSelect, #genreSelect, #themeSelect, #gameModeSelect, #playerPerspectiveSelect').val('');
+        
+        // Reset rating slider
+        $('#ratingSlider').val(0);
+        $('#ratingValue').text('0');
+        
+        // Reset sort select to default (assuming 'name' is the default)
+        $('#sortSelect').val('name');
+        
+        // Fetch games with cleared filters
+        fetchFilteredGames(1);
+    });
 
-  $('#sortSelect').change(function() {
-    fetchFilteredGames(1); 
-  });
+    $('#sortSelect').change(function() {
+      fetchFilteredGames(1); 
+    });
 
 
   var initialParams = getUrlParams();
