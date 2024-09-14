@@ -1781,6 +1781,7 @@ def manage_settings():
             db.session.add(settings_record)
         
         settings_record.settings = new_settings
+        settings_record.enable_delete_game_on_disk = new_settings.get('enableDeleteGameOnDisk', True)
         settings_record.last_updated = datetime.utcnow()
         db.session.commit()
         cache.delete('global_settings')
@@ -1791,7 +1792,7 @@ def manage_settings():
     else:  # GET request
         settings_record = GlobalSettings.query.first()
         current_settings = settings_record.settings if settings_record else {}
-        # Convert settings to the appropriate format for the template if necessary
+        current_settings['enableDeleteGameOnDisk'] = settings_record.enable_delete_game_on_disk if settings_record else True
         return render_template('admin/admin_settings.html', current_settings=current_settings)
 
 

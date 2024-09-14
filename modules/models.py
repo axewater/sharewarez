@@ -504,6 +504,7 @@ class GlobalSettings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     settings = db.Column(JSONEncodedDict)  # Store all settings in a single JSON-encoded column
     last_updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    enable_delete_game_on_disk = db.Column(db.Boolean, default=True)  # New column
 
     def __repr__(self):
         return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'
