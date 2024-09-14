@@ -85,7 +85,7 @@
                         <div class="game-row">
                             {% for game in most_downloaded_games %}
                                 <div class="game-card-container">
-                                    <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
+                                    <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}', 'most-downloaded')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
                                         
                                         {% with game_uuid=game.uuid, game_url=game.url %}
                                      
@@ -99,7 +99,7 @@
                                                 <img src="{{ url_for('static', filename='newstyle/default_cover.jpg') }}" alt="Default Cover Image" class="game-cover">
                                             </a>
                                         {% endif %}
-                                        <div id="details-{{ game.uuid }}" class="popup-game-details hidden">
+                                        <div id="details-{{ game.uuid }}-most-downloaded" class="popup-game-details hidden">
                                             <!-- Details and screenshots will be injected here by JavaScript -->
                                         </div>
                                     </div>
@@ -119,7 +119,7 @@
                         <div class="game-row">
                             {% for game in highest_rated_games %}
                                 <div class="game-card-container">
-                                    <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
+                                    <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}', 'highest-rated')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
                                         {% with game_uuid=game.uuid, game_url=game.url %}
                                      
                                         {% endwith %}
@@ -132,7 +132,7 @@
                                                 <img src="{{ url_for('static', filename='newstyle/default_cover.jpg') }}" alt="Default Cover Image" class="game-cover">
                                             </a>
                                         {% endif %}
-                                        <div id="details-{{ game.uuid }}" class="popup-game-details hidden">
+                                        <div id="details-{{ game.uuid }}-highest-rated" class="popup-game-details hidden">
                                             <!-- Details and screenshots will be injected here by JavaScript -->
                                         </div>
                                     </div>
