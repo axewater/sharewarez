@@ -12,7 +12,7 @@ from config import Config
 #from flask_migrate import Migrate
 #from flask_migrate import upgrade as _upgrade
 from modules.routes_site import site_bp
-from modules.filters import setup_filters
+# from modules.filters import setup_filters
 from urllib.parse import urlparse
 from flask_caching import Cache
 
@@ -72,7 +72,7 @@ def create_app():
         insert_default_release_groups()
     app.register_blueprint(routes.bp)
     app.register_blueprint(site_bp)
-    setup_filters(app)
+    # setup_filters(app)
     return app
 
 
