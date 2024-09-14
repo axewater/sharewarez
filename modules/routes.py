@@ -42,7 +42,7 @@ from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
     get_game_by_uuid, make_igdb_api_request, load_release_group_patterns, check_existing_game_by_igdb_id,
     get_game_names_from_folder, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_folder,
-    zip_game, format_size, delete_game_images, get_folder_size_in_mb, read_first_nfo_content, PLATFORM_IDS
+    zip_game, format_size, delete_game_images, read_first_nfo_content, PLATFORM_IDS
 )
 
 
@@ -1584,8 +1584,9 @@ def game_edit(game_uuid):
         
         # Updating size
         print(f"Calculating folder size for {game.full_disk_path}.")
-        new_folder_size_mb = get_folder_size_in_mb(game.full_disk_path)
-        print(f"New folder size for {game.full_disk_path}: {format_size(new_folder_size_mb)}")
+        new_folder_size_bytes = get_folder_size_in_bytes(game.full_disk_path)
+        print(f"New folder size for {game.full_disk_path}: {format_size(new_folder_size_bytes)}")
+        game.size = new_folder_size_bytes
 
         game.nfo_content = read_first_nfo_content(game.full_disk_path)
 
