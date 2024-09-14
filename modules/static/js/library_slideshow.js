@@ -41,9 +41,14 @@ function clearSlideshowForGameUuid(gameUuid) {
     }
 }
 
-const showDetailsDebounced = debounce(function(element, gameUuid) {
+const showDetailsDebounced = debounce(function(element, gameUuid, rowid) {
     
-    const detailsDiv = document.getElementById(`details-${gameUuid}`);
+	if (rowid) {
+		var detailsDiv = document.getElementById(`details-${gameUuid}-${rowid}`);
+	} else {
+		var detailsDiv = document.getElementById(`details-${gameUuid}`);
+	}
+	
     if (!detailsDiv) {
         return;
     }
@@ -110,13 +115,19 @@ const debouncedResize = debounce(function() {
 
 window.addEventListener('resize', debouncedResize);
 
-function showDetails(element, gameUuid) {
-    const detailsDiv = document.getElementById(`details-${gameUuid}`);
+function showDetails(element, gameUuid, rowid) {
+	
+	if (rowid) {
+		var detailsDiv = document.getElementById(`details-${gameUuid}-${rowid}`);
+	} else {
+		var detailsDiv = document.getElementById(`details-${gameUuid}`);
+	}
+	
     if (!detailsDiv) {
         return;
     }
 
-    showDetailsDebounced(element, gameUuid);
+    showDetailsDebounced(element, gameUuid, rowid);
 
     // Calculate the space needed for the popup
     const popupWidth = 300; // Assuming a fixed width for the popup
@@ -125,7 +136,7 @@ function showDetails(element, gameUuid) {
     const spaceOnRight = viewportWidth - gameCardRect.right;
 
     // Check if there's enough space on the right, if not, adjust to show on the left
-    if (spaceOnRight < popupWidth + 20) { // 20px for some margin
+    if (spaceOnRight < popupWidth + 40) { // 20px for some margin
         detailsDiv.style.left = 'auto'; // Reset left property
         detailsDiv.style.right = '105%'; // Position to the left of the game card
     } else {
@@ -134,7 +145,7 @@ function showDetails(element, gameUuid) {
     }
 
     // Existing logic to show game details
-    showDetailsDebounced(element, gameUuid);
+    showDetailsDebounced(element, gameUuid, rowid);
 }
 
 function hideDetails() {

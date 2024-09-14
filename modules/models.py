@@ -7,6 +7,7 @@ from sqlalchemy.types import TypeDecorator, TEXT
 from sqlalchemy.types import Enum as SQLEnum
 from werkzeug.security import generate_password_hash, check_password_hash
 from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 from datetime import datetime
 import uuid, json
 from uuid import uuid4
@@ -321,7 +322,7 @@ class User(db.Model):
         if self.password_hash.startswith('$argon2'):
             try:
                 return ph.verify(self.password_hash, password)
-            except argon2_exceptions.VerifyMismatchError:
+            except VerifyMismatchError:
                 return False
         else:
             # Fallback to the old bcrypt checking
