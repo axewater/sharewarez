@@ -1298,7 +1298,7 @@ def handle_auto_scan(auto_form):
         thread = Thread(target=start_scan)
         thread.start()
         
-        flash(f"Auto-scan started for folder: {full_path} and library name: {library}", 'info')
+        flash(f"Auto-scan started for folder: {full_path} and library name: {library.name}", 'info')
         session['active_tab'] = 'auto'
     else:
         flash(f"Auto-scan form validation failed: {auto_form.errors}")
