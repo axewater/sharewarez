@@ -59,6 +59,7 @@
     </div>
     <div class="sidebar-menu">
         {% if current_user.is_authenticated %}
+            <a href="{{ url_for('main.discover') }}" class="sidebar-link"><i class="fas fa-compass"></i><span class="link-text">Discover</span></a>
             <a href="{{ url_for('main.library') }}" class="sidebar-link"><i class="fas fa-gamepad"></i><span class="link-text">Library</span></a>
             <a href="{{ url_for('main.downloads') }}" class="sidebar-link"><i class="fas fa-download"></i><span class="link-text">Downloads</span></a>
     
@@ -67,7 +68,7 @@
             {% endif %}
     
             {% if show_help_button %}
-                <a href="{{ url_for('site.helpfaq') }}" class="sidebar-link"><i class="fas fa-question-circle"></i><span class="link-text">Help</span></a>
+                <a href="{{ url_for('main.helpfaq') }}" class="sidebar-link"><i class="fas fa-question-circle"></i><span class="link-text">Help</span></a>
             {% endif %}
             
         {% else %}

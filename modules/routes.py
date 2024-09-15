@@ -42,7 +42,7 @@ from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
     get_game_by_uuid, make_igdb_api_request, load_release_group_patterns, check_existing_game_by_igdb_id,
     get_game_names_from_folder, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_folder,
-    zip_game, format_size, delete_game_images, get_folder_size_in_mb, read_first_nfo_content, PLATFORM_IDS
+    zip_game, format_size, delete_game_images, read_first_nfo_content, PLATFORM_IDS
 )
 
 
@@ -52,7 +52,7 @@ has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
-app_version = '1.2.1'
+app_version = '1.2.3'
 
 @bp.before_app_request
 def initial_setup():
@@ -1584,8 +1584,9 @@ def game_edit(game_uuid):
         
         # Updating size
         print(f"Calculating folder size for {game.full_disk_path}.")
-        new_folder_size_mb = get_folder_size_in_mb(game.full_disk_path)
-        print(f"New folder size for {game.full_disk_path}: {format_size(new_folder_size_mb)}")
+        new_folder_size_bytes = get_folder_size_in_bytes(game.full_disk_path)
+        print(f"New folder size for {game.full_disk_path}: {format_size(new_folder_size_bytes)}")
+        game.size = new_folder_size_bytes
 
         game.nfo_content = read_first_nfo_content(game.full_disk_path)
 
@@ -1780,6 +1781,7 @@ def manage_settings():
             db.session.add(settings_record)
         
         settings_record.settings = new_settings
+        settings_record.enable_delete_game_on_disk = new_settings.get('enableDeleteGameOnDisk', True)
         settings_record.last_updated = datetime.utcnow()
         db.session.commit()
         cache.delete('global_settings')
@@ -1790,7 +1792,7 @@ def manage_settings():
     else:  # GET request
         settings_record = GlobalSettings.query.first()
         current_settings = settings_record.settings if settings_record else {}
-        # Convert settings to the appropriate format for the template if necessary
+        current_settings['enableDeleteGameOnDisk'] = settings_record.enable_delete_game_on_disk if settings_record else True
         return render_template('admin/admin_settings.html', current_settings=current_settings)
 
 
@@ -2712,5 +2714,11 @@ def check_scan_status():
     is_active = active_job is not None
     return jsonify({"is_active": is_active})
 
+
+
+@bp.route('/help')
+def helpfaq():
+    print("Route: /help")
+    return render_template('site/help.html')
 
 

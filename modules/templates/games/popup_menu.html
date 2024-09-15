@@ -24,9 +24,11 @@
     <div class="menu-item">
         <button type="button" class="menu-button delete-game" data-game-uuid="{{ game_uuid }}">Remove Game from DB</button>
     </div>
+    {% if enable_delete_game_on_disk %}
     <div class="menu-item">
         <button type="button" class="menu-button trigger-delete-modal" data-game-uuid="{{ game_uuid }}">Delete Game on disk</button>
     </div>
+    {% endif %}
     <div class="menu-item">
         {% if game.url %}
         <a href="{{ game.url }}" target="_blank" class="menu-button" style="text-decoration: none; color: inherit;">Open IGDB Page</a>

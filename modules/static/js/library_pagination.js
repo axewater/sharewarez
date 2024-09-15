@@ -282,7 +282,11 @@ function createPopupMenuHtml(game) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     // console.log(i++, game); // super handy debug
     window.game = game;
-    return `
+    
+    // Fetch the current setting for enableDeleteGameOnDisk
+    const enableDeleteGameOnDisk = document.body.getAttribute('data-enable-delete-game-on-disk') === 'true';
+
+    let menuHtml = `
     <div id="popupMenu-${game.uuid}" class="popup-menu" style="display: none;">
         <form action="/download_game/${game.uuid}" method="get" class="menu-item">
             <button type="submit" class="menu-button">Download</button>
@@ -303,15 +307,23 @@ function createPopupMenuHtml(game) {
         
         <div class="menu-item">
             <button type="button" class="menu-button delete-game" data-game-uuid="${game.uuid}">Remove Game</button>
-        </div>
+        </div>`;
+
+    if (enableDeleteGameOnDisk) {
+        menuHtml += `
         <div class="menu-item">
             <button type="button" class="menu-button trigger-delete-disk-modal delete-game-from-disk" data-game-uuid="${game.uuid}">Delete Game from Disk</button>
-        </div>
+        </div>`;
+    }
+
+    menuHtml += `
         <div class="menu-item">
             <a href="${game.url}" target="_blank" class="menu-button" style="text-decoration: none; color: inherit;">Open IGDB Page</a>
         </div>
     </div>
     `;
+
+    return menuHtml;
 }
 
 
@@ -347,19 +359,33 @@ function createPopupMenuHtml(game) {
       }
   });
 
-  $('#filterForm').on('submit', function(e) {
-      e.preventDefault();
-      fetchFilteredGames(1);
-  });
+    $('#filterForm').on('submit', function(e) {
+        e.preventDefault();
+        fetchFilteredGames(1);
+    });
 
-  $('#ratingSlider').on('input', function() {
-      $('#ratingValue').text($(this).val());
-  });
+    $('#ratingSlider').on('input', function() {
+        $('#ratingValue').text($(this).val());
+    });
 
+    $('#clearFilters').click(function() {
+        // Reset all select elements to their first option
+        $('#libraryNameSelect, #genreSelect, #themeSelect, #gameModeSelect, #playerPerspectiveSelect').val('');
+        
+        // Reset rating slider
+        $('#ratingSlider').val(0);
+        $('#ratingValue').text('0');
+        
+        // Reset sort select to default (assuming 'name' is the default)
+        $('#sortSelect').val('name');
+        
+        // Fetch games with cleared filters
+        fetchFilteredGames(1);
+    });
 
-  $('#sortSelect').change(function() {
-    fetchFilteredGames(1); 
-  });
+    $('#sortSelect').change(function() {
+      fetchFilteredGames(1); 
+    });
 
 
   var initialParams = getUrlParams();

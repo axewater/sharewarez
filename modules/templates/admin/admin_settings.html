@@ -6,134 +6,194 @@
         <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
     </div>
     <h2>Manage SharewareZ Settings</h2>
-    <p>(not all settings functional at this time, sorry)
+
     <div id="settingsSavedNotification" class="alert alert-success" role="alert" style="display: none;">
         Settings saved successfully, Captain!
     </div>
     <div class="settingsform-admin">
         <form id="settingsForm">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="showSystemLogo">
-                <label class="form-check-label" for="showSystemLogo">
-                    Show System Logo?
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="showHelpButton">
-                <label class="form-check-label" for="showHelpButton">
-                    Show Help Button
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="advancedFiltersEnabled">
-                <label class="form-check-label" for="advancedFiltersEnabled">
-                    Advanced Filters Enabled?
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="allowUsersToInviteOthers">
-                <label class="form-check-label" for="allowUsersToInviteOthers">
-                    Allow Users to Invite Others?
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="enableWebLinksOnDetailsPage">
-                <label class="form-check-label" for="enableWebLinksOnDetailsPage">
-                    Enable (Show) Weblinks on Details Page
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="enableServerStatusFeature">
-                <label class="form-check-label" for="enableServerStatusFeature">
-                    Enable/Disable Server Status Feature
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="enableNewsletterFeature">
-                <label class="form-check-label" for="enableNewsletterFeature">
-                    Enable/Disable Newsletter Feature
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="storeImagesInGamesFolder">
-                <label class="form-check-label" for="storeImagesInGamesFolder">
-                    Store Images in Games Folder Under .swimages Subfolder
-                </label>
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Interface</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="showSystemLogo">
+                                        <label class="form-check-label" for="showSystemLogo" data-toggle="tooltip" title="When enabled, displays the SharewareZ logo on the main interface.">
+                                            Show System Logo
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="showHelpButton">
+                                        <label class="form-check-label" for="showHelpButton" data-toggle="tooltip" title="Adds a help button to the interface, providing users with quick access to support resources.">
+                                            Show Help Button
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableWebLinksOnDetailsPage">
+                                        <label class="form-check-label" for="enableWebLinksOnDetailsPage" data-toggle="tooltip" title="Shows external web links (e.g., official website, community forums) on game detail pages as an icon.">
+                                            Show Weblinks on Details Page
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Features</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="allowUsersToInviteOthers">
+                                        <label class="form-check-label" for="allowUsersToInviteOthers" data-toggle="tooltip" title="Enables regular users to send invitations to new users.">
+                                            Enable User Invite System
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableServerStatusFeature">
+                                        <label class="form-check-label" for="enableServerStatusFeature" data-toggle="tooltip" title="Enables the server info button in the admin dashboard. This contains sensitive server information such as API keys!">
+                                            Enable Server Info Feature
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableNewsletterFeature">
+                                        <label class="form-check-label" for="enableNewsletterFeature" data-toggle="tooltip" title="Enables the newsletter functionality, allowing administrators to send updates and announcements to users.">
+                                            Enable Newsletter Feature
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableDeleteGameOnDisk">
+                                        <label class="form-check-label" for="enableDeleteGameOnDisk" data-toggle="tooltip" title="Enables the option to delete games from disk. When disabled, this option will be hidden from the UI.">
+                                            Enable Delete Game on Disk
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
         </form>
     </div>
 </div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("Settings form DOMContentLoaded event triggered.");
-
-    const currentSettings = {{ current_settings|tojson }};
-    console.log("Current settings loaded:", currentSettings);
-
-    // Apply current settings to form
-    Object.keys(currentSettings).forEach(function(key) {
-        const input = document.getElementById(key);
-        if(input && input.type === 'checkbox') {
-            input.checked = currentSettings[key];
-        } else if(input) {
-            input.value = currentSettings[key];
-        }
-        console.log("Applied setting for:", key, "; Value:", currentSettings[key]);
-    });
-
-    // Form submission handler
-    document.getElementById('settingsForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        console.log("Form submit event triggered.");
-
-        const settings = {
-            showSystemLogo: document.getElementById('showSystemLogo').checked,
-            showHelpButton: document.getElementById('showHelpButton').checked,
-            advancedFiltersEnabled: document.getElementById('advancedFiltersEnabled').checked,
-            allowUsersToInviteOthers: document.getElementById('allowUsersToInviteOthers').checked,
-            enableWebLinksOnDetailsPage: document.getElementById('enableWebLinksOnDetailsPage').checked,
-            enableServerStatusFeature: document.getElementById('enableServerStatusFeature').checked,
-            enableNewsletterFeature: document.getElementById('enableNewsletterFeature').checked,
-            storeImagesInGamesFolder: document.getElementById('storeImagesInGamesFolder').checked
-        };
-        console.log("Settings to be saved:", settings);
-
-        fetch('/admin/settings', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify(settings)
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("Settings form DOMContentLoaded event triggered.");
+    
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
         })
-        .then(response => {
-            console.log("Fetch response received.");
-            if (response.ok) {
-                return response.json();
+
+        const currentSettings = {{ current_settings|tojson }};
+        console.log("Current settings loaded:", currentSettings);
+
+        // Apply current settings to form
+        Object.keys(currentSettings).forEach(function(key) {
+            const input = document.getElementById(key);
+            if(input && input.type === 'checkbox') {
+                input.checked = currentSettings[key];
+            } else if(input) {
+                input.value = currentSettings[key];
             }
-            throw new Error('Network response was not ok.');
-        })
-        .then(data => {
-            console.log("Response data:", data);
-            alert('Settings updated successfully');
-        })
-        .catch(error => {
-            console.error('Fetch operation error:', error);
-            alert('Error updating settings');
+            console.log("Applied setting for:", key, "; Value:", currentSettings[key]);
+        });
+
+        // Form submission handler
+        document.getElementById('settingsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log("Form submit event triggered.");
+
+            const settings = {
+                showSystemLogo: document.getElementById('showSystemLogo').checked,
+                showHelpButton: document.getElementById('showHelpButton').checked,
+                allowUsersToInviteOthers: document.getElementById('allowUsersToInviteOthers').checked,
+                enableWebLinksOnDetailsPage: document.getElementById('enableWebLinksOnDetailsPage').checked,
+                enableServerStatusFeature: document.getElementById('enableServerStatusFeature').checked,
+                enableNewsletterFeature: document.getElementById('enableNewsletterFeature').checked,
+            };
+            console.log("Settings to be saved:", settings);
+
+            fetch('/admin/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify(settings)
+            })
+            .then(response => {
+                console.log("Fetch response received.");
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(data => {
+                console.log("Response data:", data);
+                document.getElementById('settingsSavedNotification').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('settingsSavedNotification').style.display = 'none';
+                }, 3000);
+            })
+            .catch(error => {
+                console.error('Fetch operation error:', error);
+                alert('Error updating settings');
+            });
         });
     });
-});
-</script>
+    </script>
 
-<style>
-.settingsform-admin {
-    background-color: #000; /* Or any color you prefer */
-    padding: 20px;
-    border-radius: 15px;
-}
-.settingsform-admin .form-check-label {
-    color: #fff; /* Ensuring labels are readable against the dark background */
-}
-</style>
+    <style>
+    .settingsform-admin {
+        
+        padding: 20px;
+        border-radius: 15px;
+    }
+    .settingsform-admin .form-check-label {
+        color: #000000; /* Ensuring labels are readable against the dark background */
+    }
+    .table {
+        background-color: #333;
+        color: #fff;
+    }
+    .table th {
+        background-color: #444;
+    }
+    </style>
 {% endblock %}
