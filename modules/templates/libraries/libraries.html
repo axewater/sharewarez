@@ -76,9 +76,8 @@
         <p>Total # of games currently in all libraries: <strong>{{ game_count }}</strong></p>
         <button id="deleteAllGamesBtn" class="btn btn-danger" data-toggle="modal" data-target="#deleteWarningModal">Delete All Libraries</button>
     </div>
-    {% endif %}
-    
 </div>
+{% endif %}
 <script src="{{ url_for('static', filename='js/library_manager.js') }}"></script>
 
 {% endblock %}
