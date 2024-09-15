@@ -215,40 +215,8 @@
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {% for item in unmatched_folders %}
-                        <tr>
-                            <td>{{ item.folder.folder_path }}</td>
-                            <td>{{ item.folder.status }}</td>
-                            <td>{{ item.library_name }}</td>
-                            <td>{{ item.platform_name }}</td>
-                            <td>{{ item.platform_id }}</td>
-                            <td>
-                                <form method="post" action="{{ url_for('main.update_unmatched_folder_status') }}" data-csrf="{{ csrf_token() }}" style="display: inline;">
-                                    {{ csrf_form.csrf_token }}
-                                    <input type="hidden" name="folder_id" value="{{ item.folder.id }}">
-                                    <input type="hidden" name="new_status" value="Ignore">
-                                    <input type="submit" class="btn btn-secondary btn-sm" value="Ignore">
-                                </form>
-                
-                                <form class="delete-folder-form" style="display: inline;">
-                                    {{ csrf_form.csrf_token }}
-                                    <input type="hidden" name="folder_path" value="{{ item.folder.folder_path }}">
-                                    <button type="submit" class="btn btn-danger btn-sm">Delete Folder</button>
-                                </form>
-                
-                                <form action="{{ url_for('main.add_game_manual') }}" method="GET" style="display: inline;">
-                                    <input type="hidden" name="full_disk_path" value="{{ item.folder.folder_path }}">
-                                    <input type="hidden" name="library_uuid" value="{{ item.folder.library.uuid }}"> 
-                                    <input type="hidden" name="platform_name" value="{{ item.platform_name }}">
-                                    <input type="hidden" name="platform_id" value="{{ item.platform_id }}">
-                                    <input type="hidden" name="from_unmatched" value="true">
-                                    <input type="submit" class="btn btn-primary btn-sm" value="Identify">
-                                </form>
-                                
-                            </td>
-                        </tr>
-                        {% endfor %}
+                    <tbody id="unmatchedFoldersTableBody">
+                        <!-- This will be populated dynamically by JavaScript -->
                     </tbody>
                 </table>
                 
