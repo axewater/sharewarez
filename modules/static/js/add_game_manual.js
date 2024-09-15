@@ -11,11 +11,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const fullPathFeedback = document.createElement('small');
     const developerInput = document.querySelector('#developer');
     const publisherInput = document.querySelector('#publisher');
+    const libraryUuidInput = document.querySelector('#library_uuid');
     fullPathFeedback.id = 'full_disk_path_feedback';
     fullPathInput.parentNode.insertBefore(fullPathFeedback, fullPathInput.nextSibling);
 
-
-    
     $(submitButton).tooltip({
         title: "Incomplete entry",
         placement: "top",
@@ -40,6 +39,20 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(`${inputElement.id} is invalid`);
             inputElement.classList.add('invalid-input');
         }
+    }
+
+    function checkFieldsAndToggleSubmit() {
+        const igdbIdIsValid = igdbIdInput.value.trim().length > 0 && /^\d+$/.test(igdbIdInput.value);
+        const fullPathIsValid = fullPathInput.value.trim().length > 0;
+        const nameIsValid = nameInput.value.trim().length > 0;
+        const libraryUuidIsValid = libraryUuidInput.value.trim().length > 0;
+
+        validateField(igdbIdInput, igdbIdIsValid);
+        validateField(fullPathInput, fullPathIsValid);
+        validateField(nameInput, nameIsValid);
+        validateField(libraryUuidInput, libraryUuidIsValid);
+
+        updateButtonState(!(igdbIdIsValid && fullPathIsValid && nameIsValid && libraryUuidIsValid));
     }
 
     function updateFormWithGameData(gameData) {

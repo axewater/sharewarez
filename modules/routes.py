@@ -1387,7 +1387,7 @@ def add_game_manual():
             return redirect(url_for('main.scan_management'))
         else:
             return redirect(url_for('main.library'))
-    # print(f"Received {request.method} request")
+    
     full_disk_path = request.args.get('full_disk_path', None)
     from_unmatched = request.args.get('from_unmatched', 'false') == 'true'  # Detect origin
     game_name = os.path.basename(full_disk_path) if full_disk_path else ''
@@ -1397,100 +1397,100 @@ def add_game_manual():
     # Populate the choices for the library_uuid field
     form.library_uuid.choices = [(str(library.uuid), library.name) for library in Library.query.order_by(Library.name).all()]
     print(f'agm Library choices: {form.library_uuid.choices}')
+    
     # Fetch library details for displaying on the form
     library_uuid = request.args.get('library_uuid')
     library = Library.query.filter_by(uuid=library_uuid).first()
     if library:
         library_name = library.name
-        platform_name = library.platform.name  # Accessing enum name
-        platform_id = PLATFORM_IDS.get(library.platform.name)  # Get platform ID using the enum name
+        platform_name = library.platform.name
+        platform_id = PLATFORM_IDS.get(library.platform.name)
     else:
         library_name = platform_name = ''
         platform_id = None
     
-    if request.method == 'GET' and full_disk_path:
-        # pre-fill form on GET request
-        form.full_disk_path.data = full_disk_path
-        form.name.data = game_name
-    if request.method == 'POST':
-        # print("POST parameters received:", form.data)  # Log POST parameters
-        if form.validate_on_submit():
-            if check_existing_game_by_igdb_id(form.igdb_id.data):
-                flash('A game with this IGDB ID already exists.', 'error')
-                print(f"IGDB ID {form.igdb_id.data} already exists.")
-                return render_template('games/manual_game_add.html', form=form)
-            # print("Form data:", form.data)
+    if request.method == 'GET':
+        if full_disk_path:
+            form.full_disk_path.data = full_disk_path
+            form.name.data = game_name
+        if library_uuid:
+            form.library_uuid.data = library_uuid
+    
+    if form.validate_on_submit():
+        if check_existing_game_by_igdb_id(form.igdb_id.data):
+            flash('A game with this IGDB ID already exists.', 'error')
+            print(f"IGDB ID {form.igdb_id.data} already exists.")
+            return render_template('games/manual_game_add.html', form=form, library_uuid=library_uuid, library_name=library_name, platform_name=platform_name, platform_id=platform_id)
+        
+        new_game = Game(
+            igdb_id=form.igdb_id.data,
+            name=form.name.data,
+            summary=form.summary.data,
+            storyline=form.storyline.data,
+            url=form.url.data,
+            full_disk_path=form.full_disk_path.data,
+            category=form.category.data,
+            status=form.status.data,
+            first_release_date=form.first_release_date.data,
+            video_urls=form.video_urls.data,
+            library_uuid=form.library_uuid.data
+        )
+        new_game.genres = form.genres.data
+        new_game.game_modes = form.game_modes.data
+        new_game.themes = form.themes.data
+        new_game.platforms = form.platforms.data
+        new_game.player_perspectives = form.player_perspectives.data
+
+        # Handle developer
+        if form.developer.data and form.developer.data != 'Not Found':
+            developer = Developer.query.filter_by(name=form.developer.data).first()
+            if not developer:
+                developer = Developer(name=form.developer.data)
+                db.session.add(developer)
+                db.session.flush() 
+            new_game.developer = developer
+
+        if form.publisher.data and form.publisher.data != 'Not Found':
+            publisher = Publisher.query.filter_by(name=form.publisher.data).first()
+            if not publisher:
+                publisher = Publisher(name=form.publisher.data)
+                db.session.add(publisher)
+                db.session.flush()
+            new_game.publisher = publisher
+        new_game.nfo_content = read_first_nfo_content(form.full_disk_path.data)
+
+        # print("New game:", new_game)
+        try:
+            db.session.add(new_game)
+            db.session.commit()
+            if full_disk_path: 
+                unmatched_folder = UnmatchedFolder.query.filter_by(folder_path=full_disk_path).first()
+                if unmatched_folder:
+                    db.session.delete(unmatched_folder)
+                    print("Deleted unmatched folder:", unmatched_folder)
+                    db.session.commit()
+            flash('Game added successfully.', 'success')
+            print(f"add_game_manual Game: {game_name} added by user {current_user.name}.")
+            # Trigger image refresh after adding the game
+            @copy_current_request_context
+            def refresh_images_in_thread():
+                refresh_images_in_background(new_game.uuid)
+
+            # Start the background process for refreshing images
+            thread = Thread(target=refresh_images_in_thread)
+            thread.start()
+            print(f"Refresh images thread started for game UUID: {new_game.uuid}")
             
-            # Create new_game instance (put form data into the object)
-            new_game = Game(
-                igdb_id=form.igdb_id.data,
-                name=form.name.data,
-                summary=form.summary.data,
-                storyline=form.storyline.data,
-                url=form.url.data,
-                full_disk_path=form.full_disk_path.data,
-                category=form.category.data,
-                status=form.status.data,
-                first_release_date=form.first_release_date.data,
-                video_urls=form.video_urls.data,
-                library_uuid=form.library_uuid.data
-            )
-            new_game.genres = form.genres.data
-            new_game.game_modes = form.game_modes.data
-            new_game.themes = form.themes.data
-            new_game.platforms = form.platforms.data
-            new_game.player_perspectives = form.player_perspectives.data
-
-            # Handle developer
-            if form.developer.data and form.developer.data != 'Not Found':
-                developer = Developer.query.filter_by(name=form.developer.data).first()
-                if not developer:
-                    developer = Developer(name=form.developer.data)
-                    db.session.add(developer)
-                    db.session.flush() 
-                new_game.developer = developer
-
-            if form.publisher.data and form.publisher.data != 'Not Found':
-                publisher = Publisher.query.filter_by(name=form.publisher.data).first()
-                if not publisher:
-                    publisher = Publisher(name=form.publisher.data)
-                    db.session.add(publisher)
-                    db.session.flush()
-                new_game.publisher = publisher
-            new_game.nfo_content = read_first_nfo_content(form.full_disk_path.data)
-
-            # print("New game:", new_game)
-            try:
-                db.session.add(new_game)
-                db.session.commit()
-                if full_disk_path: 
-                    unmatched_folder = UnmatchedFolder.query.filter_by(folder_path=full_disk_path).first()
-                    if unmatched_folder:
-                        db.session.delete(unmatched_folder)
-                        print("Deleted unmatched folder:", unmatched_folder)
-                        db.session.commit()
-                flash('Game added successfully.', 'success')
-                print(f"add_game_manual Game: {game_name} added by user {current_user.name}.")
-                # Trigger image refresh after adding the game
-                @copy_current_request_context
-                def refresh_images_in_thread():
-                    refresh_images_in_background(new_game.uuid)
-
-                # Start the background process for refreshing images
-                thread = Thread(target=refresh_images_in_thread)
-                thread.start()
-                print(f"Refresh images thread started for game UUID: {new_game.uuid}")
-                
-                if from_unmatched:
-                    return redirect(url_for('main.scan_management'))
-                else:
-                    return redirect(url_for('main.library'))
-            except SQLAlchemyError as e:
-                db.session.rollback()
-                print(f"Error saving the game to the database: {e}")
-                flash('An error occurred while adding the game. Please try again.', 'error')
-        else:
-            print(f"Form validation failed: {form.errors}")
+            if from_unmatched:
+                return redirect(url_for('main.scan_management'))
+            else:
+                return redirect(url_for('main.library'))
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            print(f"Error saving the game to the database: {e}")
+            flash('An error occurred while adding the game. Please try again.', 'error')
+    else:
+        print(f"Form validation failed: {form.errors}")
     return render_template(
         'games/manual_game_add.html',
         form=form,
