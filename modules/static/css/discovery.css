@@ -1,11 +1,28 @@
-.game-library-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    
-    
+.discovery-library-label {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
 }
 
-.discover-category-label {
+.discovery-latest-games-label {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.discovery-most-downloaded-label {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.discovery-highest-rated-label {
     font-size: 20px;
     font-weight: bold;
     margin-top: 10px;
@@ -14,18 +31,34 @@
 }
 
 
-.game-discovery-container {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
+.discovery-libraries-container {
+    
+}
 
+.discovery-latest-games-container {
+	display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	justify-items:center;
+    
+}
+
+.discovery-most-downloaded-container {
+	display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	justify-items:center;
+    
+}
+
+.discovery-highest-rated-container {
+	display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	justify-items:center;
     
 }
 
 
 .game-card-container {
-    display: flex;
-    flex-direction: row;
+
     
 }
 
@@ -57,6 +90,13 @@
     border: 1px solid rgb(49, 49, 49);
     border-radius: 5px;
     
+}
+
+.libraries-list {
+	display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	justify-items:center;
+
 }
 
 .libraries-list .game-cover {
@@ -107,8 +147,6 @@
     overflow-wrap: break-word; 
     font-size: 0.8em; /* Smaller font size, adjust as needed */
 }
-
-
 
 
 .library-cover {
@@ -227,8 +265,6 @@
 }
 
 
-
-
 .hidden {
     display: none;
 }
@@ -238,4 +274,6 @@
     to { opacity: 1; }
 }
 
-
+.discovery-header {
+	text-align: center;
+}
