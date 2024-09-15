@@ -52,7 +52,7 @@ has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
-app_version = '1.2.3'
+app_version = '1.2.5'
 
 @bp.before_app_request
 def initial_setup():
@@ -2497,9 +2497,11 @@ def add_edit_library(library_uuid=None):
     if library_uuid:
         library = Library.query.filter_by(uuid=library_uuid).first_or_404()
         form = LibraryForm(obj=library)
+        page_title = "Edit Library"
     else:
         library = None
         form = LibraryForm()
+        page_title = "Add Library"
 
     form.platform.choices = [(platform.name, platform.value) for platform in LibraryPlatform]
 
@@ -2517,7 +2519,7 @@ def add_edit_library(library_uuid=None):
             file_length = file.tell()
             if file_length > 5 * 1024 * 1024:  # 5MB limit
                 flash('File size is too large. Maximum allowed is 5 MB.', 'error')
-                return render_template('libraries/add_library.html', form=form)
+                return render_template('libraries/add_library.html', form=form, library=library, page_title=page_title)
 
             # Reset file pointer after checking size
             file.seek(0)
@@ -2545,27 +2547,22 @@ def add_edit_library(library_uuid=None):
 
             image_url = url_for('static', filename=os.path.join('library/images/', uuid_filename))
             print(f"Image URL: {image_url}")
-        else:
-            print("No image file provided.")
-            image_url = url_for('static', filename='newstyle/default_library.jpg')
+            library.image_url = image_url
+        elif not library.image_url:
+            library.image_url = url_for('static', filename='newstyle/default_library.jpg')
 
-        # Add or update library information in the database
-        library = Library(
-            name=form.name.data,
-            platform=form.platform.data,
-            image_url=image_url
-        )
-        db.session.add(library)
+        if library not in db.session:
+            db.session.add(library)
         try:
             db.session.commit()
-            flash('Library added successfully!', 'success')
+            flash('Library saved successfully!', 'success')
             return redirect(url_for('main.libraries'))
         except Exception as e:
             db.session.rollback()
-            flash('Failed to add library. Please try again.', 'error')
+            flash('Failed to save library. Please try again.', 'error')
             print(f"Error saving library: {e}")
 
-    return render_template('libraries/add_library.html', form=form)
+    return render_template('libraries/add_library.html', form=form, library=library, page_title=page_title)
 
 
 @bp.route('/library')
