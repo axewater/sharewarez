@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container mt-3">
-    <h2>Add/Edit Library</h2>
+    <h2>{% if library_uuid %}Edit Library{% else %}Add Library{% endif %}</h2>
     <form action="" method="post" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
         <div class="mb-3">
@@ -17,7 +17,7 @@
             {{ form.image(class="form-control", id="imageInput") }}
         </div>
         <div class="mb-3">
-            <img id="imagePreview" src="#" alt="Image preview" style="max-width: 200px; display: none;">
+            <img id="imagePreview" src="{{ library.image_url if library else '#' }}" alt="Image preview" style="max-width: 200px; {% if not library %}display: none;{% endif %}">
         </div>
         <button type="submit" class="btn btn-primary">Save Library</button>
     </form>

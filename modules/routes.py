@@ -2490,13 +2490,26 @@ def libraries():
     return render_template('libraries/libraries.html', libraries=libraries, csrf_form=csrf_form)
 
 @bp.route('/library/add', methods=['GET', 'POST'])
+@bp.route('/library/edit/<library_uuid>', methods=['GET', 'POST'])
 @login_required
 @admin_required
-def add_library():
-    form = LibraryForm()
+def add_edit_library(library_uuid=None):
+    if library_uuid:
+        library = Library.query.filter_by(uuid=library_uuid).first_or_404()
+        form = LibraryForm(obj=library)
+    else:
+        library = None
+        form = LibraryForm()
+
     form.platform.choices = [(platform.name, platform.value) for platform in LibraryPlatform]
 
     if form.validate_on_submit():
+        if library is None:
+            library = Library(uuid=str(uuid4()))  # Generate a new UUID for new libraries
+
+        library.name = form.name.data
+        library.platform = form.platform.data
+
         file = form.image.data
         if file:
             # Validate file size (< 5 MB)
