@@ -14,9 +14,24 @@
         </div>
         <div class="mb-3">
             {{ form.image.label(class="form-label") }}
-            {{ form.image(class="form-control") }}
+            {{ form.image(class="form-control", id="imageInput") }}
+        </div>
+        <div class="mb-3">
+            <img id="imagePreview" src="#" alt="Image preview" style="max-width: 200px; display: none;">
         </div>
         <button type="submit" class="btn btn-primary">Save Library</button>
     </form>
 </div>
+
+<script>
+document.getElementById('imageInput').addEventListener('change', function(event) {
+    var reader = new FileReader();
+    reader.onload = function() {
+        var output = document.getElementById('imagePreview');
+        output.src = reader.result;
+        output.style.display = 'block';
+    };
+    reader.readAsDataURL(event.target.files[0]);
+});
+</script>
 {% endblock %}
