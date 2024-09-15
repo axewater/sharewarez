@@ -152,3 +152,47 @@ function fetchFolders(path, folderContentsId, spinnerId, upButtonId, inputFieldI
         }
     });
 }
+
+var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+document.addEventListener("DOMContentLoaded", function() {
+    const updateScanJobs = () => {
+        fetch('/api/scan_jobs_status', {cache: 'no-store'})
+            .then(response => response.json())
+            .then(data => {
+                const jobsTableBody = document.querySelector('#jobsTableBody');
+                jobsTableBody.innerHTML = '';
+                // Sort the data array to ensure the latest scan is at the top
+                data.sort((a, b) => new Date(b.last_run) - new Date(a.last_run));
+                data.forEach(job => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${job.id.substring(0, 8)}</td>
+                        <td>${job.library_name || 'N/A'}</td>
+                        <td>${Object.keys(job.folders).join(', ')}</td>
+                        <td>${job.status}</td>
+                        <td>${job.error_message}</td>
+                        <td>${job.last_run}</td>
+                        <td>${job.total_folders}</td>
+                        <td>${job.folders_success}</td>
+                        <td>${job.folders_failed}</td>
+                        <td>
+                            ${job.status === 'Running' ? 
+                                `<form action="/cancel_scan_job/${job.id}" method="post">
+                                    <input type="hidden" name="csrf_token" value="${csrfToken}">
+                                    <button type="submit" class="btn btn-warning btn-sm">Cancel Scan</button>
+                                </form>` : ''}
+                        </td>
+                    `;
+                    jobsTableBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error fetching scan jobs status:', error));
+    };
+
+    // Run immediately on load
+    updateScanJobs();
+
+    // Then update every 5 seconds
+    setInterval(updateScanJobs, 5000);
+});
