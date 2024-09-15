@@ -2506,7 +2506,8 @@ def helpfaq():
 def libraries():
     libraries = Library.query.all()
     csrf_form = CsrfProtectForm()
-    return render_template('libraries/libraries.html', libraries=libraries, csrf_form=csrf_form)
+    game_count = Game.query.count()  # Fetch the game count here
+    return render_template('libraries/libraries.html', libraries=libraries, csrf_form=csrf_form, game_count=game_count)
 
 @bp.route('/library/add', methods=['GET', 'POST'])
 @bp.route('/library/edit/<library_uuid>', methods=['GET', 'POST'])
