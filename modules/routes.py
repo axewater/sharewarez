@@ -2400,7 +2400,7 @@ def download_game(game_uuid):
 @bp.route('/discover')
 @login_required
 def discover():
-    def fetch_game_details(games_query, limit=5):
+    def fetch_game_details(games_query, limit=8):
         games = games_query.limit(limit).all()
         game_details = []
         for game in games:
