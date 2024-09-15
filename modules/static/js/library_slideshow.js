@@ -42,6 +42,8 @@ function clearSlideshowForGameUuid(gameUuid) {
 }
 
 const showDetailsDebounced = debounce(function(element, gameUuid, rowid) {
+	
+	var isHovered = $(element).is(":hover");
     
 	if (rowid) {
 		var detailsDiv = document.getElementById(`details-${gameUuid}-${rowid}`);
@@ -52,6 +54,8 @@ const showDetailsDebounced = debounce(function(element, gameUuid, rowid) {
     if (!detailsDiv) {
         return;
     }
+	
+	if (isHovered) {
 
     // prevent flickering and overlapping animations
     detailsDiv.innerHTML = '';
@@ -87,6 +91,7 @@ const showDetailsDebounced = debounce(function(element, gameUuid, rowid) {
             console.error('Fetch error:', error);
         });
         adjustDetailsSizeForGameUuid(gameUuid); 
+	}
 }, 300); // 300 ms
 
 function adjustDetailsSizeForGameUuid(gameUuid) {
@@ -156,4 +161,3 @@ function hideDetails() {
         details.classList.add('hidden');
     });
 }
-
