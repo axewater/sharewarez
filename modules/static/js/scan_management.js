@@ -190,9 +190,53 @@ document.addEventListener("DOMContentLoaded", function() {
             .catch(error => console.error('Error fetching scan jobs status:', error));
     };
 
+    const updateUnmatchedFolders = () => {
+        fetch('/api/unmatched_folders', {cache: 'no-store'})
+            .then(response => response.json())
+            .then(data => {
+                const unmatchedTableBody = document.querySelector('#unmatchedFoldersTableBody');
+                unmatchedTableBody.innerHTML = '';
+                data.forEach(folder => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${folder.folder_path}</td>
+                        <td>${folder.status}</td>
+                        <td>${folder.library_name}</td>
+                        <td>${folder.platform_name}</td>
+                        <td>${folder.platform_id || 'N/A'}</td>
+                        <td>
+                            <form method="post" action="/update_unmatched_folder_status" data-csrf="${csrfToken}" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="${csrfToken}">
+                                <input type="hidden" name="folder_id" value="${folder.id}">
+                                <input type="hidden" name="new_status" value="Ignore">
+                                <input type="submit" class="btn btn-secondary btn-sm" value="Ignore">
+                            </form>
+                            <form class="delete-folder-form" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="${csrfToken}">
+                                <input type="hidden" name="folder_path" value="${folder.folder_path}">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete Folder</button>
+                            </form>
+                            <form action="/add_game_manual" method="GET" style="display: inline;">
+                                <input type="hidden" name="full_disk_path" value="${folder.folder_path}">
+                                <input type="hidden" name="library_uuid" value="${folder.library_uuid}">
+                                <input type="hidden" name="platform_name" value="${folder.platform_name}">
+                                <input type="hidden" name="platform_id" value="${folder.platform_id}">
+                                <input type="hidden" name="from_unmatched" value="true">
+                                <input type="submit" class="btn btn-primary btn-sm" value="Identify">
+                            </form>
+                        </td>
+                    `;
+                    unmatchedTableBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error fetching unmatched folders:', error));
+    };
+
     // Run immediately on load
     updateScanJobs();
+    updateUnmatchedFolders();
 
     // Then update every 5 seconds
     setInterval(updateScanJobs, 5000);
+    setInterval(updateUnmatchedFolders, 5000);
 });

@@ -1681,6 +1681,25 @@ def scan_jobs_status():
     } for job in jobs]
     return jsonify(jobs_data)
 
+@bp.route('/api/unmatched_folders', methods=['GET'])
+@login_required
+@admin_required
+def unmatched_folders():
+    unmatched = UnmatchedFolder.query.join(Library).with_entities(
+        UnmatchedFolder, Library.name.label('library_name'), Library.platform
+    ).order_by(UnmatchedFolder.status.desc()).all()
+    
+    unmatched_data = [{
+        'id': folder.id,
+        'folder_path': folder.folder_path,
+        'status': folder.status,
+        'library_name': library_name,
+        'platform_name': platform.name if platform else '',
+        'platform_id': PLATFORM_IDS.get(platform.name) if platform else None
+    } for folder, library_name, platform in unmatched]
+    
+    return jsonify(unmatched_data)
+
 
 
 @bp.route('/update_unmatched_folder_status', methods=['POST'])
