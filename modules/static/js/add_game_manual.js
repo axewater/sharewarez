@@ -372,21 +372,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
     });
 
-    submitButton.addEventListener('click', function() {
-        console.log("Form submission initiated.");
-        try {
-            // Printing form data before submission
-            const formData = {
-                igdbId: igdbIdInput.value,
-                fullPath: fullPathInput.value,
-                name: nameInput.value,
-                url: urlInput.value
-            };
-            console.log("Form data:", formData);
-        } catch (error) {
-            console.error("Error preparing form data for submission:", error);
-        }
-    });
+
 
 
 
