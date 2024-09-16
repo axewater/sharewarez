@@ -3,27 +3,27 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 
-<div class="admin-panel">
-    <div class="admin-header">
-        <h1>Captain's Cabin</h1>
+<div class="dashboard-panel">
+    <div class="dashboard-header">
+        Captain's Cabin
         <img src="{{ url_for('static', filename='newstyle/captainscabin.png') }}" alt="Captain's Cabin" class="captains-image">
     </div>
-    <div class="container-fluid h-100">
-        <div class="row h-100">
+    <div class="dashboard-container-fluid">
+        <div class="dashboard-row">
             <!-- Row 1: Library Manager, Server Settings, Server Info -->
-            <div class="col-3 d-flex align-items-stretch">
+            <div class="dashboard-column-1">
                 <a href="{{ url_for('main.libraries') }}" class="btn btn-primary dashboard-button">
                     <i class="fas fa-book dashboard-icon"></i>
                     Library Manager
                 </a>
             </div>
-            <div class="col-3 d-flex align-items-stretch">
+            <div class="dashboard-column-2">
                 <a href="{{ url_for('main.scan_management') }}" class="btn btn-primary dashboard-button">
                     <i class="fas fa-book dashboard-icon"></i>
                     Scan Manager
                 </a>
             </div>
-            <div class="col-3 d-flex align-items-stretch">
+            <div class="dashboard-column-3">
                 <a href="{{ url_for('main.manage_settings') }}" class="btn btn-info dashboard-button">
                     <i class="fas fa-cogs dashboard-icon"></i>
                     Server Settings
@@ -37,61 +37,59 @@
                 </a>
             </div>
             {% endif %}
-
-
-            <div class="col-3 d-flex align-items-stretch">
+			
+            <div class="dashboard-column-4">
                 <a href="{{ url_for('main.clear_downloads') }}" class="btn btn-danger dashboard-button">
                     <i class="fas fa-download dashboard-icon"></i>
                     Downloads
                 </a>
             </div>
-            
 
             <!-- Row 2: Add User, Invite System, Whitelist, Downloads -->
-            <div class="col-3 d-flex align-items-stretch">
+            <div class="dashboard-column-5">
                 <a href="{{ url_for('main.create_user') }}" class="btn btn-secondary dashboard-button">
                     <i class="fas fa-user-plus dashboard-icon"></i>
                     Add User
                 </a>
             </div>
-            <div class="col-3 d-flex align-items-stretch">
+            <div class="dashboard-column-6">
                 <a href="{{ url_for('main.manage_invites') }}" class="btn btn-dark dashboard-button">
                     <i class="fas fa-envelope-open-text dashboard-icon"></i>
                     Invite System
                 </a>
             </div>
-            <div class="col-3 d-flex align-items-stretch">
+            <div class="dashboard-column-7">
                 <a href="{{ url_for('main.whitelist') }}" class="btn btn-dark dashboard-button">
                     <i class="fas fa-user-shield dashboard-icon"></i>
                     Whitelist
                 </a>
             </div>
 
-            <div class="col-3 d-flex align-items-stretch">
+            <div class="dashboard-column-8">
                 <a href="{{ url_for('main.usermanager') }}" class="btn btn-success dashboard-button">
                     <i class="fas fa-users-cog dashboard-icon"></i>
                     User Manager
                 </a>
             </div>
 
-            <!-- Row 3: Newsletter, API Debug -->
-            {% if enable_newsletter %}
-            <div class="col-3 d-flex align-items-stretch">
-                <a href="{{ url_for('main.newsletter') }}" class="btn btn-dark dashboard-button">
-                    <i class="fas fa-envelope dashboard-icon"></i>
-                    Newsletter
-                </a>
-            </div>
-            {% endif %}
-            <div class="col-3 d-flex align-items-stretch">
-                <a href="{{ url_for('main.api_debug') }}" class="btn btn-info dashboard-button">
-                    <i class="fas fa-bug dashboard-icon"></i>
-                    API Debug
-                </a>
-            </div> 
-            <!-- Additional buttons if any can go here -->
-        </div>
-    </div>
+			<div class="dashboard-column-9">
+				<!-- Row 3: Newsletter, API Debug -->
+				{% if enable_newsletter %}
+					<a href="{{ url_for('main.newsletter') }}" class="btn btn-dark dashboard-button">
+						<i class="fas fa-envelope dashboard-icon"></i>
+						Newsletter
+					</a>
+			</div>
+				{% endif %}
+				<div class="dashboard-column-10">
+					<a href="{{ url_for('main.api_debug') }}" class="btn btn-info dashboard-button">
+						<i class="fas fa-bug dashboard-icon"></i>
+						API Debug
+					</a>
+				</div> 
+				<!-- Additional buttons if any can go here -->
+	</div>
 </div>
+
 
 {% endblock %}
