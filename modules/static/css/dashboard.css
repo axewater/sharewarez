@@ -140,3 +140,10 @@
 	display: flex;
 
 }
+
+.dashboard-column-11 {
+	grid-column: auto;
+	align-items: stretch;
+	display: flex;
+
+}

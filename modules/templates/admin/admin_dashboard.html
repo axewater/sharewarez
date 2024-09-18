@@ -30,7 +30,7 @@
                 </a>
             </div>
             {% if enable_server_status %}
-            <div class="col-3 d-flex align-items-stretch">
+            <div class="dashboard-column-4">
                 <a href="{{ url_for('main.admin_status_page') }}" class="btn btn-warning dashboard-button">
                     <i class="fas fa-info dashboard-icon"></i>
                     Server Info
@@ -38,7 +38,7 @@
             </div>
             {% endif %}
 			
-            <div class="dashboard-column-4">
+            <div class="dashboard-column-5">
                 <a href="{{ url_for('main.clear_downloads') }}" class="btn btn-danger dashboard-button">
                     <i class="fas fa-download dashboard-icon"></i>
                     Downloads
@@ -46,33 +46,33 @@
             </div>
 
             <!-- Row 2: Add User, Invite System, Whitelist, Downloads -->
-            <div class="dashboard-column-5">
+            <div class="dashboard-column-6">
                 <a href="{{ url_for('main.create_user') }}" class="btn btn-secondary dashboard-button">
                     <i class="fas fa-user-plus dashboard-icon"></i>
                     Add User
                 </a>
             </div>
-            <div class="dashboard-column-6">
+            <div class="dashboard-column-7">
                 <a href="{{ url_for('main.manage_invites') }}" class="btn btn-dark dashboard-button">
                     <i class="fas fa-envelope-open-text dashboard-icon"></i>
                     Invite System
                 </a>
             </div>
-            <div class="dashboard-column-7">
+            <div class="dashboard-column-8">
                 <a href="{{ url_for('main.whitelist') }}" class="btn btn-dark dashboard-button">
                     <i class="fas fa-user-shield dashboard-icon"></i>
                     Whitelist
                 </a>
             </div>
 
-            <div class="dashboard-column-8">
+            <div class="dashboard-column-9">
                 <a href="{{ url_for('main.usermanager') }}" class="btn btn-success dashboard-button">
                     <i class="fas fa-users-cog dashboard-icon"></i>
                     User Manager
                 </a>
             </div>
 
-			<div class="dashboard-column-9">
+			<div class="dashboard-column-10">
 				<!-- Row 3: Newsletter, API Debug -->
 				{% if enable_newsletter %}
 					<a href="{{ url_for('main.newsletter') }}" class="btn btn-dark dashboard-button">
@@ -81,7 +81,7 @@
 					</a>
 			</div>
 				{% endif %}
-				<div class="dashboard-column-10">
+				<div class="dashboard-column-11">
 					<a href="{{ url_for('main.api_debug') }}" class="btn btn-info dashboard-button">
 						<i class="fas fa-bug dashboard-icon"></i>
 						API Debug
