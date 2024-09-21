@@ -51,6 +51,11 @@
         {% endif %}
     </a>
     
+    {% if show_version %}
+        <div class="version-display">
+            v{{ app_version }}
+        </div>
+    {% endif %}
     
     <div class="sidebar-header">
         <button id="toggleSidebar" class="toggle-sidebar">
