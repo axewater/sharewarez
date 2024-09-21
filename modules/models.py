@@ -313,6 +313,8 @@ class User(db.Model):
     invite_quota = db.Column(db.Integer, default=0) 
     invited_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     
+    inviter = db.relationship('User', remote_side=[id], backref='invited_users')
+    
     def set_password(self, password):
         # Now using Argon2 to hash new passwords
         self.password_hash = ph.hash(password)
@@ -519,6 +521,11 @@ class InviteToken(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     expires_at = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(days=2), nullable=False)
     used = db.Column(db.Boolean, default=False, nullable=False)
+    used_by = db.Column(db.String(36), db.ForeignKey('users.user_id'), nullable=True)
+    used_at = db.Column(db.DateTime, nullable=True)
+
+    creator = db.relationship('User', foreign_keys=[creator_user_id], backref='created_invites')
+    used_by_user = db.relationship('User', foreign_keys=[used_by], backref='used_invites')
 
     def __repr__(self):
-        return f'<InviteToken {self.token}, Creator: {self.creator_user_id}, Expires: {self.expires_at}>'
+        return f'<InviteToken {self.token}, Creator: {self.creator_user_id}, Expires: {self.expires_at}, Used: {self.used}>'
