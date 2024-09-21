@@ -190,7 +190,17 @@
 
 }
 
+.version-display {
+    font-size: 0.8em;
+    color: #888;
+    text-align: center;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
 
+.sidebar.collapsed .version-display {
+    display: none;
+}
 
 .sidebar.collapsed .user-name {
     visibility: hidden;
