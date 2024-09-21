@@ -1,11 +1,59 @@
 var currentPathAuto = '';
 var currentPathManual = '';
+
 function showSpinner() {
     document.getElementById('globalSpinner').style.display = 'block';
 }
 
 function hideSpinner() {
     document.getElementById('globalSpinner').style.display = 'none';
+}
+
+function attachDeleteFolderFormListeners() {
+    document.querySelectorAll('.delete-folder-form').forEach(form => {
+        if (!form.dataset.listenerAdded) {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                showSpinner();
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                const folderPath = form.querySelector('[name="folder_path"]').value;
+                console.log("Attempting to delete folder with path:", folderPath);
+
+                fetch('/delete_folder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
+                    },
+                    body: JSON.stringify({folder_path: folderPath})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Server response:", data);
+
+                    if(data.status === 'success') {
+                        console.log("Deletion successful, removing row.");
+                        form.closest('tr').remove();
+                    } else {
+                        console.log("Deletion not successful:", data.message);
+                        if (data.message === "The specified path does not exist or is not a folder. Entry removed if it was in the database.") {
+                            console.log("Folder does not exist, removing row.");
+                            form.closest('tr').remove();
+                        }
+                    }
+                    alert(data.message);
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                })
+                .finally(() => {
+                    hideSpinner();
+                });
+            });
+            form.dataset.listenerAdded = 'true';
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -32,130 +80,11 @@ document.addEventListener('DOMContentLoaded', function() {
             new bootstrap.Tab(document.querySelector('#autoScan-tab')).show();
     }
 
-
-
-
-    document.querySelectorAll('.delete-folder-form').forEach(form => {
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            showSpinner();
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-            const folderPath = form.querySelector('[name="folder_path"]').value; // Ensure this matches your form structure
-            console.log("Attempting to delete folder with path:", folderPath); // Debugging log
-            
-            fetch('/delete_folder', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken
-                },
-                body: JSON.stringify({folder_path: folderPath})
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("Server response:", data); // Log the server response
-                
-                if(data.status === 'success') {
-                    console.log("Deletion successful, removing row.");
-                    form.closest('tr').remove();
-                } else {
-                    console.log("Deletion not successful:", data.message); // Log failure message
-                    // If you want to remove the row even when the folder doesn't exist, adjust logic here
-                    if (data.message === "The specified path does not exist or is not a folder. Entry removed if it was in the database.") {
-                        console.log("Folder does not exist, removing row.");
-                        form.closest('tr').remove(); // This line assumes your condition for removing the row matches this message
-                    }
-                }
-                alert(data.message); // Show message to user
-            })
-            .catch(error => {
-                console.error('Fetch error:', error); // Log any fetch error
-            })
-            .finally(() => {
-                hideSpinner(); // Ensure spinner is always hidden after operation
-            });
-        });
-    });
-});
-
-
-
-
-
-document.addEventListener('DOMContentLoaded', function() {
     setupFolderBrowse('#browseFoldersBtn', '#folderContents', '#loadingSpinner', '#upFolderBtn', '#folder_path', 'currentPathAuto');
     setupFolderBrowse('#browseFoldersBtnManual', '#folderContentsManual', '#loadingSpinnerManual', '#upFolderBtnManual', '#manualFolderPath', 'currentPathManual');
-});
 
-function setupFolderBrowse(browseButtonId, folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar) {
-    $(browseButtonId).click(function() {
-        window[currentPathVar] = ''; // Reset the current path
-        $(upButtonId).hide(); // Initially hide the "Up" button
-        fetchFolders('', folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar);
-    });
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    $(upButtonId).click(function() {
-        var segments = window[currentPathVar].split('/').filter(Boolean);
-        if (segments.length > 0) {
-            segments.pop();
-            window[currentPathVar] = segments.join('/') + '/';
-        } else {
-            window[currentPathVar] = ''; // Reset to root if no segments left
-        }
-
-        fetchFolders(window[currentPathVar], folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar);
-
-        // Update the input field with the new current path
-        $(inputFieldId).val(window[currentPathVar]);
-
-        if (segments.length < 1) {
-            $(upButtonId).hide();
-        } else {
-            $(upButtonId).show();
-        }
-    });
-}
-
-function fetchFolders(path, folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar) {
-    console.log("Fetching folders for path:", path);
-    $(spinnerId).show();
-    $.ajax({
-        url: '/browse_folders_ss',
-        data: { path: path },
-        success: function(data) {
-            $(spinnerId).hide();
-            $(folderContentsId).empty();
-            data.forEach(function(item) {
-                var itemElement = $('<div>').text(item.name);
-                if (item.isDir) {
-                    var fullPath = path + item.name + "/";
-                    $(itemElement).addClass('folder-item').attr('data-path', fullPath);
-                    $(folderContentsId).append(itemElement);
-                }
-            });
-            $('.folder-item').click(function() {
-                var newPath = $(this).data('path');
-                window[currentPathVar] = newPath; 
-                fetchFolders(newPath, folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar);
-                $(inputFieldId).val(newPath); 
-            });
-            if (path) {
-                $(upButtonId).show();
-            } else {
-                $(upButtonId).hide();
-            }
-        },
-        error: function(error) {
-            $(spinnerId).hide();
-            console.error("Error fetching folders:", error);
-        }
-    });
-}
-
-var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-document.addEventListener("DOMContentLoaded", function() {
     const updateScanJobs = () => {
         fetch('/api/scan_jobs_status', {cache: 'no-store'})
             .then(response => response.json())
@@ -228,6 +157,8 @@ document.addEventListener("DOMContentLoaded", function() {
                     `;
                     unmatchedTableBody.appendChild(row);
                 });
+                // Attach event listeners to the new forms
+                attachDeleteFolderFormListeners();
             })
             .catch(error => console.error('Error fetching unmatched folders:', error));
     };
@@ -240,3 +171,68 @@ document.addEventListener("DOMContentLoaded", function() {
     setInterval(updateScanJobs, 5000);
     setInterval(updateUnmatchedFolders, 5000);
 });
+
+function setupFolderBrowse(browseButtonId, folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar) {
+    $(browseButtonId).click(function() {
+        window[currentPathVar] = ''; // Reset the current path
+        $(upButtonId).hide(); // Initially hide the "Up" button
+        fetchFolders('', folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar);
+    });
+
+    $(upButtonId).click(function() {
+        var segments = window[currentPathVar].split('/').filter(Boolean);
+        if (segments.length > 0) {
+            segments.pop();
+            window[currentPathVar] = segments.join('/') + '/';
+        } else {
+            window[currentPathVar] = ''; // Reset to root if no segments left
+        }
+
+        fetchFolders(window[currentPathVar], folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar);
+
+        // Update the input field with the new current path
+        $(inputFieldId).val(window[currentPathVar]);
+
+        if (segments.length < 1) {
+            $(upButtonId).hide();
+        } else {
+            $(upButtonId).show();
+        }
+    });
+}
+
+function fetchFolders(path, folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar) {
+    console.log("Fetching folders for path:", path);
+    $(spinnerId).show();
+    $.ajax({
+        url: '/browse_folders_ss',
+        data: { path: path },
+        success: function(data) {
+            $(spinnerId).hide();
+            $(folderContentsId).empty();
+            data.forEach(function(item) {
+                var itemElement = $('<div>').text(item.name);
+                if (item.isDir) {
+                    var fullPath = path + item.name + "/";
+                    $(itemElement).addClass('folder-item').attr('data-path', fullPath);
+                    $(folderContentsId).append(itemElement);
+                }
+            });
+            $('.folder-item').click(function() {
+                var newPath = $(this).data('path');
+                window[currentPathVar] = newPath; 
+                fetchFolders(newPath, folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar);
+                $(inputFieldId).val(newPath); 
+            });
+            if (path) {
+                $(upButtonId).show();
+            } else {
+                $(upButtonId).hide();
+            }
+        },
+        error: function(error) {
+            $(spinnerId).hide();
+            console.error("Error fetching folders:", error);
+        }
+    });
+}
