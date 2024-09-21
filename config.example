@@ -11,9 +11,9 @@ class Config(object):
     THEME_FILES = os.path.join(os.path.dirname(__file__), 'modules/static/library/themes')
     MAIL_SERVER = os.getenv('MAIL_SERVER', 'mail.yourisp.com')
     MAIL_PORT = int(os.getenv('MAIL_PORT', 25))
-    MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', 'False') == 'True'
-    MAIL_USERNAME = os.getenv('MAIL_USERNAME')
-    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
+    MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', 'False')
+    MAIL_USERNAME = os.getenv('MAIL_USERNAME', anonymous)
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD', anonymous)
     MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', 'blackbeard@sharewarez.com')
     REMEMBER_COOKIE_DURATION = timedelta(days=int(os.getenv('REMEMBER_COOKIE_DURATION', 30)))
     INITIAL_WHITELIST = os.getenv('INITIAL_WHITELIST', 'kapitanczarnobrody@proton.me')
