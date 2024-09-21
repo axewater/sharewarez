@@ -51,6 +51,16 @@
                                     </div>
                                 </td>
                             </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="showVersion">
+                                        <label class="form-check-label" for="showVersion" data-toggle="tooltip" title="Displays the current app version below the app logo.">
+                                            Show Version
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -146,6 +156,7 @@
                 enableWebLinksOnDetailsPage: document.getElementById('enableWebLinksOnDetailsPage').checked,
                 enableServerStatusFeature: document.getElementById('enableServerStatusFeature').checked,
                 enableNewsletterFeature: document.getElementById('enableNewsletterFeature').checked,
+                showVersion: document.getElementById('showVersion').checked,
             };
             console.log("Settings to be saved:", settings);
 

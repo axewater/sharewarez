@@ -106,21 +106,25 @@ def inject_settings():
         show_help_button = settings_record.settings.get('showHelpButton', False)
         enable_web_links = settings_record.settings.get('enableWebLinksOnDetailsPage', False)
         enable_server_status = settings_record.settings.get('enableServerStatusFeature', False)
-        enable_newsletter = settings_record.settings.get('enableNewsletterFeature', False)  # Added setting
+        enable_newsletter = settings_record.settings.get('enableNewsletterFeature', False)
+        show_version = settings_record.settings.get('showVersion', True)  # New setting
     else:
         # Default values if no settings_record is found
         show_logo = True
         show_help_button = True
         enable_web_links = True
         enable_server_status = True
-        enable_newsletter = True  # Consider what your default should be
+        enable_newsletter = True
+        show_version = True  # Default to showing version
 
     return dict(
         show_logo=show_logo, 
         show_help_button=show_help_button, 
         enable_web_links=enable_web_links,
         enable_server_status=enable_server_status,
-        enable_newsletter=enable_newsletter  # Make sure to return it
+        enable_newsletter=enable_newsletter,
+        show_version=show_version,
+        app_version=app_version
     )
 
 @bp.context_processor
