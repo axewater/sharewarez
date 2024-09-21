@@ -17,6 +17,9 @@
             {{ form.image(class="form-control", id="imageInput") }}
         </div>
         <div class="mb-3">
+            <p>Current Platform: {{ library.platform.value if library else 'Not set' }}</p>
+        </div>
+        <div class="mb-3">
             <img id="imagePreview" src="{{ library.image_url if library and library.image_url else url_for('static', filename='newstyle/default_library.jpg') }}" alt="Image preview" style="max-width: 200px;">
         </div>
         <button type="submit" class="btn btn-primary">Save Library</button>
