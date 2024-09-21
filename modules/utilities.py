@@ -21,39 +21,47 @@ from datetime import datetime
 from wtforms.validators import ValidationError
 from discord_webhook import DiscordWebhook, DiscordEmbed
 
+def is_smtp_config_valid():
+    """
+    Check if the SMTP configuration is valid and complete.
+    """
+    required_config = ['MAIL_SERVER', 'MAIL_PORT', 'MAIL_USERNAME', 'MAIL_PASSWORD', 'MAIL_USE_TLS', 'MAIL_DEFAULT_SENDER']
+    for config in required_config:
+        if not current_app.config.get(config):
+            print(f"Missing SMTP configuration: {config}")
+            return False
+    return True
+
 def is_server_reachable(server, port):
     """
     Check if the mail server is reachable.
     """
     try:
-        # Attempt to open a connection to the mail server
-        with socket.create_connection((server, port), timeout=5) as connection:
+        with socket.create_connection((server, port), timeout=5):
+            print(f"Successfully connected to mail server {server}:{port}")
             return True
     except Exception as e:
-        # Print or log the error if needed
-        print(f"Error connecting to mail server: {e}")
+        print(f"Error connecting to mail server {server}:{port}: {e}")
         return False
-    
+
 def send_email(to, subject, template):
     """
-    Send an email with error handling and pre-send check.
+    Send an email with robust error handling and pre-send checks.
     """
-    # Mail server details from configuration
+    if not is_smtp_config_valid():
+        print("Invalid SMTP configuration. Email not sent.")
+        flash("Invalid SMTP configuration. Email not sent.", "error")
+        return False
+
     mail_server = current_app.config['MAIL_SERVER']
     mail_port = current_app.config['MAIL_PORT']
-    mail_username = current_app.config['MAIL_USERNAME']
-    mail_password = current_app.config['MAIL_PASSWORD']
-    mail_use_tls = current_app.config['MAIL_USE_TLS']
 
-    # Check if mail server is reachable
     if not is_server_reachable(mail_server, mail_port):
         print(f"Mail server {mail_server}:{mail_port} is unreachable. Email not sent.")
-        flash(f"Mail server {mail_server}:{mail_port} is unreachable. Email not sent.")
-        return
+        flash(f"Mail server {mail_server}:{mail_port} is unreachable. Email not sent.", "error")
+        return False
 
-    # Attempt to send email
     try:
-        # Send email
         msg = MailMessage(
             subject,
             sender=current_app.config['MAIL_DEFAULT_SENDER'],
@@ -61,11 +69,17 @@ def send_email(to, subject, template):
             html=template
         )
         mail.send(msg)
-        print(f"Email sent to {to} with subject {subject}")
-        flash(f"Email sent to {to} with subject {subject}")
+        print(f"Email sent successfully to {to} with subject: {subject}")
+        flash(f"Email sent successfully to {to}", "success")
+        return True
+    except smtplib.SMTPException as e:
+        print(f"SMTP error occurred while sending email: {e}")
+        flash(f"An error occurred while sending the email: {e}", "error")
     except Exception as e:
-        # Handle specific errors if needed
-        print(f"Error sending email: {e}")
+        print(f"Unexpected error occurred while sending email: {e}")
+        flash("An unexpected error occurred while sending the email", "error")
+    return False
+
 
 def send_password_reset_email(user_email, token):
     reset_url = url_for('main.reset_password', token=token, _external=True)
