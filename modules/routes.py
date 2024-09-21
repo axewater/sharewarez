@@ -2522,19 +2522,30 @@ def add_edit_library(library_uuid=None):
         library = Library.query.filter_by(uuid=library_uuid).first_or_404()
         form = LibraryForm(obj=library)
         page_title = "Edit Library"
+        print(f"Editing library: {library.name}, Platform: {library.platform.name}")
     else:
         library = None
         form = LibraryForm()
         page_title = "Add Library"
+        print("Adding new library")
 
     form.platform.choices = [(platform.name, platform.value) for platform in LibraryPlatform]
+    print(f"Platform choices: {form.platform.choices}")
+    
+    if library:
+        form.platform.data = library.platform.name  # Set the initial value for existing library
+        print(f"Setting initial platform value: {form.platform.data}")
 
     if form.validate_on_submit():
         if library is None:
             library = Library(uuid=str(uuid4()))  # Generate a new UUID for new libraries
 
         library.name = form.name.data
-        library.platform = form.platform.data
+        try:
+            library.platform = LibraryPlatform[form.platform.data]
+        except KeyError:
+            flash(f'Invalid platform selected: {form.platform.data}', 'error')
+            return render_template('libraries/add_library.html', form=form, library=library, page_title=page_title)
 
         file = form.image.data
         if file:
