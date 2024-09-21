@@ -1762,6 +1762,7 @@ def update_unmatched_folder_status():
         try:
             db.session.commit()
             print(f'Folder {folder_id} status updated successfully.', 'success')
+            flash(f'Folder {folder_id} status updated successfully.', 'success')
         except SQLAlchemyError as e:
             db.session.rollback()
             flash(f'Error updating folder status: {str(e)}', 'error')
