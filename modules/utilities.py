@@ -19,6 +19,7 @@ from PIL import Image as PILImage
 from PIL import ImageOps
 from datetime import datetime
 from wtforms.validators import ValidationError
+from discord_webhook import DiscordWebhook, DiscordEmbed
 
 def is_server_reachable(server, port):
     """
@@ -192,6 +193,8 @@ def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_u
         print(f"create_game_instance Finished processing game '{new_game.name}'. URLs (if any) have been fetched and stored.")
     except Exception as e:
         print(f"create_game_instance Error during the game instance creation or URL fetching for game '{game_data.get('name')}'. Error: {e}")
+    if current_app.config['DISCORD_WEBHOOK_URL']:
+        discord_webhook(new_game.uuid)
     
     return new_game
 
@@ -886,6 +889,32 @@ def get_cover_thumbnail_url(igdb_id):
         print(f"Failed to retrieve cover for IGDB ID {igdb_id}. Response: {response}")
 
     return None
+    
+def get_cover_url(igdb_id):
+    """
+    Takes an IGDB ID number and returns the cover URL to the cover.
+
+    Parameters:
+    igdb_id (int): The IGDB ID of the game.
+
+    Returns:
+    str: The cover URL of the cover image, or None if not found.
+    """
+    cover_query = f'fields image_id; where game={igdb_id};'
+    response = make_igdb_api_request('https://api.igdb.com/v4/covers', cover_query)
+
+    if response and 'error' not in response and len(response) > 0:
+        cover_image_id = response[0].get('image_id')
+        if cover_image_id:
+
+            return 'https://images.igdb.com/igdb/image/upload/t_cover_big_2x/' + cover_image_id + '.jpg'
+        else:
+            print(f"No cover image ID found for IGDB ID {igdb_id}.")
+    else:
+        print(f"Failed to retrieve cover image ID for IGDB ID {igdb_id}. Response: {response}")
+
+    return None
+
 
 def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None):
     # First, find the library and its platform
@@ -1239,3 +1268,54 @@ def comma_separated_urls(form, field):
         if not url_pattern.match(url.strip()):
             raise ValidationError('One or more URLs are invalid. Please provide valid YouTube embed URLs.')
 
+def discord_webhook(game_uuid):
+    newgame = get_game_by_uuid(game_uuid)
+    newgame_size = format_size(newgame.size)
+    newgame_library = get_library_by_uuid(newgame.library_uuid)
+    discord_webhook = current_app.config['DISCORD_WEBHOOK_URL']
+    discord_bot_name = current_app.config['DISCORD_BOT_NAME']
+    discord_bot_avatar_url = current_app.config['DISCORD_BOT_AVATAR_URL']
+    site_url = current_app.config['SITE_URL']
+    cover_url = get_cover_url(newgame.igdb_id)
+    
+    
+    # if rate_limit_retry is True then in the event that you are being rate 
+    # limited by Discord your webhook will automatically be sent once the 
+    # rate limit has been lifted
+    
+    webhook = DiscordWebhook(url=f"{discord_webhook}", rate_limit_retry=True)
+
+    # create embed object for webhook
+    embed = DiscordEmbed(title=f"{newgame.name}", description=f"{newgame.summary}", url=f"{site_url}/game_details/{newgame.uuid}", color="03b2f8")
+
+    # set author
+    embed.set_author(name=f"{discord_bot_name}", url=f"{site_url}", icon_url=f"{discord_bot_avatar_url}")
+
+    # set cover image
+    embed.set_image(url=f"{cover_url}")
+
+    # set footer
+    embed.set_footer(text="This game is now available for download")
+
+    # set timestamp (default is now) accepted types are int, float and datetime
+    embed.set_timestamp()
+
+    # add fields to embed
+    # Set `inline=False` for the embed field to occupy the whole line
+    embed.add_embed_field(name="Platform", value=f"{newgame_library.name}")
+    embed.add_embed_field(name="Size", value=f"{newgame_size}")
+
+    # add embed object to webhook
+    webhook.add_embed(embed)
+
+    response = webhook.execute()
+    
+def get_library_by_uuid(uuid):
+    print(f"Searching for Library UUID: {uuid}")
+    library = Library.query.filter_by(uuid=uuid).first()
+    if library:
+        print(f"Library with name {library.name} and UUID {library.uuid} found")
+        return library
+    else:
+        print("Library not found")
+        return None
