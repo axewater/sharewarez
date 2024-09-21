@@ -10,18 +10,24 @@ class DatabaseManager:
         self.engine = create_engine(self.database_uri)
 
     def add_column_if_not_exists(self):
-        # SQL command to add a new column
-        add_column_sql = """
+        # SQL commands to add new columns
+        add_columns_sql = """
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS enable_delete_game_on_disk BOOLEAN DEFAULT TRUE;
+
+        ALTER TABLE invite_tokens
+        ADD COLUMN IF NOT EXISTS used_by VARCHAR(36);
+
+        ALTER TABLE invite_tokens
+        ADD COLUMN IF NOT EXISTS used_at TIMESTAMP;
         """
         print("Upgrading database to the latest schema")
         try:
-            # Execute the SQL command
+            # Execute the SQL commands
             with self.engine.connect() as connection:
-                connection.execute(text(add_column_sql))
+                connection.execute(text(add_columns_sql))
                 connection.commit()
-            print("Column 'enable_delete_game_on_disk' successfully added to the 'global_settings' table.")
+            print("Columns successfully added to the tables.")
         except Exception as e:
             print(f"An error occurred: {e}")
         finally:

@@ -229,6 +229,8 @@ def register():
             if invite:
                 print(f"Found valid invite: {invite.token}, expires at: {invite.expires_at}, used: {invite.used}")
                 invite.used = True
+                invite.used_by = user.user_id
+                invite.used_at = datetime.utcnow()
                 db.session.commit()
             else:
                 print("No valid invite found or invite expired/used.")
