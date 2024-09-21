@@ -59,7 +59,7 @@
 
 .game-card-container {
 
-    
+	
 }
 
 
@@ -124,6 +124,7 @@
 
 .library-item {
     text-align: center;
+	justify-items:center;
     margin-bottom: 20px;
 }
 
@@ -141,7 +142,6 @@
     border-radius: 15px;
     padding: 5px 5px;
     margin-top: 8px;
-    max-width: calc(100% - 20px);
     box-sizing: border-box;
     white-space: normal;
     overflow-wrap: break-word; 
