@@ -1118,18 +1118,18 @@ def handle_manual_scan(manual_form):
 def handle_delete_unmatched(all):
     try:
         if all:
-            print("Deleting all unmatched folders")
+            print("Clearing all unmatched folders")
             UnmatchedFolder.query.delete()
-            flash('All unmatched folders deleted successfully.', 'success')
+            flash('All unmatched folders cleared successfully.', 'success')
         else:
-            print("Deleting only unmatched folders")
+            print("Clearing only unmatched folders")
             UnmatchedFolder.query.filter(UnmatchedFolder.status.ilike('unmatched')).delete()
-            flash('Unmatched folders with status "unmatched" deleted successfully.', 'success')
+            flash('Unmatched folders with status "unmatched" cleared successfully.', 'success')
         db.session.commit()
         session['active_tab'] = 'unmatched'
     except Exception as e:
         db.session.rollback()
-        flash('An error occurred while deleting unmatched folders.', 'error')
+        flash('An error occurred while clearing unmatched folders.', 'error')
     return redirect(url_for('main.scan_management'))
     
 
