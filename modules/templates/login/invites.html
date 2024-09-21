@@ -7,6 +7,18 @@
         You have <strong>{{ remaining_invites }}</strong> out of <strong>{{ invite_quota }}</strong> invites left to send.
     </div>
     
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                {% if category == 'error' %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ message }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     <div class="mb-5">
         <form action="{{ url_for('main.invites') }}" method="POST" class="row g-3">
             {{ form.hidden_tag() }}
