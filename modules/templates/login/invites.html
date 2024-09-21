@@ -45,8 +45,11 @@
                     <strong class="text-danger">INVITE EXPIRED</strong>
                 {% endif %}
             </div>
-            <button type="button" class="btn btn-outline-secondary btn-sm" {% if invite.used or seconds_remaining <= 0 %}disabled{% endif %}
-            onclick="copyToClipboard(this, '{{ url_for('main.register', token=invite.token, _external=True) }}')">Copy Invite URL</button>
+            <div>
+                <button type="button" class="btn btn-outline-secondary btn-sm" {% if invite.used or seconds_remaining <= 0 %}disabled{% endif %}
+                onclick="copyToClipboard(this, '{{ url_for('main.register', token=invite.token, _external=True) }}')">Copy Invite URL</button>
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteInvite('{{ invite.token }}')">Delete</button>
+            </div>
         </div>
         {% else %}
         <div class="list-group-item">You have no active invites. Invite some pirates onto your crew!</div>
@@ -69,6 +72,30 @@
         }).catch(err => {
             console.error('Failed to copy: ', err);
         });
+    }
+
+    function deleteInvite(token) {
+        if (confirm('Are you sure you want to delete this invite?')) {
+            fetch('/delete_invite/' + token, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Failed to delete invite: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the invite.');
+            });
+        }
     }
     </script>
 {% endblock %}
