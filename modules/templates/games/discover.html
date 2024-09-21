@@ -20,10 +20,12 @@
         {% endwith %}
     </div>
     <div class="discovery-panel">
-        <h1 class="discovery-header">Discover Loot</h1>
+        <h1 class="discovery-header">	
+		<p>{{ loc.heading }}</p>
+		</h1>
             <div class="discovery-libraries-container">
                     <div class="discovery-library-label">
-                        Libraries
+                        {{ loc.label }}
                     </div>
                     <div class="libraries-list">
 							{% for library in libraries %}
@@ -40,7 +42,7 @@
 				<br>
 				<br>				
                     <div class="discovery-latest-games-label">
-                        Latest Games Added
+                        {{ loc.latestgames.title }}
                     </div>
                     {% if latest_games %}
                     <div class="discovery-latest-games-container">
@@ -70,13 +72,13 @@
                     </div>
                     {% else %}
 							<br>
-							<p>No latest games added yet.</p>
+							<p>{{ loc.latestgames.empty }}</p>
 
                     {% endif %}
 				<br>
 				<br>
                     <div class="discovery-most-downloaded-label">
-                        Most Downloaded Games
+                        {{ loc.mostdownloaded.title }}
                     </div>
                     {% if most_downloaded_games %}
                         <div class="discovery-most-downloaded-container">
@@ -105,12 +107,12 @@
                     {% else %}
 					<tr>
 						<br>
-                        <p>No most downloaded games yet.</p>
+                        <p>{{ loc.mostdownloaded.empty }}</p>
                     {% endif %}
 				<br>
 				<br>
                     <div class="discovery-highest-rated-label">
-                        Highest Rated Games
+                        {{ loc.highestrated.title }}
                     </div>
                     {% if highest_rated_games %}
                         <div class="discovery-highest-rated-container">
@@ -138,6 +140,7 @@
                         </div>
                     {% else %}
 							<br>
+							<p>{{ loc.highestrated.empty }}</p>
                     {% endif %}
 </body>
 {% endblock %}
