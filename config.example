@@ -26,3 +26,9 @@ class Config(object):
         BASE_FOLDER_WINDOWS = os.getenv('BASE_FOLDER_WINDOWS', 'C:/')
     else:  # POSIX (Linux, Unix, MacOS, etc.)
         BASE_FOLDER_POSIX = os.getenv('BASE_FOLDER_POSIX', '/storage')
+	# Discord Notification Settings
+    DISCORD_WEBHOOK_URL = os.getenv('DISCORD_WEBHOOK_URL', '')
+    DISCORD_BOT_NAME = os.getenv('DISCORD_BOT_NAME', 'SharewareZ')
+    DISCORD_BOT_AVATAR_URL = os.getenv('DISCORD_BOT_AVATAR_URL', '')
+    #Branding
+    SITE_URL = os.getenv('SITE_URL', 'http://127.0.0.1') #The URL the site is accessed from by users.
