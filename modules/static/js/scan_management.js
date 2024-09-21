@@ -14,10 +14,17 @@ function attachDeleteFolderFormListeners() {
         if (!form.dataset.listenerAdded) {
             form.addEventListener('submit', function(event) {
                 event.preventDefault();
+                const folderPath = form.querySelector('[name="folder_path"]').value;
+                
+                // Add confirmation dialog
+                if (!confirm(`Are you sure you want to delete the folder ${folderPath} FROM DISK?`)) {
+                    console.log("Deletion cancelled by user");
+                    return; // Exit the function if user cancels
+                }
+
                 showSpinner();
                 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-                const folderPath = form.querySelector('[name="folder_path"]').value;
                 console.log("Attempting to delete folder with path:", folderPath);
 
                 fetch('/delete_folder', {
