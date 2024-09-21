@@ -348,6 +348,16 @@ def invites():
 
     return render_template('/login/invites.html', form=form, invites=invites, invite_quota=current_user.invite_quota, remaining_invites=remaining_invites)
 
+@bp.route('/delete_invite/<token>', methods=['POST'])
+@login_required
+def delete_invite(token):
+    invite = InviteToken.query.filter_by(token=token, creator_user_id=current_user.user_id).first()
+    if invite:
+        db.session.delete(invite)
+        db.session.commit()
+        return jsonify({'success': True})
+    else:
+        return jsonify({'success': False, 'message': 'Invite not found or you do not have permission to delete it.'})
 
 def send_invite_email(email, invite_url):
     subject = "You're Invited!"
