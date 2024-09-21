@@ -10,16 +10,17 @@ When updating from 1.2.1 run the update_game_sizes.py script
 ***[SharewareZ promotes legal use of its application]***
 
 ## 🌟 Features Overview
-2. **Game Library Management** 🎲
+1. **Game Library Management** 🎲
     - Multiple library support.
     - Automated scanning of folders to catalog games.
     - Library page includes Steam-style popup with screenshot slideshow.
     - Filtering options based on genre, rating, and gameplay modes
     - Discovery page showcasing latest additions, top downloads, and highly rated games.
-3. **Download games** 💻
+    - Discord webhook for announcements.
+2. **Download games** 💻
     - Auto-zip. Folders with multiple files are zipped on demand.
     - NFO files are indexed and viewable on games details page.
-1. **User and Role management** 🔐
+3. **User and Role management** 🔐
     - Role-based access control for admins and regular users.
     - User invite system. Optionally grant invites to users, by admin.
 
