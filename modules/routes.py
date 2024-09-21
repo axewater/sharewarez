@@ -1643,10 +1643,16 @@ def delete_all_unmatched_folders():
         UnmatchedFolder.query.delete()  # Deletes all unmatched folder records
         db.session.commit()
         flash('All unmatched folders deleted successfully.', 'success')
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        error_message = f"Database error while deleting all unmatched folders: {str(e)}"
+        print(error_message)
+        flash(error_message, 'error')
     except Exception as e:
         db.session.rollback()
-        flash('An error occurred while deleting unmatched folders.', 'error')
-        print(e)  # For debugging
+        error_message = f"An unexpected error occurred while deleting all unmatched folders: {str(e)}"
+        print(error_message)
+        flash(error_message, 'error')
     return redirect(url_for('main.scan_management'))
 
 
@@ -1673,6 +1679,31 @@ def clear_only_unmatched_folders():
         flash(error_message, 'error')
     
     print("Redirecting to scan management page")
+    return redirect(url_for('main.scan_management'))
+
+def handle_delete_unmatched(all):
+    print(f"Route: /delete_unmatched - {current_user.name} - {current_user.role} method: {request.method} arguments: all={all}")
+    try:
+        if all:
+            print(f"Clearing all unmatched folders: {UnmatchedFolder.query.filter(UnmatchedFolder.status.ilike('unmatched')).count()}")
+            UnmatchedFolder.query.delete()
+            flash('All unmatched folders cleared successfully.', 'success')
+        else:
+            print(f"Clearing this number of unmatched folders: {UnmatchedFolder.query.filter(UnmatchedFolder.status.ilike('unmatched')).count()}")
+            UnmatchedFolder.query.filter(UnmatchedFolder.status.ilike('unmatched')).delete()
+            flash('Unmatched folders with status "unmatched" cleared successfully.', 'success')
+        db.session.commit()
+        session['active_tab'] = 'unmatched'
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        error_message = f"Database error while clearing unmatched folders: {str(e)}"
+        print(error_message)
+        flash(error_message, 'error')
+    except Exception as e:
+        db.session.rollback()
+        error_message = f"An unexpected error occurred while clearing unmatched folders: {str(e)}"
+        print(error_message)
+        flash(error_message, 'error')
     return redirect(url_for('main.scan_management'))
 
 
