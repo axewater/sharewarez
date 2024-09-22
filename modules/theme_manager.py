@@ -98,3 +98,21 @@ class ThemeManager:
             if not os.path.exists(os.path.join(theme_path, folder)):
                 return False
         return True
+
+    def delete_theme(self, theme_name):
+        if theme_name == 'Default':
+            raise ValueError("Cannot delete the default theme.")
+
+        theme_path = os.path.join(self.theme_folder, secure_filename(theme_name))
+        if not os.path.exists(theme_path):
+            raise ValueError(f"Theme '{theme_name}' does not exist.")
+
+        try:
+            shutil.rmtree(theme_path)
+        except Exception as e:
+            raise Exception(f"Error deleting theme: {str(e)}")
+
+        # Check if any users are using the deleted theme and reset to default
+        from modules.models import UserPreference
+        UserPreference.query.filter_by(theme=theme_name).update({'theme': 'default'})
+        self.app.db.session.commit()
