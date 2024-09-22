@@ -1,5 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="alert alert-info" role="alert">
+        {% for message in messages %}
+            {{ message }}<br>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 
 <div class="glass-panel">
     <div class="container mt-3">
@@ -120,91 +130,13 @@
         </form>
     </div>
 </div>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log("Settings form DOMContentLoaded event triggered.");
-    
-        // Initialize tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="tooltip"]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl)
-        })
+   
+<!-- Embed current_settings as JSON in a script tag -->
+<script id="currentSettings" type="application/json">{{ current_settings|tojson }}</script>
+<script id="csrf_token" type="application/json">{{ csrf_token() }}</script>
 
-        const currentSettings = {{ current_settings|tojson }};
-        console.log("Current settings loaded:", currentSettings);
+<!-- Include the external JavaScript file -->
+<script src="{{ url_for('static', filename='js/admin_settings.js') }}"></script>
 
-        // Apply current settings to form
-        Object.keys(currentSettings).forEach(function(key) {
-            const input = document.getElementById(key);
-            if(input && input.type === 'checkbox') {
-                input.checked = currentSettings[key];
-            } else if(input) {
-                input.value = currentSettings[key];
-            }
-            console.log("Applied setting for:", key, "; Value:", currentSettings[key]);
-        });
 
-        // Form submission handler
-        document.getElementById('settingsForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            console.log("Form submit event triggered.");
-
-            const settings = {
-                showSystemLogo: document.getElementById('showSystemLogo').checked,
-                showHelpButton: document.getElementById('showHelpButton').checked,
-                allowUsersToInviteOthers: document.getElementById('allowUsersToInviteOthers').checked,
-                enableWebLinksOnDetailsPage: document.getElementById('enableWebLinksOnDetailsPage').checked,
-                enableServerStatusFeature: document.getElementById('enableServerStatusFeature').checked,
-                enableNewsletterFeature: document.getElementById('enableNewsletterFeature').checked,
-                showVersion: document.getElementById('showVersion').checked,
-            };
-            console.log("Settings to be saved:", settings);
-
-            fetch('/admin/settings', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify(settings)
-            })
-            .then(response => {
-                console.log("Fetch response received.");
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error('Network response was not ok.');
-            })
-            .then(data => {
-                console.log("Response data:", data);
-                document.getElementById('settingsSavedNotification').style.display = 'block';
-                setTimeout(() => {
-                    document.getElementById('settingsSavedNotification').style.display = 'none';
-                }, 3000);
-            })
-            .catch(error => {
-                console.error('Fetch operation error:', error);
-                alert('Error updating settings');
-            });
-        });
-    });
-    </script>
-
-    <style>
-    .settingsform-admin {
-        
-        padding: 20px;
-        border-radius: 15px;
-    }
-    .settingsform-admin .form-check-label {
-        color: #000000; /* Ensuring labels are readable against the dark background */
-    }
-    .table {
-        background-color: #333;
-        color: #fff;
-    }
-    .table th {
-        background-color: #444;
-    }
-    </style>
 {% endblock %}

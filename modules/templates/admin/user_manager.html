@@ -1,15 +1,19 @@
 <!-- templates/admin/user_manager.html -->
 {% extends "base.html" %}
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 
 
 <div class="glass-panel">
-    <div class="flashes">
-        {% for message in messages %}
-            <div class="flash">{{ message }}</div>
-        {% endfor %}
-    </div>
-    
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="alert alert-info" role="alert">
+            {% for message in messages %}
+                {{ message }}<br>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
     <div class="content-login">
             <!-- Back to Dashboard Button -->
             <div class="container mt-3">
