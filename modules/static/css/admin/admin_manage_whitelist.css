@@ -1,0 +1,9 @@
+.image-whitelist img {
+    width: 150px;
+    border-radius: 15px;
+
+}
+.image-whitelist {
+    display: flex;
+    align-items: flex-end;
+}

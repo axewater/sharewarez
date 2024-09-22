@@ -192,3 +192,10 @@ class LibraryForm(FlaskForm):
     name = StringField('Library Name', validators=[DataRequired()])
     platform = SelectField('Platform', choices=[(choice.value, choice.name) for choice in LibraryPlatform], validators=[DataRequired()])
     image = FileField('Library Image', validators=[FileAllowed(['jpg', 'jpeg', 'png'], 'Images only!')])
+
+class ThemeUploadForm(FlaskForm):
+    theme_zip = FileField('Theme ZIP File', validators=[
+        FileRequired(),
+        FileAllowed(['zip'], 'ZIP files only!')
+    ])
+    submit = SubmitField('Upload Theme')
