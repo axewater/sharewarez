@@ -1936,6 +1936,12 @@ def manage_themes():
     default_theme = theme_manager.get_default_theme()
     return render_template('admin/manage_themes.html', form=form, themes=installed_themes, default_theme=default_theme)
 
+@bp.route('/admin/themes/readme')
+@login_required
+@admin_required
+def theme_readme():
+    return render_template('admin/theme_readme.html')
+
 @bp.route('/admin/themes/delete/<theme_name>', methods=['POST'])
 @login_required
 @admin_required

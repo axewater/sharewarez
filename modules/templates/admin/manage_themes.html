@@ -1,64 +1,59 @@
 {% extends "base.html" %}
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin_user_create.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/manage_themes.css') }}">
 {% with messages = get_flashed_messages(with_categories=true) %}
 {% if messages %}
-    {% for category, message in messages %}
-        <div class="alert alert-{{ category }}" role="alert">
-            {{ message }}
-        </div>
-    {% endfor %}
+    <div class="flash-messages">
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
 {% endif %}
 {% endwith %}
 <div class="container">
     <div class="glass-panel">
-    <h1>Manage Themes</h1>
-    <form method="POST" enctype="multipart/form-data">
-        {{ form.hidden_tag() }}
-        <div class="form-group">
-            {{ form.theme_zip.label }}
-            {{ form.theme_zip(class="form-control-file") }}
+        <h1 class="page-title">Manage Themes</h1>
+        <a href="{{ url_for('main.theme_readme') }}" class="btn btn-info mt-3">How to Create a Theme</a>
+        <div class="theme-upload-section">
+            <h2>Upload New Theme</h2>
+            <form method="POST" enctype="multipart/form-data" class="theme-upload-form">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    {{ form.theme_zip.label(class="form-label") }}
+                    {{ form.theme_zip(class="form-control-file") }}
+                </div>
+                {{ form.submit(class="btn btn-primary") }}
+            </form>
+           
         </div>
-        {{ form.submit(class="btn btn-primary") }}
-    </form>
 
-    <h2>Installed Themes</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Author</th>
-                <th>Release Date</th>
-                <th>Description</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr class="table-primary">
-                <td>{{ default_theme.name }} (Default)</td>
-                <td>{{ default_theme.author }}</td>
-                <td>{{ default_theme.release_date }}</td>
-                <td>{{ default_theme.description }}</td>
-                <td>-</td>
-            </tr>
-            {% for theme in themes %}
-            {% if theme.name != default_theme.name %}
-            <tr>
-                <td>{{ theme.name }}</td>
-                <td>{{ theme.author }}</td>
-                <td>{{ theme.release_date }}</td>
-                <td>{{ theme.description }}</td>
-                <td>
+        <div class="installed-themes-section">
+            <h2>Installed Themes</h2>
+            <div class="themes-grid">
+                <div class="theme-card default-theme">
+                    <h3>{{ default_theme.name }} (Default)</h3>
+                    <p><strong>Author:</strong> {{ default_theme.author }}</p>
+                    <p><strong>Release Date:</strong> {{ default_theme.release_date }}</p>
+                    <p><strong>Description:</strong> {{ default_theme.description }}</p>
+                </div>
+                {% for theme in themes %}
+                {% if theme.name != default_theme.name %}
+                <div class="theme-card">
+                    <h3>{{ theme.name }}</h3>
+                    <p><strong>Author:</strong> {{ theme.author }}</p>
+                    <p><strong>Release Date:</strong> {{ theme.release_date }}</p>
+                    <p><strong>Description:</strong> {{ theme.description }}</p>
                     <form action="{{ url_for('main.delete_theme', theme_name=theme.name) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this theme?');">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                     </form>
-                </td>
-            </tr>
-            {% endif %}
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
