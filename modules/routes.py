@@ -560,11 +560,6 @@ def settings_panel():
     print("Route: /settings_panel")
     form = UserPreferencesForm()
     
-    # Get installed themes
-    theme_manager = ThemeManager(current_app)
-    installed_themes = theme_manager.get_installed_themes()
-    form.theme.choices = [(theme['name'], theme['name']) for theme in installed_themes]
-    
     if request.method == 'POST' and form.validate_on_submit():
         # Ensure preferences exist
         if not current_user.preferences:
@@ -573,7 +568,7 @@ def settings_panel():
         current_user.preferences.items_per_page = form.items_per_page.data or current_user.preferences.items_per_page
         current_user.preferences.default_sort = form.default_sort.data or current_user.preferences.default_sort
         current_user.preferences.default_sort_order = form.default_sort_order.data or current_user.preferences.default_sort_order
-        current_user.preferences.theme = form.theme.data
+        current_user.preferences.theme = form.theme.data if form.theme.data != 'default' else None
         db.session.add(current_user.preferences)
         db.session.commit()
         flash('Your settings have been updated.', 'success')
@@ -588,7 +583,7 @@ def settings_panel():
         form.items_per_page.data = current_user.preferences.items_per_page
         form.default_sort.data = current_user.preferences.default_sort
         form.default_sort_order.data = current_user.preferences.default_sort_order
-        form.theme.data = current_user.preferences.theme
+        form.theme.data = current_user.preferences.theme or 'default'
 
     return render_template('settings/settings_panel.html', form=form)
 
@@ -1938,19 +1933,18 @@ def manage_themes():
         return redirect(url_for('main.manage_themes'))
 
     installed_themes = theme_manager.get_installed_themes()
-    return render_template('admin/manage_themes.html', form=form, themes=installed_themes)
+    default_theme = theme_manager.get_default_theme()
+    return render_template('admin/manage_themes.html', form=form, themes=installed_themes, default_theme=default_theme)
 
 @bp.context_processor
 def inject_current_theme():
-    # This function will be called for every request
-    # You can retrieve the current theme from user preferences or a global setting
-    current_theme = get_current_theme()  # Implement this function
+    if current_user.is_authenticated and current_user.preferences:
+        current_theme = current_user.preferences.theme or 'default'
+    else:
+        current_theme = 'default'
     return dict(current_theme=current_theme)
 
-def get_current_theme():
-    # Implement logic to get the current theme
-    # This could be from user preferences, global settings, or a default theme
-    return 'default'  # Replace with actual logic
+# Remove the get_current_theme function as it's no longer needed
 
 @bp.route('/delete_game/<string:game_uuid>', methods=['POST'])
 @login_required

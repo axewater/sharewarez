@@ -33,13 +33,21 @@
             </tr>
         </thead>
         <tbody>
+            <tr class="table-primary">
+                <td>{{ default_theme.name }} (Default)</td>
+                <td>{{ default_theme.author }}</td>
+                <td>{{ default_theme.release_date }}</td>
+                <td>{{ default_theme.description }}</td>
+            </tr>
             {% for theme in themes %}
+            {% if theme.name != default_theme.name %}
             <tr>
                 <td>{{ theme.name }}</td>
                 <td>{{ theme.author }}</td>
                 <td>{{ theme.release_date }}</td>
                 <td>{{ theme.description }}</td>
             </tr>
+            {% endif %}
             {% endfor %}
         </tbody>
     </table>
