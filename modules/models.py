@@ -473,7 +473,7 @@ class ScanJob(db.Model):
     total_folders = db.Column(db.Integer, default=0)
     folders_success = db.Column(db.Integer, default=0)
     folders_failed = db.Column(db.Integer, default=0)
-    library_uuid = db.Column(db.String(36), db.ForeignKey('libraries.uuid'), nullable=True)  # Add this line
+    library_uuid = db.Column(db.String(36), db.ForeignKey('libraries.uuid'), nullable=True)
     library = db.relationship('Library', backref=db.backref('scan_jobs', lazy=True))
 
 
@@ -496,8 +496,8 @@ class UserPreference(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     items_per_page = db.Column(db.Integer, default=20)
     default_sort = db.Column(db.String(50), default='name')
-    default_sort_order = db.Column(db.String(4), default='asc')  # Add this line
-
+    default_sort_order = db.Column(db.String(4), default='asc')
+    theme = db.Column(db.String(50), default='default')
     user = db.relationship('User', backref=db.backref('preferences', uselist=False))
 
 class GlobalSettings(db.Model):
@@ -506,7 +506,7 @@ class GlobalSettings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     settings = db.Column(JSONEncodedDict)  # Store all settings in a single JSON-encoded column
     last_updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    enable_delete_game_on_disk = db.Column(db.Boolean, default=True)  # New column
+    enable_delete_game_on_disk = db.Column(db.Boolean, default=True)
 
     def __repr__(self):
         return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'
