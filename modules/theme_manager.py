@@ -9,6 +9,15 @@ class ThemeManager:
     def __init__(self, app):
         self.app = app
         self.theme_folder = app.config['THEME_FILES']
+        self.default_theme = {
+            'name': 'Default',
+            'author': 'SharewareZ Team',
+            'release_date': '2024-03-15',
+            'description': 'The default theme for SharewareZ'
+        }
+
+    def get_default_theme(self):
+        return self.default_theme
 
     def upload_theme(self, theme_zip):
         # Check if the library folder exists
@@ -59,7 +68,7 @@ class ThemeManager:
 
             shutil.move(temp_dir, theme_path)
 
-            flash('Theme uploaded successfully!', 'success')
+
             return theme_data
         finally:
             # Clean up temp folder
@@ -67,7 +76,7 @@ class ThemeManager:
                 shutil.rmtree(temp_dir)
 
     def get_installed_themes(self):
-        themes = []
+        themes = [self.default_theme]  # Start with the default theme
         for theme_name in os.listdir(self.theme_folder):
             theme_path = os.path.join(self.theme_folder, theme_name)
             if os.path.isdir(theme_path):
