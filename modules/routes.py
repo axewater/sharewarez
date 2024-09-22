@@ -52,7 +52,7 @@ has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
-app_version = '1.3.1'
+app_version = '1.3.2'
 
 @bp.before_app_request
 def initial_setup():
@@ -108,6 +108,7 @@ def inject_settings():
         enable_server_status = settings_record.settings.get('enableServerStatusFeature', False)
         enable_newsletter = settings_record.settings.get('enableNewsletterFeature', False)
         show_version = settings_record.settings.get('showVersion', True)  # New setting
+        enable_delete_game_on_disk = settings_record.settings.get('enableDeleteGameOnDisk', True)
     else:
         # Default values if no settings_record is found
         show_logo = True
@@ -116,6 +117,7 @@ def inject_settings():
         enable_server_status = True
         enable_newsletter = True
         show_version = True  # Default to showing version
+        enable_delete_game_on_disk = True
 
     return dict(
         show_logo=show_logo, 
@@ -124,7 +126,8 @@ def inject_settings():
         enable_server_status=enable_server_status,
         enable_newsletter=enable_newsletter,
         show_version=show_version,
-        app_version=app_version
+        app_version=app_version,
+        enable_delete_game_on_disk=enable_delete_game_on_disk
     )
 
 @bp.context_processor
@@ -348,7 +351,7 @@ def invites():
     current_invites_count = len(invites)
     remaining_invites = max(0, current_user.invite_quota - current_invites_count)
 
-    return render_template('/login/invites.html', form=form, invites=invites, invite_quota=current_user.invite_quota, remaining_invites=remaining_invites)
+    return render_template('/login/user_invites.html', form=form, invites=invites, invite_quota=current_user.invite_quota, remaining_invites=remaining_invites)
 
 @bp.route('/delete_invite/<token>', methods=['POST'])
 @login_required
@@ -399,13 +402,13 @@ def create_user():
             flash(f'An error occurred: {str(e)}', 'danger')
 
     # Render the registration form
-    return render_template('admin/create_user.html', form=form)
+    return render_template('admin/admin_user_create.html', form=form)
 
 @bp.route('/admin/user_created')
 @login_required
 @admin_required
 def user_created():
-    return render_template('admin/create_user_done.html')
+    return render_template('admin/admin/admin_user_create_completed.html')
 
 @bp.route('/api/current_user_role', methods=['GET'])
 @login_required
@@ -636,7 +639,7 @@ def newsletter():
         except Exception as e:
             flash(str(e), 'error')
         return redirect(url_for('main.newsletter'))
-    return render_template('admin/newsletter.html', title='Newsletter', form=form, users=users)
+    return render_template('admin/admin_newsletter.html', title='Newsletter', form=form, users=users)
 
 
 @bp.route('/admin/whitelist', methods=['GET', 'POST'])
@@ -656,7 +659,7 @@ def whitelist():
             flash('The email is already in the whitelist!', 'danger')
         return redirect(url_for('main.whitelist'))
     whitelist = Whitelist.query.all()
-    return render_template('admin/whitelist.html', title='Whitelist', whitelist=whitelist, form=form)
+    return render_template('admin/admin_manage_whitelist.html', title='Whitelist', whitelist=whitelist, form=form)
 
 
 
@@ -718,7 +721,7 @@ def usermanager():
                 db.session.rollback()
                 flash(f'Database error on delete: {e}', 'danger')
 
-    return render_template('admin/user_manager.html', form=form, users=users_query)
+    return render_template('admin/admin_manage_users.html', form=form, users=users_query)
 
 
 @bp.route('/get_user/<int:user_id>', methods=['GET'])
@@ -915,7 +918,7 @@ def downloads():
         download_request.formatted_size = format_size(download_request.download_size)
 
     form = CsrfProtectForm()
-    return render_template('games/downloads_manager.html', download_requests=download_requests, form=form)
+    return render_template('games/manage_downloads.html', download_requests=download_requests, form=form)
 
 
 @bp.route('/scan_manual_folder', methods=['GET', 'POST'])
@@ -950,7 +953,7 @@ def scan_folder():
             
 
     # print("Game names with IDs:", game_names_with_ids)
-    return render_template('scan/scan_management.html', form=form, game_names_with_ids=game_names_with_ids)
+    return render_template('admin/admin_manage_scanjobs.html', form=form, game_names_with_ids=game_names_with_ids)
 
 
   
@@ -967,7 +970,7 @@ def api_debug():
         print(f"Selected endpoint: {selected_endpoint} with query params: {query_params}")
         api_response = make_igdb_api_request(selected_endpoint, query_params)
         
-    return render_template('scan/scan_apidebug.html', form=form, api_response=api_response)
+    return render_template('admin/admin_debug_api.html', form=form, api_response=api_response)
 
 
 @bp.route('/scan_management', methods=['GET', 'POST'])
@@ -1022,7 +1025,7 @@ def scan_management():
     game_names_with_ids = [{'name': name, 'full_path': path} for name, path in game_paths_dict.items()]
     active_tab = session.get('active_tab', 'auto')
 
-    return render_template('scan/scan_management.html', 
+    return render_template('admin/admin_manage_scanjobs.html', 
                            auto_form=auto_form, 
                            manual_form=manual_form, 
                            jobs=jobs, 
@@ -1175,7 +1178,7 @@ def add_game_manual():
         if check_existing_game_by_igdb_id(form.igdb_id.data):
             flash('A game with this IGDB ID already exists.', 'error')
             print(f"IGDB ID {form.igdb_id.data} already exists.")
-            return render_template('games/manual_game_add.html', form=form, library_uuid=library_uuid, library_name=library_name, platform_name=platform_name, platform_id=platform_id)
+            return render_template('admin/admin_game_identify.html', form=form, library_uuid=library_uuid, library_name=library_name, platform_name=platform_name, platform_id=platform_id)
         
         new_game = Game(
             igdb_id=form.igdb_id.data,
@@ -1247,7 +1250,7 @@ def add_game_manual():
     else:
         print(f"Form validation failed: {form.errors}")
     return render_template(
-        'games/manual_game_add.html',
+        'admin/admin_game_identify.html',
         form=form,
         from_unmatched=from_unmatched,
         action="add",
@@ -1273,7 +1276,7 @@ def game_edit(game_uuid):
             flash('Cannot edit the game while a scan job is running. Please try again later.', 'error')
             print("Attempt to edit a game while a scan job is running by user:", current_user.name)
             # Re-render the template with the current form data
-            return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, action="edit")
+            return render_template('admin/admin_game_identify.html', form=form, game_uuid=game_uuid, action="edit")
 
         # Check if any other game has the same igdb_id and is not the current game
         
@@ -1285,7 +1288,7 @@ def game_edit(game_uuid):
         if existing_game_with_igdb_id is not None:
             # Inform user that igdb_id already in use
             flash(f'The IGDB ID {form.igdb_id.data} is already used by another game.', 'error')
-            return render_template('games/manual_game_add.html', form=form, library_name=library_name, game_uuid=game_uuid, action="edit")
+            return render_template('admin/admin_game_identify.html', form=form, library_name=library_name, game_uuid=game_uuid, action="edit")
         
         
         game.library_uuid = form.library_uuid.data
@@ -1307,7 +1310,7 @@ def game_edit(game_uuid):
         else:
             
             flash(f'Invalid category: {category_str}', 'error')
-            return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, action="edit")
+            return render_template('admin/admin_game_identify.html', form=form, game_uuid=game_uuid, action="edit")
         
         
         # Handling Developer
@@ -1373,7 +1376,7 @@ def game_edit(game_uuid):
 
     # For GET or if form fails
     print(f"game_edit2 Platform ID: {platform_id}, Platform Name: {platform_name}, Library Name: {library_name}")
-    return render_template('games/manual_game_add.html', form=form, game_uuid=game_uuid, platform_id=platform_id, platform_name=platform_name, library_name=library_name, action="edit")
+    return render_template('admin/admin_game_identify.html', form=form, game_uuid=game_uuid, platform_id=platform_id, platform_name=platform_name, library_name=library_name, action="edit")
 
 @bp.route('/get_platform_by_library/<library_uuid>')
 @login_required
@@ -1398,7 +1401,7 @@ def edit_game_images(game_uuid):
     game = Game.query.filter_by(uuid=game_uuid).first_or_404()
     cover_image = Image.query.filter_by(game_uuid=game_uuid, image_type='cover').first()
     screenshots = Image.query.filter_by(game_uuid=game_uuid, image_type='screenshot').all()
-    return render_template('games/edit_game_images.html', game=game, cover_image=cover_image, images=screenshots)
+    return render_template('games/game_edit_images.html', game=game, cover_image=cover_image, images=screenshots)
 
 
 @bp.route('/upload_image/<game_uuid>', methods=['POST'])
@@ -1548,13 +1551,13 @@ def manage_settings():
         settings_record = GlobalSettings.query.first()
         current_settings = settings_record.settings if settings_record else {}
         current_settings['enableDeleteGameOnDisk'] = settings_record.enable_delete_game_on_disk if settings_record else True
-        return render_template('admin/admin_settings.html', current_settings=current_settings)
+        return render_template('admin/admin_server_settings.html', current_settings=current_settings)
 
 
-@bp.route('/admin/status_page')
+@bp.route('/admin/server_status_page')
 @login_required
 @admin_required
-def admin_status_page():
+def admin_server_status():
     
     settings_record = GlobalSettings.query.first()
     enable_server_status = settings_record.settings.get('enableServerStatusFeature', False) if settings_record else False
@@ -1584,7 +1587,7 @@ def admin_status_page():
         'Uptime': str(uptime),
         'Current Time': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
-    return render_template('admin/status_page.html', config_values=config_values, system_info=system_info, app_version=app_version)
+    return render_template('admin/admin_server_info.html', config_values=config_values, system_info=system_info, app_version=app_version)
 
 @bp.route('/admin/manage_invites', methods=['GET', 'POST'])
 @login_required
@@ -1604,7 +1607,7 @@ def manage_invites():
             flash('User not found.', 'error')
 
     users = User.query.all()
-    return render_template('admin/manage_invites.html', users=users)
+    return render_template('admin/admin_manage_invites.html', users=users)
 
 @bp.route('/delete_scan_job/<job_id>', methods=['POST'])
 @login_required
@@ -1775,7 +1778,7 @@ def edit_filters():
         flash('New release group filter added.')
         return redirect(url_for('main.edit_filters'))
     groups = ReleaseGroup.query.order_by(ReleaseGroup.rlsgroup.asc()).all()
-    return render_template('admin/edit_filters.html', form=form, groups=groups)
+    return render_template('admin/admin_manage_filters.html', form=form, groups=groups)
 
 @bp.route('/delete_filter/<int:id>', methods=['GET'])
 @login_required
@@ -1889,7 +1892,7 @@ def game_details(game_uuid):
             "icon": url_icons.get(url.url_type, "fa-link")
         } for url in game.urls]
         
-        return render_template('games/games_details.html', game=game_data, form=csrf_form)
+        return render_template('games/game_details.html', game=game_data, form=csrf_form)
     else:
         return jsonify({"error": "Game not found"}), 404
 
@@ -2313,11 +2316,11 @@ def check_download_status(game_uuid):
 
 
 
-@bp.route('/admin/clear-downloads', methods=['GET', 'POST'])
+@bp.route('/admin/manage-downloads', methods=['GET', 'POST'])
 @login_required
 @admin_required
-def clear_downloads():
-    print("Route: /admin/clear-downloads")
+def manage_downloads():
+    print("Route: /admin/manage-downloads")
     form = ClearDownloadRequestsForm()
     if form.validate_on_submit():
         print("Deleting all download requests")
@@ -2332,7 +2335,7 @@ def clear_downloads():
         return redirect(url_for('main.clear_downloads'))
 
     download_requests = DownloadRequest.query.all()
-    return render_template('admin/clear_downloads.html', form=form, download_requests=download_requests)
+    return render_template('admin/admin_manage_downloads.html', form=form, download_requests=download_requests)
 
 
 @bp.route('/delete_download/<int:download_id>', methods=['POST'])
@@ -2534,7 +2537,7 @@ def check_scan_status():
 @bp.route('/help')
 def helpfaq():
     print("Route: /help")
-    return render_template('site/help.html')
+    return render_template('site/site_help.html')
 
 
 
@@ -2545,7 +2548,7 @@ def libraries():
     libraries = Library.query.all()
     csrf_form = CsrfProtectForm()
     game_count = Game.query.count()  # Fetch the game count here
-    return render_template('libraries/libraries.html', libraries=libraries, csrf_form=csrf_form, game_count=game_count)
+    return render_template('admin/admin_manage_libraries.html', libraries=libraries, csrf_form=csrf_form, game_count=game_count)
 
 @bp.route('/library/add', methods=['GET', 'POST'])
 @bp.route('/library/edit/<library_uuid>', methods=['GET', 'POST'])
@@ -2579,7 +2582,7 @@ def add_edit_library(library_uuid=None):
             library.platform = LibraryPlatform[form.platform.data]
         except KeyError:
             flash(f'Invalid platform selected: {form.platform.data}', 'error')
-            return render_template('libraries/add_library.html', form=form, library=library, page_title=page_title)
+            return render_template('admin/admin_manage_library_create.html', form=form, library=library, page_title=page_title)
 
         file = form.image.data
         if file:
@@ -2588,7 +2591,7 @@ def add_edit_library(library_uuid=None):
             file_length = file.tell()
             if file_length > 5 * 1024 * 1024:  # 5MB limit
                 flash('File size is too large. Maximum allowed is 5 MB.', 'error')
-                return render_template('libraries/add_library.html', form=form, library=library, page_title=page_title)
+                return render_template('admin/admin_manage_library_create.html', form=form, library=library, page_title=page_title)
 
             # Reset file pointer after checking size
             file.seek(0)
@@ -2631,7 +2634,7 @@ def add_edit_library(library_uuid=None):
             flash('Failed to save library. Please try again.', 'error')
             print(f"Error saving library: {e}")
 
-    return render_template('libraries/add_library.html', form=form, library=library, page_title=page_title)
+    return render_template('admin/admin_manage_library_create.html', form=form, library=library, page_title=page_title)
 
 
 @bp.route('/library')

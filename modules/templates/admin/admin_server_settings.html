@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block content %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="alert alert-info" role="alert">
+        {% for message in messages %}
+            {{ message }}<br>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin_server_settings.css') }}">
+
+<div class="glass-panel">
+    <div class="container mt-3">
+        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
+    </div>
+    <h2>Manage SharewareZ Settings</h2>
+
+    <div id="settingsSavedNotification" class="alert alert-success" role="alert" style="display: none;">
+        Settings saved successfully, Captain!
+    </div>
+    <div class="settingsform-admin">
+        <form id="settingsForm">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Interface</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="showSystemLogo">
+                                        <label class="form-check-label" for="showSystemLogo" data-toggle="tooltip" title="When enabled, displays the SharewareZ logo on the main interface.">
+                                            Show System Logo
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="showHelpButton">
+                                        <label class="form-check-label" for="showHelpButton" data-toggle="tooltip" title="Adds a help button to the interface, providing users with quick access to support resources.">
+                                            Show Help Button
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableWebLinksOnDetailsPage">
+                                        <label class="form-check-label" for="enableWebLinksOnDetailsPage" data-toggle="tooltip" title="Shows external web links (e.g., official website, community forums) on game detail pages as an icon.">
+                                            Show Weblinks on Details Page
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="showVersion">
+                                        <label class="form-check-label" for="showVersion" data-toggle="tooltip" title="Displays the current app version below the app logo.">
+                                            Show Version
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Features</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="allowUsersToInviteOthers">
+                                        <label class="form-check-label" for="allowUsersToInviteOthers" data-toggle="tooltip" title="Enables regular users to send invitations to new users.">
+                                            Enable User Invite System
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableServerStatusFeature">
+                                        <label class="form-check-label" for="enableServerStatusFeature" data-toggle="tooltip" title="Enables the server info button in the admin dashboard. This contains sensitive server information such as API keys!">
+                                            Enable Server Info Feature
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableNewsletterFeature">
+                                        <label class="form-check-label" for="enableNewsletterFeature" data-toggle="tooltip" title="Enables the newsletter functionality, allowing administrators to send updates and announcements to users.">
+                                            Enable Newsletter Feature
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableDeleteGameOnDisk">
+                                        <label class="form-check-label" for="enableDeleteGameOnDisk" data-toggle="tooltip" title="Enables the option to delete games from disk. When disabled, this option will be hidden from the UI.">
+                                            Enable Delete Game on Disk
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
+        </form>
+    </div>
+</div>
+   
+<!-- Embed current_settings as JSON in a script tag -->
+<script id="currentSettings" type="application/json">{{ current_settings|tojson }}</script>
+<script id="csrf_token" type="application/json">{{ csrf_token() }}</script>
+
+<!-- Include the external JavaScript file -->
+<script src="{{ url_for('static', filename='js/admin_server_settings.js') }}"></script>
+
+
+{% endblock %}

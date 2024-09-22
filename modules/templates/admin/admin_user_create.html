@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_user_create.css') }}">
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="alert alert-info" role="alert">
+        {% for message in messages %}
+            {{ message }}<br>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
+<div class="container">
+    <div class="glass-panel">
+        <!-- Back to Dashboard Button -->
+        <div class="container mt-3">
+            <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
+        </div>
+        <h1>Create New User</h1>
+        <form id="createUserForm" method="POST" action="{{ url_for('main.create_user') }}">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.username.label(class="form-label") }}
+                {{ form.username(class="form-control") }}
+                <small id="usernameAvailabilityFeedback"></small> <!-- Feedback text for username availability -->
+            </div>
+            <div class="mb-3">
+                {{ form.email.label(class="form-label") }}
+                {{ form.email(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.password.label(class="form-label") }}
+                {{ form.password(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.confirm_password.label(class="form-label") }}
+                {{ form.confirm_password(class="form-control") }}
+            </div>
+            <button type="submit" class="btn btn-primary">Create User</button>
+        </form>
+    </div>
+</div>
+
+<!-- Embed CSRF token as JSON in a script tag -->
+<script id="csrf_token" type="application/json">{{ csrf_token() }}</script>
+<!-- Embed CSRF token as meta tag -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<!-- Include the external JavaScript file -->
+<script src="{{ url_for('static', filename='js/checkusername.js') }}"></script>
+{% endblock %}

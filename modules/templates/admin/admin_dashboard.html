@@ -1,7 +1,9 @@
+<!-- templates/admin/admin_dashboard.html -->
 {% extends "base.html" %}
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin_dashboard.css') }}">
+
 {% with messages = get_flashed_messages() %}
 {% if messages %}
     <div class="alert alert-info" role="alert">
@@ -39,7 +41,7 @@
             </div>
             {% if enable_server_status %}
             <div class="dashboard-column-4">
-                <a href="{{ url_for('main.admin_status_page') }}" class="btn btn-warning dashboard-button">
+                <a href="{{ url_for('main.admin_server_status') }}" class="btn btn-warning dashboard-button">
                     <i class="fas fa-info dashboard-icon"></i>
                     Server Info
                 </a>
@@ -47,7 +49,7 @@
             {% endif %}
 			
             <div class="dashboard-column-5">
-                <a href="{{ url_for('main.clear_downloads') }}" class="btn btn-danger dashboard-button">
+                <a href="{{ url_for('main.manage_downloads') }}" class="btn btn-danger dashboard-button">
                     <i class="fas fa-download dashboard-icon"></i>
                     Downloads
                 </a>
