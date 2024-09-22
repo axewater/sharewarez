@@ -1918,9 +1918,16 @@ def manage_themes():
 
     if form.validate_on_submit():
         theme_zip = form.theme_zip.data
-        theme_data = theme_manager.upload_theme(theme_zip)
-        if theme_data:
-            flash(f"Theme '{theme_data['name']}' uploaded successfully!", 'success')
+        try:
+            theme_data = theme_manager.upload_theme(theme_zip)
+            if theme_data:
+                flash(f"Theme '{theme_data['name']}' uploaded successfully!", 'success')
+            else:
+                flash("Theme upload failed. Please check the error messages.", 'error')
+        except ValueError as e:
+            flash(str(e), 'error')
+        except Exception as e:
+            flash(f"An unexpected error occurred: {str(e)}", 'error')
         return redirect(url_for('main.manage_themes'))
 
     installed_themes = theme_manager.get_installed_themes()

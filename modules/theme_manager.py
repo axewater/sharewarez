@@ -59,6 +59,7 @@ class ThemeManager:
 
             shutil.move(temp_dir, theme_path)
 
+            flash('Theme uploaded successfully!', 'success')
             return theme_data
         finally:
             # Clean up temp folder
