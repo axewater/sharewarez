@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin_game_identify.css') }}">
+
+<div class="content-flash">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="flashes">
+        {% for message in messages %}
+        <div class="flash">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+</div>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if action == "edit" %}
+    <title>Edit Game Entry (identify)</title>
+    {% elif from_unmatched %}
+    <title>Edit Unmatched Folder Entry</title>
+    {% else %}
+    <title>(re-)Identify Game</title>
+    {% endif %}
+  
+</head>
+<body>
+    <div class="glass-panel-addgame">
+
+        
+        <form method="POST" action="">
+            <div class="glass-panel-addgame-top d-flex justify-content-between align-items-center">
+                <div>
+                    {% if action == "edit" %}
+                    <h2>Edit Game Entry</h2>
+                    {% elif from_unmatched %}
+                    <h2>Edit Unmatched Folder Entry</h2>
+                    {% else %}
+                    <h2>(re-)Identify Game</h2>
+                    {% endif %}
+                    <!-- Library -->
+                    <div class="form-group game-edit-library-labels">
+                        <span id="library_display">Library Name: {{ library_name }}</span>
+                        <span id="platform_display">Platform: {{ platform_name }}</span>
+                        <span id="platform_id" style="display:none;">{{ platform_id }}</span>
+                        {{ form.library_uuid(class="form-control", style="display: none;") }}
+                        {% if form.library_uuid.errors %}
+                            {% for error in form.library_uuid.errors %}
+                                <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="game-edit-savebutton">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                <label for="name">IGDB ID#</label>
+                {{ form.igdb_id(class="form-control") }}
+                <button type="button" class="btn btn-info" id="search-igdb-btn">Search IGDB</button>
+                {% if form.igdb_id.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.igdb_id.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <small id="igdb_id_feedback" class="form-text-muted">Enter the IGDB ID of the game.</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="name">Name</label>
+                {{ form.name(class="form-control") }}
+                {% if form.name.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.name.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+ 
+                <button type="button" id="search-igdb" class="btn btn-info">Search IGDB</button>
+                
+                <div id="search-results" style="margin-top: 10px;">
+                <!-- Container for search results -->
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="full_disk_path">Full Disk Path</label>
+                {{ form.full_disk_path(class="form-control") }}
+                {% if form.full_disk_path.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.full_disk_path.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="summary">Summary</label>
+                {{ form.summary(class="form-control") }}
+            </div>
+            <div class="form-group">
+                <label for="storyline">Storyline</label>
+                {{ form.storyline(class="form-control") }}
+            </div>
+            <div class="form-group">
+                <label for="url">URL</label>
+                {{ form.url(class="form-control") }}
+                {% if form.url.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.url.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="video_urls">Video URLs</label>
+                {{ form.video_urls(class="form-control") }}
+                {% if form.video_urls.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.video_urls.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="status">Status</label>
+                {{ form.status(class="form-control") }}
+            </div>
+            <div class="form-group">
+                <label for="category">Release Type</label>
+                {{ form.category(class="form-control") }}
+            </div>
+
+            <div class="group-game-details">
+
+                <div class="form-group" id="genres-container">
+                    <label>Genres</label>
+                    {% for subfield in form.genres %}
+                    <div class="checkbox">
+                        {{ subfield(class="form-check-input") }}
+                        {{ subfield.label(class="form-check-label") }}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group" id="gamemodes-container">
+                    <label>Game Modes</label>
+                    {% for subfield in form.game_modes %}
+                    <div class="checkbox">
+                        {{ subfield(class="form-check-input") }}
+                        {{ subfield.label(class="form-check-label") }}
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="form-group" id="themes-container">
+                    <label>Themes</label>
+                    {% for subfield in form.themes %}
+                        <div class="checkbox">
+                            {{ subfield(class="form-check-input") }}
+                            {{ subfield.label(class="form-check-label") }}
+                        </div>
+                    {% endfor %}
+                </div>
+                
+
+                <div class="form-group" id="platforms-container">
+                    <label>Platforms</label>
+                    {% for subfield in form.platforms %}
+                        <div class="checkbox">
+                            {{ subfield(class="form-check-input") }}
+                            {{ subfield.label(class="form-check-label") }}
+                        </div>
+                    {% endfor %}
+                </div>
+                
+            
+                <div class="form-group" id="perspectives-container">
+                    <label>Player Perspectives</label>
+                    {% for subfield in form.player_perspectives %}
+                        <div class="checkbox">
+                            {{ subfield }} {{ subfield.label.text }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="form-group" id="developer-container">
+                <label for="developer">Developer</label>
+                <input type="text" id="developer" name="developer" value="{{ form.developer.data }}">
+            </div>
+            
+            <div class="form-group" id="publisher-container">
+                <label for="publisher">Publisher</label>
+                <input type="text" id="publisher" name="publisher" value="{{ form.publisher.data }}">
+            </div>
+            
+                        
+
+        </form>
+    </div>
+    {% block scripts %}
+    <script src="{{ url_for('static', filename='js/admin_game_identify.js') }}"></script>
+    {% endblock %}
+</body>
+</html>
+{% endblock %}

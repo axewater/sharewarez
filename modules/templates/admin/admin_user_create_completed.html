@@ -1,0 +1,22 @@
+# /templates/
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_user_create_complete.css') }}">
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="alert alert-info" role="alert">
+        {% for message in messages %}
+            {{ message }}<br>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
+<div class="container">
+        <!-- Back to Dashboard Button -->
+        <div class="container mt-3">
+            <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
+        </div>
+    <h1>User Created Successfully</h1>
+    <p>The user has been created successfully.</p>
+</div>
+{% endblock %}

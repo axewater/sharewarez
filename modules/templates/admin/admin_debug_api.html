@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container glass-panel-scanfolder">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="content-flash">
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-info" role="alert">{{ message }}</div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+            </div>
+                        <!-- Back to Dashboard Button -->
+                        <div class="container mt-3">
+                            <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
+                        </div>
+            <h1>IGDB API Debugger</h1>
+            <p>For API documentation, visit <a href="https://api-docs.igdb.com/#game" target="_blank">IGDB API Docs</a>.</p>
+            <form method="post">
+                {{ form.csrf_token }}
+                <div class="mb-3">
+                    <label for="{{ form.endpoint.id }}" class="form-label">{{ form.endpoint.label }}</label>
+                    {{ form.endpoint(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    <label for="{{ form.query.id }}" class="form-label">{{ form.query.label }}</label>
+                    {{ form.query(class="form-control") }}
+                </div>
+                <div>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+
+            {% if api_response %}
+            <div style="background-color: black; border-radius: 15px; padding: 20px; margin-top: 15px;">
+                <h2 style="color: white;">API Response</h2>
+                <pre style="color: white; margin-top: 15px;">{{ api_response | tojson(indent=2) }}</pre>
+            </div>
+            {% endif %}
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

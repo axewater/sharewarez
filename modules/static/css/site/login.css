@@ -1,0 +1,21 @@
+
+
+/* Responsive Design */
+
+@media (max-width: 400px) {
+    #sidebar {
+      display: none; /* This will make the sidebar invisible */
+    }
+    #content {
+        margin-left: 15px;
+        margin-right: 15px;
+    }
+    
+  }
+
+
+  
+
+
+
+

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+<link rel="stylesheet" href="/static/css/settings/settings_profile_edit.css">
 
 <div class="container mt-4">
     <div class="mb-3">
@@ -23,7 +24,7 @@
             </div>
             <div class="profile_avatar_thumb">
                 {% set thumbnail_path = avatarpath | replace('.', '_thumbnail.') %}
-                <img src="{{ url_for('static', filename=thumbnail_path) if thumbnail_path else url_for('static', filename='nothumbnail.jpg') }}" alt="User Thumbnail" class="img-thumbnail" width="50" height="50">
+                <img src="{{ url_for('static', filename=thumbnail_path) if thumbnail_path else url_for('static', filename='nothumbnail.jpg') }}" alt="User Thumbnail" class="img-thumbnail profile-avatar-thumb">
             </div>
         </div>
         <div class="col-md-8">

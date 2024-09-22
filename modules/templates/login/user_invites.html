@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="glass-panel container py-4">
+    <h2 class="mb-3">Invite friends to your pirate crew!</h2>
+    <p>Invites expire automatically after 48 hours. If not used by then, the invite is returned to you.</p>
+    <div class="alert alert-info" role="alert">
+        You have <strong>{{ remaining_invites }}</strong> out of <strong>{{ invite_quota }}</strong> invites left to send.
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                {% if category == 'error' %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ message }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="mb-5">
+        <form action="{{ url_for('main.invites') }}" method="POST" class="row g-3">
+            {{ form.hidden_tag() }}
+            <div class="col-auto">
+                {{ form.email(class="form-control") }}
+            </div>
+            <div class="col-auto">
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+
+    <div class="list-group">
+        {% for invite in invites %}
+        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+            <div>
+                Invite Link: <span class="text-primary">{{ url_for('main.register', token=invite.token, _external=True) }}</span><br>
+                Status: <strong>{{ "Used" if invite.used else "Pending" }}</strong><br>
+                {% if invite.used %}
+                    Used by: <strong>{{ invite.used_by_user.name }}</strong><br>
+                    Used on: <strong>{{ invite.used_at.strftime('%Y-%m-%d %H:%M:%S') }}</strong><br>
+                {% else %}
+                    Expires in: 
+                    {% set seconds_remaining = (invite.expires_at - datetime.utcnow()).total_seconds() %}
+                    {% if seconds_remaining > 0 %}
+                        <strong>{{ seconds_remaining // 3600 }} hours</strong>
+                    {% else %}
+                        <strong class="text-danger">INVITE EXPIRED</strong>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div>
+                <button type="button" class="btn btn-outline-secondary btn-sm" {% if invite.used or seconds_remaining <= 0 %}disabled{% endif %}
+                onclick="copyToClipboard(this, '{{ url_for('main.register', token=invite.token, _external=True) }}')">Copy Invite URL</button>
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteInvite('{{ invite.token }}')">Delete</button>
+            </div>
+        </div>
+        {% else %}
+        <div class="list-group-item">You have no active invites. Invite some pirates onto your crew!</div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Embed CSRF token -->
+<script id="csrf_token" type="application/json">{{ csrf_token() }}</script>
+
+<!-- External JS for invite management functionality -->
+<script src="{{ url_for('static', filename='js/user_invites.js') }}"></script>
+{% endblock %}
