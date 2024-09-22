@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/theme_readme.css') }}">
+<div class="container">
+    <div class="glass-panel">
+        <h1>Creating Your Own Theme</h1>
+        <section>
+            <h2>Theme Structure</h2>
+            <p>A theme consists of the following components:</p>
+            <ul>
+                <li>A ZIP file containing all theme files</li>
+                <li>A <code>theme.json</code> file with theme metadata</li>
+                <li>CSS files in a <code>css</code> folder</li>
+                <li>Optional image files in an <code>images</code> folder</li>
+            </ul>
+        </section>
+        <section>
+            <h2>theme.json Format</h2>
+            <pre><code>
+{
+    "name": "Your Theme Name",
+    "author": "Your Name",
+    "description": "A brief description of your theme",
+    "version": "1.0.0",
+    "release_date": "YYYY-MM-DD"
+}
+            </code></pre>
+        </section>
+        <section>
+            <h2>CSS Files</h2>
+            <p>Place your CSS files in the <code>css</code> folder. The main CSS file should be named <code>style.css</code>.</p>
+        </section>
+        <section>
+            <h2>Creating the ZIP File</h2>
+            <ol>
+                <li>Create a folder with your theme name</li>
+                <li>Add the <code>theme.json</code> file to this folder</li>
+                <li>Create a <code>css</code> subfolder and add your CSS files</li>
+                <li>Optionally, create an <code>images</code> subfolder for any theme-specific images</li>
+                <li>Zip all the files and folders that you have inside the theme folder you created</li>
+            </ol>
+        </section>
+        <section>
+            <h2>Uploading Your Theme</h2>
+            <p>Use the theme upload form on the Manage Themes page to upload your ZIP file.</p>
+        </section>
+    </div>
+</div>
+{% endblock %}
