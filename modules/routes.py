@@ -1915,6 +1915,18 @@ def admin_dashboard():
 def manage_themes():
     form = ThemeUploadForm()
     theme_manager = ThemeManager(current_app)
+    
+
+    # Ensure UPLOAD_FOLDER exists
+    upload_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'themes')
+    if not os.path.exists(upload_folder):
+        try:
+            # Safe check to avoid creating 'static' directly
+            os.makedirs(upload_folder, exist_ok=True)
+        except Exception as e:
+            print(f"Error creating upload directory: {e}")
+            flash("Error processing request. Please try again.", 'error')
+            return redirect(url_for('main.manage_themes'))
 
     if form.validate_on_submit():
         theme_zip = form.theme_zip.data
