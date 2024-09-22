@@ -32,7 +32,8 @@ from modules.forms import (
     UserPasswordForm, UserDetailForm, EditProfileForm, NewsletterForm, WhitelistForm, EditUserForm, 
     UserManagementForm, ScanFolderForm, IGDBApiForm, ClearDownloadRequestsForm, CsrfProtectForm, 
     AddGameForm, LoginForm, ResetPasswordRequestForm, AutoScanForm, UpdateUnmatchedFolderForm, 
-    ReleaseGroupForm, RegistrationForm, CreateUserForm, UserPreferencesForm, InviteForm, LibraryForm, CsrfForm
+    ReleaseGroupForm, RegistrationForm, CreateUserForm, UserPreferencesForm, InviteForm, LibraryForm, CsrfForm,
+    ThemeUploadForm
 )
 from modules.models import (
     User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, 
@@ -44,6 +45,7 @@ from modules.utilities import (
     get_game_names_from_folder, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_folder,
     zip_game, format_size, delete_game_images, read_first_nfo_content, get_folder_size_in_bytes, PLATFORM_IDS
 )
+from modules.theme_manager import ThemeManager
 
 
 bp = Blueprint('main', __name__)
@@ -446,30 +448,6 @@ def delete_avatar(avatar_path):
 
     return redirect(url_for('main.bot_generator'))
 
-@bp.route('/settings_account', methods=['GET', 'POST'])
-@login_required
-def account():
-    print("Route: /settings_account")
-
-    user = User.query.filter_by(id=current_user.id).first()
-    form = UserDetailForm(about=str(user.about))
-    
-
-    if form.validate_on_submit():
-      
-        try:
-            db.session.commit()
-            
-
-            flash('Account details updated successfully!', 'success')
-        except Exception as e:
-            db.session.rollback()
-            print(f"Error updating account details: {e}")
-            flash('Failed to update account details. Please try again.', 'error')
-
-        return redirect(url_for('main.account'))
-
-    return render_template('settings/settings_account.html', title='Account', form=form, user=user)
 
 @bp.route('/settings_profile_edit', methods=['GET', 'POST'])
 @login_required
@@ -1930,6 +1908,35 @@ def refresh_game_images(game_uuid):
 def admin_dashboard():
     pass
     return render_template('admin/admin_dashboard.html')
+
+@bp.route('/admin/themes', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def manage_themes():
+    form = ThemeUploadForm()
+    theme_manager = ThemeManager(current_app)
+
+    if form.validate_on_submit():
+        theme_zip = form.theme_zip.data
+        theme_data = theme_manager.upload_theme(theme_zip)
+        if theme_data:
+            flash(f"Theme '{theme_data['name']}' uploaded successfully!", 'success')
+        return redirect(url_for('main.manage_themes'))
+
+    installed_themes = theme_manager.get_installed_themes()
+    return render_template('admin/manage_themes.html', form=form, themes=installed_themes)
+
+@bp.context_processor
+def inject_current_theme():
+    # This function will be called for every request
+    # You can retrieve the current theme from user preferences or a global setting
+    current_theme = get_current_theme()  # Implement this function
+    return dict(current_theme=current_theme)
+
+def get_current_theme():
+    # Implement logic to get the current theme
+    # This could be from user preferences, global settings, or a default theme
+    return 'default'  # Replace with actual logic
 
 @bp.route('/delete_game/<string:game_uuid>', methods=['POST'])
 @login_required

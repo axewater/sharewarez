@@ -109,3 +109,11 @@ th {
     padding: 5px;
     
 }
+
+
+
+.container-unmatched-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 25px;
+}

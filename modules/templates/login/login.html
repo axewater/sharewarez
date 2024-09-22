@@ -9,7 +9,7 @@
 <div class="container-login">
     <div class="content-login">
         {% if current_user.is_authenticated %}
-        <div class="container-builder">Welcome back, {{ current_user.name }}!</div>
+        <div class="container">Welcome back, {{ current_user.name }}!</div>
         {% else %}
         <h1></h1>
         {% with messages = get_flashed_messages() %}
@@ -23,7 +23,7 @@
             {% endwith %}
 
             <div class="container-base">
-                <div class="container-builder">
+                <div class="container">
                     <img src="{{ url_for('static', filename='newstyle/sharewarez_pirate.png') }}" alt="ShareWareZ Logo" class="login-logo">
 
                 </div>
