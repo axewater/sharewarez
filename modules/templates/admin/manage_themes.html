@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_user_create.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin_user_create.css') }}">
 {% with messages = get_flashed_messages(with_categories=true) %}
 {% if messages %}
     {% for category, message in messages %}
