@@ -162,14 +162,6 @@
 }
 
 
-
-.content-help-kadertje {
-    max-width: 800px;
-    margin: 0 auto;
-    background-color: #111;
-    padding: 20px;
-}
-
 .menu-logo-image {
     display: flex;
     height: 150px;
@@ -206,3 +198,29 @@
 }
 
 
+.user-account-icon, .user-account-menu {
+    position: fixed;
+    bottom: 5px;
+    left: 5px;
+    color: #ecf0f1;
+    border-radius: 25px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5); 
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: transparent;
+    border: 2px solid transparent;
+}
+
+.user-account-icon:hover, .user-account-menu:hover {
+    border-color: #ecf0f1; 
+}
+
+
+.user-account-icon {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    padding: 4px;
+
+}

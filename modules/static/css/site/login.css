@@ -1,4 +1,12 @@
 
+.container-buttons-login {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 20px;
+  font-size: 20px;
+  gap: 20px;
+}
 
 /* Responsive Design */
 

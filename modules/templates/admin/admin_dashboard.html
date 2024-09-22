@@ -82,8 +82,8 @@
                 </a>
             </div>
 
-			<div class="dashboard-column-10">
-				<!-- Row 3: Newsletter, API Debug -->
+            <div class="dashboard-column-10">
+				<!-- Row 3: Newsletter, API Debug, Theme Management -->
 				{% if enable_newsletter %}
 					<a href="{{ url_for('main.newsletter') }}" class="btn btn-dark dashboard-button">
 						<i class="fas fa-envelope dashboard-icon"></i>
@@ -97,7 +97,12 @@
 						API Debug
 					</a>
 				</div> 
-				<!-- Additional buttons if any can go here -->
+				<div class="dashboard-column-12">
+					<a href="{{ url_for('main.manage_themes') }}" class="btn btn-secondary dashboard-button">
+						<i class="fas fa-palette dashboard-icon"></i>
+						Manage Themes
+					</a>
+				</div>
 	</div>
 </div>
 
