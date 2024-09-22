@@ -2244,6 +2244,8 @@ def download_game(game_uuid):
 @bp.route('/discover')
 @login_required
 def discover():
+    page_loc = get_loc("discover")
+    
     def fetch_game_details(games_query, limit=8):
         games = games_query.limit(limit).all()
         game_details = []
@@ -2285,7 +2287,7 @@ def discover():
                            latest_games=latest_games,
                            most_downloaded_games=most_downloaded_games,
                            highest_rated_games=highest_rated_games,
-                           libraries=libraries)
+                           libraries=libraries, loc=page_loc)
 
 
 
@@ -2831,3 +2833,9 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
         })
 
     return game_data, pagination.total, pagination.pages, page
+    
+def get_loc(page):
+    
+    with open(f'modules/static/localization/en/{page}.json', 'r', encoding='utf8') as f:
+            loc_data = json.load(f)    
+    return loc_data

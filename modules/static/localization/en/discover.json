@@ -1,0 +1,16 @@
+{
+	"heading": "Discover Loot",
+	"label": "Libraries",
+	"latestgames": {
+		"title": "Latest Games Added",
+		"empty": "No games added yet."
+	},
+	"mostdownloaded": {
+		"title": "Most Downloaded Games",
+		"empty": "No games downloaded yet."
+	},
+	"highestrated": {
+		"title": "Highest Rated Games",
+		"empty": "No games rated yet."
+	}
+}
