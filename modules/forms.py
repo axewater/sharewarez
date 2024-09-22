@@ -185,6 +185,7 @@ class UserPreferencesForm(FlaskForm):
     items_per_page = SelectField('Max items per Page', choices=items_per_page_choices, coerce=int)
     default_sort = SelectField('Default Sort', choices=default_sort_choices)
     default_sort_order = SelectField('Default Sort Order', choices=default_sort_order_choices)
+    theme = SelectField('Theme', choices=[])  # We'll populate this dynamically
     submit = SubmitField('Save Preferences')
 
 

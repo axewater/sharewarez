@@ -557,9 +557,14 @@ def account_pw():
 @login_required
 @admin_required
 def settings_panel():
-    # print("Request method:", request.method)  # Debug line
     print("Route: /settings_panel")
     form = UserPreferencesForm()
+    
+    # Get installed themes
+    theme_manager = ThemeManager(current_app)
+    installed_themes = theme_manager.get_installed_themes()
+    form.theme.choices = [(theme['name'], theme['name']) for theme in installed_themes]
+    
     if request.method == 'POST' and form.validate_on_submit():
         # Ensure preferences exist
         if not current_user.preferences:
@@ -568,6 +573,7 @@ def settings_panel():
         current_user.preferences.items_per_page = form.items_per_page.data or current_user.preferences.items_per_page
         current_user.preferences.default_sort = form.default_sort.data or current_user.preferences.default_sort
         current_user.preferences.default_sort_order = form.default_sort_order.data or current_user.preferences.default_sort_order
+        current_user.preferences.theme = form.theme.data
         db.session.add(current_user.preferences)
         db.session.commit()
         flash('Your settings have been updated.', 'success')
@@ -582,6 +588,7 @@ def settings_panel():
         form.items_per_page.data = current_user.preferences.items_per_page
         form.default_sort.data = current_user.preferences.default_sort
         form.default_sort_order.data = current_user.preferences.default_sort_order
+        form.theme.data = current_user.preferences.theme
 
     return render_template('settings/settings_panel.html', form=form)
 
