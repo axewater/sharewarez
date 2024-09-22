@@ -1,6 +1,7 @@
 <!-- in templates/admin/clear_downloads.html -->
 {% extends "base.html" %}  
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 
 <div class="content-flash">
     {% with messages = get_flashed_messages() %}

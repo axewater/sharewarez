@@ -416,7 +416,7 @@ def get_current_user_role():
 @bp.route('/api/check_username', methods=['POST'])
 @login_required
 def check_username():
-    # print(F"Route: /api/check_username - {current_user.name} - {current_user.role}")
+    print(F"Route: /api/check_username - {current_user.name} - {current_user.role}")
     data = request.get_json()
     username = data.get('username')
 
