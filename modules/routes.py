@@ -54,7 +54,7 @@ has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
-app_version = '1.3.4'
+app_version = '1.4.0'
 
 @bp.before_app_request
 def initial_setup():
@@ -1934,13 +1934,13 @@ def manage_themes():
 
     installed_themes = theme_manager.get_installed_themes()
     default_theme = theme_manager.get_default_theme()
-    return render_template('admin/manage_themes.html', form=form, themes=installed_themes, default_theme=default_theme)
+    return render_template('admin/admin_manage_themes.html', form=form, themes=installed_themes, default_theme=default_theme)
 
 @bp.route('/admin/themes/readme')
 @login_required
 @admin_required
 def theme_readme():
-    return render_template('admin/theme_readme.html')
+    return render_template('admin/readme_theme.html')
 
 @bp.route('/admin/themes/delete/<theme_name>', methods=['POST'])
 @login_required
