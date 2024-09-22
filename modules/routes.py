@@ -1936,6 +1936,20 @@ def manage_themes():
     default_theme = theme_manager.get_default_theme()
     return render_template('admin/manage_themes.html', form=form, themes=installed_themes, default_theme=default_theme)
 
+@bp.route('/admin/themes/delete/<theme_name>', methods=['POST'])
+@login_required
+@admin_required
+def delete_theme(theme_name):
+    theme_manager = ThemeManager(current_app)
+    try:
+        theme_manager.delete_theme(theme_name)
+        flash(f"Theme '{theme_name}' deleted successfully!", 'success')
+    except ValueError as e:
+        flash(str(e), 'error')
+    except Exception as e:
+        flash(f"An unexpected error occurred: {str(e)}", 'error')
+    return redirect(url_for('main.manage_themes'))
+
 @bp.context_processor
 def inject_current_theme():
     if current_user.is_authenticated and current_user.preferences:
