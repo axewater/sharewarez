@@ -1,0 +1,238 @@
+<!-- in templates/games/game_details.html -->
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/games/game_details.css') }}">
+
+<div class="content-flash">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flashes">
+                {% for message in messages %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+</div>
+
+{% if game %}
+    <div class="glass-panel-gamecard">
+        
+        <head>
+            
+            <meta name="csrf-token" content="{{ csrf_token() }}">
+            <script src="{{ url_for('static', filename='js/popup_menu.js') }}"></script>
+            <script src="{{ url_for('static', filename='js/game_details.js') }}"></script>
+
+            <title>{{ game.name or 'Game Details' }}</title>
+        </head>
+
+        <body>
+            <!-- NFO Modal -->
+            <div class="modal fade" id="nfoModal" tabindex="-1" aria-labelledby="nfoModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="nfoModalLabel">{{ game.name }} - NFO</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- <pre> tag to maintain NFO file formatting -->
+                            <pre>{{ game.nfo_content }}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="game-card-gamename">
+                <h1>{{ game.name or 'Game Name Not Available' }}</h1>
+            </div>
+            <div class="game-card-topq">
+                <div class="game-card-q1">
+                    
+                    {% if game.images and game.images|length > 0 %}
+						<div class="game-card-coverimage">
+							{% for image in game.images %}
+								{% if 'cover' in image.url %}
+									<img src="{{ url_for('static', filename='library/images/' + image.url) }}" alt="{{ game.name }} Cover Image" class="game-card-coverimage animated-entry">
+								{% endif %}
+							{% endfor %}
+						</div>
+					{% endif %}
+                    
+                    <div class="game-card-text-summary">
+                        {% if game.summary and game.summary|length > 340 %}
+                            <span class="summary-short">{{ game.summary[:340] }}...</span>
+                            <a href="#" class="read-more-link">Read More</a>
+                            <span class="summary-full" style="display: none;">{{ game.summary }}</span>
+                        {% elif game.summary %}
+                            <span>{{ game.summary }}</span>
+                        {% else %}
+                            <span>Summary Not Available</span>
+                        {% endif %}
+                    </div>
+                    
+                    
+                </div>
+
+                <div class="game-card-q2">
+                    <div class="game-card-meta">
+                        <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
+
+                            {% with game_uuid=game.uuid, game_url=game.url %}
+                            {% include 'games/popup_menu.html' %}
+                            {% endwith %}
+
+                        <div class="rating-container">
+                            <div class="game-card-labels-rating">
+                                <a href="{{ game.url }}" class="igdb-link">IGDB</a>
+                            </div>
+                            {% if game.rating %}
+                                <div class="rating-bar" style="width: {{ game.rating }}%;"></div>
+                            {% else %}
+                                <div class="emptyrating">Not rated</div>
+                            {% endif %}
+
+                            <div class="game-card-labels-rating">
+                                Other:
+                            </div>
+                            {% if game.aggregated_rating %}
+                                <div class="rating-bar" style="width: {{ game.aggregated_rating }}%;"></div>
+                            {% else %}
+                                <div class="emptyrating">Not rated</div>
+                            {% endif %}
+                            {% if game.urls and game.urls|length > 0 %}
+                            {% if enable_web_links %}
+                            <div class="game-card-links">
+                                <!-- Iterate through URLs and create icon links -->
+                                {% for link in game.urls %}
+                                    
+                                    <div class="game-link-icon-container">
+                                        <a href="{{ link.url }}" target="_blank" class="game-link-icon" title="{{ link.type|capitalize }}">
+                                            <i class="fas {{ "fa-solid fa-globe" if link.icon == "fa-brands fa-wikimedia" else link.icon }}"></i>
+                                        </a>
+                                    </div>
+                                    
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        {% endif %}
+                        
+                        </div>
+                        
+                        {% macro list_items(items, label, filter_type) %}
+                        <div class="game-card-labels">
+                            {{ label }}:
+                        </div>
+                        <div class="game-card-chips-list">
+                            {% if items %}
+                                {% for item in items %}
+                                    <a href="{{ url_for('main.library', **{filter_type: item}) }}" class="chip-detailspage">{{ item }}</a>
+                                {% endfor %}
+                            {% else %}
+                                <p>N/A</p>
+                            {% endif %}
+                        </div>
+                        {% endmacro %}
+                    
+
+                        {{ list_items(game.genres, "Genres", "genre") }}
+                        {{ list_items(game.themes, "Themes", "theme") }}
+                        {{ list_items(game.game_modes, "Game Modes", "game_mode") }}
+                        {{ list_items(game.player_perspectives, "Player Perspectives", "player_perspective") }}
+                        
+
+                        <div class="flex-row-horiz">
+                            {% macro detail_item(label, value) %}
+                                <div class="flex-col-vertic">                    
+                                    <div class="game-card-labels">
+                                        {{ label }}:
+                                    </div>
+                                    <div class="chip">
+                                        {{ value or 'N/A' }}                                
+                                    </div>
+                                </div>
+                            {% endmacro %}
+                            
+                            {{ detail_item("Category", game.category) }}
+                            {{ detail_item("Released", game.first_release_date) }}
+                            {{ detail_item("Developer", game.developer) }}
+                            
+
+
+                            
+                        </div>
+ 
+                        </div>
+                        <div class="game-card-downloads">
+
+                            {% if game.size %}
+                            <div class="chip-size">
+                                {{ game.size }}
+                            </div>
+                            {% endif %}
+                            <form action="{{ url_for('main.download_game', game_uuid=game.uuid) }}" method="get" class="download-form">
+                                <input type="submit" value="Download Now!" class="button-glass-download" data-game-uuid="{{ game.uuid }}">
+                                {{ form.csrf_token }}
+                            </form>
+                            {% if game.nfo_content and game.nfo_content.lower() != 'none' %}
+                            <!-- NFO Icon and Modal Trigger -->
+                            <div class="nfo-icon-container">
+                                <i class="fa fa-file-alt nfo-icon" data-bs-toggle="modal" data-bs-target="#nfoModal" title="View NFO"></i>
+                                <span class="nfo-text">NFO</span>
+                            </div>
+                        {% endif %}
+                        </div>
+                        
+                    </div>
+                </div>
+			{% if game.images and game.images|length > 0 %}
+                <div class="screenshot-gallery">
+                    {% for image in game.images %}
+						{% if 'cover' not in image.url %}
+							<img src="{{ url_for('static', filename='library/images/' + image.url) }}" alt="{{ game.name }} Screenshot" class="screenshot-image" onclick="openModal();currentSlide({{ loop.index }})">
+						{% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            {% if game.video_urls %}
+                <div class="game-videos-row">
+                    {% for url in game.video_urls.split(',') %}
+                        <iframe src="{{ url }}" class="game-video" frameborder="0" allowfullscreen></iframe>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <!-- Summary Modal -->
+            <div id="summaryModal" class="summary-modal">
+                <div class="summary-modal-content">
+                    <span class="summary-close">&times;</span>
+                    <p class="summary-modal-text">Full summary goes here...</p>
+                </div>
+            </div>
+
+
+
+            <div id="myModal" class="modal">
+                <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+                <a class="next" onclick="plusSlides(1)">&#10095;</a>
+                <span class="close cursor" onclick="closeModal()">&times;</span>
+                <div class="modal-content">
+                    {% for image in game.images %}
+                        <div class="mySlides">
+                            <img src="{{ url_for('static', filename='library/images/' + image.url) }}" class="screenshot-browser-image" style="width:100%">                        
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            </div>
+            </body>
+    </div>
+{% else %}
+    <div class="alert alert-warning" role="alert">
+        Game information is not available at the moment.
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,54 @@
+<!-- templates/admin/admin_manage_filters.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin_manage_filters.css') }}">
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="alert alert-info" role="alert">
+        {% for message in messages %}
+            {{ message }}<br>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
+<div class="glass-filter-editor">
+            <!-- Back to Dashboard Button -->
+            <div class="container mt-3">
+                <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
+            </div>
+    <h2>Edit Release Group Filters</h2>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.rlsgroup.label }} {{ form.rlsgroup() }}
+        </div>
+        <div class="form-group">
+            {{ form.rlsgroupcs.label }} {{ form.rlsgroupcs() }}
+        </div>
+        <div class="form-group">
+            {{ form.submit() }}
+        </div>
+    </form>
+    <hr>
+    <h3>Existing Filters</h3>
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Release Group</th>
+                <th>CS</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for group in groups %}
+            <tr>
+                <td>{{ group.rlsgroup }}</td>
+                <td>CS: {{ group.rlsgroupcs }}</td>
+                <td><a href="{{ url_for('main.delete_filter', id=group.id) }}" class="btn btn-danger btn-sm">Remove</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
