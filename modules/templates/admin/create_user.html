@@ -1,12 +1,21 @@
-<!-- create_user.html -->
 {% extends "base.html" %}
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="alert alert-info" role="alert">
+        {% for message in messages %}
+            {{ message }}<br>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
 <div class="container">
     <div class="glass-panel">
-                <!-- Back to Dashboard Button -->
-                <div class="container mt-3">
-                    <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
-                </div>
+        <!-- Back to Dashboard Button -->
+        <div class="container mt-3">
+            <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
+        </div>
         <h1>Create New User</h1>
         <form id="createUserForm" method="POST" action="{{ url_for('main.create_user') }}">
             {{ form.hidden_tag() }}
@@ -32,39 +41,10 @@
     </div>
 </div>
 
-<!-- Include this script in the HTML template, or link to an external JavaScript file -->
-<script>
-    // Function to check username availability
-    function checkUsernameAvailability() {
-        var username = document.getElementById('username').value;
-        if (!username) return; // Skip if username is empty
-
-        // Send AJAX request to check username availability
-        fetch('/api/check_username', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': "{{ csrf_token() }}" // Include CSRF token for Flask
-            },
-            body: JSON.stringify({ username: username })
-        })
-        .then(response => response.json())
-        .then(data => {
-            var feedback = document.getElementById('usernameAvailabilityFeedback');
-            if (data.exists) {
-                feedback.textContent = 'Username not available';
-                feedback.style.color = 'red'; // Set text color to red
-            } else {
-                feedback.textContent = 'Username available';
-                feedback.style.color = 'green'; // Set text color to green
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    }
-
-    // Attach event listener to username field to trigger username availability check
-    document.getElementById('username').addEventListener('blur', checkUsernameAvailability);
-</script>
+<!-- Embed CSRF token as JSON in a script tag -->
+<script id="csrf_token" type="application/json">{{ csrf_token() }}</script>
+<!-- Embed CSRF token as meta tag -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<!-- Include the external JavaScript file -->
+<script src="{{ url_for('static', filename='js/checkusername.js') }}"></script>
 {% endblock %}
