@@ -14,48 +14,53 @@
     {% endif %}
     {% endwith %}
 </div>
-<div class="glass-panel">
-            <!-- Back to Dashboard Button -->
-            <div class="container mt-3">
-                <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
-            </div>
-<h2>Download Requests</h2>
-{% if download_requests %}
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>User ID</th>
-                <th>Game UUID (Part)</th>
-                <th>Status</th>
-                <th>Zip File Path</th>
-                <th>Request Time</th>
-                <th>Completion Time</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for request in download_requests %}
-            <tr>
-                <td>{{ request.id }}</td>
-                <td>{{ request.user_id }}</td>
-                <td>{{ request.game_uuid[:8] }}</td>
-                <td>{{ request.status }}</td>
-                <td>{{ request.zip_file_path }}</td>
-                <td>{{ request.request_time.strftime('%Y-%m-%d %H:%M') if request.request_time else 'N/A' }}</td>
-                <td>{{ request.completion_time.strftime('%Y-%m-%d %H:%M') if request.completion_time else 'N/A' }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-{% else %}
-    <p>No download requests found.</p>
-{% endif %}
-
-<form method="POST">
-    {{ form.hidden_tag() }}
-    <div class="form-group">
-        {{ form.submit(class="btn btn-primary") }}
-    </div>
-</form>
+<div class="admin_manage_downloads-panel glass-panel">
+			<!-- Back to Dashboard Button -->
+			<div class="admin_manage_downloads-container container">
+				<a href="{{ url_for('main.admin_dashboard') }}" class="admin_manage_downloads-dashboard-btn btn btn-lg btn-primary">Back to Dashboard</a>
+			</div>
+	<div class="admin_manage_downloads-requests-header">
+		<h2>Download Requests</h2>
+	</div>
+	<div class="admin_manage_downloads-requests">
+		{% if download_requests %}
+			<table class="admin_manage_downloads-table table table-striped">
+				<thead>
+					<tr>
+						<th>ID</th>
+						<th>User ID</th>
+						<th>Game UUID (Part)</th>
+						<th>Status</th>
+						<th>Zip File Path</th>
+						<th>Request Time</th>
+						<th>Completion Time</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for request in download_requests %}
+					<tr>
+						<td>{{ request.id }}</td>
+						<td>{{ request.user_id }}</td>
+						<td>{{ request.game_uuid[:8] }}</td>
+						<td>{{ request.status }}</td>
+						<td>{{ request.zip_file_path }}</td>
+						<td>{{ request.request_time.strftime('%Y-%m-%d %H:%M') if request.request_time else 'N/A' }}</td>
+						<td>{{ request.completion_time.strftime('%Y-%m-%d %H:%M') if request.completion_time else 'N/A' }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		{% else %}
+			<p>No download requests found.</p>
+		{% endif %}
+	</div>
+	<div class="admin_manage_downloads-requests">
+		<form method="POST">
+			{{ form.hidden_tag() }}
+			<div class="admin_manage_downloads-form form-group">
+				{{ form.submit(class="admin_manage_downloads-clear-btn btn btn-primary") }}
+			</div>
+		</form>
+	</div>
 </div>
 {% endblock %}
