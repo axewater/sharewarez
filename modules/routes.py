@@ -1259,7 +1259,6 @@ def game_edit(game_uuid):
             return render_template('admin/admin_game_identify.html', form=form, game_uuid=game_uuid, action="edit")
 
         # Check if any other game has the same igdb_id and is not the current game
-        
         existing_game_with_igdb_id = Game.query.filter(
             Game.igdb_id == form.igdb_id.data,
             Game.id != game.id 
@@ -1270,7 +1269,10 @@ def game_edit(game_uuid):
             flash(f'The IGDB ID {form.igdb_id.data} is already used by another game.', 'error')
             return render_template('admin/admin_game_identify.html', form=form, library_name=library_name, game_uuid=game_uuid, action="edit")
         
+        # Check if IGDB ID has changed
+        igdb_id_changed = game.igdb_id != form.igdb_id.data
         
+        # Update game attributes
         game.library_uuid = form.library_uuid.data
         game.igdb_id = form.igdb_id.data
         game.name = form.name.data
@@ -1288,10 +1290,8 @@ def game_edit(game_uuid):
         if category_str in Category.__members__:
             game.category = Category[category_str]
         else:
-            
             flash(f'Invalid category: {category_str}', 'error')
             return render_template('admin/admin_game_identify.html', form=form, game_uuid=game_uuid, action="edit")
-        
         
         # Handling Developer
         developer_name = form.developer.data
@@ -1313,7 +1313,7 @@ def game_edit(game_uuid):
                 db.session.flush()
             game.publisher = publisher
 
-        # Update many-to-many
+        # Update many-to-many relationships
         game.genres = form.genres.data
         game.game_modes = form.game_modes.data
         game.themes = form.themes.data
@@ -1330,21 +1330,22 @@ def game_edit(game_uuid):
 
         game.date_identified = datetime.utcnow()
                
-        # DB commit and image update
+        # DB commit and conditional image update
         try:
             db.session.commit()
             flash('Game updated successfully.', 'success')
-            flash('Triggering image update')
             
+            if igdb_id_changed:
+                flash('IGDB ID changed. Triggering image update.')
+                @copy_current_request_context
+                def refresh_images_in_thread():
+                    refresh_images_in_background(game_uuid)
 
-            @copy_current_request_context
-            def refresh_images_in_thread():
-                refresh_images_in_background(game_uuid)
-
-            # Start refresh images
-            thread = Thread(target=refresh_images_in_thread)
-            thread.start()
-            print(f"Refresh images thread started for game UUID: {game_uuid}")
+                thread = Thread(target=refresh_images_in_thread)
+                thread.start()
+                print(f"Refresh images thread started for game UUID: {game_uuid}")
+            else:
+                print(f"IGDB ID unchanged. Skipping image refresh for game UUID: {game_uuid}")
                     
             return redirect(url_for('main.library'))
         except SQLAlchemyError as e:
