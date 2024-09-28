@@ -2367,7 +2367,7 @@ def manage_downloads():
         except Exception as e:
             db.session.rollback()
             flash(f'An error occurred: {e}', 'danger')
-        return redirect(url_for('main.clear_downloads'))
+        return redirect(url_for('main.manage_downloads'))
 
     download_requests = DownloadRequest.query.all()
     return render_template('admin/admin_manage_downloads.html', form=form, download_requests=download_requests)

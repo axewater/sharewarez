@@ -143,7 +143,7 @@ class AddGameForm(FlaskForm):
     submit = SubmitField('Save')    
     
 class ClearDownloadRequestsForm(FlaskForm):
-    submit = SubmitField('CLEAR')
+    submit = SubmitField('Clear processing queue')
     
 class CsrfProtectForm(FlaskForm):
     pass
