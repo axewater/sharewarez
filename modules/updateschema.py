@@ -20,6 +20,9 @@ class DatabaseManager:
 
         ALTER TABLE invite_tokens
         ADD COLUMN IF NOT EXISTS used_at TIMESTAMP;
+
+        ALTER TABLE user_preferences
+        ADD COLUMN IF NOT EXISTS theme VARCHAR(50) DEFAULT 'default';
         """
         print("Upgrading database to the latest schema")
         try:
