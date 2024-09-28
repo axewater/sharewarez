@@ -2372,6 +2372,30 @@ def manage_downloads():
     download_requests = DownloadRequest.query.all()
     return render_template('admin/admin_manage_downloads.html', form=form, download_requests=download_requests)
 
+@bp.route('/delete_download_request/<int:request_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_download_request(request_id):
+    download_request = DownloadRequest.query.get_or_404(request_id)
+    
+    if download_request.zip_file_path and os.path.exists(download_request.zip_file_path):
+        if download_request.zip_file_path.startswith(current_app.config['ZIP_SAVE_PATH']):
+            try:
+                os.remove(download_request.zip_file_path)
+                print(f"Deleted ZIP file: {download_request.zip_file_path}")
+            except Exception as e:
+                print(f"Error deleting ZIP file: {e}")
+                flash(f"Error deleting ZIP file: {e}", 'error')
+        else:
+            print(f"ZIP file is not in the expected directory: {download_request.zip_file_path}")
+            flash("ZIP file is not in the expected directory. Only the download request will be removed.", 'warning')
+    
+    db.session.delete(download_request)
+    db.session.commit()
+    
+    flash('Download request deleted successfully.', 'success')
+    return redirect(url_for('main.manage_downloads'))
+
 
 @bp.route('/delete_download/<int:download_id>', methods=['POST'])
 @login_required
