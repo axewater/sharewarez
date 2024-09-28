@@ -109,7 +109,7 @@ def inject_settings():
         enable_web_links = settings_record.settings.get('enableWebLinksOnDetailsPage', False)
         enable_server_status = settings_record.settings.get('enableServerStatusFeature', False)
         enable_newsletter = settings_record.settings.get('enableNewsletterFeature', False)
-        show_version = settings_record.settings.get('showVersion', True)  # New setting
+        show_version = settings_record.settings.get('showVersion', False)  # settings fix
         enable_delete_game_on_disk = settings_record.settings.get('enableDeleteGameOnDisk', True)
     else:
         # Default values if no settings_record is found
