@@ -30,7 +30,7 @@
     <div class="glass-panel-addgame">
 
         
-        <form method="POST" action="">
+        <form method="POST" action="" class="game_edit-form">
             <div class="glass-panel-addgame-top d-flex justify-content-between align-items-center">
                 <div>
                     {% if action == "edit" %}
@@ -54,14 +54,14 @@
                     </div>
                 </div>
                 <div class="game-edit-savebutton">
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="submit" class="game_edit-save-btn btn-primary">Save</button>
                 </div>
             </div>
             {{ form.hidden_tag() }}
-            <div class="form-group">
+            <div class="game_edit-form-group-id">
                 <label for="name">IGDB ID#</label>
                 {{ form.igdb_id(class="form-control") }}
-                <button type="button" class="btn btn-info" id="search-igdb-btn">Search IGDB</button>
+                <button type="button" class="game_edit-search-igdb-btn btn-info" id="search-igdb-btn">Search IGDB</button>
                 {% if form.igdb_id.errors %}
                     <div class="alert alert-danger" role="alert">
                         {% for error in form.igdb_id.errors %}
@@ -72,7 +72,7 @@
                 <small id="igdb_id_feedback" class="form-text-muted">Enter the IGDB ID of the game.</small>
             </div>
             
-            <div class="form-group">
+            <div class="game_edit-form-group-name">
                 <label for="name">Name</label>
                 {{ form.name(class="form-control") }}
                 {% if form.name.errors %}
@@ -83,13 +83,13 @@
                     </div>
                 {% endif %}
  
-                <button type="button" id="search-igdb" class="btn btn-info">Search IGDB</button>
+                <button type="button" id="search-igdb" class="game_edit-search-igdb-btn btn-info">Search IGDB</button>
                 
                 <div id="search-results" style="margin-top: 10px;">
                 <!-- Container for search results -->
                 </div>
             </div>
-            <div class="form-group">
+            <div class="game_edit-form-group-path">
                 <label for="full_disk_path">Full Disk Path</label>
                 {{ form.full_disk_path(class="form-control") }}
                 {% if form.full_disk_path.errors %}
@@ -100,15 +100,15 @@
                     </div>
                 {% endif %}
             </div>
-            <div class="form-group">
+            <div class="game_edit-form-group-summary">
                 <label for="summary">Summary</label>
                 {{ form.summary(class="form-control") }}
             </div>
-            <div class="form-group">
+            <div class="game_edit-form-group-storyline">
                 <label for="storyline">Storyline</label>
                 {{ form.storyline(class="form-control") }}
             </div>
-            <div class="form-group">
+            <div class="game_edit-form-group-url">
                 <label for="url">URL</label>
                 {{ form.url(class="form-control") }}
                 {% if form.url.errors %}
@@ -120,7 +120,7 @@
                 {% endif %}
             </div>
             
-            <div class="form-group">
+            <div class="game_edit-form-group-video-url">
                 <label for="video_urls">Video URLs</label>
                 {{ form.video_urls(class="form-control") }}
                 {% if form.video_urls.errors %}
@@ -132,18 +132,18 @@
                 {% endif %}
             </div>
             
-            <div class="form-group">
+            <div class="game_edit-form-group-status">
                 <label for="status">Status</label>
                 {{ form.status(class="form-control") }}
             </div>
-            <div class="form-group">
+            <div class="game_edit-form-group-release-type">
                 <label for="category">Release Type</label>
                 {{ form.category(class="form-control") }}
             </div>
 
             <div class="group-game-details">
 
-                <div class="form-group" id="genres-container">
+                <div class="game_edit-form-group-genres" id="genres-container">
                     <label>Genres</label>
                     {% for subfield in form.genres %}
                     <div class="checkbox">
@@ -153,7 +153,7 @@
                     {% endfor %}
                 </div>
 
-                <div class="form-group" id="gamemodes-container">
+                <div class="game_edit-form-group-modes" id="gamemodes-container">
                     <label>Game Modes</label>
                     {% for subfield in form.game_modes %}
                     <div class="checkbox">
@@ -163,7 +163,7 @@
                     {% endfor %}
                 </div>
                 
-                <div class="form-group" id="themes-container">
+                <div class="game_edit-form-group-themes" id="themes-container">
                     <label>Themes</label>
                     {% for subfield in form.themes %}
                         <div class="checkbox">
@@ -174,7 +174,7 @@
                 </div>
                 
 
-                <div class="form-group" id="platforms-container">
+                <div class="game_edit-form-group-platforms" id="platforms-container">
                     <label>Platforms</label>
                     {% for subfield in form.platforms %}
                         <div class="checkbox">
@@ -185,23 +185,24 @@
                 </div>
                 
             
-                <div class="form-group" id="perspectives-container">
+                <div class="game_edit-form-group-perspectives" id="perspectives-container">
                     <label>Player Perspectives</label>
                     {% for subfield in form.player_perspectives %}
                         <div class="checkbox">
-                            {{ subfield }} {{ subfield.label.text }}
+                            {{ subfield(class="form-check-input") }}
+                            {{ subfield.label(class="form-check-label") }}
                         </div>
                     {% endfor %}
                 </div>
             </div>
-            <div class="form-group" id="developer-container">
-                <label for="developer">Developer</label>
-                <input type="text" id="developer" name="developer" value="{{ form.developer.data }}">
+            <div class="game_edit-form-group-developer" id="developer-container">
+                <label class="game_edit-form-group-developer-text" for="developer">Developer</label>
+                <input class="game_edit-form-group-developer-data" type="text" id="developer" name="developer" value="{{ form.developer.data }}">
             </div>
             
-            <div class="form-group" id="publisher-container">
-                <label for="publisher">Publisher</label>
-                <input type="text" id="publisher" name="publisher" value="{{ form.publisher.data }}">
+            <div class="game_edit-form-group-publisher" id="publisher-container">
+                <label class="game_edit-form-group-publisher-text" for="publisher">Publisher</label>
+                <input class="game_edit-form-group-publisher-data" type="text" id="publisher" name="publisher" value="{{ form.publisher.data }}">
             </div>
             
                         
