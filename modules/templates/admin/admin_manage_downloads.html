@@ -31,6 +31,7 @@
                 <th>Zip File Path</th>
                 <th>Request Time</th>
                 <th>Completion Time</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -43,6 +44,19 @@
                 <td>{{ request.zip_file_path }}</td>
                 <td>{{ request.request_time.strftime('%Y-%m-%d %H:%M') if request.request_time else 'N/A' }}</td>
                 <td>{{ request.completion_time.strftime('%Y-%m-%d %H:%M') if request.completion_time else 'N/A' }}</td>
+                <td>
+                    {% if request.zip_file_path and request.zip_file_path.startswith(config['ZIP_SAVE_PATH']) %}
+                        <form action="{{ url_for('main.delete_download_request', request_id=request.id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this download request and its associated ZIP file?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-danger btn-sm" title="Delete request and ZIP file">Delete request and file</button>
+                        </form>
+                    {% else %}
+                        <form action="{{ url_for('main.delete_download_request', request_id=request.id) }}" method="post" onsubmit="return confirm('Are you sure you want to remove this download request from the table?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-warning btn-sm" title="Remove request from table">Remove from table</button>
+                        </form>
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>
