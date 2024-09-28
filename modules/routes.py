@@ -1518,6 +1518,7 @@ def manage_settings():
         
         settings_record.settings = new_settings
         settings_record.enable_delete_game_on_disk = new_settings.get('enableDeleteGameOnDisk', True)
+        settings_record.update_folder_name = new_settings.get('updateFolderName', 'updates')
         settings_record.last_updated = datetime.utcnow()
         db.session.commit()
         cache.delete('global_settings')
@@ -1529,6 +1530,7 @@ def manage_settings():
         settings_record = GlobalSettings.query.first()
         current_settings = settings_record.settings if settings_record else {}
         current_settings['enableDeleteGameOnDisk'] = settings_record.enable_delete_game_on_disk if settings_record else True
+        current_settings['updateFolderName'] = settings_record.update_folder_name if settings_record else 'updates'
         return render_template('admin/admin_server_settings.html', current_settings=current_settings)
 
 
