@@ -54,7 +54,7 @@ has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
-app_version = '1.3.2'
+app_version = '1.3.3'
 
 @bp.before_app_request
 def initial_setup():
