@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
             enableNewsletterFeature: document.getElementById('enableNewsletterFeature').checked,
             enableDeleteGameOnDisk: document.getElementById('enableDeleteGameOnDisk').checked,
             showVersion: document.getElementById('showVersion').checked,
+            updateFolderName: document.getElementById('updateFolderName').value,
         };
         console.log("Settings to be saved:", settings);
 

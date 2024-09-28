@@ -10,7 +10,7 @@ class DatabaseManager:
         self.engine = create_engine(self.database_uri)
 
     def add_column_if_not_exists(self):
-        # SQL commands to add new columns
+        # SQL commands to add new columns and tables
         add_columns_sql = """
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS enable_delete_game_on_disk BOOLEAN DEFAULT TRUE;
@@ -20,6 +20,20 @@ class DatabaseManager:
 
         ALTER TABLE invite_tokens
         ADD COLUMN IF NOT EXISTS used_at TIMESTAMP;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS update_folder_name VARCHAR(255) DEFAULT 'updates';
+
+        CREATE TABLE IF NOT EXISTS game_updates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            uuid VARCHAR(36) UNIQUE NOT NULL,
+            game_uuid VARCHAR(36) NOT NULL,
+            times_downloaded INTEGER DEFAULT 0,
+            nfo_content TEXT,
+            file_path VARCHAR(255) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (game_uuid) REFERENCES games(uuid) ON DELETE CASCADE
+        );
         """
         print("Upgrading database to the latest schema")
         try:
@@ -27,7 +41,7 @@ class DatabaseManager:
             with self.engine.connect() as connection:
                 connection.execute(text(add_columns_sql))
                 connection.commit()
-            print("Columns successfully added to the tables.")
+            print("Columns and tables successfully added to the database.")
         except Exception as e:
             print(f"An error occurred: {e}")
         finally:

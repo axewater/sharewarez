@@ -220,6 +220,7 @@ class Game(db.Model):
     name = db.Column(db.String, nullable=False)
     summary = db.Column(db.Text, nullable=True)
     storyline = db.Column(db.Text, nullable=True)
+    updates = db.relationship('GameUpdate', back_populates='game', cascade='all, delete-orphan')
     aggregated_rating = db.Column(db.Float)
     aggregated_rating_count = db.Column(db.Integer)
     cover = db.Column(db.String)
@@ -261,6 +262,22 @@ class Game(db.Model):
 
     def __repr__(self):
         return f"<Game id={self.id}, name={self.name}>"
+
+class GameUpdate(db.Model):
+    __tablename__ = 'game_updates'
+
+    id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(36), default=lambda: str(uuid4()), unique=True, nullable=False)
+    game_uuid = db.Column(db.String(36), db.ForeignKey('games.uuid'), nullable=False)
+    times_downloaded = db.Column(db.Integer, default=0)
+    nfo_content = db.Column(db.Text, nullable=True)
+    file_path = db.Column(db.String, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    game = db.relationship('Game', back_populates='updates')
+
+    def __repr__(self):
+        return f"<GameUpdate id={self.id}, game_uuid={self.game_uuid}>"
     
 
 
@@ -506,11 +523,11 @@ class GlobalSettings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     settings = db.Column(JSONEncodedDict)  # Store all settings in a single JSON-encoded column
     last_updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    enable_delete_game_on_disk = db.Column(db.Boolean, default=True)  # New column
+    enable_delete_game_on_disk = db.Column(db.Boolean, default=True)
+    update_folder_name = db.Column(db.String(255), default='updates')
 
     def __repr__(self):
-        return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'
-    
+        return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'    
     
 class InviteToken(db.Model):
     __tablename__ = 'invite_tokens'

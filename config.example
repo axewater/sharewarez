@@ -8,6 +8,7 @@ class Config(object):
     IMAGE_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/library/images')
     ZIP_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/library/zips')
     UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'modules/static/library')
+    UPDATE_FOLDER_NAME = os.getenv('UPDATE_FOLDER_NAME', 'updates')
     THEME_FILES = os.path.join(os.path.dirname(__file__), 'modules/static/library/themes')
     MAIL_SERVER = os.getenv('MAIL_SERVER', 'mail.yourisp.com')
     MAIL_PORT = int(os.getenv('MAIL_PORT', 25))
@@ -32,3 +33,4 @@ class Config(object):
     DISCORD_BOT_AVATAR_URL = os.getenv('DISCORD_BOT_AVATAR_URL', '')
     #Branding
     SITE_URL = os.getenv('SITE_URL', 'http://127.0.0.1') #The URL the site is accessed from by users.
+    
