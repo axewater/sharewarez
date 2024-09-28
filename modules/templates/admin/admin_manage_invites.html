@@ -11,32 +11,32 @@
     </div>
 {% endif %}
 {% endwith %}
-<div class="glass-panel container mt-5">
-    <h2 class="mb-4">Manage User Invites</h2>
-    <div class="table-responsive">
-        <table class="table">
-          <thead class="table-dark">
+<div class="admin_manage_invites-panel glass-panel container mt-5">
+    <h2 class="admin_manage_invites-heading mb-4">Manage User Invites</h2>
+    <div class="admin_manage_invites-table-div table-responsive">
+        <table class="admin_manage_invites-table table">
+          <thead class="admin_manage_invites-table-head table-dark">
             <tr>
-              <th scope="col">User</th>
-              <th scope="col">Current Invites</th>
-              <th scope="col">Add Invites</th>
+              <th class="admin_manage_invites-th-1" scope="col">User</th>
+              <th class="admin_manage_invites-th-2" scope="col">Current Invites</th>
+              <th class="admin_manage_invites-th-3" scope="col">Add Invites</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody class="admin_manage_invites-table-body">
             {% for user in users %}
             <tr>
-              <td>{{ user.name }}</td>
-              <td>{{ user.invite_quota }}</td>
+              <td class="admin_manage_invites-td-1">{{ user.name }}</td>
+              <td class="admin_manage_invites-td-2">{{ user.invite_quota }}</td>
               <td>
                 <form action="{{ url_for('main.manage_invites') }}" method="POST" class="d-flex gap-2">
              
                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                   <input type="hidden" name="user_id" value="{{ user.user_id }}">
-                  <div class="flex-grow-1">
-                    <input type="number" name="invites_number" min="1" value="1" class="form-control">
+                  <div class="admin_manage_invites-invitesleft flex-grow-1">
+                    <input type="number" name="invites_number" min="1" value="1" class="admin_manage_invites-form-control form-control">
                   </div>
-                  <button type="submit" class="btn btn-primary">Add</button>
+                  <button type="submit" class="admin_manage_invites-add-btn btn btn-primary">Add</button>
                 </form>
               </td>
             </tr>
