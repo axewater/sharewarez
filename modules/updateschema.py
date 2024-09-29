@@ -21,6 +21,9 @@ class DatabaseManager:
         ALTER TABLE invite_tokens
         ADD COLUMN IF NOT EXISTS used_at TIMESTAMP;
 
+        ALTER TABLE user_preferences
+        ADD COLUMN IF NOT EXISTS theme VARCHAR(50) DEFAULT 'default';
+
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS update_folder_name VARCHAR(255) DEFAULT 'updates';
 

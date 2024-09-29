@@ -54,7 +54,9 @@ has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
-app_version = '1.3.3'
+
+app_version = '1.4.0'
+
 
 @bp.before_app_request
 def initial_setup():
@@ -109,7 +111,7 @@ def inject_settings():
         enable_web_links = settings_record.settings.get('enableWebLinksOnDetailsPage', False)
         enable_server_status = settings_record.settings.get('enableServerStatusFeature', False)
         enable_newsletter = settings_record.settings.get('enableNewsletterFeature', False)
-        show_version = settings_record.settings.get('showVersion', True)  # New setting
+        show_version = settings_record.settings.get('showVersion', False)  # settings fix
         enable_delete_game_on_disk = settings_record.settings.get('enableDeleteGameOnDisk', True)
     else:
         # Default values if no settings_record is found
@@ -557,9 +559,9 @@ def account_pw():
 @login_required
 @admin_required
 def settings_panel():
-    # print("Request method:", request.method)  # Debug line
     print("Route: /settings_panel")
     form = UserPreferencesForm()
+    
     if request.method == 'POST' and form.validate_on_submit():
         # Ensure preferences exist
         if not current_user.preferences:
@@ -568,6 +570,7 @@ def settings_panel():
         current_user.preferences.items_per_page = form.items_per_page.data or current_user.preferences.items_per_page
         current_user.preferences.default_sort = form.default_sort.data or current_user.preferences.default_sort
         current_user.preferences.default_sort_order = form.default_sort_order.data or current_user.preferences.default_sort_order
+        current_user.preferences.theme = form.theme.data if form.theme.data != 'default' else None
         db.session.add(current_user.preferences)
         db.session.commit()
         flash('Your settings have been updated.', 'success')
@@ -582,6 +585,7 @@ def settings_panel():
         form.items_per_page.data = current_user.preferences.items_per_page
         form.default_sort.data = current_user.preferences.default_sort
         form.default_sort_order.data = current_user.preferences.default_sort_order
+        form.theme.data = current_user.preferences.theme or 'default'
 
     return render_template('settings/settings_panel.html', form=form)
 
@@ -1257,7 +1261,6 @@ def game_edit(game_uuid):
             return render_template('admin/admin_game_identify.html', form=form, game_uuid=game_uuid, action="edit")
 
         # Check if any other game has the same igdb_id and is not the current game
-        
         existing_game_with_igdb_id = Game.query.filter(
             Game.igdb_id == form.igdb_id.data,
             Game.id != game.id 
@@ -1268,7 +1271,10 @@ def game_edit(game_uuid):
             flash(f'The IGDB ID {form.igdb_id.data} is already used by another game.', 'error')
             return render_template('admin/admin_game_identify.html', form=form, library_name=library_name, game_uuid=game_uuid, action="edit")
         
+        # Check if IGDB ID has changed
+        igdb_id_changed = game.igdb_id != form.igdb_id.data
         
+        # Update game attributes
         game.library_uuid = form.library_uuid.data
         game.igdb_id = form.igdb_id.data
         game.name = form.name.data
@@ -1286,10 +1292,8 @@ def game_edit(game_uuid):
         if category_str in Category.__members__:
             game.category = Category[category_str]
         else:
-            
             flash(f'Invalid category: {category_str}', 'error')
             return render_template('admin/admin_game_identify.html', form=form, game_uuid=game_uuid, action="edit")
-        
         
         # Handling Developer
         developer_name = form.developer.data
@@ -1311,7 +1315,7 @@ def game_edit(game_uuid):
                 db.session.flush()
             game.publisher = publisher
 
-        # Update many-to-many
+        # Update many-to-many relationships
         game.genres = form.genres.data
         game.game_modes = form.game_modes.data
         game.themes = form.themes.data
@@ -1328,21 +1332,22 @@ def game_edit(game_uuid):
 
         game.date_identified = datetime.utcnow()
                
-        # DB commit and image update
+        # DB commit and conditional image update
         try:
             db.session.commit()
             flash('Game updated successfully.', 'success')
-            flash('Triggering image update')
             
+            if igdb_id_changed:
+                flash('IGDB ID changed. Triggering image update.')
+                @copy_current_request_context
+                def refresh_images_in_thread():
+                    refresh_images_in_background(game_uuid)
 
-            @copy_current_request_context
-            def refresh_images_in_thread():
-                refresh_images_in_background(game_uuid)
-
-            # Start refresh images
-            thread = Thread(target=refresh_images_in_thread)
-            thread.start()
-            print(f"Refresh images thread started for game UUID: {game_uuid}")
+                thread = Thread(target=refresh_images_in_thread)
+                thread.start()
+                print(f"Refresh images thread started for game UUID: {game_uuid}")
+            else:
+                print(f"IGDB ID unchanged. Skipping image refresh for game UUID: {game_uuid}")
                     
             return redirect(url_for('main.library'))
         except SQLAlchemyError as e:
@@ -1951,19 +1956,38 @@ def manage_themes():
         return redirect(url_for('main.manage_themes'))
 
     installed_themes = theme_manager.get_installed_themes()
-    return render_template('admin/manage_themes.html', form=form, themes=installed_themes)
+    default_theme = theme_manager.get_default_theme()
+    return render_template('admin/admin_manage_themes.html', form=form, themes=installed_themes, default_theme=default_theme)
+
+@bp.route('/admin/themes/readme')
+@login_required
+@admin_required
+def theme_readme():
+    return render_template('admin/readme_theme.html')
+
+@bp.route('/admin/themes/delete/<theme_name>', methods=['POST'])
+@login_required
+@admin_required
+def delete_theme(theme_name):
+    theme_manager = ThemeManager(current_app)
+    try:
+        theme_manager.delete_theme(theme_name)
+        flash(f"Theme '{theme_name}' deleted successfully!", 'success')
+    except ValueError as e:
+        flash(str(e), 'error')
+    except Exception as e:
+        flash(f"An unexpected error occurred: {str(e)}", 'error')
+    return redirect(url_for('main.manage_themes'))
 
 @bp.context_processor
 def inject_current_theme():
-    # This function will be called for every request
-    # You can retrieve the current theme from user preferences or a global setting
-    current_theme = get_current_theme()  # Implement this function
+    if current_user.is_authenticated and current_user.preferences:
+        current_theme = current_user.preferences.theme or 'default'
+    else:
+        current_theme = 'default'
     return dict(current_theme=current_theme)
 
-def get_current_theme():
-    # Implement logic to get the current theme
-    # This could be from user preferences, global settings, or a default theme
-    return 'default'  # Replace with actual logic
+# Remove the get_current_theme function as it's no longer needed
 
 @bp.route('/delete_game/<string:game_uuid>', methods=['POST'])
 @login_required
@@ -2368,10 +2392,34 @@ def manage_downloads():
         except Exception as e:
             db.session.rollback()
             flash(f'An error occurred: {e}', 'danger')
-        return redirect(url_for('main.clear_downloads'))
+        return redirect(url_for('main.manage_downloads'))
 
     download_requests = DownloadRequest.query.all()
     return render_template('admin/admin_manage_downloads.html', form=form, download_requests=download_requests)
+
+@bp.route('/delete_download_request/<int:request_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_download_request(request_id):
+    download_request = DownloadRequest.query.get_or_404(request_id)
+    
+    if download_request.zip_file_path and os.path.exists(download_request.zip_file_path):
+        if download_request.zip_file_path.startswith(current_app.config['ZIP_SAVE_PATH']):
+            try:
+                os.remove(download_request.zip_file_path)
+                print(f"Deleted ZIP file: {download_request.zip_file_path}")
+            except Exception as e:
+                print(f"Error deleting ZIP file: {e}")
+                flash(f"Error deleting ZIP file: {e}", 'error')
+        else:
+            print(f"ZIP file is not in the expected directory: {download_request.zip_file_path}")
+            flash("ZIP file is not in the expected directory. Only the download request will be removed.", 'warning')
+    
+    db.session.delete(download_request)
+    db.session.commit()
+    
+    flash('Download request deleted successfully.', 'success')
+    return redirect(url_for('main.manage_downloads'))
 
 
 @bp.route('/delete_download/<int:download_id>', methods=['POST'])
