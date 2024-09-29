@@ -11,7 +11,8 @@ from wtforms.fields import URLField, DateField
 from modules.models import Status, Category, genre_choices, game_mode_choices, theme_choices, platform_choices, player_perspective_choices, developer_choices, publisher_choices, LibraryPlatform
 from urllib.parse import urlparse
 from modules.utilities import comma_separated_urls
-
+from modules.theme_manager import ThemeManager
+from flask import current_app
 class UpdateUnmatchedFolderForm(FlaskForm):
     folder_id = HiddenField('Folder ID', validators=[DataRequired()])
     new_status = HiddenField('New Status', default='Ignore')
@@ -142,7 +143,7 @@ class AddGameForm(FlaskForm):
     submit = SubmitField('Save')    
     
 class ClearDownloadRequestsForm(FlaskForm):
-    submit = SubmitField('CLEAR')
+    submit = SubmitField('Clear processing queue')
     
 class CsrfProtectForm(FlaskForm):
     pass
@@ -185,7 +186,14 @@ class UserPreferencesForm(FlaskForm):
     items_per_page = SelectField('Max items per Page', choices=items_per_page_choices, coerce=int)
     default_sort = SelectField('Default Sort', choices=default_sort_choices)
     default_sort_order = SelectField('Default Sort Order', choices=default_sort_order_choices)
+    theme = SelectField('Theme', choices=[('default', 'Default')])  # Default theme is always an option
     submit = SubmitField('Save Preferences')
+
+    def __init__(self, *args, **kwargs):
+        super(UserPreferencesForm, self).__init__(*args, **kwargs)
+        theme_manager = ThemeManager(current_app)
+        installed_themes = theme_manager.get_installed_themes()
+        self.theme.choices = [('default', 'Default')] + [(theme['name'], theme['name']) for theme in installed_themes if theme['name'] != 'Default']
 
 
 class LibraryForm(FlaskForm):
