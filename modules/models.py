@@ -277,7 +277,7 @@ class GameUpdate(db.Model):
     game = db.relationship('Game', back_populates='updates')
 
     def __repr__(self):
-        return f"<GameUpdate id={self.id}, game_uuid={self.game_uuid}>"
+        return f"<GameUpdate id={self.id}, uuid={self.uuid}, game_uuid={self.game_uuid}>"
     
 
 
