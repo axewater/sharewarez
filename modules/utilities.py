@@ -8,7 +8,7 @@ from datetime import datetime
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from modules.models import (
-    User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, Platform, Genre, Publisher, Developer, GameURL, Library,
+    User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, Platform, Genre, Publisher, Developer, GameURL, Library, GameUpdate,
     Theme, GameMode, MultiplayerMode, PlayerPerspective, ScanJob, UnmatchedFolder, category_mapping, status_mapping, player_perspective_mapping
 )
 from modules import db, mail
@@ -535,6 +535,60 @@ def get_folder_size_in_bytes(folder_path):
                 total_size += os.path.getsize(fp)
     return total_size
 
+def process_game_updates(game_name, full_disk_path, updates_folder, library_uuid):
+    print(f"Processing updates for game: {game_name}")
+    print(f"Full disk path: {full_disk_path}")
+    print(f"Updates folder: {updates_folder}")
+    print(f"Library UUID: {library_uuid}")
+
+    game = Game.query.filter_by(full_disk_path=full_disk_path, library_uuid=library_uuid).first()
+    if not game:
+        print(f"Game not found in database: {game_name}")
+        return
+
+    print(f"Game found in database: {game.name} (UUID: {game.uuid})")
+
+    update_folders = [f for f in os.listdir(updates_folder) if os.path.isdir(os.path.join(updates_folder, f))]
+    print(f"Update folders found: {update_folders}")
+
+    for update_folder in update_folders:
+        update_path = os.path.join(updates_folder, update_folder)
+        print(f"Processing update: {update_folder}")
+        
+        significant_files = [f for f in os.listdir(update_path) if not f.lower().endswith(('.sfv', '.nfo'))]
+        print(f"Significant files in update folder: {significant_files}")
+
+        if len(significant_files) == 1:
+            file_path = os.path.join(update_path, significant_files[0])
+            print(f"Single significant file update: {file_path}")
+        else:
+            file_path = update_path
+            print(f"Multiple files update, using folder path: {file_path}")
+
+        # Create or update GameUpdate record
+        game_update = GameUpdate.query.filter_by(game_uuid=game.uuid, file_path=file_path).first()
+        if not game_update:
+            print(f"Creating new GameUpdate record for {file_path}")
+            game_update = GameUpdate(
+                game_uuid=game.uuid,
+                file_path=file_path,
+                nfo_content=read_first_nfo_content(update_path)
+            )
+            db.session.add(game_update)
+        else:
+            print(f"Updating existing GameUpdate record for {file_path}")
+            game_update.file_path = file_path
+            game_update.nfo_content = read_first_nfo_content(update_path)
+
+    try:
+        db.session.commit()
+        print(f"Successfully committed GameUpdate records to database")
+    except SQLAlchemyError as e:
+        print(f"Error committing GameUpdate records to database: {str(e)}")
+        db.session.rollback()
+
+    print(f"Finished processing updates for game: {game_name}")
+
 def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
     print(f"Enumerating companies for game {game_instance.name} with IGDB ID {igdb_game_id}.")
     if not involved_company_ids:
@@ -713,6 +767,9 @@ def zip_game(download_request_id, app):
                 
                 with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_STORED) as zipf:
                     for root, dirs, files in os.walk(source_folder):
+                        # Exclude the 'updates' folder
+                        if 'updates' in dirs:
+                            dirs.remove('updates')
                         for file in files:
                             file_path = os.path.join(root, file)
                             # Ensure .NFO, .SFV, and file_id.diz files are still included in the zip
@@ -733,14 +790,23 @@ def update_download_request(download_request, status, file_path):
     db.session.commit()
 
 def read_first_nfo_content(full_disk_path):
+    print(f"Searching for NFO file in: {full_disk_path}")
     for root, dirs, files in os.walk(full_disk_path):
+        print(f"Searching in directory: {root}")
+        print(f"Files found: {files}")
         for file in files:
             if file.lower().endswith('.nfo'):
-                with open(os.path.join(root, file), 'r', encoding='utf-8', errors='ignore') as nfo_file:
-                    print(f"Found NFO file at {os.path.join(root, file)}")
-                    content = nfo_file.read()
-                    sanitized_content = content.replace('\x00', '')  # Remove NULL bytes
-                    return sanitized_content
+                nfo_path = os.path.join(root, file)
+                print(f"Found NFO file: {nfo_path}")
+                try:
+                    with open(nfo_path, 'r', encoding='utf-8', errors='ignore') as nfo_file:
+                        content = nfo_file.read()
+                        sanitized_content = content.replace('\x00', '')  # Remove NULL bytes
+                        print(f"Successfully read NFO content (length: {len(sanitized_content)})")
+                        return sanitized_content
+                except Exception as e:
+                    print(f"Error reading NFO file {nfo_path}: {str(e)}")
+    print("No NFO file found")
     return None
 
         
@@ -1015,18 +1081,25 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None):
             if success:
                 scan_job_entry.folders_success += 1
                 
+                # Check for updates folder
+                updates_folder = os.path.join(full_disk_path, current_app.config['UPDATE_FOLDER_NAME'])
+                print(f"Checking for updates folder: {updates_folder}")
+                if os.path.exists(updates_folder) and os.path.isdir(updates_folder):
+                    print(f"Updates folder found for game: {game_name}")
+                    process_game_updates(game_name, full_disk_path, updates_folder, library_uuid)
+                else:
+                    print(f"No updates folder found for game: {game_name}")
             else:
                 scan_job_entry.folders_failed += 1
                 print(f"Failed to process game {game_name} after fallback attempts.")   
             db.session.commit()
+
         except Exception as e:
             print(f"Failed to process game {game_name}: {e}")
             scan_job_entry.folders_failed += 1
             scan_job_entry.status = 'Failed'
             scan_job_entry.error_message += f" Failed to process {game_name}: {str(e)}; "
             db.session.commit()
-
-            break  # Exit loop if game processing fails critically
 
     if scan_job_entry.status != 'Failed':
         scan_job_entry.status = 'Completed'
@@ -1271,6 +1344,8 @@ def get_folder_size_in_bytes(folder_path):
             if os.path.exists(fp):
                 total_size += os.path.getsize(fp)
     return max(total_size, 1)  # Ensure the size is at least 1 byte
+
+
 
 def comma_separated_urls(form, field):
     

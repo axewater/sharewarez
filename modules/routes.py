@@ -1841,7 +1841,13 @@ def game_details(game_uuid):
             "size": format_size(game.size),
             "date_identified": game.date_identified.strftime('%Y-%m-%d %H:%M:%S') if game.date_identified else 'Not available',
             "steam_url": game.steam_url if game.steam_url else 'Not available',
-            "times_downloaded": game.times_downloaded
+            "times_downloaded": game.times_downloaded,
+            "updates": [{
+                "id": update.id,
+                "file_path": update.file_path,
+                "times_downloaded": update.times_downloaded,
+                "created_at": update.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            } for update in game.updates]
         }
         
         # URL Icons Mapping
@@ -2240,6 +2246,20 @@ def download_game(game_uuid):
     
     flash("Your download request is being processed. You will be notified when the download is ready.", "info")
     return redirect(url_for('main.downloads'))
+
+@bp.route('/download_update/<int:update_id>', methods=['GET'])
+@login_required
+def download_update(update_id):
+    update = GameUpdate.query.get_or_404(update_id)
+    
+    if not os.path.exists(update.file_path):
+        flash("Update file not found.", "error")
+        return redirect(url_for('main.game_details', game_uuid=update.game_uuid))
+    
+    update.times_downloaded += 1
+    db.session.commit()
+    
+    return send_file(update.file_path, as_attachment=True)
 
 
 

@@ -25,7 +25,7 @@ class DatabaseManager:
         ADD COLUMN IF NOT EXISTS update_folder_name VARCHAR(255) DEFAULT 'updates';
 
         CREATE TABLE IF NOT EXISTS game_updates (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             uuid VARCHAR(36) UNIQUE NOT NULL,
             game_uuid VARCHAR(36) NOT NULL,
             times_downloaded INTEGER DEFAULT 0,
@@ -34,6 +34,11 @@ class DatabaseManager:
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (game_uuid) REFERENCES games(uuid) ON DELETE CASCADE
         );
+
+        -- Add uuid column to game_updates table if it doesn't exist
+        ALTER TABLE game_updates
+        ADD COLUMN IF NOT EXISTS uuid VARCHAR(36) UNIQUE NOT NULL DEFAULT 1111-1111-1111-1111;
+        
         """
         print("Upgrading database to the latest schema")
         try:
@@ -44,6 +49,7 @@ class DatabaseManager:
             print("Columns and tables successfully added to the database.")
         except Exception as e:
             print(f"An error occurred: {e}")
+            raise  # Re-raise the exception to propagate it
         finally:
             # Close the database connection
             self.engine.dispose()
