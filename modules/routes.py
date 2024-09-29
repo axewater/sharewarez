@@ -56,6 +56,7 @@ has_initialized_setup = False
 app_start_time = datetime.now()
 app_version = '1.4.0'
 
+
 @bp.before_app_request
 def initial_setup():
     global has_initialized_setup
@@ -1918,6 +1919,18 @@ def admin_dashboard():
 def manage_themes():
     form = ThemeUploadForm()
     theme_manager = ThemeManager(current_app)
+    
+
+    # Ensure UPLOAD_FOLDER exists
+    upload_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'themes')
+    if not os.path.exists(upload_folder):
+        try:
+            # Safe check to avoid creating 'static' directly
+            os.makedirs(upload_folder, exist_ok=True)
+        except Exception as e:
+            print(f"Error creating upload directory: {e}")
+            flash("Error processing request. Please try again.", 'error')
+            return redirect(url_for('main.manage_themes'))
 
     if form.validate_on_submit():
         theme_zip = form.theme_zip.data
@@ -2254,6 +2267,8 @@ def download_game(game_uuid):
 @bp.route('/discover')
 @login_required
 def discover():
+    page_loc = get_loc("discover")
+    
     def fetch_game_details(games_query, limit=8):
         games = games_query.limit(limit).all()
         game_details = []
@@ -2295,7 +2310,7 @@ def discover():
                            latest_games=latest_games,
                            most_downloaded_games=most_downloaded_games,
                            highest_rated_games=highest_rated_games,
-                           libraries=libraries)
+                           libraries=libraries, loc=page_loc)
 
 
 
@@ -2865,3 +2880,9 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
         })
 
     return game_data, pagination.total, pagination.pages, page
+    
+def get_loc(page):
+    
+    with open(f'modules/static/localization/en/{page}.json', 'r', encoding='utf8') as f:
+            loc_data = json.load(f)    
+    return loc_data
