@@ -2247,20 +2247,6 @@ def download_game(game_uuid):
     flash("Your download request is being processed. You will be notified when the download is ready.", "info")
     return redirect(url_for('main.downloads'))
 
-@bp.route('/download_update/<int:update_id>', methods=['GET'])
-@login_required
-def download_update(update_id):
-    update = GameUpdate.query.get_or_404(update_id)
-    
-    if not os.path.exists(update.file_path):
-        flash("Update file not found.", "error")
-        return redirect(url_for('main.game_details', game_uuid=update.game_uuid))
-    
-    update.times_downloaded += 1
-    db.session.commit()
-    
-    return send_file(update.file_path, as_attachment=True)
-
 
 
 @bp.route('/discover')

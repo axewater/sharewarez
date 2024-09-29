@@ -13,9 +13,10 @@ instance/app.db
 /logs
 /modules/static/zips/
 /modules/static/zips/*
+modules/static/library/images
 /modules/static/images/*.jpg
 /venv
-modules/static/library
+
 /.codebuddy
 /.codebuddy/*
 .codebuddy

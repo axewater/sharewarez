@@ -1,0 +1,9 @@
+
+body {
+    background-image: url('/static/newstyle/customtheme.png'); 
+    background-size: cover;
+    background-repeat: no-repeat;
+
+    font-family: Arial, sans-serif;
+    color: rgb(51, 141, 225);
+}
