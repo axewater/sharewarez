@@ -42,6 +42,14 @@
                 {% endfor %}
             </div>
             
+            <div class="mb-3">
+                {{ form.theme.label(class="form-label") }}
+                {{ form.theme(class="form-select") }}
+                {% for error in form.theme.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+            </div>
+            
             <div class="d-grid">
                 {{ form.submit(class="btn btn-primary") }}
             </div>
