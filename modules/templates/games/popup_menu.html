@@ -1,7 +1,12 @@
 <!-- in templates/games/popup_menu.html -->
 <!-- when updating this file, remember to change library_pagination.js too -->
 <!-- it regenerates this popup menu -->
-<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/games/popup_menu.css') }}">
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/games/popup_menu.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/games/popup_menu.css') }}">
+{% else %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/games/popup_menu.css') }}">
+{% endif %}
 
 <div id="popupMenu-{{ game_uuid }}" class="popup-menu" style="display: none;">
     <form action="{{ url_for('main.download_game', game_uuid=game_uuid) }}" method="get" class="menu-item">
