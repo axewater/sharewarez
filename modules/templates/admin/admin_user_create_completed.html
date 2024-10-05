@@ -1,7 +1,7 @@
 # /templates/
 {% extends "base.html" %}
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_user_create_complete.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin_user_create_complete.css') }}">
 {% with messages = get_flashed_messages() %}
 {% if messages %}
     <div class="alert alert-info" role="alert">

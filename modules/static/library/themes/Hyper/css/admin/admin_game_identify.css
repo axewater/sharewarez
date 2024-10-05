@@ -1,0 +1,20 @@
+.table {
+	background-color: #333;
+	color: #fff;
+}
+.table th {
+	background-color: #444;
+}
+
+.game-edit-library-labels {
+    display: flex;
+    flex-direction: column;
+    width: 400px;
+    margin-bottom: 10px;
+}
+
+.game-edit-savebutton {
+	align-self: flex-end;
+	margin-top: 10px;
+
+}
