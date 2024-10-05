@@ -9,7 +9,12 @@
     </div>
 {% endif %}
 {% endwith %}
-<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_server_settings.css') }}">
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_server_settings.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_server_settings.css') }}">
+{% else %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_server_settings.css') }}">
+{% endif %}
 
 <div class="glass-panel">
     <div class="container mt-3">

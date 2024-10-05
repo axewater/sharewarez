@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin.css') }}">
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_server_info.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_server_info.css') }}">
+{% else %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_server_info.css') }}">
+{% endif %}
 
 <div class="glass-panel">
     {% with messages = get_flashed_messages() %}

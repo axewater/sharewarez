@@ -2,7 +2,11 @@
 {% extends "base.html" %}
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin.css') }}">
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_newsletter.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_newsletter.css') }}">
+{% else %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_newsletter.css') }}">
+{% endif %}
 
 <div class="glass-panel">
             <!-- Back to Dashboard Button -->

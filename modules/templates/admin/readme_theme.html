@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/readme_theme.css') }}">
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/readme_theme.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/readme_theme.css') }}">
+{% else %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/readme_theme.css') }}">
+{% endif %}
+
 <div class="container">
     <div class="glass-panel">
         <h1>Creating Your Own Theme</h1>

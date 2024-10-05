@@ -1,5 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/login/registration.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/login/registration.css') }}">
+{% else %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/login/registration.css') }}">
+{% endif %}
+
 <html>
 <head>
     <title>Registration</title>
