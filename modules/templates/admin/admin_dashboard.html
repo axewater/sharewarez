@@ -2,7 +2,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin_dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_dashboard.css') }}">
 
 {% with messages = get_flashed_messages() %}
 {% if messages %}
