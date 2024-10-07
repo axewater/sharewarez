@@ -2895,3 +2895,12 @@ def get_loc(page):
     with open(f'modules/static/localization/en/{page}.json', 'r', encoding='utf8') as f:
             loc_data = json.load(f)    
     return loc_data
+    
+@bp.add_app_template_global  
+def verify_file(full_path):
+    if os.path.exists(full_path) or os.access(full_path, os.R_OK):
+        print(f"File Exists: {full_path}.")
+        return True
+    else:
+        print(f"Cannot access folder: {full_path}. Please check the path and permissions.", 'error')
+        return False

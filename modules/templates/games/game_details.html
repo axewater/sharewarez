@@ -1,7 +1,12 @@
 <!-- in templates/games/game_details.html -->
 {% extends "base.html" %}
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/games/game_details.css') }}">
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/games/game_details.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/games/game_details.css') }}">
+{% else %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/games/game_details.css') }}">
+{% endif %}
 
 <div class="content-flash">
     {% with messages = get_flashed_messages() %}
