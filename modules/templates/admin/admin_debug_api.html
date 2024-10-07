@@ -1,5 +1,11 @@
 {% extends "base.html" %}
 
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_debug_api.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_debug_api.css') }}">
+{% else %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_debug_api.css') }}">
+{% endif %}
+
 {% block content %}
 <div class="container glass-panel">
     <div class="row">

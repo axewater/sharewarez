@@ -1,0 +1,231 @@
+.game-library-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    
+    
+}
+
+.game-discovery-container {
+    display: flex;
+    flex-direction: row;
+    
+    
+}
+
+
+
+
+.game-card {
+    cursor: pointer;
+    transition: transform 0.3s ease; 
+    position: relative;
+    margin: 5px;
+}
+
+
+.game-card:hover  {
+    transform: scale(1.2);
+    z-index: 6;
+    box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.7);
+}
+
+
+.game-cover {
+    display: flex;
+    position: relative;
+    width: 100%;
+    height: auto;
+    transition: transform 0.3s ease;
+    box-shadow: 5px 5px 9px rgba(0, 0, 0, 0.7);
+    transition: transform 0.3s ease, box-shadow 0.3s ease; 
+    border: 1px solid rgb(49, 49, 49);
+    border-radius: 5px;
+    
+}
+
+
+
+.game-cover::before {
+    z-index: 12;
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.3) 50%, rgba(255, 255, 255, 0) 100%);
+    background-repeat: no-repeat;
+    background-size: 800px 100%;
+    visibility: hidden;
+    opacity: 1;
+}
+
+.game-card:hover .game-cover::before {
+    animation: shimmerAnimation 1s linear forwards;
+    visibility: visible;
+    opacity: 1;
+    pointer-events: none;
+}
+
+
+.game-card:hover .button-glass-hamburger {
+    opacity: 1; 
+}
+
+
+
+@keyframes shimmerAnimation {
+    0% {
+        background-position: -1000px 0;
+        opacity: 1;
+    }
+    99% {
+        opacity: 1;
+    }
+    100% {
+        background-position: 1000px 0;
+        opacity: 0;
+    }
+}
+
+.modal-content-search button.close {
+    background-color: #495057;
+    color: white;
+    border: 1px solid #495057;
+    border-radius: 4px;
+}
+
+.modal-content-search button.close:hover {
+    background-color: #343a40;
+}
+
+.search-result {
+    padding: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.search-result:hover, .search-result.selected {
+    /* background-color: #f0f0f0; */
+    background-color: #495057;
+    color: #fff;
+
+}
+
+
+.pagination .page-link {
+    padding-left: 3.8rem;
+    padding-right: 3.8rem;
+    background-color: #2a2c35;
+    color: #ffffff;
+    border: 1px solid #343a40;
+}
+
+
+.pagination .page-link.active,
+.pagination .page-item.active .page-link {
+    background-color: #707b85;
+    border-color: #495057;
+}
+
+
+.pagination .page-link:hover {
+    background-color: #495057; 
+    border-color: #495057;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    background-color: #2a2c35;
+    border-color: #343a40;
+}
+
+
+
+.button-glass-hamburger {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 13;
+    background-color: rgba(128, 128, 128, 0.7);
+    border-radius: 50%;
+    padding: 1px 6px;
+    border: none;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+
+
+.button-glass-hamburger:hover {
+    background-color: rgba(213, 210, 210, 0.9);
+}
+
+.button-glass-hamburger i {
+    color: white;
+    
+}
+
+
+
+
+.game-info-box {
+
+    background: #2a2c35;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    animation: fadein 0.5s;
+    height: 95%;
+}
+
+.game-name {
+    font-size: 1.2rem;
+    color: #ffffff;
+
+}
+
+.game-name, .game-size, .game-genres {
+    margin-bottom: 5px;
+    margin-left: 0px;
+}
+
+.chip {
+    display: inline-block;
+    padding: 0 15px;
+    height: 25px;
+    font-size: 0.8rem;
+    line-height: 25px;
+    border-radius: 25px;
+    background-color: #4a4e69;
+    color: #ffffff;
+    margin: 2px;
+    white-space: nowrap;
+}
+
+.file-size-chip {
+    background-color: #6272a4;
+    max-width: 50%;
+    margin-bottom: 10px;
+
+}
+
+.breadcrumbs {
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin: 10px;
+    text-align: center;
+}
+
+
+.hidden {
+    display: none;
+}
+
+@keyframes fadein {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+
