@@ -491,6 +491,7 @@ class ScanJob(db.Model):
     folders_success = db.Column(db.Integer, default=0)
     folders_failed = db.Column(db.Integer, default=0)
     library_uuid = db.Column(db.String(36), db.ForeignKey('libraries.uuid'), nullable=True)
+    library_uuid = db.Column(db.String(36), db.ForeignKey('libraries.uuid'), nullable=True)
     library = db.relationship('Library', backref=db.backref('scan_jobs', lazy=True))
 
 
@@ -513,6 +514,8 @@ class UserPreference(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     items_per_page = db.Column(db.Integer, default=20)
     default_sort = db.Column(db.String(50), default='name')
+    default_sort_order = db.Column(db.String(4), default='asc')
+    theme = db.Column(db.String(50), default='default')
     default_sort_order = db.Column(db.String(4), default='asc')
     theme = db.Column(db.String(50), default='default')
     user = db.relationship('User', backref=db.backref('preferences', uselist=False))
