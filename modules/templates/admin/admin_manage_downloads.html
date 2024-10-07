@@ -1,7 +1,12 @@
 <!-- templates/admin/admin_manage_downloads.html -->
 {% extends "base.html" %}  
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin_manage_downloads.css') }}">
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_manage_downloads.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_manage_downloads.css') }}">
+{% else %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_downloads.css') }}">
+{% endif %}
 
 <div class="content-flash">
     {% with messages = get_flashed_messages() %}

@@ -1,5 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/login/confirmation_success.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/login/confirmation_success.css') }}">
+{% else %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/login/confirmation_success.css') }}">
+{% endif %}
+
 <div class="container-login">
     <div class="content-login">
         <img src="{{ url_for('static', filename='newstyle/sharewarez_pirate.png') }}" alt="ShareWareZ Logo" class="login-logo">

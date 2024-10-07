@@ -1,8 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/games/discover.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/games/discover.css') }}">
+{% else %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/games/discover.css') }}">
+{% endif %}
+
 <head>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/games/discover.css') }}">
     <script src="{{ url_for('static', filename='js/library_slideshow.js') }}"></script>
     <script src="{{ url_for('static', filename='js/popup_menu.js') }}"></script>
 

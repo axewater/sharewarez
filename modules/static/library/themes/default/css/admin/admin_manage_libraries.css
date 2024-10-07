@@ -1,0 +1,19 @@
+.glass-panel-black {
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    margin-left: 15px;
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    align-items: left;
+    justify-content: space-between;
+    max-width: 600px;    
+    width: 100%;
+
+}
+

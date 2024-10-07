@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
-
-
-
-
 {% block content %}
-<link rel="stylesheet" href="/static/css/site/login.css">
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/login/login.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/login/login.css') }}">
+{% else %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/login/login.css') }}">
+{% endif %}
 
 <div class="container-login">
     <div class="content-login">

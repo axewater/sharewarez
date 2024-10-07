@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin_manage_libraries.css') }}">
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_manage_libraries.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_manage_libraries.css') }}">
+{% else %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_libraries.css') }}">
+{% endif %}
+
 
 <div class="content-flash">
     {% with messages = get_flashed_messages() %}
