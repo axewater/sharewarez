@@ -491,7 +491,6 @@ class ScanJob(db.Model):
     folders_success = db.Column(db.Integer, default=0)
     folders_failed = db.Column(db.Integer, default=0)
     library_uuid = db.Column(db.String(36), db.ForeignKey('libraries.uuid'), nullable=True)
-    library_uuid = db.Column(db.String(36), db.ForeignKey('libraries.uuid'), nullable=True)
     library = db.relationship('Library', backref=db.backref('scan_jobs', lazy=True))
 
 
