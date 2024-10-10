@@ -23,7 +23,9 @@
             <div class="admin_manage_filters-container container mt-3">
                 <a href="{{ url_for('main.admin_dashboard') }}" class="admin_manage_filters-dashboard-btn btn btn-lg btn-primary">Back to Dashboard</a>
             </div>
-    <span class="admin_manage_filters-header "><h2>Edit Release Group Filters</h2></span>
+    <div class="admin_manage_filters-header">
+		<h2>Edit Release Group Filters</h2>
+	</div>
     <form action="" method="post">
         {{ form.hidden_tag() }}
         <div class="admin_manage_filters-form-group form-group">
