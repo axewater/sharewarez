@@ -111,7 +111,7 @@
             <div class="glass-panel container mt-4">
                 <div class="scanjobs-header-text">
                     <h2>Scan Jobs Management</h2>
-                    <p>(You can only have 1 scan job 'Running' at a time!)</p>
+                    <p>(You can only have one scan job 'Running' at a time!)</p>
                 </div>
                 
                 <form action="{{ url_for('main.clear_all_scan_jobs') }}" method="post">
@@ -125,11 +125,11 @@
                             <th>Library</th>
                             <th>Folder</th>
                             <th>Status</th>
-                            <th>Error message</th>
+                            <th>Error Message</th>
                             <th>Last Run</th>
-                            <th>Total folders</th>
-                            <th>Games found</th>
-                            <th>Failed folders</th>
+                            <th>Total Files/Folders</th>
+                            <th>Games Found</th>
+                            <th>Failed Files/Folders</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
