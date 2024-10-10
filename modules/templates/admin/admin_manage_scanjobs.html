@@ -24,21 +24,21 @@
 </div>
 
 <!-- Back to Dashboard Button -->
-<div class="container mt-3">
-    <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
+<div class="admin_manage_scanjobs-container container mt-3">
+    <a href="{{ url_for('main.admin_dashboard') }}" class="admin_manage_scanjobs-dashboard-btn btn btn-lg btn-primary">Back to Dashboard</a>
 </div>
 
-<div class="glass-panel mt-3">
+<div class="admin_manage_scanjobs-nav-panel glass-panel mt-3">
     <!-- Nav tabs -->
-    <ul class="nav nav-tabs">
-        <li class="nav-item">
-            <a class="nav-link" id="autoScan-tab" data-bs-toggle="tab" href="#autoScan">Auto Scan</a>
+    <ul class="admin_manage_scanjobs-nav-tabs nav nav-tabs">
+        <li class="admin_manage_scanjobs-nav-item nav-item">
+            <a class="admin_manage_scanjobs-nav-link nav-link" id="autoScan-tab" data-bs-toggle="tab" href="#autoScan">Auto Scan</a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link" id="manualScan-tab" data-bs-toggle="tab" href="#manualScan">Manual Scan</a>
+        <li class="admin_manage_scanjobs-nav-item nav-item">
+            <a class="admin_manage_scanjobs-nav-link nav-link" id="manualScan-tab" data-bs-toggle="tab" href="#manualScan">Manual Scan</a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link" id="unmatchedFolders-tab" data-bs-toggle="tab" href="#unmatchedFolders">Unmatched Folders</a>
+        <li class="admin_manage_scanjobs-nav-item nav-item">
+            <a class="admin_manage_scanjobs-nav-link nav-link" id="unmatchedFolders-tab" data-bs-toggle="tab" href="#unmatchedFolders">Unmatched Folders</a>
         </li>
 
     
@@ -46,16 +46,18 @@
     
 
     <!-- Tab panes -->
-    <div class="tab-content">
+    <div class="admin_manage_scanjobs-tab-content tab-content">
         <!-- Auto Scan Tab -->
-        <div id="autoScan" class="glass-panel tab-pane active"><br>
-            <h3>Automatic Folder Scan</h3>
+        <div id="autoScan" class="admin_manage_scanjobs-tab-panel glass-panel tab-pane active"><br>
+			<div class="admin_manage_scanjobs-tab-header">
+				<h3>Automatic Folder Scan</h3>
+			</div>
             {% if libraries|length > 0 %}
             <form action="" method="post">
                 {{ auto_form.hidden_tag() }}
                 
                 <!-- Library Dropdown -->
-                <div class="form-group">
+                <div class="admin_manage_scanjobs-library form-group">
                     {{ auto_form.library_uuid.label }}
                     {{ auto_form.library_uuid(class="form-control", id="libraryUuid") }}
                     {% if auto_form.library_uuid.errors %}
@@ -66,7 +68,7 @@
                 </div>
 
                     <!-- Scan Mode -->
-                    <div class="form-group">
+                    <div class="admin_manage_scanjobs-scanmode form-group">
                         {{ auto_form.scan_mode.label }}
                         {% for subfield in auto_form.scan_mode %}
                             <div class="form-check">
@@ -82,7 +84,7 @@
                     </div>
 
                     <!-- Folder Path -->
-                    <div class="form-group">
+                    <div class="admin_manage_scanjobs-folderpath form-group">
                         {{ auto_form.folder_path.label }}
                         {{ auto_form.folder_path(class="form-control") }}
                         {% if auto_form.folder_path.errors %}
@@ -96,19 +98,19 @@
 
          
             <div class="form-group">
-                <button id="browseFoldersBtn" type="button" class="btn btn-info" data-browse-url="{{ url_for('main.browse_folders_ss') }}">Browse Folders</button>
-                <button type="submit" name="submit" value="AutoScan" class="btn btn-primary">Start On-Demand Scan</button>
+                <button id="browseFoldersBtn" type="button" class="admin_manage_scanjobs-browsefolders-btn btn btn-info" data-browse-url="{{ url_for('main.browse_folders_ss') }}">Browse Folders</button>
+                <button type="submit" name="submit" value="AutoScan" class="admin_manage_scanjobs-startscan-btn btn btn-primary">Start On-Demand Scan</button>
                 <div id="loadingSpinner" class="loading-spinner" style="display: none;">
                     <img src="/static/newstyle/searching_small.gif" alt="Loading...">
                 </div>
-                <button id="upFolderBtn" type="button" class="btn btn-secondary" style="display: none;">Up</button>
+                <button id="upFolderBtn" type="button" class="admin_manage_scanjobs-up-btn btn btn-secondary" style="display: none;">Up</button>
                 <div id="folderContents" class="scanandbrowse"></div>
             </div>
         </form>
         {% else %}
         <p>You have no Libraries!, go to <a href="{{ url_for('main.libraries') }}">Library Manager</a> and create one.</p>
         {% endif %}
-            <div class="glass-panel container mt-4">
+            <div class="admin_manage_scanjobs-scanjobs-panel glass-panel container mt-4">
                 <div class="scanjobs-header-text">
                     <h2>Scan Jobs Management</h2>
                     <p>(You can only have one scan job 'Running' at a time!)</p>
@@ -116,21 +118,21 @@
                 
                 <form action="{{ url_for('main.clear_all_scan_jobs') }}" method="post">
                      {{ csrf_form.csrf_token }}
-                    <input type="submit" value="Clear All" class="btn btn-danger" onclick="return confirm('Delete ALL jobs?');">
+                    <input type="submit" value="Clear All" class="admin_manage_scanjobs-clearall-btn btn btn-danger" onclick="return confirm('Delete ALL jobs?');">
                 </form>
-                <table class="table mt-3">
+                <table class="admin_manage_scanjobs-scanjobs-table table mt-3">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Library</th>
-                            <th>Folder</th>
-                            <th>Status</th>
-                            <th>Error Message</th>
-                            <th>Last Run</th>
-                            <th>Total Files/Folders</th>
-                            <th>Games Found</th>
-                            <th>Failed Files/Folders</th>
-                            <th>Actions</th>
+                            <th class="admin_manage_scanjobs-scanjobs-table-id">ID</th>
+                            <th class="admin_manage_scanjobs-scanjobs-table-library">Library</th>
+                            <th class="admin_manage_scanjobs-scanjobs-table-folder">Folder</th>
+                            <th class="admin_manage_scanjobs-scanjobs-table-status">Status</th>
+                            <th class="admin_manage_scanjobs-scanjobs-table-error">Error Message</th>
+                            <th class="admin_manage_scanjobs-scanjobs-table-lastrun">Last Run</th>
+                            <th class="admin_manage_scanjobs-scanjobs-table-total">Total Files/Folders</th>
+                            <th class="admin_manage_scanjobs-scanjobs-table-found">Games Found</th>
+                            <th class="admin_manage_scanjobs-scanjobs-table-failed">Failed Files/Folders</th>
+                            <th class="admin_manage_scanjobs-scanjobs-table-actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="jobsTableBody">
@@ -141,8 +143,10 @@
         </div>
 
         <!-- Manual Scan Tab -->
-        <div id="manualScan" class="glass-panel tab-pane fade"><br>
-            <h3>Manual Folder Scan</h3>
+        <div id="manualScan" class="admin_manage_scanjobs-manual-panel glass-panel tab-pane fade"><br>
+			<div class="admin_manage_scanjobs-tab-header">
+				<h3>Manual Folder Scan</h3>
+			</div>
             <form action="" method="post">
                 {{ manual_form.hidden_tag() }}
                 <div class="form-group">
@@ -155,9 +159,9 @@
                     {% endif %}
                 </div>
                 <div class="form-group">
-                    <button id="browseFoldersBtnManual" type="button" class="btn btn-info">Browse Folders</button>
-                    <button type="submit" name="submit" value="ManualScan" class="btn btn-primary">List Games</button>
-                    <button id="upFolderBtnManual" type="button" class="btn btn-secondary" style="display: none;">Up</button>
+                    <button id="browseFoldersBtnManual" type="button" class="admin_manage_scanjobs-browsefolders-btn btn btn-info">Browse Folders</button>
+                    <button type="submit" name="submit" value="ManualScan" class="admin_manage_scanjobs-browsefolders-listgames-btn btn btn-primary">List Games</button>
+                    <button id="upFolderBtnManual" type="button" class="admin_manage_scanjobs-browsefolders-up-btn btn btn-secondary" style="display: none;">Up</button>
 
                 </div>
             </form>
@@ -169,17 +173,19 @@
 
             {% if game_names_with_ids %}
             <br>
-            <h4>Found Games:</h4>
-            <div class="list-group">
+			<div class="admin_manage_scanjobs-foundgames-header">
+				<h4>Found Games:</h4>
+			</div>
+            <div class="admin_manage_scanjobs-foudngames-list list-group">
                 {% for game in game_names_with_ids %}
-                    <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div class="admin_manage_scanjobs-list-item list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                         {{ game['name'] }}
                         <!-- Identify Form for each game -->
                         <form action="{{ url_for('main.add_game_manual') }}" method="GET">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                             <input type="hidden" name="full_disk_path" value="{{ game['full_path'] }}">
-                            <input type="submit" class="btn btn-primary btn-sm" value="Identify">
+                            <input type="submit" class="admin_manage_scanjobs-identify-btn btn btn-primary btn-sm" value="Identify">
                         </form>
                     </div>
                 {% endfor %}
@@ -189,9 +195,11 @@
             </div>
 
         <!-- Unmatched Folders Tab -->
-        <div id="unmatchedFolders" class="container tab-pane fade"><br>
-            <div class="glass-panel">
-                <h3>Resolve Unmatched Folders</h3>
+        <div id="unmatchedFolders" class="admin_manage_scanjobs-unmatched-container container tab-pane fade"><br>
+            <div class="admin_manage_scanjobs-unmatched-panel glass-panel">
+				<div class="admin_manage_scanjobs-tab-header">
+					<h3>Resolve Unmatched Folders</h3>
+				</div>
                 <!-- spinner -->
                 <div id="globalSpinner">
                     <img src="{{ url_for('static', filename='/newstyle/pirate_treasure.gif') }}" alt="Loading...">
@@ -201,23 +209,23 @@
                     <form action="" method="post">
                         {{ csrf_form.csrf_token }}
                         <input type="hidden" name="submit" value="DeleteAllUnmatched">
-                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete all entries in the list? This cannot be undone.');">Clear All</button>
+                        <button type="submit" class="admin_manage_scanjobs-clearall-btn btn btn-danger" onclick="return confirm('Are you sure you want to delete all entries in the list? This cannot be undone.');">Clear All</button>
                     </form>
                     <form action="" method="post">
                         {{ csrf_form.csrf_token }}
                         <input type="hidden" name="submit" value="DeleteOnlyUnmatched">
-                        <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to clear all unmatched folders? This cannot be undone.');">Clear Unmatched</button>
+                        <button type="submit" class="admin_manage_scanjobs-clearunmatched-btn btn btn-warning" onclick="return confirm('Are you sure you want to clear all unmatched folders? This cannot be undone.');">Clear Unmatched</button>
                     </form>
                 </div>
-                <table class="table" style="border-radius: 15px;">
+                <table class="admin_manage_scanjobs-unmatched-table table" style="border-radius: 15px;">
                     <thead>
                         <tr>
-                            <th>Folder Path</th>
-                            <th>Status</th>
-                            <th>Library</th>
-                            <th>Platform</th>
-                            <th>Platform ID</th>
-                            <th>Actions</th>
+                            <th class="admin_manage_scanjobs-unmatched-table-folderpath">Folder Path</th>
+                            <th class="admin_manage_scanjobs-unmatched-table-status">Status</th>
+                            <th class="admin_manage_scanjobs-unmatched-table-library">Library</th>
+                            <th class="admin_manage_scanjobs-unmatched-table-platform">Platform</th>
+                            <th class="admin_manage_scanjobs-unmatched-table-id">Platform ID</th>
+                            <th class="admin_manage_scanjobs-unmatched-table-actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="unmatchedFoldersTableBody">
