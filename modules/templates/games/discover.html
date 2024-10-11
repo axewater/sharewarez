@@ -39,7 +39,7 @@
 									<!-- Wrap the image and library name in an <a> tag -->
 									<a href="{{ url_for('main.library', library_uuid=library['uuid']) }}" class="library-link">
 										<img src="{{ library['image_url'] }}" alt="{{ library['name'] }}" class="library-cover">
-										<span class="library-name">{{ library['name'] }}</span>
+										<div class="library-name">{{ library['name'] }}</div>
 									</a>
 								</div>
 							{% endfor %}
