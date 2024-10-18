@@ -412,7 +412,7 @@ def create_user():
 @login_required
 @admin_required
 def user_created():
-    return render_template('admin/admin/admin_user_create_completed.html')
+    return render_template('admin/admin_user_create_completed.html')
 
 @bp.route('/api/current_user_role', methods=['GET'])
 @login_required
