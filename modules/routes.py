@@ -2066,29 +2066,33 @@ def delete_folder():
     folder_path = data.get('folder_path') if data else None
 
     if not folder_path:
-        return jsonify({'status': 'error', 'message': 'Folder path is required.'}), 400
+        return jsonify({'status': 'error', 'message': 'Path is required.'}), 400
 
     full_path = os.path.abspath(folder_path)
 
     folder_entry = UnmatchedFolder.query.filter_by(folder_path=folder_path).first()
 
-    if not os.path.isdir(full_path):
+    if not os.path.exists(full_path):
         if folder_entry:
             db.session.delete(folder_entry)
             db.session.commit()
-        return jsonify({'status': 'error', 'message': 'The specified path does not exist or is not a folder. Entry removed if it was in the database.'}), 404
+        return jsonify({'status': 'error', 'message': 'The specified path does not exist. Entry removed if it was in the database.'}), 404
 
     try:
-        shutil.rmtree(full_path)
+        if os.path.isfile(full_path):
+            os.remove(full_path)
+        else:
+            shutil.rmtree(full_path)
+        
         if not os.path.exists(full_path):
             if folder_entry:
                 db.session.delete(folder_entry)
                 db.session.commit()
-            return jsonify({'status': 'success', 'message': 'Folder deleted successfully. Database entry removed.'}), 200
+            return jsonify({'status': 'success', 'message': 'Item deleted successfully. Database entry removed.'}), 200
     except PermissionError:
-        return jsonify({'status': 'error', 'message': 'Failed to delete the folder due to insufficient permissions. Database entry retained.'}), 403
+        return jsonify({'status': 'error', 'message': 'Failed to delete the item due to insufficient permissions. Database entry retained.'}), 403
     except Exception as e:
-        return jsonify({'status': 'error', 'message': f'Error deleting folder: {e}. Database entry retained.'}), 500
+        return jsonify({'status': 'error', 'message': f'Error deleting item: {e}. Database entry retained.'}), 500
 
 
 
