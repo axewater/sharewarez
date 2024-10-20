@@ -66,8 +66,9 @@ function attachDeleteFolderFormListeners() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Document loaded. Setting up form submission handlers and tab activation based on activeTab.");
 
-    const activeTab = document.querySelector('meta[name="active-tab"]').getAttribute('content');
-    console.log("Active tab determined from server-side:", activeTab);
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('active_tab') || document.querySelector('meta[name="active-tab"]').getAttribute('content');
+    console.log("Active tab determined:", activeTab);
 
     switch (activeTab) {
         case 'manual':
