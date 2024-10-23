@@ -73,5 +73,9 @@
 <script id="csrf_token" type="application/json">{{ csrf_token() }}</script>
 
 <!-- External JS for invite management functionality -->
-<script src="{{ url_for('static', filename='js/user_invites.js') }}"></script>
+{% if verify_file('./modules/static/library/themes/' + current_theme + 'js/user_invites.js') == True %}
+	<script src="{{ url_for('static', filename='library/themes/' + current_theme + 'js/user_invites.js') }}"></script>
+{% else %}
+	<script src="{{ url_for('static', filename='js/user_invites.js') }}"></script>
+{% endif %}
 {% endblock %}
