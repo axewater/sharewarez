@@ -318,7 +318,7 @@ function createPopupMenuHtml(game) {
 
     menuHtml += `
         <div class="menu-item">
-            <a href="${game.url}" target="_blank" class="menu-button" style="text-decoration: none; color: inherit;">Open IGDB Page</a>
+            <button type="submit" onclick="window.open('{{ game.url }}', 'target=_new')" class="menu-button">Open IGDB Page</button>
         </div>
     </div>
     `;
