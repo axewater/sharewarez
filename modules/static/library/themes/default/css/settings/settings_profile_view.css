@@ -4,3 +4,34 @@
 	color: #333;
 	background-color: rgba(255, 255, 255, 0.8);
 }
+
+.content-restricted-textblock h2{
+	text-align: center; color: #000;
+}
+
+.settings_profile_view-userinfo {
+	background-color: #f8f9fa; 
+	padding: 15px; 
+	border-radius: 10px; 
+	margin-bottom: 20px;
+}
+.settings_profile_view-welcome {
+	background-color: #f8f9fa;
+	padding: 15px;
+	border-radius: 10px;
+}
+
+.settings_profile_view-user-avatar {
+	display: block; 
+	margin: auto; 
+	border-radius: 50%; 
+	width: 150px; 
+	height: 150px; 
+	object-fit: cover;
+	margin-bottom: 20px;
+}
+
+.settings_profile_view-edit-button {
+	text-align: center;
+	margin-bottom: 15px;
+}

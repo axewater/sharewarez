@@ -24,20 +24,20 @@
     
     </div>
     <div class="content-restricted-textblock">
-        <h2 style="text-align: center; color: #000;">Pirate Profile</h2>
-        <div style="margin-bottom: 20px;">
-            <img src="{{ url_for('static', filename=current_user.avatarpath) }}" alt="User Avatar" style="display: block; margin: auto; border-radius: 50%; width: 150px; height: 150px; object-fit: cover;">
+        <h2>Pirate Profile</h2>
+        <div>
+            <img src="{{ url_for('static', filename=current_user.avatarpath) }}" alt="User Avatar" class="settings_profile_view-user-avatar">
         </div>
-        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+        <div class="settings_profile_view-userinfo">
             <p><strong>Name:</strong> {{ current_user.name }}</p>
             <p><strong>Email:</strong> {{ current_user.email }}</p>
             <p><strong>About:</strong> {{ current_user.about }}</p>
             <p><strong>Invites:</strong> {{ current_user.invite_quota }}</p>
         </div>
-        <p style="text-align: center;">
+        <div class="settings_profile_view-edit-button">
             <a href="{{ url_for('main.settings_profile_edit') }}" class="btn btn-primary">Edit Profile</a>
-        </p>
-        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 10px;">
+        </div>
+        <div class="settings_profile_view-welcome">
             <p>Ahoy, {{ current_user.name }}, welcome to ShareWareZ!</p>
             <p>Set sail through vast digital seas where treasures abound in every corner. Here, ye can effortlessly chart yer course through libraries brimming with the finest games, each chest filled with images and lore.</p>
             <p>Seek and ye shall find with our trusty maps (search and filters), uncovering the jewels of your liking. And fret not, for every treasure is yours for the taking, cracked and ready to embark upon your device. Aye, for we are pirates, and the horizon is ours to explore!</p>
