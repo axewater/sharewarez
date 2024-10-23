@@ -27,6 +27,8 @@ from authlib.jose import jwt
 
 from urllib.parse import unquote
 
+from .utilities import get_game_name_by_uuid
+
 
 from modules.forms import (
     UserPasswordForm, UserDetailForm, EditProfileForm, NewsletterForm, WhitelistForm, EditUserForm, 
@@ -1894,7 +1896,8 @@ def game_details(game_uuid):
 @login_required
 @admin_required
 def refresh_game_images(game_uuid):
-    print(f"Route: /refresh_game_images - {current_user.name} - {current_user.role} method: {request.method} UUID: {game_uuid}")
+    game_name = get_game_name_by_uuid(game_uuid)
+    print(f"Route: /refresh_game_images - {current_user.name} - {current_user.role} method: {request.method} UUID: {game_uuid} Name: {game_name}")
 
     @copy_current_request_context
     def refresh_images_in_thread():
@@ -1902,15 +1905,15 @@ def refresh_game_images(game_uuid):
 
     thread = Thread(target=refresh_images_in_thread)
     thread.start()
-    print(f"Refresh images thread started for game UUID: {game_uuid}")
+    print(f"Refresh images thread started for game UUID: {game_uuid} and Name: {game_name}.")
 
     # Check if the request is an AJAX request
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         # Return a JSON response for AJAX requests
-        return jsonify({"message": "Game images refresh process started.", "status": "info"})
+        return jsonify({f"message": "Game images refresh process started for {game_name}.", "status": "info"})
     else:
-        # For non-AJAX requests, perform the usual redirect
-        flash("Game images refresh process started.", "info")
+        # For non-AJAX requests, perform the usual redirec
+        flash(f"Game images refresh process started for {game_name}.", "info")
         return redirect(url_for('main.library'))
 
 

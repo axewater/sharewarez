@@ -1408,3 +1408,13 @@ def get_library_by_uuid(uuid):
     else:
         print("Library not found")
         return None
+        
+def get_game_name_by_uuid(uuid):
+    print(f"Searching for game UUID: {uuid}")
+    game = Game.query.filter_by(uuid=uuid).first()
+    if game:
+        print(f"Game with name {game.name} and UUID {game.uuid} found")
+        return game.name
+    else:
+        print("Game not found")
+        return None
