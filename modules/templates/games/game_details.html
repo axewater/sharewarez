@@ -225,9 +225,11 @@
                 <span class="close cursor" onclick="closeModal()">&times;</span>
                 <div class="modal-content">
                     {% for image in game.images %}
-                        <div class="mySlides">
-                            <img src="{{ url_for('static', filename='library/images/' + image.url) }}" class="screenshot-browser-image" style="width:100%">                        
-                        </div>
+						{% if 'cover' not in image.url %}
+							<div class="mySlides">
+								<img src="{{ url_for('static', filename='library/images/' + image.url) }}" class="screenshot-browser-image" style="width:100%">                        
+							</div>
+						{% endif %}
                     {% endfor %}
                 </div>
             </div>
