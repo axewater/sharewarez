@@ -33,8 +33,6 @@
         {% endwith %}
     </div>
     <div class="glass-panel">
-
-
         <select id="perPageSelect" class="dropdown-perpage">
             <option value="16" {% if user_per_page == 16 %}selected{% endif %}>16</option>
             <option value="20" {% if user_per_page == 20 %}selected{% endif %}>20</option>
@@ -123,8 +121,10 @@
 
 
     <script>
-
         var libraryManagerUrl = "{{ url_for('main.libraries') }}";
+		var libraryScanUrl = "{{ url_for('main.scan_management', library_uuid=library_uuid) }}";
+		var libraryCount = Number("{{ library_count }}");
+		var gamesCount = Number("{{ games_count }}");
 
 
         document.addEventListener('DOMContentLoaded', function() {

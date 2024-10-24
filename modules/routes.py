@@ -2465,10 +2465,35 @@ def get_libraries():
     # Logging the count of libraries returned
     print(f"Returning {len(libraries)} libraries.")
     return jsonify(libraries)
+    
+def get_library_count():
+    # Direct query to the Library model
+    libraries_query = Library.query.all()
+    libraries = [
+        {
+            'uuid': lib.uuid,
+            'name': lib.name,
+            'image_url': lib.image_url if lib.image_url else url_for('static', filename='newstyle/default_library.jpg')
+        } for lib in libraries_query
+    ]
 
+    # Logging the count of libraries returned
+    print(f"Returning {len(libraries)} libraries.")
+    return len(libraries)
 
+def get_games_count():
+    # Direct query to the Games model
+    games_query = Game.query.all()
+    games = [
+        {
+            'uuid': game.uuid,
+            'name': game.name,
+        } for game in games_query
+    ]
 
-
+    # Logging the count of games returned
+    print(f"Returning {len(games)} games.")
+    return len(games)
 
 @bp.route('/api/game_screenshots/<game_uuid>')
 @login_required
@@ -2781,9 +2806,13 @@ def library():
 
 
     game_data, total, pages, current_page = get_games(page, per_page, sort_by=sort_by, sort_order=sort_order, **filters)
+    library_data = get_library_count()
+    games_count_data = get_games_count()
     
     context = {
         'games': game_data,
+        'library_count': library_data,
+        'games_count': games_count_data,
         'total': total,
         'pages': pages,
         'current_page': current_page,
@@ -2794,6 +2823,8 @@ def library():
         'form': CsrfForm()
     }
     games = game_data
+    library_count = library_data
+    games_count = games_count_data
     total = total
     pages = pages
     current_page = current_page
@@ -2808,6 +2839,8 @@ def library():
     return render_template(
         'games/library_browser.html',
         games=games,
+        library_count=library_count,
+        games_count=games_count,
         total=total,
         pages=pages,
         current_page=current_page,
@@ -2815,7 +2848,8 @@ def library():
         user_default_sort=user_default_sort,
         user_default_sort_order=user_default_sort_order,
         filters=filters,
-        form=form
+        form=form,
+        library_uuid = library_uuid
     )
 
 
