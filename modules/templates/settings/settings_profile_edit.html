@@ -8,40 +8,42 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/settings/settings_profile_edit.css') }}">
 {% endif %}
 
-<div class="container mt-4">
-    <div class="mb-3">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <div>
-            {% for message in messages %}
-            <div class="alert alert-info" role="alert">{{ message }}</div>
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% endwith %}
-    </div>
-    
-    <h2>Edit Your Profile</h2>
-    <div class="row">
-        <div class="col-md-4">
-            <div class="profile_avatar mb-3">
-                <img src="{{ url_for('static', filename=avatarpath) }}" alt="User Avatar" class="img-thumbnail">
-            </div>
-            <div class="profile_avatar_thumb">
-                {% set thumbnail_path = avatarpath | replace('.', '_thumbnail.') %}
-                <img src="{{ url_for('static', filename=thumbnail_path) if thumbnail_path else url_for('static', filename='nothumbnail.jpg') }}" alt="User Thumbnail" class="img-thumbnail profile-avatar-thumb">
-            </div>
-        </div>
-        <div class="col-md-8">
-            <form method="POST" enctype="multipart/form-data">
-                {{ form.hidden_tag() }}
-                <div class="mb-3">
-                    {{ form.avatar.label(class="form-label") }}
-                    {{ form.avatar(class="form-control") }}
-                </div>
-                <input class="btn btn-primary" type="submit" value="Save Profile">
-            </form>
-        </div>
-    </div>
+<div class="glass-panel">
+	<div class="container mt-4">
+		<div class="mb-3">
+			{% with messages = get_flashed_messages() %}
+			{% if messages %}
+			<div>
+				{% for message in messages %}
+				<div class="alert alert-info" role="alert">{{ message }}</div>
+				{% endfor %}
+			</div>
+			{% endif %}
+			{% endwith %}
+		</div>
+		
+		<h2>Edit Your Profile</h2>
+		<div class="row">
+			<div class="col-md-4">
+				<div class="profile_avatar mb-3">
+					<img src="{{ url_for('static', filename=avatarpath) }}" alt="User Avatar" class="img-thumbnail">
+				</div>
+				<div class="profile_avatar_thumb">
+					{% set thumbnail_path = avatarpath | replace('.', '_thumbnail.') %}
+					<img src="{{ url_for('static', filename=thumbnail_path) if thumbnail_path else url_for('static', filename='nothumbnail.jpg') }}" alt="User Thumbnail" class="img-thumbnail profile-avatar-thumb">
+				</div>
+			</div>
+			<div class="col-md-8">
+				<form method="POST" enctype="multipart/form-data">
+					{{ form.hidden_tag() }}
+					<div class="mb-3">
+						{{ form.avatar.label(class="form-label") }}
+						{{ form.avatar(class="form-control") }}
+					</div>
+					<input class="btn btn-primary" type="submit" value="Save Profile">
+				</form>
+			</div>
+		</div>
+	</div>
 </div>
 {% endblock %}

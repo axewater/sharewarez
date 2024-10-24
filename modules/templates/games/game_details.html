@@ -89,7 +89,7 @@
 
                         <div class="rating-container">
                             <div class="game-card-labels-rating">
-                                <a href="{{ game.url }}" class="igdb-link">IGDB</a>
+                                <a href="{{ game.url }}" target="_blank" class="igdb-link">IGDB</a>
                             </div>
                             {% if game.rating %}
                                 <div class="rating-bar" style="width: {{ game.rating }}%;"></div>
@@ -225,9 +225,11 @@
                 <span class="close cursor" onclick="closeModal()">&times;</span>
                 <div class="modal-content">
                     {% for image in game.images %}
-                        <div class="mySlides">
-                            <img src="{{ url_for('static', filename='library/images/' + image.url) }}" class="screenshot-browser-image" style="width:100%">                        
-                        </div>
+						{% if 'cover' not in image.url %}
+							<div class="mySlides">
+								<img src="{{ url_for('static', filename='library/images/' + image.url) }}" class="screenshot-browser-image" style="width:100%">                        
+							</div>
+						{% endif %}
                     {% endfor %}
                 </div>
             </div>

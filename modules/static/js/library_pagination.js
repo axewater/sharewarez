@@ -213,8 +213,8 @@ $(document).ready(function() {
 
   function updateGamesContainer(games) {
     $('#gamesContainer').empty();
-
-    if (games.length === 0) {
+	
+	if (libraryCount < 1) {
         // Fetch the current user's role from the server
         $.ajax({
             url: '/api/current_user_role',  // Ensure this URL is correct and accessible
@@ -223,7 +223,61 @@ $(document).ready(function() {
                 let message;  // Declare the message variable here for wider scope
                 if (response.role === 'admin') {
                     // Dynamic URL for the Library Manager
-                    message = `<p>You have no Libraries!<br> Go to <a href="${libraryManagerUrl}">Library Manager</a> and create one.</p>`;
+                    message = `<p>You have no Libraries!<br><br> Go to <a href="${libraryManagerUrl}">Library Manager</a> and create one.</p>`;
+                } else {
+                    // User is not an admin, show a generic message
+                    message = '<p>No games or libraries found. Complain to the Captain of this vessel!</p>';
+                }
+                // Append the message to the gamesContainer
+				if( $('#gamesContainer').empty() ){
+					$('#gamesContainer').append(message);
+				}
+            },
+            error: function() {
+                // Handle errors, e.g., if the endpoint is unreachable
+                $('#gamesContainer').append('<p>Error fetching user role. Please try again later.</p>');
+            }
+        });
+        return;
+    }
+	
+	else if (gamesCount < 1) {
+        // Fetch the current user's role from the server
+        $.ajax({
+            url: '/api/current_user_role',  // Ensure this URL is correct and accessible
+            method: 'GET',
+            success: function(response) {
+                let message;  // Declare the message variable here for wider scope
+                if (response.role === 'admin') {
+                    // Dynamic URL for the Library Manager
+                    message = `<p>You have no games!<br> <br>Go to <a href="${libraryScanUrl}">Scan Manager</a> and add some games.</p>`;
+                } else {
+                    // User is not an admin, show a generic message
+                    message = '<p>No games or libraries found. Complain to the Captain of this vessel!</p>';
+                }
+                // Append the message to the gamesContainer
+				if( $('#gamesContainer').empty() ){
+					$('#gamesContainer').append(message);
+				}
+            },
+            error: function() {
+                // Handle errors, e.g., if the endpoint is unreachable
+                $('#gamesContainer').append('<p>Error fetching user role. Please try again later.</p>');
+            }
+        });
+        return;
+    }
+	
+    else if (games.length === 0) {
+        // Fetch the current user's role from the server
+        $.ajax({
+            url: '/api/current_user_role',  // Ensure this URL is correct and accessible
+            method: 'GET',
+            success: function(response) {
+                let message;  // Declare the message variable here for wider scope
+                if (response.role === 'admin') {
+                    // Dynamic URL for the Library Manager
+                    message = `<p>You have no games in this library!<br> <br>Go to <a href="${libraryScanUrl}">Scan Manager</a> and add some games to the library.</p>`;
                 } else {
                     // User is not an admin, show a generic message
                     message = '<p>No games or libraries found. Complain to the Captain of this vessel!</p>';
@@ -318,7 +372,7 @@ function createPopupMenuHtml(game) {
 
     menuHtml += `
         <div class="menu-item">
-            <a href="${game.url}" target="_blank" class="menu-button" style="text-decoration: none; color: inherit;">Open IGDB Page</a>
+            <button type="submit" onclick="window.open('{{ game.url }}', 'target=_new')" class="menu-button">Open IGDB Page</button>
         </div>
     </div>
     `;

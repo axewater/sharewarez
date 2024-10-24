@@ -37,7 +37,7 @@
     {% endif %}
     <div class="menu-item">
         {% if game.url %}
-        <a href="{{ game.url }}" target="_blank" class="menu-button" style="text-decoration: none; color: inherit;">Open IGDB Page</a>
+        <button type="submit" onclick="window.open('{{ game.url }}', 'target=_new')" class="menu-button">Open IGDB Page</button>
         {% endif %}
     </div>
 </div>
