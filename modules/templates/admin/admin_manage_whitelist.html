@@ -8,15 +8,17 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_whitelist.css') }}">
 {% endif %}
 
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-<ul class=flashes>
-    {% for message in messages %}
-<li>{{ message }}</li>
-{% endfor %}
-</ul>
-{% endif %}
-{% endwith %}
+<div class="content-flash">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flashes">
+                    {% for message in messages %}
+                        <div class="flash">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
 
 <div class="glass-panel">
                 <!-- Back to Dashboard Button -->
