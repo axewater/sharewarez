@@ -1596,7 +1596,19 @@ def manage_invites():
             flash('User not found.', 'error')
 
     users = User.query.all()
-    return render_template('admin/admin_manage_invites.html', users=users)
+    # Calculate unused invites for each user
+    user_unused_invites = {}
+    for user in users:
+        unused_count = InviteToken.query.filter_by(
+            creator_user_id=user.user_id,
+            used=False
+        ).count()
+        user_unused_invites[user.user_id] = unused_count
+
+    return render_template('admin/admin_manage_invites.html', 
+                         users=users, 
+                         user_unused_invites=user_unused_invites)
+
 
 @bp.route('/delete_scan_job/<job_id>', methods=['POST'])
 @login_required
