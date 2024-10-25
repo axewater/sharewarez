@@ -738,7 +738,13 @@ def zip_game(download_request_id, app):
         print(f"Processing game: {game.name}")
         
         zip_save_path = app.config['ZIP_SAVE_PATH']
-        source_folder = game.full_disk_path
+        source_path = game.full_disk_path
+
+        # Check if source path is a file or directory
+        if os.path.isfile(source_path):
+            print(f"Source is a file, providing direct link: {source_path}")
+            update_download_request(download_request, 'available', source_path)
+            return
         
         # Check if source folder exists
         if not os.path.exists(source_folder):
