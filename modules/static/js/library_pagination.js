@@ -175,7 +175,7 @@ $(document).ready(function() {
     var urlParams = getUrlParams(); // Get URL parameters
     page = page || urlParams.page || 1; // Use URL parameter for page if available
     var filters = {
-      library_uuid: $('#libraryNameSelect').val() || undefined,
+      library_uuid: $('#libraryNameSelect').val() || urlParams.library_uuid || undefined,
       page: page,
       per_page: $('#perPageSelect').val() || 20,
       category: $('#categorySelect').val() || urlParams.category,
@@ -509,5 +509,3 @@ document.body.addEventListener('click', function(event) {
         });
     }
 });
-
-
