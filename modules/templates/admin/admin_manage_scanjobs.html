@@ -149,10 +149,30 @@
 			</div>
             <form action="" method="post">
                 {{ manual_form.hidden_tag() }}
+                <!-- Library Selection -->
+                <div class="admin_manage_scanjobs-library form-group">
+                    {{ manual_form.library_uuid.label }}
+                    {{ manual_form.library_uuid(class="form-control", id="manualLibraryUuid") }}
+                    {% if manual_form.library_uuid.errors %}
+                        {% for error in manual_form.library_uuid.errors %}
+                            <div class="alert alert-danger">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <!-- Scan Mode -->
+                <div class="admin_manage_scanjobs-scanmode form-group">
+                    {{ manual_form.scan_mode.label }}
+                    {% for subfield in manual_form.scan_mode %}
+                        <div class="form-check">
+                            {{ subfield(class="form-check-input") }}
+                            {{ subfield.label(class="form-check-label") }}
+                        </div>
+                    {% endfor %}
+                </div>
                 <div class="form-group">
                     {{ manual_form.folder_path.label }}
                     {{ manual_form.folder_path(class="form-control", id="manualFolderPath") }}
-                                        {% if manual_form.folder_path.errors %}
+                    {% if manual_form.folder_path.errors %}
                         {% for error in manual_form.folder_path.errors %}
                             <div class="alert alert-danger">{{ error }}</div>
                         {% endfor %}

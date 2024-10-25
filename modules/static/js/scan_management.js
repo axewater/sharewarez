@@ -181,9 +181,17 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function setupFolderBrowse(browseButtonId, folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar) {
+    // Store the initial library selection
+    var initialLibrarySelection = $(inputFieldId).closest('form').find('select[name="library_uuid"]').val();
+    
     $(browseButtonId).click(function() {
         window[currentPathVar] = ''; // Reset the current path
         $(upButtonId).hide(); // Initially hide the "Up" button
+        // Preserve the library selection
+        var librarySelect = $(inputFieldId).closest('form').find('select[name="library_uuid"]');
+        if (!librarySelect.val() && initialLibrarySelection) {
+            librarySelect.val(initialLibrarySelection);
+        }
         fetchFolders('', folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar);
     });
 
