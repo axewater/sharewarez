@@ -44,7 +44,7 @@ from modules.models import (
 from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
     get_game_by_uuid, make_igdb_api_request, load_release_group_patterns, check_existing_game_by_igdb_id,
-    get_game_names_from_folder, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_folder,
+    get_game_names_from_folder, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_files,
     zip_game, format_size, delete_game_images, read_first_nfo_content, get_folder_size_in_bytes, PLATFORM_IDS
 )
 from modules.theme_manager import ThemeManager
@@ -57,7 +57,7 @@ has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '1.4.2'
+app_version = '1.4.3'
 
 
 @bp.before_app_request
@@ -966,6 +966,7 @@ def scan_management():
 
     libraries = Library.query.all()
     auto_form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in libraries]
+    manual_form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in libraries]
 
     selected_library_uuid = request.args.get('library_uuid')
     if selected_library_uuid:
@@ -1094,6 +1095,12 @@ def handle_manual_scan(manual_form):
             return redirect(url_for('main.scan_management'))
         
         folder_path = manual_form.folder_path.data
+        scan_mode = manual_form.scan_mode.data
+        library_uuid = manual_form.library_uuid.data
+        
+        # Store library_uuid in session for use in identify page
+        session['selected_library_uuid'] = library_uuid
+
         base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
         full_path = os.path.join(base_dir, folder_path)
         print(f"Manual scan form submitted. Full path: {full_path}")
@@ -1101,7 +1108,11 @@ def handle_manual_scan(manual_form):
         if os.path.exists(full_path) and os.access(full_path, os.R_OK):
             print("Folder exists and can be accessed.")
             insensitive_patterns, sensitive_patterns = load_release_group_patterns()
-            games_with_paths = get_game_names_from_folder(full_path, insensitive_patterns, sensitive_patterns)
+            if scan_mode == 'folders':
+                games_with_paths = get_game_names_from_folder(full_path, insensitive_patterns, sensitive_patterns)
+            else:  # files mode
+                supported_extensions = ["7z", "rar", "zip", "arj", "iso", "exe", "bin", "rom"]
+                games_with_paths = get_game_names_from_files(full_path, supported_extensions, insensitive_patterns, sensitive_patterns)
             session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
             print(f"Found {len(session['game_paths'])} games in the folder.")
             flash('Manual scan processed for folder: ' + full_path, 'info')
@@ -1133,6 +1144,7 @@ def add_game_manual():
             return redirect(url_for('main.library'))
     
     full_disk_path = request.args.get('full_disk_path', None)
+    library_uuid = request.args.get('library_uuid') or session.get('selected_library_uuid')
     from_unmatched = request.args.get('from_unmatched', 'false') == 'true'  # Detect origin
     game_name = os.path.basename(full_disk_path) if full_disk_path else ''
 
