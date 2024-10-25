@@ -24,15 +24,16 @@
           <thead class="admin_manage_invites-table-head table-dark">
             <tr>
               <th class="admin_manage_invites-th-1" scope="col">User</th>
-              <th class="admin_manage_invites-th-2" scope="col">Current Invites</th>
+              <th class="admin_manage_invites-th-2" scope="col">Available Invites</th>
               <th class="admin_manage_invites-th-3" scope="col">Add Invites</th>
             </tr>
           </thead>
           <tbody class="admin_manage_invites-table-body">
             {% for user in users %}
+            {% set unused_invites = user_unused_invites.get(user.user_id, 0) %}
             <tr>
               <td class="admin_manage_invites-td-1">{{ user.name }}</td>
-              <td class="admin_manage_invites-td-2">{{ user.invite_quota }}</td>
+              <td class="admin_manage_invites-td-2">{{ user.invite_quota - unused_invites }} out of {{ user.invite_quota }}</td>
               <td>
                 <form action="{{ url_for('main.manage_invites') }}" method="POST" class="d-flex gap-2">
              
