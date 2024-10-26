@@ -971,6 +971,7 @@ def scan_management():
     selected_library_uuid = request.args.get('library_uuid')
     if selected_library_uuid:
         auto_form.library_uuid.data = selected_library_uuid  # Pre-select the library in the dropdown
+        manual_form.library_uuid.data = selected_library_uuid  # Pre-select the library in the dropdown
 
     jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
     csrf_form = CsrfProtectForm()
