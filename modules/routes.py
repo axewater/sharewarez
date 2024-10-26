@@ -1112,7 +1112,7 @@ def handle_manual_scan(manual_form):
             if scan_mode == 'folders':
                 games_with_paths = get_game_names_from_folder(full_path, insensitive_patterns, sensitive_patterns)
             else:  # files mode
-                supported_extensions = ["7z", "rar", "zip", "arj", "iso", "exe", "bin", "rom"]
+                supported_extensions = ["7z", "rar", "zip", "arj", "iso", "exe", "bin", "rom", "nes", "unf", "fds", "smc", "sfc", "fig", "swc", "n64", "v64", "z64", "gb", "gbc", "gba", "sms", "gen", "smd", "gg", "img", "a26", "a52", "a78", "col", "ng", "pce", "d64", "t64", "crt", "z80", "tap", "adf", "uae", "lnx"]
                 games_with_paths = get_game_names_from_files(full_path, supported_extensions, insensitive_patterns, sensitive_patterns)
             session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
             print(f"Found {len(session['game_paths'])} games in the folder.")
