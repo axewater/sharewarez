@@ -1,3 +1,19 @@
+// Prevent default drag behaviors
+function preventDefaults (e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+// Highlight drop zone when item is dragged over it
+function highlight(e) {
+    document.getElementById('upload-area').classList.add('highlight');
+}
+
+// Unhighlight drop zone when item is dragged away
+function unhighlight(e) {
+    document.getElementById('upload-area').classList.remove('highlight');
+}
+
 function uploadFile(file, gameUuid, csrfToken, imageType = 'screenshot') {
     console.log('Uploading file:', file.name);
     let url = `/upload_image/${gameUuid}`;
@@ -168,6 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     var gameUuid = document.getElementById('upload-area').getAttribute('data-game-uuid');
     let selectedFiles = [];
+    const uploadArea = document.getElementById('upload-area');
 
     document.getElementById('cover-image-input').addEventListener('change', function(e) {
         let file = e.target.files[0];
@@ -177,9 +194,23 @@ document.addEventListener('DOMContentLoaded', function() {
             uploadFile(file, gameUuid, csrfToken, 'cover');
         }
     });
+
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    // Highlight drop zone when item is dragged over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, unhighlight, false);
+    });
     
-    
-    document.getElementById('upload-area').addEventListener('drop', handleDrop, false);
+    uploadArea.addEventListener('drop', handleDrop, false);
     document.getElementById('file-input').addEventListener('change', function(e) {
         console.log('Files selected');
         selectedFiles = e.target.files;
