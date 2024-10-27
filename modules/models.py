@@ -326,6 +326,13 @@ class User(db.Model):
     is_email_verified = db.Column(db.Boolean, default=False)
     email_verification_token = db.Column(db.String(256), nullable=True)
     password_reset_token = db.Column(db.String(256), nullable=True)
+    
+    preferences = db.relationship(
+        'UserPreference',
+        back_populates='user',
+        uselist=False,
+        cascade='all, delete-orphan'
+    )
     token_creation_time = db.Column(db.DateTime, nullable=True)
     invite_quota = db.Column(db.Integer, default=0) 
     
@@ -507,14 +514,17 @@ class UserPreference(db.Model):
     __tablename__ = 'user_preferences'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', ondelete='CASCADE'),
+        nullable=False
+    )
     items_per_page = db.Column(db.Integer, default=20)
     default_sort = db.Column(db.String(50), default='name')
     default_sort_order = db.Column(db.String(4), default='asc')
     theme = db.Column(db.String(50), default='default')
-    default_sort_order = db.Column(db.String(4), default='asc')
-    theme = db.Column(db.String(50), default='default')
-    user = db.relationship('User', backref=db.backref('preferences', uselist=False))
+    
+    user = db.relationship('User', back_populates='preferences')
 
 class GlobalSettings(db.Model):
     __tablename__ = 'global_settings'
