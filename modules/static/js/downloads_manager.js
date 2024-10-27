@@ -1,11 +1,18 @@
 document.addEventListener("DOMContentLoaded", function() {
-    
     const downloads = document.querySelectorAll("tr[data-game-uuid]");
-    console.log
+    
     downloads.forEach((download) => {
         const gameUuid = download.getAttribute("data-game-uuid");
+        const gameName = download.querySelector("td").textContent;
+        
+        // Add to processing downloads if status is 'processing'
+        const statusCell = download.querySelector(".status-cell .status-value");
+        if (statusCell && statusCell.textContent.trim().toLowerCase() === 'processing') {
+            addProcessingDownload(gameUuid, gameName);
+        }
+        
         checkDownloadStatus(gameUuid);
-        setInterval(() => checkDownloadStatus(gameUuid), 3000); // every 3 seconds
+        setInterval(() => checkDownloadStatus(gameUuid), 3000);
     });
 });
 
