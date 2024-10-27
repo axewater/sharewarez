@@ -3,6 +3,11 @@ function uploadFile(file, gameUuid, csrfToken, imageType = 'screenshot') {
     let url = `/upload_image/${gameUuid}`;
     let formData = new FormData();
     formData.append('file', file);
+    
+    // Show spinner if this is a cover image upload
+    if (imageType === 'cover') {
+        document.getElementById('coverSpinner').style.display = 'block';
+    }
     formData.append('image_type', imageType);
 
     console.log('Form data:', formData, url);
@@ -26,6 +31,7 @@ function uploadFile(file, gameUuid, csrfToken, imageType = 'screenshot') {
         if (data.url) {
             if (imageType === 'cover') {
                 displayCoverImage(data);
+                document.getElementById('coverSpinner').style.display = 'none';
             } else {
                 displayImage(data);
             }
@@ -59,6 +65,10 @@ function uploadFile(file, gameUuid, csrfToken, imageType = 'screenshot') {
     })
     .catch(error => {
         console.error('Error:', error);
+        // Hide spinner if this was a cover image upload
+        if (imageType === 'cover') {
+            document.getElementById('coverSpinner').style.display = 'none';
+        }
         var errorModalMessage = document.getElementById('errorModalMessage');
         errorModalMessage.textContent = error.message;
         

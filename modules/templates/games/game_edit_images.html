@@ -53,10 +53,12 @@
             <div class="glass-panel-image-editor-cover">
                 <h3>Cover Image</h3>
                 <div id="cover-image-editor" class="image-editor-image">
-                    {% if cover_image %}
-                        <img src="{{ url_for('static', filename='library/images/' + cover_image.url) }}" 
-                             alt="Cover Image"
-                             data-image-id="{{ cover_image.id }}">
+                    <div class="cover-image-container">
+                        <div class="spinner" id="coverSpinner"></div>
+                        {% if cover_image %}
+                            <img src="{{ url_for('static', filename='library/images/' + cover_image.url) }}" 
+                                 alt="Cover Image"
+                                 data-image-id="{{ cover_image.id }}">
                         <div class="delete-cover-image-container">
                             <button class="btn btn-danger" onclick="deleteImage({{ cover_image.id }})">Delete Cover Image</button>
                         </div>                    
