@@ -1049,7 +1049,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None):
     insensitive_patterns, sensitive_patterns = load_release_group_patterns()
 
     try:
-        supported_extensions = ["7z", "rar", "zip", "arj", "iso", "exe", "bin", "rom", "nes", "unf", "fds", "smc", "sfc", "fig", "swc", "n64", "v64", "z64", "gb", "gbc", "gba", "sms", "gen", "smd", "gg", "img", "a26", "a52", "a78", "col", "ng", "pce", "d64", "t64", "crt", "z80", "tap", "adf", "uae", "lnx"]
+        supported_extensions = ["32x", "7z", "a26", "a52", "a78", "adf", "arj", "bin", "col", "crt", "d64", "exe", "fds", "fig", "gb", "gba", "gbc", "gen", "gg", "img", "iso", "lnx", "md", "n64", "nes", "ng", "pce", "rar", "rom", "sfc", "smc", "smd", "sms", "swc", "t64", "tap", "uae", "unf", "v64", "z64", "z80", "zip"]
 
         # Use patterns in function calls
         if scan_mode == 'folders':

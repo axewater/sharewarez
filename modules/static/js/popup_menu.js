@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target.classList.contains('delete-game')) {
             event.stopPropagation();
             const gameUuid = event.target.getAttribute('data-game-uuid');
+			const game_library_uuid = event.target.getAttribute('data-game-library-uuid');
+			const urlParams = new URLSearchParams(window.location.search);
+			const library_uuid = urlParams.get('library_uuid');
             console.log(`Deleting game UUID: ${gameUuid}`);
 
             fetch(`/delete_game/${gameUuid}`, {
@@ -25,7 +28,15 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(() => {
                 console.log('Game deleted successfully');
-                window.location.href = '/library';
+				if (library_uuid) {
+					window.location.href = '/library?library_uuid=' + library_uuid;
+				}
+				else if (game_library_uuid) {
+					window.location.href = '/library?library_uuid=' + game_library_uuid;
+				}
+				else {
+					window.location.href = '/library';
+				}
             })
             .catch(error => {
                 console.error('There has been a problem with your fetch operation:', error);
