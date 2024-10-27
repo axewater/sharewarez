@@ -2,8 +2,11 @@
 import sys,ast, uuid, json, random, requests, html, os, re, shutil, traceback, time, schedule, os, platform, tempfile, socket
 from threading import Thread
 from config import Config
-from flask import Flask, render_template, flash, redirect, url_for, request, Blueprint, jsonify, session, abort, current_app, send_from_directory
-from flask import copy_current_request_context, g
+from flask import (
+    Flask, render_template, flash, redirect, url_for, request, Blueprint, 
+    jsonify, session, abort, current_app, send_from_directory, 
+    copy_current_request_context, g, make_response
+)
 from flask_login import current_user, login_user, logout_user, login_required
 from flask_wtf import FlaskForm
 from flask_mail import Message as MailMessage
@@ -652,11 +655,64 @@ def whitelist():
 
 
 
+@bp.route('/admin/users', methods=['GET'])
+@login_required
+@admin_required
+def manage_users():
+    users = User.query.all()
+    return render_template('admin/admin_users.html', users=users)
+
+@bp.route('/admin/api/user/<int:user_id>', methods=['GET', 'PUT', 'DELETE'])
+@login_required
+@admin_required
+def manage_user_api(user_id):
+    user = User.query.get_or_404(user_id)
+    
+    if request.method == 'GET':
+        return jsonify({
+            'email': user.email,
+            'role': user.role,
+            'state': user.state,
+            'is_email_verified': user.is_email_verified
+        })
+    
+    elif request.method == 'PUT':
+        if user_id == 1 and current_user.id != 1:
+            return jsonify({'success': False, 'message': 'Cannot modify admin account'}), 403
+        
+        data = request.json
+        user.email = data.get('email', user.email)
+        user.role = data.get('role', user.role)
+        user.state = data.get('state', user.state)
+        user.is_email_verified = data.get('is_email_verified', user.is_email_verified)
+        
+        if data.get('password'):
+            user.set_password(data['password'])
+        
+        try:
+            db.session.commit()
+            return jsonify({'success': True})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'message': str(e)}), 500
+    
+    elif request.method == 'DELETE':
+        if user_id == 1:
+            return jsonify({'success': False, 'message': 'Cannot delete admin account'}), 403
+        
+        try:
+            db.session.delete(user)
+            db.session.commit()
+            return jsonify({'success': True})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'message': str(e)}), 500
+
 @bp.route('/admin/user_manager', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def usermanager():
-    print("ADMIN USRMGR: username: Request method:", request.method)
+    return redirect(url_for('main.manage_users'))
     form = UserManagementForm()
     users_query = User.query.order_by(User.name).all()
     form.user_id.choices = [(user.id, user.name) for user in users_query]
