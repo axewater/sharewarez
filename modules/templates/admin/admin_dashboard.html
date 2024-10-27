@@ -24,7 +24,7 @@
     </div>
     <div class="dashboard-container-fluid">
         <div class="dashboard-row">
-            <!-- Row 1: Library Manager, Server Settings, Server Info -->
+            <!-- Row 1: Library Manager, Scan Manager, Server Settings, Server Info -->
             <div class="dashboard-column-1">
                 <a href="{{ url_for('main.libraries') }}" class="btn btn-primary dashboard-button">
                     <i class="fas fa-book dashboard-icon"></i>
@@ -52,6 +52,8 @@
             </div>
             {% endif %}
 			
+
+            <!-- Row 2: Downloads, Invite System, Whitelist, User Manager-->
             <div class="dashboard-column-5">
                 <a href="{{ url_for('main.manage_downloads') }}" class="btn btn-danger dashboard-button">
                     <i class="fas fa-download dashboard-icon"></i>
@@ -59,13 +61,6 @@
                 </a>
             </div>
 
-            <!-- Row 2: Add User, Invite System, Whitelist, Downloads -->
-            <div class="dashboard-column-6">
-                <a href="{{ url_for('main.create_user') }}" class="btn btn-secondary dashboard-button">
-                    <i class="fas fa-user-plus dashboard-icon"></i>
-                    Add User
-                </a>
-            </div>
             <div class="dashboard-column-7">
                 <a href="{{ url_for('main.manage_invites') }}" class="btn btn-dark dashboard-button">
                     <i class="fas fa-envelope-open-text dashboard-icon"></i>
@@ -85,9 +80,9 @@
                     User Manager
                 </a>
             </div>
-
+            <!-- Row 3: Newsletter, API Debug, Theme Management -->
             <div class="dashboard-column-10">
-				<!-- Row 3: Newsletter, API Debug, Theme Management -->
+				
 				{% if enable_newsletter %}
 					<a href="{{ url_for('main.newsletter') }}" class="btn btn-dark dashboard-button">
 						<i class="fas fa-envelope dashboard-icon"></i>

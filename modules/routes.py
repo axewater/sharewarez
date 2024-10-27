@@ -60,7 +60,7 @@ has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '1.4.6'
+app_version = '1.4.7'
 
 
 @bp.before_app_request
@@ -230,8 +230,7 @@ def register():
                 is_email_verified=False,
                 email_verification_token=s.dumps(form.email.data, salt='email-confirm'),
                 token_creation_time=datetime.utcnow(),
-                created=datetime.utcnow(),
-                invited_by=invite.creator_user_id if invite else None
+                created=datetime.utcnow()
             )
             user.set_password(form.password.data)
             db.session.add(user)
@@ -384,45 +383,7 @@ def send_invite_email(email, invite_url):
     send_email(email, subject, html_content)
 
 
-@bp.route('/admin/create_user', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def create_user():
-    # Initialize the user creation form
-    form = CreateUserForm()
 
-    # Handle form submission
-    if form.validate_on_submit():
-        try:
-            # Create a new user
-            user = User(
-                name=form.username.data,
-                email=form.email.data.lower(),
-                role='user',
-                is_email_verified=True,  # Automatically set to True
-                user_id=str(uuid4()),  # Generate a UUID for the user
-                created=datetime.utcnow()
-            )
-            user.set_password(form.password.data)  # Set the user's password
-            print(f"Debug: User created: {user}")
-            db.session.add(user)
-            db.session.commit()
-
-            # Redirect to a success page
-            flash('User created successfully.', 'success')
-            return redirect(url_for('main.user_created'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'An error occurred: {str(e)}', 'danger')
-
-    # Render the registration form
-    return render_template('admin/admin_user_create.html', form=form)
-
-@bp.route('/admin/user_created')
-@login_required
-@admin_required
-def user_created():
-    return render_template('admin/admin_user_create_completed.html')
 
 @bp.route('/api/current_user_role', methods=['GET'])
 @login_required
@@ -660,12 +621,31 @@ def whitelist():
 @admin_required
 def manage_users():
     users = User.query.all()
-    return render_template('admin/admin_users.html', users=users)
+    return render_template('admin/admin_manage_users.html', users=users)
 
 @bp.route('/admin/api/user/<int:user_id>', methods=['GET', 'PUT', 'DELETE'])
 @login_required
 @admin_required
 def manage_user_api(user_id):
+    if request.method == 'PUT' and user_id == 0:  # Special case for new user creation
+        data = request.json
+        try:
+            new_user = User(
+                name=data['username'],
+                email=data['email'],
+                role=data.get('role', 'user'),
+                state=data.get('state', True),
+                is_email_verified=data.get('is_email_verified', True),
+                user_id=str(uuid4())
+            )
+            new_user.set_password(data['password'])
+            db.session.add(new_user)
+            db.session.commit()
+            return jsonify({'success': True})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'message': str(e)}), 500
+
     user = User.query.get_or_404(user_id)
     
     if request.method == 'GET':

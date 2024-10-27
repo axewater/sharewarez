@@ -10,6 +10,26 @@ class DatabaseManager:
         self.engine = create_engine(self.database_uri)
 
     def add_column_if_not_exists(self):
+        # First, remove the invited_by column and its foreign key constraint
+        remove_invited_by_sql = """
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.table_constraints 
+                WHERE constraint_name = 'users_invited_by_fkey'
+            ) THEN
+                ALTER TABLE users DROP CONSTRAINT users_invited_by_fkey;
+            END IF;
+            
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns 
+                WHERE table_name = 'users' AND column_name = 'invited_by'
+            ) THEN
+                ALTER TABLE users DROP COLUMN invited_by;
+            END IF;
+        END $$;
+        """
+
         # SQL commands to add new columns and tables
         add_columns_sql = """
         ALTER TABLE global_settings
