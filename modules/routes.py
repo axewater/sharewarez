@@ -1956,7 +1956,9 @@ def game_details(game_uuid):
             "icon": url_icons.get(url.url_type, "fa-link")
         } for url in game.urls]
         
-        return render_template('games/game_details.html', game=game_data, form=csrf_form)
+        library_uuid = game.library_uuid
+        
+        return render_template('games/game_details.html', game=game_data, form=csrf_form, library_uuid=library_uuid)
     else:
         return jsonify({"error": "Game not found"}), 404
 
