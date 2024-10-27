@@ -1183,7 +1183,7 @@ def handle_manual_scan(manual_form):
             if scan_mode == 'folders':
                 games_with_paths = get_game_names_from_folder(full_path, insensitive_patterns, sensitive_patterns)
             else:  # files mode
-                supported_extensions = ["7z", "rar", "zip", "arj", "iso", "exe", "bin", "rom", "nes", "unf", "fds", "smc", "sfc", "fig", "swc", "n64", "v64", "z64", "gb", "gbc", "gba", "sms", "gen", "smd", "gg", "img", "a26", "a52", "a78", "col", "ng", "pce", "d64", "t64", "crt", "z80", "tap", "adf", "uae", "lnx"]
+                supported_extensions = ["32x", "7z", "a26", "a52", "a78", "adf", "arj", "bin", "col", "crt", "d64", "exe", "fds", "fig", "gb", "gba", "gbc", "gen", "gg", "img", "iso", "lnx", "md", "n64", "nes", "ng", "pce", "rar", "rom", "sfc", "smc", "smd", "sms", "swc", "t64", "tap", "uae", "unf", "v64", "z64", "z80", "zip"]
                 games_with_paths = get_game_names_from_files(full_path, supported_extensions, insensitive_patterns, sensitive_patterns)
             session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
             print(f"Found {len(session['game_paths'])} games in the folder.")
@@ -1989,7 +1989,9 @@ def game_details(game_uuid):
             "icon": url_icons.get(url.url_type, "fa-link")
         } for url in game.urls]
         
-        return render_template('games/game_details.html', game=game_data, form=csrf_form)
+        library_uuid = game.library_uuid
+        
+        return render_template('games/game_details.html', game=game_data, form=csrf_form, library_uuid=library_uuid)
     else:
         return jsonify({"error": "Game not found"}), 404
 
