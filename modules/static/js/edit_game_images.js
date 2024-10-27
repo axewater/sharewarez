@@ -1,4 +1,4 @@
-function uploadFile(file, gameUuid, csrfToken, imageType) {
+function uploadFile(file, gameUuid, csrfToken, imageType = 'screenshot') {
     console.log('Uploading file:', file.name);
     let url = `/upload_image/${gameUuid}`;
     let formData = new FormData();
