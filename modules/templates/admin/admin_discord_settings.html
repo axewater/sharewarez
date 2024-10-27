@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Discord Bot Settings</h2>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="mb-3">
+                            <label for="discord_webhook_url" class="form-label">Discord Webhook URL</label>
+                            <input type="url" class="form-control" id="discord_webhook_url" name="discord_webhook_url" 
+                                   value="{{ webhook_url }}" placeholder="Enter Discord webhook URL">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="discord_bot_name" class="form-label">Bot Name</label>
+                            <input type="text" class="form-control" id="discord_bot_name" name="discord_bot_name" 
+                                   value="{{ bot_name }}" placeholder="Enter bot name">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="discord_bot_avatar_url" class="form-label">Bot Avatar URL</label>
+                            <input type="url" class="form-control" id="discord_bot_avatar_url" name="discord_bot_avatar_url" 
+                                   value="{{ bot_avatar_url }}" placeholder="Enter bot avatar URL">
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                            <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

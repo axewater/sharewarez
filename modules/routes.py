@@ -713,6 +713,7 @@ def manage_user_api(user_id):
 @login_required
 @admin_required
 def usermanager():
+    # check if this is redundant
     return redirect(url_for('main.manage_users'))
     form = UserManagementForm()
     users_query = User.query.order_by(User.name).all()
@@ -1158,18 +1159,23 @@ def handle_manual_scan(manual_form):
         if running_job:
             flash('A scan is already in progress. Please wait until the current scan completes.', 'error')
             session['active_tab'] = 'manual'
-            return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='manual'))
+            return redirect(url_for('main.scan_management', active_tab='manual'))
         
         folder_path = manual_form.folder_path.data
         scan_mode = manual_form.scan_mode.data
         library_uuid = manual_form.library_uuid.data
         
+        if not library_uuid:
+            flash('Please select a library.', 'error')
+            return redirect(url_for('main.scan_management', active_tab='manual'))
+        
         # Store library_uuid in session for use in identify page
         session['selected_library_uuid'] = library_uuid
+        print(f"Manual scan: Selected library UUID: {library_uuid}")
 
         base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
         full_path = os.path.join(base_dir, folder_path)
-        print(f"Manual scan form submitted. Full path: {full_path}")
+        print(f"Manual scan form submitted. Full path: {full_path}, Library UUID: {library_uuid}")
 
         if os.path.exists(full_path) and os.access(full_path, os.R_OK):
             print("Folder exists and can be accessed.")
@@ -2022,6 +2028,40 @@ def refresh_game_images(game_uuid):
 def admin_dashboard():
     pass
     return render_template('admin/admin_dashboard.html')
+
+@bp.route('/admin/discord_settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def discord_settings():
+    settings = GlobalSettings.query.first()
+    
+    if request.method == 'POST':
+        if not settings:
+            settings = GlobalSettings()
+            db.session.add(settings)
+        
+        settings.discord_webhook_url = request.form.get('discord_webhook_url', '')
+        settings.discord_bot_name = request.form.get('discord_bot_name', '')
+        settings.discord_bot_avatar_url = request.form.get('discord_bot_avatar_url', '')
+        
+        try:
+            db.session.commit()
+            flash('Discord settings updated successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating Discord settings: {str(e)}', 'error')
+        
+        return redirect(url_for('main.discord_settings'))
+
+    # Get default values from config if no settings exist
+    webhook_url = settings.discord_webhook_url if settings else Config.DISCORD_WEBHOOK_URL
+    bot_name = settings.discord_bot_name if settings else Config.DISCORD_BOT_NAME
+    bot_avatar_url = settings.discord_bot_avatar_url if settings else Config.DISCORD_BOT_AVATAR_URL
+
+    return render_template('admin/admin_discord_settings.html',
+                         webhook_url=webhook_url,
+                         bot_name=bot_name,
+                         bot_avatar_url=bot_avatar_url)
 
 @bp.route('/admin/themes', methods=['GET', 'POST'])
 @login_required

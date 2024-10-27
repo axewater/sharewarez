@@ -47,6 +47,15 @@ class DatabaseManager:
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS update_folder_name VARCHAR(255) DEFAULT 'updates';
 
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS discord_notify_new_games BOOLEAN DEFAULT FALSE;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS discord_notify_game_updates BOOLEAN DEFAULT FALSE;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS discord_notify_downloads BOOLEAN DEFAULT FALSE;
+
         CREATE TABLE IF NOT EXISTS game_updates (
             id SERIAL PRIMARY KEY,
             uuid VARCHAR(36) UNIQUE NOT NULL,
