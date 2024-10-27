@@ -3,7 +3,7 @@ function uploadFile(file, gameUuid, csrfToken, imageType) {
     let url = `/upload_image/${gameUuid}`;
     let formData = new FormData();
     formData.append('file', file);
-    formData.append('image_type', imageType); // Add the image type to the form data
+    formData.append('image_type', imageType);
 
     console.log('Form data:', formData, url);
     fetch(url, {
@@ -15,7 +15,6 @@ function uploadFile(file, gameUuid, csrfToken, imageType) {
     })
     .then(response => {
         if (!response.ok) {
-            // If the server responded with an error status, throw an error
             return response.json().then(data => {
                 throw new Error(data.error || 'Upload failed');
             });
@@ -25,6 +24,14 @@ function uploadFile(file, gameUuid, csrfToken, imageType) {
     .then(data => {
         console.log('Upload response:', data);
         if (data.url) {
+            if (imageType === 'cover') {
+                displayCoverImage(data);
+            } else {
+                displayImage(data);
+            }
+            if (data.flash) {
+                console.log('Success:', data.flash);
+            }
         } else {
             throw new Error('Upload succeeded but no URL was returned.');
         }
@@ -37,18 +44,12 @@ function uploadFile(file, gameUuid, csrfToken, imageType) {
         var errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
         errorModal.show();
     });
-    
-    
 }
-
-
-
 
 function displayImage(data) {
     let imageList = document.getElementById('image-editor-list');
     let newImgDiv = document.createElement('div');
 
-    // Set the ID of the div to match the expected pattern
     newImgDiv.id = `image-${data.image_id}`;
 
     newImgDiv.innerHTML = `<button onclick="deleteImage(${data.image_id})">Delete</button><img src="${data.url}" alt="Image" class="image-editor-image" style="max-width: 300px; max-height: 300px;">`;
@@ -56,27 +57,21 @@ function displayImage(data) {
 }
 
 function displayCoverImage(data) {
-    // Ensure this variable matches the ID of the div where the cover image is displayed
     let coverImageEditor = document.getElementById('cover-image-editor');
 
-    // Check for and remove the existing image if present
     let existingImg = coverImageEditor.querySelector('img');
     if (existingImg) {
-        existingImg.remove(); // A simpler approach to remove the element
+        existingImg.remove();
     }
 
-    // Create the new image element
     let img = document.createElement('img');
     img.src = data.url;
     img.alt = "Cover Image";
     img.style.maxWidth = "300px";
     img.style.maxHeight = "300px";
 
-    // Insert the new image element at the beginning of the container
     coverImageEditor.insertBefore(img, coverImageEditor.firstChild);
 }
-
-
 
 function deleteImage(imageId) {
     console.log('Deleting image with ID:', imageId);
@@ -86,15 +81,13 @@ function deleteImage(imageId) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-Token': csrfToken, // Add the CSRF token
+            'X-CSRF-Token': csrfToken,
         },
         body: JSON.stringify({ image_id: imageId }),
-        
     })
     .then(response => {
         console.log('Network response:', response);
         if (!response.ok) {
-            // If the server responded with an error status, throw an error
             return response.json().then(data => {
                 throw new Error(data.error || 'Deletion failed');
             });
@@ -115,9 +108,6 @@ function deleteImage(imageId) {
     });
 }
 
-
-
-
 document.addEventListener('DOMContentLoaded', function() {
     
     var gameUuid = document.getElementById('upload-area').getAttribute('data-game-uuid');
@@ -127,8 +117,8 @@ document.addEventListener('DOMContentLoaded', function() {
         let file = e.target.files[0];
         let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-        if (file) { // Ensure a file is selected
-            uploadFile(file, gameUuid, csrfToken, 'cover'); // Call uploadFile with 'cover' as the imageType
+        if (file) {
+            uploadFile(file, gameUuid, csrfToken, 'cover');
         }
     });
     
@@ -145,7 +135,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         console.log('Uploading files:', selectedFiles);
         for (let i = 0; i < selectedFiles.length; i++) {
-            uploadFile(selectedFiles[i], gameUuid, csrfToken); // Pass gameUuid and csrfToken as arguments
+            uploadFile(selectedFiles[i], gameUuid, csrfToken);
         }
     });
 
@@ -162,13 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Handling files');
         let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         for (let i = 0; i < files.length; i++) {
-            // Assume screenshots for drag & drop uploads, adjust accordingly if needed
             uploadFile(files[i], gameUuid, csrfToken, 'screenshot');
         }
     }
-
-    
-    
-
-    
 });
