@@ -2291,7 +2291,7 @@ def download_game(game_uuid):
     new_request = DownloadRequest(
         user_id=current_user.id,
         game_uuid=game.uuid,
-        status='processing',  # Initial status, but could be updated later in your workflow
+        status='processing',  
         download_size=game.size
     )
     db.session.add(new_request)
@@ -2465,17 +2465,24 @@ def delete_download_request(request_id):
 @login_required
 def delete_download(download_id):
     download_request = DownloadRequest.query.filter_by(id=download_id, user_id=current_user.id).first_or_404()
-    zip_save_path = current_app.config['ZIP_SAVE_PATH']  # Assuming this is where zipped files are stored
+    zip_save_path = current_app.config['ZIP_SAVE_PATH']
 
     if download_request.zip_file_path and os.path.exists(download_request.zip_file_path):
-        # Check if the file to delete is within the ZIP_SAVE_PATH directory
-        if os.path.commonpath([download_request.zip_file_path, zip_save_path]) == zip_save_path:
-            try:
-                os.remove(download_request.zip_file_path)
+        # Only delete the file if it's a generated zip file in our ZIP_SAVE_PATH
+        try:
+            file_path = os.path.abspath(download_request.zip_file_path)
+            zip_save_path = os.path.abspath(zip_save_path)
+            
+            if file_path.startswith(zip_save_path):
+                os.remove(file_path)
                 flash('Zipped download deleted successfully.', 'success')
-            except Exception as e:
-                db.session.rollback()
-                flash(f'An error occurred while deleting the zipped file: {e}', 'danger')
+            else:
+                # For direct file downloads, just remove the download request
+                flash('Download request removed. Original file preserved.', 'info')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred while deleting the file: {e}', 'danger')
+            return redirect(url_for('main.downloads'))
         else:
             flash('Only the download request was deleted, the original game file was not removed.', 'info')
     else:
