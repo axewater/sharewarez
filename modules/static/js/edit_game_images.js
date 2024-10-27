@@ -76,6 +76,17 @@ function displayCoverImage(data) {
 function deleteImage(imageId) {
     console.log('Deleting image with ID:', imageId);
     var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    // Check if this is a cover image
+    const coverImageEditor = document.getElementById('cover-image-editor');
+    const isCoverImage = coverImageEditor.querySelector(`img[data-image-id="${imageId}"]`) !== null;
+
+    // If it's a cover image, show confirmation dialog
+    if (isCoverImage) {
+        if (!confirm('Are you sure you want to delete the cover image?')) {
+            return;
+        }
+    }
 
     fetch('/delete_image', {
         method: 'POST',
@@ -83,7 +94,10 @@ function deleteImage(imageId) {
             'Content-Type': 'application/json',
             'X-CSRF-Token': csrfToken,
         },
-        body: JSON.stringify({ image_id: imageId }),
+        body: JSON.stringify({ 
+            image_id: imageId,
+            is_cover: isCoverImage 
+        }),
     })
     .then(response => {
         console.log('Network response:', response);
@@ -96,7 +110,18 @@ function deleteImage(imageId) {
     })
     .then(data => {
         console.log('Delete response:', data);
-        document.getElementById(`image-${imageId}`).remove();
+        if (data.default_cover) {
+            // This was a cover image, replace with default
+            const coverImageEditor = document.getElementById('cover-image-editor');
+            const img = coverImageEditor.querySelector('img');
+            if (img) {
+                img.src = data.default_cover;
+                img.removeAttribute('data-image-id');
+            }
+        } else {
+            // Regular screenshot, just remove it
+            document.getElementById(`image-${imageId}`).remove();
+        }
     })
     .catch((error) => {
         console.error('Error:', error);

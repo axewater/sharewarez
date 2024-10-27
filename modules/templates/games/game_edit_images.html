@@ -3,9 +3,9 @@
 {% block content %}
 
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/css/games/game_edit_images.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/games/game_edit_images.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/games/game_edit_images.css') }}">
 {% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/games/game_edit_images.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/games/game_edit_images.css') }}">
 {% endif %}
 
 <div id="flash-messages">
@@ -54,10 +54,13 @@
                 <h3>Cover Image</h3>
                 <div id="cover-image-editor" class="image-editor-image">
                     {% if cover_image %}
-                        <img src="{{ url_for('static', filename='library/images/' + cover_image.url) }}" alt="Cover Image">
+                        <img src="{{ url_for('static', filename='library/images/' + cover_image.url) }}" 
+                             alt="Cover Image"
+                             data-image-id="{{ cover_image.id }}">
                         <div class="delete-cover-image-container">
                             <button class="btn btn-danger" onclick="deleteImage({{ cover_image.id }})">Delete Cover Image</button>
-                        </div>                    {% else %}
+                        </div>                    
+                    {% else %}
                         <img src="{{ url_for('static', filename='newstyle/default_cover.jpg') }}" alt="Default Cover Image">
                     {% endif %}
                 </div>
