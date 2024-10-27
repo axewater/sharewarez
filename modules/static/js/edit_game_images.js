@@ -30,6 +30,27 @@ function uploadFile(file, gameUuid, csrfToken, imageType = 'screenshot') {
                 displayImage(data);
             }
             if (data.flash) {
+                // Create and display flash message
+                const flashContainer = document.querySelector('.flashes');
+                if (!flashContainer) {
+                    const newFlashContainer = document.createElement('div');
+                    newFlashContainer.className = 'flashes';
+                    document.querySelector('.content-flash').appendChild(newFlashContainer);
+                }
+                
+                const flashMessage = document.createElement('div');
+                flashMessage.className = 'flash';
+                flashMessage.textContent = data.flash;
+                document.querySelector('.flashes').appendChild(flashMessage);
+
+                // Remove the flash message after 3 seconds
+                setTimeout(() => {
+                    flashMessage.remove();
+                    if (document.querySelector('.flashes').children.length === 0) {
+                        document.querySelector('.flashes').remove();
+                    }
+                }, 3000);
+                
                 console.log('Success:', data.flash);
             }
         } else {
