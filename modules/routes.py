@@ -60,7 +60,7 @@ has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '1.4.7'
+app_version = '1.4.8'
 
 
 @bp.before_app_request
@@ -601,7 +601,7 @@ def newsletter():
 def whitelist():
     form = WhitelistForm()
     if form.validate_on_submit():
-        email = form.email.data
+        email = form.email.data.lower()
         new_whitelist = Whitelist(email=email)
         db.session.add(new_whitelist)
         try:
@@ -611,8 +611,29 @@ def whitelist():
             db.session.rollback()
             flash('The email is already in the whitelist!', 'danger')
         return redirect(url_for('main.whitelist'))
-    whitelist = Whitelist.query.all()
-    return render_template('admin/admin_manage_whitelist.html', title='Whitelist', whitelist=whitelist, form=form)
+
+    # Get whitelist entries and check registration status
+    whitelist_entries = Whitelist.query.all()
+    for entry in whitelist_entries:
+        entry.is_registered = User.query.filter(func.lower(User.email) == entry.email.lower()).first() is not None
+
+    return render_template('admin/admin_manage_whitelist.html', 
+                         title='Whitelist', 
+                         whitelist=whitelist_entries, 
+                         form=form)
+
+@bp.route('/admin/whitelist/<int:whitelist_id>', methods=['DELETE'])
+@login_required
+@admin_required
+def delete_whitelist(whitelist_id):
+    try:
+        whitelist_entry = Whitelist.query.get_or_404(whitelist_id)
+        db.session.delete(whitelist_entry)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Entry deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 
