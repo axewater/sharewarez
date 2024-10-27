@@ -36,6 +36,9 @@ document.addEventListener('DOMContentLoaded', function() {
             enableDeleteGameOnDisk: document.getElementById('enableDeleteGameOnDisk').checked,
             showVersion: document.getElementById('showVersion').checked,
             updateFolderName: document.getElementById('updateFolderName').value,
+            discordNotifyNewGames: document.getElementById('discordNotifyNewGames').checked,
+            discordNotifyGameUpdates: document.getElementById('discordNotifyGameUpdates').checked,
+            discordNotifyDownloads: document.getElementById('discordNotifyDownloads').checked,
         };
         console.log("Settings to be saved:", settings);
 

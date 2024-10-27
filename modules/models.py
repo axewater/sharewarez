@@ -532,9 +532,15 @@ class GlobalSettings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     settings = db.Column(JSONEncodedDict)  # Store all settings in a single JSON-encoded column
     last_updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    discord_webhook_url = db.Column(db.String(255), nullable=True)
+    discord_bot_name = db.Column(db.String(100), nullable=True)
+    discord_bot_avatar_url = db.Column(db.String(255), nullable=True)
     enable_delete_game_on_disk = db.Column(db.Boolean, default=True)
     update_folder_name = db.Column(db.String(255), default='updates')
     enable_delete_game_on_disk = db.Column(db.Boolean, default=True)
+    discord_notify_new_games = db.Column(db.Boolean, default=False)
+    discord_notify_game_updates = db.Column(db.Boolean, default=False)
+    discord_notify_downloads = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'    
