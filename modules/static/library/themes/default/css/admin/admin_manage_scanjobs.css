@@ -46,12 +46,6 @@ th {
     margin-bottom: 10px;    
 }
 
-.scanjobs-header-text {
-    padding-left: 15px;
-    padding-top: 10px;
-    justify-content: space-between;
-}
-
 /* Spacing between form groups */
 .form-group {
     margin-bottom: 20px; /* Adjust spacing as needed */
