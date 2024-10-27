@@ -328,9 +328,6 @@ class User(db.Model):
     password_reset_token = db.Column(db.String(256), nullable=True)
     token_creation_time = db.Column(db.DateTime, nullable=True)
     invite_quota = db.Column(db.Integer, default=0) 
-    invited_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    
-    inviter = db.relationship('User', remote_side=[id], backref='invited_users')
     
     def set_password(self, password):
         # Now using Argon2 to hash new passwords

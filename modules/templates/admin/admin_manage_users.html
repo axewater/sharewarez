@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_users.css') == True %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_users.css') }}">
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_manage_users.css') == True %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_manage_users.css') }}">
 {% else %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_users.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_users.css') }}">
 {% endif %}
 
 <div class="container mt-4">
@@ -20,7 +20,7 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h2>User Management</h2>
-            <a href="{{ url_for('main.create_user') }}" class="btn btn-primary">Add New User</a>
+            <button class="btn btn-primary" id="addNewUserBtn">Add New User</button>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -120,11 +120,48 @@
             </div>
         </div>
     </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteConfirmModal" tabindex="-1">
-    <div class="modal-dialog">
+    </div>
+    
+    <!-- Add New User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUserForm">
+                        <div class="mb-3">
+                            <label for="newUsername" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="newUsername" required>
+                            <small id="usernameAvailabilityFeedback" class="form-text"></small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="newEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="newEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="newPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="newConfirmPassword" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="newConfirmPassword" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveNewUser">Create User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+        <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Confirm Delete</h5>
@@ -141,5 +178,5 @@
     </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/admin_users.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin_manage_users.js') }}"></script>
 {% endblock %}

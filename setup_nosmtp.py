@@ -59,7 +59,6 @@ class User(Base):
     email_verification_token = Column(String(256), nullable=True)
     password_reset_token = Column(String(256), nullable=True)
     token_creation_time = Column(DateTime, nullable=True)
-    invited_by = Column(String(36), ForeignKey('users.user_id'), nullable=True)
     invite_quota = Column(Integer, default=100)
 
 def check_and_create_database(database_uri):
