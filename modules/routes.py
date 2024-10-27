@@ -1568,6 +1568,8 @@ def delete_image():
             return jsonify({'error': 'Invalid request. Missing image_id parameter'}), 400
         
         image_id = data['image_id']
+        is_cover = data.get('is_cover', False)
+        
         image = Image.query.get(image_id)
         if not image:
             return jsonify({'error': 'Image not found'}), 404
@@ -1582,7 +1584,11 @@ def delete_image():
         db.session.delete(image)
         db.session.commit()
 
-        return jsonify({'message': 'Image deleted successfully'})
+        response_data = {'message': 'Image deleted successfully'}
+        if is_cover:
+            response_data['default_cover'] = url_for('static', filename='newstyle/default_cover.jpg')
+            
+        return jsonify(response_data)
     except Exception as e:
         # Log the error for debugging purposes
         print(f"Error deleting image: {str(e)}")
