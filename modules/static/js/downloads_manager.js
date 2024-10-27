@@ -1,4 +1,14 @@
 document.addEventListener("DOMContentLoaded", function() {
+    // Auto-dismiss flash messages after 5 seconds
+    const flashMessages = document.querySelectorAll('.flash');
+    flashMessages.forEach(flash => {
+        setTimeout(() => {
+            if (flash && flash.parentNode) {
+                flash.remove();
+            }
+        }, 5000);
+    });
+
     const downloads = document.querySelectorAll("tr[data-game-uuid]");
     
     downloads.forEach((download) => {
