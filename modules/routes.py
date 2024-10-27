@@ -57,7 +57,7 @@ has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '1.4.4'
+app_version = '1.4.5'
 
 
 @bp.before_app_request
@@ -362,13 +362,18 @@ def invites():
 @bp.route('/delete_invite/<token>', methods=['POST'])
 @login_required
 def delete_invite(token):
-    invite = InviteToken.query.filter_by(token=token, creator_user_id=current_user.user_id).first()
-    if invite:
-        db.session.delete(invite)
-        db.session.commit()
-        return jsonify({'success': True})
-    else:
-        return jsonify({'success': False, 'message': 'Invite not found or you do not have permission to delete it.'})
+    try:
+        invite = InviteToken.query.filter_by(token=token, creator_user_id=current_user.user_id).first()
+        if invite:
+            db.session.delete(invite)
+            db.session.commit()
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'message': 'Invite not found or you do not have permission to delete it.'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting invite: {str(e)}")
+        return jsonify({'success': False, 'message': 'An error occurred while deleting the invite.'}), 500
 
 def send_invite_email(email, invite_url):
     subject = "You're Invited!"
