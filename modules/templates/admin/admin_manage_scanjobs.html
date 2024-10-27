@@ -10,6 +10,7 @@
 {% endif %}
 
 <meta name="active-tab" content="{{ active_tab }}">
+<meta name="selected-library-uuid" content="{{ selected_library_uuid }}">
 
 <div class="content-flash">
     {% with messages = get_flashed_messages() %}
@@ -43,7 +44,6 @@
 
     
     </ul>
-    
 
     <!-- Tab panes -->
     <div class="admin_manage_scanjobs-tab-content tab-content">
@@ -59,7 +59,7 @@
                 <!-- Library Dropdown -->
                 <div class="admin_manage_scanjobs-library form-group">
                     {{ auto_form.library_uuid.label }}
-                    {{ auto_form.library_uuid(class="form-control", id="libraryUuid") }}
+                    {{ auto_form.library_uuid(class="form-control", id="libraryUuid", onchange='onLibraryChange(this.value, "auto")') }}
                     {% if auto_form.library_uuid.errors %}
                         {% for error in auto_form.library_uuid.errors %}
                             <div class="alert alert-danger">{{ error }}</div>
@@ -152,7 +152,7 @@
                 <!-- Library Selection -->
                 <div class="admin_manage_scanjobs-library form-group">
                     {{ manual_form.library_uuid.label }}
-                    {{ manual_form.library_uuid(class="form-control", id="manualLibraryUuid") }}
+                    {{ manual_form.library_uuid(class="form-control", id="manualLibraryUuid", onchange='onLibraryChange(this.value, "manual")') }}
                     {% if manual_form.library_uuid.errors %}
                         {% for error in manual_form.library_uuid.errors %}
                             <div class="alert alert-danger">{{ error }}</div>
@@ -260,5 +260,14 @@
         
 </div>
 <script src="{{ url_for('static', filename='js/scan_management.js') }}"></script>
-    
+<script>
+    function onLibraryChange(libraryUuid, scanType) {
+        // Update the URL with the new library_uuid parameter and active_tab
+        const url = new URL(window.location.href);
+        url.searchParams.set('library_uuid', libraryUuid);
+        url.searchParams.set('active_tab', scanType === 'manual' ? 'manual' : 'auto');
+        window.location.href = url.toString();
+    }
+    </script>
+        
 {% endblock %}

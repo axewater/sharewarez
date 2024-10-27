@@ -57,7 +57,7 @@ has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '1.4.5'
+app_version = '1.4.6'
 
 
 @bp.before_app_request
@@ -975,8 +975,8 @@ def scan_management():
 
     selected_library_uuid = request.args.get('library_uuid')
     if selected_library_uuid:
-        auto_form.library_uuid.data = selected_library_uuid  # Pre-select the library in the dropdown
-        manual_form.library_uuid.data = selected_library_uuid  # Pre-select the library in the dropdown
+        auto_form.library_uuid.data = selected_library_uuid 
+        manual_form.library_uuid.data = selected_library_uuid
 
     jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
     csrf_form = CsrfProtectForm()
@@ -1037,13 +1037,15 @@ def handle_auto_scan(auto_form):
         if running_job:
             flash('A scan is already in progress. Please wait until the current scan completes.', 'error')
             session['active_tab'] = 'auto'
-            return redirect(url_for('main.scan_management'))
+            return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='auto'))
+
     
         library_uuid = auto_form.library_uuid.data
         library = Library.query.filter_by(uuid=library_uuid).first()
         if not library:
             flash('Selected library does not exist.', 'error')
-            return redirect(url_for('main.scan_management'))
+            return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='auto'))
+
         
         folder_path = auto_form.folder_path.data
         
@@ -1071,7 +1073,8 @@ def handle_auto_scan(auto_form):
     else:
         flash(f"Auto-scan form validation failed: {auto_form.errors}")
         print(f"Auto-scan form validation failed: {auto_form.errors}")
-    return redirect(url_for('main.scan_management'))
+    return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='auto'))
+
 
 
 @bp.route('/cancel_scan_job/<job_id>', methods=['POST'])
@@ -1098,7 +1101,7 @@ def handle_manual_scan(manual_form):
         if running_job:
             flash('A scan is already in progress. Please wait until the current scan completes.', 'error')
             session['active_tab'] = 'manual'
-            return redirect(url_for('main.scan_management'))
+            return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='manual'))
         
         folder_path = manual_form.folder_path.data
         scan_mode = manual_form.scan_mode.data
@@ -1129,7 +1132,7 @@ def handle_manual_scan(manual_form):
         flash('Manual scan form validation failed.', 'error')
         
     print("Game paths: ", session.get('game_paths', {}))
-    return redirect(url_for('main.scan_management'))
+    return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='manual'))
 
 
 
