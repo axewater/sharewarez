@@ -26,9 +26,9 @@
         <div class="logo-download">
             <img src="{{ url_for('static', filename='newstyle/download/download_banner.png') }}" alt="My Downloads" style="vertical-align: middle;">
         </div>
-        <h2 class="text-center">Download yer Booty</h2> <!-- Bootstrap text-center class for title -->
-        <div class="table-responsive"> <!-- Bootstrap responsive table container -->
-            <table class="table table-striped table-hover"> <!-- Bootstrap table classes -->
+        <h2 class="text-center">Download yer Booty</h2>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
                 <thead>
                     <tr>
                         <th>Game Name</th>
@@ -42,12 +42,12 @@
                     <tr data-game-uuid="{{ download.game.uuid }}">
                         <td>{{ download.game.name }}</td>
                         <td class="status-cell">
-                            <div class="status-value">
+                            <div class="status-value" {% if download.status == 'failed' %}style="color: #ff0000; background-color: #ffe8e8; border: 2px solid #ff0000; padding: 2px 6px; border-radius: 4px; font-weight: bold;"{% endif %}>
                                 {{ download.status }}
                             </div>
-                        </td> <!-- Add the class identifier here -->
+                        </td>
                         <td>{{ download.formatted_size }}</td>
-                        <td class="actions-cell"> <!-- It's also good practice to add a class for the actions cell for consistency -->
+                        <td class="actions-cell">
                             {% if download.status == 'available' %}
                             <a href="{{ url_for('main.download_zip', download_id=download.id) }}" class="btn btn-primary">Download</a>
                             <form action="{{ url_for('main.delete_download', download_id=download.id) }}" method="post" class="inline-form">
