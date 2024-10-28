@@ -8,15 +8,21 @@
 {% endif %}
 
 <div class="glass-panel">
+	<a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
 	<div class="container mt-4">
 		<div class="row">
 			<div class="col-md-8 offset-md-2">
 				<div class="card">
-					<div class="card-header d-flex justify-content-between align-items-center">
-						<h2>Discord Bot Settings</h2>
-						<a href="{{ url_for('main.discord_help') }}" class="btn btn-info">
-							<i class="fas fa-question-circle"></i> Help
-						</a>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h2>Discord Bot Settings</h2>
+                        <div>
+                            <a href="{{ url_for('main.manage_settings') }}" class="btn btn-primary me-2">
+                                <i class="fas fa-bell"></i> Notification Settings
+                            </a>
+                            <a href="{{ url_for('main.discord_help') }}" class="btn btn-info">
+                                <i class="fas fa-question-circle"></i> Help
+                            </a>
+                        </div>
 					</div>
 					<div class="card-body">
 						{% with messages = get_flashed_messages(with_categories=true) %}
@@ -50,7 +56,7 @@
 
 							<div class="d-flex justify-content-between">
 								<button type="submit" class="btn btn-primary">Save Settings</button>
-								<a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+					
 							</div>
 						</form>
 					</div>

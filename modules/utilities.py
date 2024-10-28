@@ -9,7 +9,7 @@ from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from modules.models import (
     User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, Platform, Genre, Publisher, Developer, GameURL, Library, GameUpdate,
-    Theme, GameMode, MultiplayerMode, PlayerPerspective, ScanJob, UnmatchedFolder, category_mapping, status_mapping, player_perspective_mapping
+    Theme, GameMode, MultiplayerMode, PlayerPerspective, ScanJob, UnmatchedFolder, category_mapping, status_mapping, player_perspective_mapping, GlobalSettings
 )
 from modules import db, mail
 from sqlalchemy import func, String
@@ -1365,12 +1365,21 @@ def comma_separated_urls(form, field):
             raise ValidationError('One or more URLs are invalid. Please provide valid YouTube embed URLs.')
 
 def discord_webhook(game_uuid):
+    # Check if Discord notifications are enabled for new games
+    settings = GlobalSettings.query.first()
+    if not settings or not settings.discord_notify_new_games:
+        print("Discord notifications for new games are disabled")
+        return
+
     newgame = get_game_by_uuid(game_uuid)
     newgame_size = format_size(newgame.size)
     newgame_library = get_library_by_uuid(newgame.library_uuid)
-    discord_webhook = current_app.config['DISCORD_WEBHOOK_URL']
-    discord_bot_name = current_app.config['DISCORD_BOT_NAME']
-    discord_bot_avatar_url = current_app.config['DISCORD_BOT_AVATAR_URL']
+    
+    # Get Discord settings from database first, fallback to config
+    discord_webhook = settings.discord_webhook_url if settings and settings.discord_webhook_url else current_app.config['DISCORD_WEBHOOK_URL']
+    discord_bot_name = settings.discord_bot_name if settings and settings.discord_bot_name else current_app.config['DISCORD_BOT_NAME']
+    discord_bot_avatar_url = settings.discord_bot_avatar_url if settings and settings.discord_bot_avatar_url else current_app.config['DISCORD_BOT_AVATAR_URL']
+    
     site_url = current_app.config['SITE_URL']
     cover_url = get_cover_url(newgame.igdb_id)
     # if rate_limit_retry is True then in the event that you are being rate 
