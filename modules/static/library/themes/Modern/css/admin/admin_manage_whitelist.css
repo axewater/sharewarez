@@ -61,6 +61,7 @@
 	margin-top: 10px;
 }
 
+
 .table {
 	margin-top: 15px;
 }
@@ -71,4 +72,16 @@
 	margin-top: 10px;
 	width: 25%;
 	box-shadow: inset 2px 2px 1px 1px rgb(41, 37, 37) !important;
+}
+
+.input-group{
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	margin-bottom: 15px;
+}
+
+.form-control {
+	width: 25% !important;
+	margin-top: 20px;
 }
