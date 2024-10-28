@@ -99,7 +99,7 @@ function displayImage(data) {
 
     newImgDiv.id = `image-${data.image_id}`;
 
-    newImgDiv.innerHTML = `<button onclick="deleteImage(${data.image_id})">Delete</button><img src="${data.url}" alt="Image" class="image-editor-image" style="max-width: 300px; max-height: 300px;">`;
+    newImgDiv.innerHTML = `<button class="btn btn-danger" onclick="deleteImage(${data.image_id})">Delete</button><img src="${data.url}" alt="Image" class="image-editor-image" style="max-width: 300px; max-height: 300px;">`;
     imageList.appendChild(newImgDiv);
 }
 
