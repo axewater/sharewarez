@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2>Discord Notifications Help</h2>
+        </div>
+        <div class="card-body">
+            <h3>Setting Up Discord Notifications</h3>
+            
+            <div class="setup-steps">
+                <h4>Step 1: Create a Discord Webhook</h4>
+                <ol>
+                    <li>Open your Discord server settings</li>
+                    <li>Navigate to "Integrations"</li>
+                    <li>Click on "Create Webhook"</li>
+                    <li>Name your webhook (e.g., "SharewareZ Notifications")</li>
+                    <li>Choose the channel where notifications should appear</li>
+                    <li>Copy the Webhook URL</li>
+                </ol>
+
+                <h4>Step 2: Configure SharewareZ</h4>
+                <ol>
+                    <li>Go to Discord Settings in SharewareZ admin panel</li>
+                    <li>Paste your Webhook URL</li>
+                    <li>Set your preferred bot name</li>
+                    <li>Optionally, add a bot avatar URL</li>
+                    <li>Save your settings</li>
+                </ol>
+
+                <h4>Available Notifications</h4>
+                <ul>
+                    <li><strong>New Games:</strong> Notification when new games are added to the library</li>
+                    <li><strong>Game Updates:</strong> Notification when game updates are available</li>
+                    <li><strong>Downloads:</strong> Notification when downloads are processed and ready</li>
+                </ul>
+
+                <h4>Testing Your Setup</h4>
+                <p>After configuring your webhook, you can test it by:</p>
+                <ol>
+                    <li>Adding a new game to your library</li>
+                    <li>Checking your Discord channel for the notification</li>
+                    <li>Verifying that all information is displayed correctly</li>
+                </ol>
+
+                <div class="alert alert-info">
+                    <strong>Note:</strong> Make sure your webhook URL is kept private and secure.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

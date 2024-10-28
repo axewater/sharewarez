@@ -3077,7 +3077,14 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
         })
 
     return game_data, pagination.total, pagination.pages, page
-    
+
+@bp.route('/admin/discord_help')
+@login_required
+@admin_required
+def discord_help():
+    return render_template('admin/discord_help.html')
+
+
 def get_loc(page):
     
     with open(f'modules/static/localization/en/{page}.json', 'r', encoding='utf8') as f:
