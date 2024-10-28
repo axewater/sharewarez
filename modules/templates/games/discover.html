@@ -8,11 +8,19 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/games/discover.css') }}">
 {% endif %}
 
-<head>
-    <script src="{{ url_for('static', filename='js/library_slideshow.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/popup_menu.js') }}"></script>
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/library_slideshow.js') %}
+<script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/library_slideshow.js') }}"></script>
+{% else %}
+<script src="{{ url_for('static', filename='library/themes/default/js/library_slideshow.js') }}"></script>
+{% endif %}
 
-</head>
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/popup_menu.js') %}
+<script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/popup_menu.js') }}"></script>
+{% else %}
+<script src="{{ url_for('static', filename='library/themes/default/js/popup_menu.js') }}"></script>
+{% endif %}
+
+
 <body>
     <div class="content-flash">
         {% with messages = get_flashed_messages() %}

@@ -85,6 +85,13 @@
     </div>
 </div>
 {% endif %}
-<script src="{{ url_for('static', filename='js/library_manager.js') }}"></script>
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/library_manager.js') %}
+<script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/library_manager.js') }}"></script>
+{% else %}
+<script src="{{ url_for('static', filename='library/themes/default/js/library_manager.js') }}"></script>
+{% endif %}
+
+
 
 {% endblock %}
