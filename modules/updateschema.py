@@ -31,7 +31,7 @@ class DatabaseManager:
         """
 
         # SQL commands to add new columns and tables
-        add_columns_sql = """
+        add_columns_sql = f"""
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS enable_delete_game_on_disk BOOLEAN DEFAULT TRUE;
 
@@ -55,6 +55,15 @@ class DatabaseManager:
 
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS discord_notify_downloads BOOLEAN DEFAULT FALSE;
+        
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS discord_webhook_url VARCHAR(255) DEFAULT '{Config.DISCORD_WEBHOOK_URL}';
+            
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS discord_bot_name VARCHAR(255) DEFAULT '{Config.DISCORD_BOT_NAME}';
+        
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS discord_bot_avatar_url VARCHAR(255) DEFAULT '{Config.DISCORD_BOT_AVATAR_URL}';
 
         CREATE TABLE IF NOT EXISTS game_updates (
             id SERIAL PRIMARY KEY,
