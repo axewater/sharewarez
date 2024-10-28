@@ -215,7 +215,13 @@
         </form>
     </div>
     {% block scripts %}
-    <script src="{{ url_for('static', filename='js/admin_game_identify.js') }}"></script>
+    
+    {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin_game_identify.js') %}
+        <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin_game_identify.js') }}"></script>
+    {% else %}
+        <script src="{{ url_for('static', filename='library/themes/default/js/admin_game_identify.js') }}"></script>
+    {% endif %}
+    
     {% endblock %}
 </body>
 </html>

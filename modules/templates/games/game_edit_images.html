@@ -88,8 +88,12 @@
                 <input type="file" id="file-input" multiple class="form-control mt-3">
                 <script>
                     var gameUuid = "{{ game.uuid }}";
-                    </script>
-                <script src="{{ url_for('static', filename='js/edit_game_images.js') }}"></script>
+                </script>
+                {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/edit_game_images.js') %}
+                    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/edit_game_images.js') }}"></script>
+                {% else %}
+                    <script src="{{ url_for('static', filename='library/themes/default/js/edit_game_images.js') }}"></script>
+                {% endif %}
                 <button id="upload-button" class="btn btn-primary">Upload</button>
             </div>
         </div>

@@ -64,5 +64,10 @@
         {{ form.csrf_token }}
     </div>
 </div>
-<script src="{{ url_for('static', filename='js/downloads_manager.js') }}"></script>
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/downloads_manager.js') %}
+<script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/downloads_manager.js') }}"></script>
+{% else %}
+<script src="{{ url_for('static', filename='library/themes/default/js/downloads_manager.js') }}"></script>
+{% endif %}
+
 {% endblock %}

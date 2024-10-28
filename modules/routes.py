@@ -965,7 +965,7 @@ def downloads():
         download_request.formatted_size = format_size(download_request.download_size)
 
     form = CsrfProtectForm()
-    return render_template('games/manage_downloads.html', download_requests=download_requests, form=form)
+    return render_template('games/downloads.html', download_requests=download_requests, form=form)
 
 
 @bp.route('/scan_manual_folder', methods=['GET', 'POST'])
@@ -3090,5 +3090,5 @@ def verify_file(full_path):
         print(f"File Exists: {full_path}.")
         return True
     else:
-        print(f"Cannot access folder: {full_path}. Please check the path and permissions.", 'error')
+        print(f"Cannot find theme specific file: {full_path}. Using default theme file.", 'warning')
         return False
