@@ -1,0 +1,42 @@
+.admin_manage_library_create-panel {
+	display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 0px;
+    padding: 20px;
+    margin: 20px;
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    justify-content: space-between;
+    box-shadow: 0 9px 16px rgba(17, 2, 2, 2);
+    padding-bottom: 50px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.admin_manage_library_create-save-btn {
+	padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    font-size: 1rem;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-decoration: none;
+	margin-top: 15px;
+}
+
+.admin_manage_library_create-save-btn:hover {
+    background: gray;
+	border-color: black;
+	
+}
+
+.admin_manage_library_create-save-btn:active {
+    background: darkgray !important;
+	border-color: black !important;
+	
+}

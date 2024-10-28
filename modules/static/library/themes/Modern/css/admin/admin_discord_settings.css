@@ -1,0 +1,60 @@
+.glass-panel {
+	width: 75%;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.btn-primary {
+	padding: 10px 15px;
+    background: gray;
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    font-size: 1rem;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 5px; 
+    text-decoration: none;
+	margin-left: 20px;
+
+}
+
+.btn-primary:hover {
+	background: gray;
+	border-color: black;
+
+}
+
+.btn-primary:active {
+	background: darkgray !important;
+	border-color: black !important;;
+
+}
+
+.btn-secondary {
+	padding: 10px 15px;
+    background: #474747;
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    font-size: 1rem;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 5px;
+    text-decoration: none;
+	
+}
+
+.btn-secondary:hover {
+    background: gray;
+	border-color: black;
+	
+}
+
+.btn-secondary:active {
+    background: darkgray !important;
+	border-color: black !important;
+	
+}

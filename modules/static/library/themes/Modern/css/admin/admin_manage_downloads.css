@@ -1,0 +1,167 @@
+.content-download {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.admin_manage_downloads-panel {
+	display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 0px;
+    padding: 20px;
+    margin: 20px;
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    justify-content: space-between;
+    box-shadow: 0 9px 16px rgba(17, 2, 2, 2);
+    padding-bottom: 50px;
+	
+}
+
+.admin_manage_downloads-container {
+	width: 100%;
+	margin: 0px;
+    overflow: hidden;
+	
+}
+
+.admin_manage_downloads-dashboard-btn {
+	padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    font-size: 1rem;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 5px; 
+    text-decoration: none;
+	
+}
+
+.admin_manage_downloads-dashboard-btn:hover {
+    background: gray;
+	border-color: black;
+	
+}
+
+.admin_manage_downloads-dashboard-btn:active {
+    background: darkgray !important;
+	border-color: black !important;
+	
+}
+
+.admin_manage_downloads-requests-header {
+	margin-left: 20px;
+	margin-top: 20px;
+	
+}
+
+.admin_manage_downloads-requests{
+	margin-left: 20px;
+	
+}
+
+.admin_manage_downloads-table {
+	
+}
+
+.admin_manage_downloads-table-header {
+	
+}
+
+.admin_manage_downloads-tr-headings {
+	
+
+}
+
+.admin_manage_downloads-th-headings-1 {
+	text-align: center;
+	padding-left: 30px !important;
+
+}
+
+.admin_manage_downloads-th-headings-2 {
+	text-align: center;
+
+}
+
+.admin_manage_downloads-th-headings-3 {
+	text-align: center;
+
+}
+
+.admin_manage_downloads-th-headings-4 {
+	text-align: center;
+
+}
+
+.admin_manage_downloads-tr-data {
+	
+	
+}
+
+.admin_manage_downloads-td-data-1 {
+	text-align: center;
+	padding-left: 30px !important;
+
+}
+
+.admin_manage_downloads-td-data-2 {
+	text-align: center;
+
+}
+
+.admin_manage_downloads-td-data-3 {
+	text-align: center;
+
+}
+
+.admin_manage_downloads-td-data-4 {
+	text-align: center;
+
+}
+
+.admin_manage_downloads-form {
+	
+	
+}
+
+.admin_manage_downloads-formgroup {
+	
+	
+}
+
+.admin_manage_downloads-clear-btn {
+	padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    font-size: 1rem;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 5px; 
+    text-decoration: none;
+	margin-left: 20px;
+
+}
+
+.admin_manage_downloads-clear-btn:hover {
+	background: gray;
+	border-color: black;
+
+}
+
+.admin_manage_downloads-clear-btn:active {
+	background: darkgray !important;
+	border-color: black !important;;
+
+}
+
+
+

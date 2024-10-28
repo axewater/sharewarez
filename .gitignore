@@ -16,8 +16,9 @@ instance/app.db
 modules/static/library/images
 /modules/static/images/*.jpg
 /venv
-
 /.codebuddy
 /.codebuddy/*
 .codebuddy
 *.zip
+/.git
+/.github

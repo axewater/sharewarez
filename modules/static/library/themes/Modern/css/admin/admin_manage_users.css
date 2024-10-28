@@ -1,0 +1,125 @@
+.glass-panel {
+	margin-left: auto;
+	margin-right: auto;
+	width: 75%;
+
+}
+
+.formlabels {
+    color: #ffffff;
+    margin: 5px;
+	margin-top: 10px;
+}
+
+.glass-panel {
+	border-radius: 0px;
+}
+
+.content-login {
+	border-radius: 0px;
+}
+
+.container {
+	width: 100%;
+    overflow: hidden;
+	margin-left: 0px !important;
+	--bs-gutter-x: 0rem;
+
+}
+
+.btn-primary {
+	padding: 10px 15px;
+    background: gray;
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    font-size: 1rem;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 5px;
+    text-decoration: none;
+	
+}
+
+.btn-primary:hover {
+    background: lightgray;
+	border-color: black;
+	
+}
+
+.btn-primary:active {
+    background: darkgray !important;
+	border-color: black !important;
+	
+}
+
+.btn-secondary {
+	padding: 10px 15px;
+    background: #474747;
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    font-size: 1rem;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 5px;
+    text-decoration: none;
+	
+}
+
+.btn-secondary:hover {
+    background: gray;
+	border-color: black;
+	
+}
+
+.btn-secondary:active {
+    background: darkgray !important;
+	border-color: black !important;
+	
+}
+
+.content-textblock {
+	border-radius: 0px;
+	margin-bottom: 10px;
+}
+
+.input-class {
+	border-radius: 0px;
+	width: 10% !important;
+}
+
+.input-glass {
+	border-radius: 0px;
+	width: 100%;
+
+}
+
+.btn-danger {
+	padding: 10px 15px;
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    font-size: 1rem;
+    color: white;
+    margin: 5px; 
+    text-decoration: none;
+	margin-left: 20px;
+	
+}
+
+.content-textblock-usermanager h3 {
+	margin-bottom: 15px;
+	margin-top: 30px;
+}
+
+.table td {
+	vertical-align: middle;
+}
+
+.bg-warning {
+	background-color: orange !important;
+}

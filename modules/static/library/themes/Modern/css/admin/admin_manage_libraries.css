@@ -1,0 +1,139 @@
+.admin_manage_libraries-container {
+	width: 100%;
+    overflow: hidden;
+	margin-left: 218px !important;
+	border-radius: 0px;
+	
+}
+
+.admin_manage_libraries-library-container {
+	border-radius: 0px;
+	
+}
+
+.admin_manage_libraries-container-dashboard-btn {
+	padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    font-size: 1rem;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 5px; 
+    text-decoration: none;
+	
+}
+
+.admin_manage_libraries-container-dashboard-btn:hover {
+    background: gray;
+	border-color: black;
+	
+}
+
+.admin_manage_libraries-container-dashboard-btn:active {
+    background: darkgray !important;
+	border-color: black !important;
+	
+}
+
+.admin_manage_libraries-library-container {
+	margin-left: 10% !important;
+	margin-right: 10% !important;
+	
+}
+
+.admin_manage_libraries-delete-panel {
+	display: flex;
+    flex-direction: column;
+    background: rgba(255, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    border-radius: 0px;
+    padding: 15px;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    margin-left: 10% !important;
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    align-items: left;
+    justify-content: space-between;
+    max-width: 600px;    
+    width: 100%;
+	
+}
+
+.admin_manage_libraries-delete-library {
+	
+	
+}
+
+.admin_manage_libraries-scan-btn {
+	padding: 10px 15px;
+    background: green;
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    font-size: 1rem;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 5px; 
+    text-decoration: none;
+	margin-left: 20px;
+	
+}
+
+.admin_manage_libraries-scan-btn:hover {
+	background: darkgreen;
+	border-color: black;
+
+}
+
+.admin_manage_libraries-scan-btn:active {
+	background: #003200 !important;
+	border-color: black !important;;
+
+}
+
+.admin_manage_libraries-edit-btn {
+	padding: 10px 15px;
+    background: blue;
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    font-size: 1rem;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 5px; 
+    text-decoration: none;
+	margin-left: 20px;
+	
+}
+
+.admin_manage_libraries-edit-btn:hover {
+	background: darkblue;
+	border-color: black;
+
+}
+
+.admin_manage_libraries-edit-btn:active {
+	background: #00003f !important;
+	border-color: black !important;;
+
+}
+
+.admin_manage_libraries-danger-btn {
+	padding: 10px 15px;
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    font-size: 1rem;
+    color: white;
+    margin: 5px; 
+    text-decoration: none;
+	margin-left: 0px;
+	
+}
