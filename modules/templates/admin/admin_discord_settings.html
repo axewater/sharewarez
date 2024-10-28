@@ -12,8 +12,11 @@
 		<div class="row">
 			<div class="col-md-8 offset-md-2">
 				<div class="card">
-					<div class="card-header">
+					<div class="card-header d-flex justify-content-between align-items-center">
 						<h2>Discord Bot Settings</h2>
+						<a href="{{ url_for('main.discord_help') }}" class="btn btn-info">
+							<i class="fas fa-question-circle"></i> Help
+						</a>
 					</div>
 					<div class="card-body">
 						{% with messages = get_flashed_messages(with_categories=true) %}

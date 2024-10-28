@@ -1373,37 +1373,26 @@ def discord_webhook(game_uuid):
     discord_bot_avatar_url = current_app.config['DISCORD_BOT_AVATAR_URL']
     site_url = current_app.config['SITE_URL']
     cover_url = get_cover_url(newgame.igdb_id)
-    
-    
     # if rate_limit_retry is True then in the event that you are being rate 
     # limited by Discord your webhook will automatically be sent once the 
     # rate limit has been lifted
-    
     webhook = DiscordWebhook(url=f"{discord_webhook}", rate_limit_retry=True)
-
     # create embed object for webhook
     embed = DiscordEmbed(title=f"{newgame.name}", description=f"{newgame.summary}", url=f"{site_url}/game_details/{newgame.uuid}", color="03b2f8")
-
     # set author
     embed.set_author(name=f"{discord_bot_name}", url=f"{site_url}", icon_url=f"{discord_bot_avatar_url}")
-
     # set cover image
     embed.set_image(url=f"{cover_url}")
-
     # set footer
     embed.set_footer(text="This game is now available for download")
-
     # set timestamp (default is now) accepted types are int, float and datetime
     embed.set_timestamp()
-
     # add fields to embed
     # Set `inline=False` for the embed field to occupy the whole line
     embed.add_embed_field(name="Platform", value=f"{newgame_library.name}")
     embed.add_embed_field(name="Size", value=f"{newgame_size}")
-
     # add embed object to webhook
     webhook.add_embed(embed)
-
     response = webhook.execute()
     
 def get_library_by_uuid(uuid):
