@@ -1,0 +1,219 @@
+.dashboard-button {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    width: 50%;
+    height: 100%;
+    color: aliceblue;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    transition: all 0.3s ease;
+	border-radius: 0px;
+}
+
+.dashboard-icon {
+    font-size: 2em; /* Large icons */
+    margin-bottom: 10px;
+
+}
+
+.dashboard-button:hover {
+    text-decoration: none;
+    color: rgb(9, 12, 12);
+    transform: scale(1.1);
+}
+
+.dashboard-panel {
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(3px);
+    border-radius: 0px;
+    padding: 20px;
+    margin-top: 20px;
+	margin-left: auto;
+	margin-right: auto;
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    box-shadow: 0 9px 16px rgba(17, 2, 2, 2);
+    padding-bottom: 50px;
+	width: 50%;
+
+}
+
+.dashboard-header {
+    display: block;
+    font-size: 2em;
+    font-weight: bold;
+	text-align: center;
+	
+}
+
+
+.captains-image {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    border-radius: 15px;
+    display: block;
+    margin: 0 auto;
+	padding-top: 20px;
+	margin-top: 20px;
+	margin-bottom: 80px;
+
+}
+
+.dashboard-container-fluid {
+	height: 100 vh;
+	
+	
+}
+
+.dashboard-row {
+	height: 100 vh;
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	grid-template-rows: 1fr auto;
+	column-gap: 1em;
+	row-gap: 1em;
+}
+
+
+.dashboard-column-1 {
+	grid-column: auto;
+	align-items: stretch;
+	display: flex;
+	justify-content: center;
+
+}
+
+.dashboard-column-2 {
+	grid-column: auto;
+	align-items: stretch;
+	display: flex;
+	justify-content: center;
+
+}
+
+.dashboard-column-3 {
+	grid-column: auto;
+	align-items: stretch;
+	display: flex;
+	justify-content: center;
+
+}
+
+.dashboard-column-4 {
+	grid-column: auto;
+	align-items: stretch;
+	display: flex;
+	justify-content: center;
+
+}
+
+.dashboard-column-4 a{
+	background-color: orange;
+	border: none;
+
+}
+.dashboard-column-4:hover a{
+	background-color: orange;
+	border: none;
+
+}
+
+.dashboard-column-5 {
+	grid-column: auto;
+	align-items: stretch;
+	display: flex;
+	justify-content: center;
+
+}
+
+.dashboard-column-6 {
+	grid-column: auto;
+	align-items: stretch;
+	display: flex;
+	justify-content: center;
+
+}
+
+.dashboard-column-7 {
+	grid-column: auto;
+	align-items: stretch;
+	display: flex;
+	justify-content: center;
+
+}
+
+.dashboard-column-8 {
+	grid-column: auto;
+	align-items: stretch;
+	display: flex;
+	justify-content: center;
+
+}
+
+.dashboard-column-9 {
+	grid-column: auto;
+	align-items: stretch;
+	display: flex;
+	justify-content: center;
+
+}
+
+.dashboard-column-10 {
+	grid-column: auto;
+	align-items: stretch;
+	display: flex;
+	justify-content: center;
+
+}
+
+.dashboard-column-11 {
+	grid-column: auto;
+	align-items: stretch;
+	display: flex;
+	justify-content: center;
+
+}
+
+.dashboard-column-12 {
+	grid-column: auto;
+	align-items: stretch;
+	display: flex;
+	justify-content: center;
+
+}
+
+.dashboard-column-13 {
+	grid-column: auto;
+	align-items: stretch;
+	display: flex;
+	justify-content: center;
+
+}
+
+.dashboard-column-13 a{
+	background-color: #7289da;
+	border: none;
+
+}
+
+.dashboard-column-13:hover a{
+	background-color: #667bc4;
+	border: none;
+
+}
+
+.settingsform-admin {
+        
+	padding: 20px;
+	border-radius: 15px;
+}
+.settingsform-admin .form-check-label {
+	color: #000000; /* Ensuring labels are readable against the dark background */
+}

@@ -1,0 +1,85 @@
+.admin_manage_invites-panel {
+    margin-left: auto;
+    margin-right: auto;
+
+}
+
+.admin_manage_invites-heading {
+	
+	
+}
+
+.admin_manage_invites-table-div {
+	
+	
+}
+
+.admin_manage_invites-table {
+
+	
+}
+
+.admin_manage_invites-th-1 {
+	padding-left: 30px !important;
+	
+}
+
+.admin_manage_invites-th-2 {
+	text-align: center;
+	
+}
+
+.admin_manage_invites-th-3 {
+	
+	
+}
+
+.admin_manage_invites-td-1 {
+	vertical-align: middle !important;
+	padding-left: 30px !important;
+
+}
+
+.admin_manage_invites-td-2 {
+	vertical-align: middle !important;
+	text-align: center;
+
+}
+
+.admin_manage_invites-invitesleft {
+	margin-top: auto;
+	margin-bottom: auto;
+	
+}
+
+.admin_manage_invites-form-control {
+	
+}
+
+.admin_manage_invites-add-btn {
+	padding: 10px 15px;
+    background: gray;
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    font-size: 1rem;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 5px; 
+    text-decoration: none;
+	margin-left: 20px;
+
+}
+
+.admin_manage_invites-add-btn:hover {
+	background: gray;
+	border-color: black;
+
+}
+
+.admin_manage_invites-add-btn:active {
+	background: darkgray !important;
+	border-color: black !important;;
+
+}

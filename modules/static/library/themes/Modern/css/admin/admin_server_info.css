@@ -1,0 +1,60 @@
+.glass-panel {
+	border-radius: 0px;
+}
+
+.container {
+	width: 100%;
+    overflow: hidden;
+	margin-left: 0px !important;
+	--bs-gutter-x: 0rem;
+	margin-top: 0px !important;
+
+}
+
+.container h2{
+	margin-top: 50px;
+	margin-bottom: 10px;
+}
+
+.container-status-page {
+	margin-left: auto !important;
+	margin-right: auto !important;
+}
+
+.container-serverstatus-version {
+	margin-top: 15px;
+	width: 25% !important;
+	margin-left: auto !important;
+	margin-right: auto !important;
+}
+
+.container-serverstatus-version p{
+	padding: 10px;
+}
+
+.btn-primary {
+	padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    font-size: 1rem;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 5px;
+    text-decoration: none;
+	
+}
+
+.btn-primary:hover {
+    background: gray;
+	border-color: black;
+	
+}
+
+.btn-primary:active {
+    background: darkgray !important;
+	border-color: black !important;
+	
+}

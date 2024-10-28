@@ -1,0 +1,13 @@
+.glass-panel {
+	margin-right: auto;
+	margin-left: auto;
+	width: 50%;
+}
+
+.btn {
+	width: 35%;
+	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 30px;
+}
