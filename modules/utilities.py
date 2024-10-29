@@ -205,10 +205,11 @@ def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_u
         fetch_and_store_game_urls(new_game.uuid, game_data['id'])
         
         print(f"create_game_instance Finished processing game '{new_game.name}'. URLs (if any) have been fetched and stored.")
+        if current_app.config['DISCORD_WEBHOOK_URL']:
+            discord_webhook(new_game.uuid)
+        
     except Exception as e:
         print(f"create_game_instance Error during the game instance creation or URL fetching for game '{game_data.get('name')}'. Error: {e}")
-    if current_app.config['DISCORD_WEBHOOK_URL']:
-        discord_webhook(new_game.uuid)
     
     return new_game
 
@@ -1398,7 +1399,7 @@ def discord_webhook(game_uuid):
     embed.set_timestamp()
     # add fields to embed
     # Set `inline=False` for the embed field to occupy the whole line
-    embed.add_embed_field(name="Platform", value=f"{newgame_library.name}")
+    embed.add_embed_field(name="Library", value=f"{newgame_library.name}")
     embed.add_embed_field(name="Size", value=f"{newgame_size}")
     # add embed object to webhook
     webhook.add_embed(embed)
