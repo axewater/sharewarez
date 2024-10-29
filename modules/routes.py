@@ -1617,6 +1617,9 @@ def manage_settings():
         
         settings_record.settings = new_settings
         settings_record.enable_delete_game_on_disk = new_settings.get('enableDeleteGameOnDisk', True)
+        settings_record.discord_notify_new_games = new_settings.get('discordNotifyNewGames', False)
+        settings_record.discord_notify_game_updates = new_settings.get('discordNotifyGameUpdates', False)
+        settings_record.discord_notify_downloads = new_settings.get('discordNotifyDownloads', False)
         settings_record.update_folder_name = new_settings.get('updateFolderName', 'updates')
         settings_record.last_updated = datetime.utcnow()
         db.session.commit()
@@ -1629,6 +1632,9 @@ def manage_settings():
         settings_record = GlobalSettings.query.first()
         current_settings = settings_record.settings if settings_record else {}
         current_settings['enableDeleteGameOnDisk'] = settings_record.enable_delete_game_on_disk if settings_record else True
+        current_settings['discordNotifyNewGames'] = settings_record.discord_notify_new_games if settings_record else False
+        current_settings['discordNotifyGameUpdates'] = settings_record.discord_notify_game_updates if settings_record else False
+        current_settings['discordNotifyDownloads'] = settings_record.discord_notify_downloads if settings_record else False
         current_settings['updateFolderName'] = settings_record.update_folder_name if settings_record else 'updates'
         return render_template('admin/admin_server_settings.html', current_settings=current_settings)
 
