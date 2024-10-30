@@ -1,4 +1,4 @@
-# 🎮 Welcome to SharewareZ v1.5.0 🚀
+# 🎮 Welcome to SharewareZ v1.5.1 🚀
 
 SharewareZ transforms any game folder into a dynamic, searchable library. With IGDB integration, it indexes games and adds cover images, screenshots, and metadata for easy filtering. Plus, you can invite friends to download games from your library.
 
@@ -131,7 +131,7 @@ CREATE DATABASE sharewarez;
 
 ### Docker image
 ```
-docker pull kapitanczarnobrod/sharewarez:1.2.0:latest
+docker pull kapitanczarnobrod/sharewarez:latest
 ```
 ---
 Thank you for setting up the Sharewarez App. For further assistance, please open an issue on this repository or join my Discord.
