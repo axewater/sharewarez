@@ -2,9 +2,10 @@
 
 # List the contents of the /app directory
 echo "SharewareZ container strapping boots"
+
 # Function to check if PostgreSQL is ready
 wait_for_postgres() {
-    until psql -h <database_host> -U <database_user> -c '\q' &>/dev/null; do
+    until psql -h "${DATABASE_HOST}" -U "${POSTGRES_USER}" -c '\q' &>/dev/null; do
         echo "Waiting for PostgreSQL to become available..."
         sleep 5
     done
