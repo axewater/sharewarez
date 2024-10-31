@@ -37,28 +37,30 @@
 
 .discovery-latest-games-container {
 	display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 	justify-items:center;
+
     
 }
 
 .discovery-most-downloaded-container {
 	display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 	justify-items:center;
+
     
 }
 
 .discovery-highest-rated-container {
 	display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 	justify-items:center;
     
 }
 
 
 .game-card-container {
-
+	
     
 }
 
@@ -68,7 +70,8 @@
     transition: transform 0.3s ease; 
     position: relative;
     margin: 5px;
-    max-width: 250px;
+	max-width: 250px;
+	max-height: 332px;
 }
 
 
@@ -89,7 +92,9 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease; 
     border: 1px solid rgb(49, 49, 49);
     border-radius: 5px;
-    
+	max-width: 250px;
+	max-height: 332px;
+	
 }
 
 .libraries-list {
