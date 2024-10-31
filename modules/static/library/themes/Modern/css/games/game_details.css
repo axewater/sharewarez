@@ -8,6 +8,8 @@
     margin: 20px;
     box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     min-height: 80vh;
+	/* min-width: 1900px; */
+	min-width: 1500px;
 }
 
 .button-glass-hamburger {
@@ -51,7 +53,6 @@
     top: 70px;
     right: 15px;
 	width: 100%;
-
 }
 
 .game-card-downloads {
@@ -229,17 +230,72 @@ pre {
     width: 20%;
     margin: 10px;
 	margin-right: 40px;
+	min-width: 400px;
 }
 
 .game-card-q2 {
     display: flex;
     flex-direction: row;
     margin: 10px;
-    justify-content: space-evenly;
+    justify-content: space-between;
     height: 100%;
+	min-width: 1000px;
+
+
 }
 
+.game-card-q3 {
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+    justify-content: space-between;
+    height: 100%;
+	min-width: 400px;
+}
 
+.game-files {
+    display: flex;
+	flex: 1;
+    flex-direction: column;
+    color: #efeaea;
+    background-color: #42403c;
+    text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    padding-right: 40px;
+	margin-top: 0px;
+    margin-bottom: 10px;
+    line-height: normal;
+    box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    border-radius: 0px;
+    border: 1px solid #080707;
+    top: 70px;
+    right: 15px;
+	width: 100%;
+}
+
+.game-files-updates {
+	margin-bottom: 20px;
+}
+
+.updates-header {
+	font-size: 20px;
+}
+
+.updates-content {
+	margin-bottom: 30px;
+}
+
+.game-files-additional {
+	margin-bottom: 20px;
+}
+
+.additional-header {
+	font-size: 20px;
+}
+
+.additional-content {
+	
+}
 
 .game-card-text-summary {
     background-color: #bcb5b5;
