@@ -1,4 +1,3 @@
-
 .image-editor-image img{
     width: 300px;
 	margin-top: 15px;
@@ -8,8 +7,6 @@
 .image-editor-image {
     display: flex;
     flex-direction: column;
-	margin-right: auto;
-	margin-left: auto;
 }
 
 .image-editor-list {
@@ -42,6 +39,7 @@
     margin-bottom: 20px;
     margin-top: 20px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	width: 20%;
 }
 
 .glass-panel-image-editor-upload h3{
@@ -58,27 +56,56 @@
     margin-bottom: 20px;
     margin-top: 20px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    max-width: 500px;
+	width: 100%;
+	margin-right: auto;
+	margin-left: auto;
 }
 
 .glass-panel-image-editor-cover h3{
-	text-align: center;
+	text-align: left;
+	margin-left: 4%
 }
 
 .delete-cover-image-container {
     width: 300px;
     display: inline-block;
 	margin-top: 20px;
+	margin-left: 4%;
 }
 
 .form-control {
-	margin-top: 20px !important;
+	margin-top: auto !important;
 	margin-bottom: auto !important;
-	width: 25%;
+	width: 100%;
+	vertical-align: middle;
+	padding: 10px;
 }
 
 .btn-primary {
 	margin-top: 15px;
 	width: 25%;
 	
+}
+
+.spinner {
+    display: none;
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 1000;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.cover-image-container {
+    display: flex;
+    flex-direction: column;
+	width: 100%;
 }
