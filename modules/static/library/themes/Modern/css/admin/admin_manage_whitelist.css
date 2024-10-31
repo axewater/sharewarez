@@ -3,6 +3,7 @@
 	width: 75%;
 	margin-right: auto;
 	margin-left: auto;
+	min-width: 900px;
 }
 
 .glass-panel h1{

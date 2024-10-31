@@ -9,4 +9,3 @@ RUN chmod a+x /app/entrypoint.sh
 
 EXPOSE 5001
 ENTRYPOINT ["sh","/app/entrypoint.sh"]
-
