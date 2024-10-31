@@ -1366,9 +1366,14 @@ def comma_separated_urls(form, field):
             raise ValidationError('One or more URLs are invalid. Please provide valid YouTube embed URLs.')
 
 def discord_webhook(game_uuid):
-    # Check if Discord notifications are enabled for new games
+    # Check if Discord webhook URL is configured
     settings = GlobalSettings.query.first()
-    if not settings or not settings.discord_notify_new_games:
+    if not settings or not settings.discord_webhook_url:
+        print("Discord webhook URL not configured")
+        return
+        
+    # Check if Discord notifications are enabled for new games
+    if not settings.discord_notify_new_games:
         print("Discord notifications for new games are disabled")
         return
 

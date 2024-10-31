@@ -60,7 +60,7 @@ has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '1.5.0'
+app_version = '1.5.1'
 
 
 @bp.before_app_request
@@ -432,7 +432,7 @@ def settings_profile_edit():
         file = form.avatar.data
         if file:
             # Ensure UPLOAD_FOLDER exists
-            upload_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'avatars_users')
+            upload_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'images/avatars_users')
             if not os.path.exists(upload_folder):
                 try:
                     # Safe check to avoid creating 'static' directly
@@ -474,7 +474,7 @@ def settings_profile_edit():
                     print(f"Error deleting old avatar: {e}")
                     flash("Error deleting old avatar. Please try again.", 'error')
 
-            current_user.avatarpath = 'library/avatars_users/' + uuid_filename
+            current_user.avatarpath = 'library/images/avatars_users/' + uuid_filename
         else:
             if not current_user.avatarpath:
                 current_user.avatarpath = 'newstyle/avatar_default.jpg'
