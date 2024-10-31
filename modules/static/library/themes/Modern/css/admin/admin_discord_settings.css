@@ -2,6 +2,7 @@
 	width: 75%;
 	margin-left: auto;
 	margin-right: auto;
+	min-width: 900px;
 }
 
 .btn-primary {
@@ -44,6 +45,7 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
     margin: 5px;
     text-decoration: none;
+	width: 25%;
 	
 }
 

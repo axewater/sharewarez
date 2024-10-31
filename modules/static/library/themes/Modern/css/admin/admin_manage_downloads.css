@@ -17,6 +17,7 @@
     justify-content: space-between;
     box-shadow: 0 9px 16px rgba(17, 2, 2, 2);
     padding-bottom: 50px;
+	min-width: 900px;
 	
 }
 
