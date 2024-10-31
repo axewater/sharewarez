@@ -1624,8 +1624,6 @@ def manage_settings():
         settings_record.last_updated = datetime.utcnow()
         db.session.commit()
         cache.delete('global_settings')
-
-        flash('SharewareZ Settings updated successfully, Captain!', 'success')
         return jsonify({'message': 'Settings updated successfully'}), 200
 
     else:  # GET request
