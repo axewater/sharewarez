@@ -1620,7 +1620,10 @@ def manage_settings():
         settings_record.discord_notify_new_games = new_settings.get('discordNotifyNewGames', False)
         settings_record.discord_notify_game_updates = new_settings.get('discordNotifyGameUpdates', False)
         settings_record.discord_notify_downloads = new_settings.get('discordNotifyDownloads', False)
+        settings_record.enable_game_updates = new_settings.get('enableGameUpdates', True)
         settings_record.update_folder_name = new_settings.get('updateFolderName', 'updates')
+        settings_record.enable_game_extras = new_settings.get('enableGameExtras', True)
+        settings_record.extras_folder_name = new_settings.get('extrasFolderName', 'extras')
         settings_record.last_updated = datetime.utcnow()
         db.session.commit()
         cache.delete('global_settings')
@@ -1633,7 +1636,10 @@ def manage_settings():
         current_settings['discordNotifyNewGames'] = settings_record.discord_notify_new_games if settings_record else False
         current_settings['discordNotifyGameUpdates'] = settings_record.discord_notify_game_updates if settings_record else False
         current_settings['discordNotifyDownloads'] = settings_record.discord_notify_downloads if settings_record else False
+        current_settings['enableGameUpdates'] = settings_record.enable_game_updates if settings_record else True
         current_settings['updateFolderName'] = settings_record.update_folder_name if settings_record else 'updates'
+        current_settings['enableGameExtras'] = settings_record.enable_game_extras if settings_record else True
+        current_settings['extrasFolderName'] = settings_record.extras_folder_name if settings_record else 'extras'
         return render_template('admin/admin_server_settings.html', current_settings=current_settings)
 
 
