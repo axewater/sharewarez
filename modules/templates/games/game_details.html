@@ -200,6 +200,37 @@
                         </div>
                         
                     </div>
+					<div class="game-card-q3">
+						<div class="game-files">
+							<div class="game-files-updates">
+								<div class="updates-header">Updates</div>
+							</div>
+							{% if update_files.files %}
+								<div class="updates-content">
+									<table class="table table-hover">
+										{% for file in update_files.files %}
+										<tr>
+											<th>
+												<form action="{{ url_for('main.download_file', file_location=update_files.path + '\\' + update_files.folder + '\\' + file.name, game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form">
+													<input type="submit" value="{{ file.name }} ({{ file.size }})" class="button-glass-download">
+													{{ form.csrf_token }} 
+												</form>
+											</th>				
+										</tr>
+										{% endfor %}
+									</table>
+								</div>
+							{% else %}
+								<p>None</p>
+							{% endif %}
+							<div class="game-files-additional">
+								<div class="additional-header">Additional Files</div>
+							</div>
+							<div class="additional-content">
+								<p>Additional Files will go here.</p>
+							</div>
+						</div>
+					</div>
                 </div>
 			{% if game.images and game.images|length > 0 %}
                 <div class="screenshot-gallery">
