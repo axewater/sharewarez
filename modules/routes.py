@@ -16,7 +16,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy import func, Integer, Text, case
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
-
+from glob import glob
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from modules import db, mail, cache
@@ -48,7 +48,7 @@ from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
     get_game_by_uuid, make_igdb_api_request, load_release_group_patterns, check_existing_game_by_igdb_id,
     get_game_names_from_folder, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_files,
-    zip_game, format_size, delete_game_images, read_first_nfo_content, get_folder_size_in_bytes, PLATFORM_IDS
+    zip_game, zip_folder, format_size, delete_game_images, read_first_nfo_content, get_folder_size_in_bytes, PLATFORM_IDS
 )
 from modules.theme_manager import ThemeManager
 
@@ -1993,9 +1993,16 @@ def game_details(game_uuid):
             "icon": url_icons.get(url.url_type, "fa-link")
         } for url in game.urls]
         
+        settings = GlobalSettings.query.first()
+        if not settings or not settings.discord_notify_new_games:
+            print("Discord notifications for new games are disabled")
+            return
+        update_folder = settings.update_folder_name if settings and settings.update_folder_name else current_app.config['UPDATE_FOLDER_NAME']
+        update_files = list_files(game.full_disk_path, update_folder)
+        
         library_uuid = game.library_uuid
         
-        return render_template('games/game_details.html', game=game_data, form=csrf_form, library_uuid=library_uuid)
+        return render_template('games/game_details.html', game=game_data, form=csrf_form, library_uuid=library_uuid, update_files=update_files)
     else:
         return jsonify({"error": "Game not found"}), 404
 
@@ -2393,7 +2400,7 @@ def download_game(game_uuid):
     print(f"Game found: {game}")
 
     # Check for any existing download request for the same game by the current user, regardless of status
-    existing_request = DownloadRequest.query.filter_by(user_id=current_user.id, game_uuid=game_uuid).first()
+    existing_request = DownloadRequest.query.filter_by(user_id=current_user.id, file_location=game.full_disk_path).first()
     
     if existing_request:
         flash("You already have a download request for this game in your basket. Please check your downloads page.", "info")
@@ -2404,7 +2411,8 @@ def download_game(game_uuid):
         user_id=current_user.id,
         game_uuid=game.uuid,
         status='processing',  
-        download_size=game.size
+        download_size=game.size,
+        file_location=game.full_disk_path
     )
     db.session.add(new_request)
     game.times_downloaded += 1
@@ -2422,7 +2430,46 @@ def download_game(game_uuid):
     flash("Your download request is being processed. You will be notified when the download is ready.", "info")
     return redirect(url_for('main.downloads'))
 
+@bp.route('/download_file/<file_location>/<file_size>/<game_uuid>/<file_name>', methods=['GET'])
+@login_required
+def download_file(file_location, file_size, game_uuid, file_name):
+    print(f"Downloading file with location: {file_location}")
+    if os.path.isfile(file_location):
+        file_size_stripped = ''.join(filter(str.isdigit, file_size))
+        file_size_bytes = int(file_size_stripped)*10000
+    else:
+        file_size_bytes = get_folder_size_in_bytes(file_location)
+        
+    # Check for any existing download request for the same file by the current user, regardless of status
+    existing_request = DownloadRequest.query.filter_by(user_id=current_user.id, file_location=file_location).first()
+    
+    if existing_request:
+        flash("You already have a download request for this file in your basket. Please check your downloads page.", "info")
+        return redirect(url_for('main.downloads'))
 
+    print(f"Creating a new download request for user {current_user.id} for file {file_location}")
+    new_request = DownloadRequest(
+        user_id=current_user.id,
+        zip_file_path=file_location,
+        status='processing',  
+        download_size=file_size_bytes,
+        game_uuid=game_uuid,
+        file_location=file_location
+    )
+    db.session.add(new_request)
+    db.session.commit()
+
+    # Start the download process (potentially in a new thread as before)
+    @copy_current_request_context
+    def thread_function():
+        print(f"Thread function started for download request {new_request.id}")
+        zip_folder(new_request.id, current_app._get_current_object(), file_location, file_name)
+
+    thread = Thread(target=thread_function)
+    thread.start()
+    
+    flash("Your download request is being processed. You will be notified when the download is ready.", "info")
+    return redirect(url_for('main.downloads'))
 
 @bp.route('/discover')
 @login_required
@@ -3103,3 +3150,20 @@ def verify_file(full_path):
     else:
         print(f"Cannot find theme specific file: {full_path}. Using default theme file.", 'warning')
         return False
+     
+def list_files(path, folder):
+    content = glob(path + "\\" + folder + '/*');
+    print(f"Listing content of directory {path} and folder {folder}.")
+         
+    files = {
+        "path": path,
+        "folder": folder,
+        "files": [{
+            'name': os.path.basename(f),
+            'size': format_size(os.path.getsize(f)) if os.path.isfile(f) else format_size(get_folder_size_in_bytes(f)),
+        } for f in content]
+    }
+      
+    print(f"File updates content {files}.")
+    
+    return files
