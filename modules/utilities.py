@@ -790,12 +790,14 @@ def zip_game(download_request_id, app):
                 print(f"An error occurred: {error_message}")
                 update_download_request(download_request, 'failed', "Error: " + error_message)
 
-def update_download_request(download_request, status, file_path):
+def update_download_request(download_request, status, file_path, file_size=None):
     download_request.status = status
     download_request.zip_file_path = file_path
+    if file_size:
+        download_request.download_size = file_size
     download_request.completion_time = datetime.utcnow()
     print(f"Download request updated: {download_request}")
-    db.session.commit()     
+    db.session.commit()    
      
 def zip_folder(download_request_id, app, file_location, file_name):
     with app.app_context():
