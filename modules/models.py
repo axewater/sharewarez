@@ -386,6 +386,7 @@ class DownloadRequest(db.Model):
     completion_time = db.Column(db.DateTime, nullable=True)
     download_size = db.Column(db.Float, nullable=False, default=0.0)
     game = db.relationship('Game', foreign_keys=[game_uuid], back_populates='download_requests')
+    file_location = db.Column(db.String, nullable=True)
 
 
 class Whitelist(db.Model):
