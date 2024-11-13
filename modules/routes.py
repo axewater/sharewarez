@@ -3167,6 +3167,7 @@ def list_files(path, folder):
         "files": [{
             'name': os.path.basename(f),
             'size': format_size(os.path.getsize(f)) if os.path.isfile(f) else format_size(get_folder_size_in_bytes(f)),
+            'isfile': os.path.isfile(f),
         } for f in content]
     }
       
