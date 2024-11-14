@@ -2426,8 +2426,7 @@ def download_game(game_uuid):
         game_uuid=game.uuid,
         status='processing',  
         download_size=game.size,
-        file_location=game.full_disk_path,
-        zip_file_path=game.full_disk_path
+        file_location=game.full_disk_path
     )
     db.session.add(new_request)
     game.times_downloaded += 1
