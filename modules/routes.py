@@ -2012,11 +2012,11 @@ def game_details(game_uuid):
         update_folder = settings.update_folder_name if settings and settings.update_folder_name else current_app.config['UPDATE_FOLDER_NAME']
         extras_folder = settings.extras_folder_name if settings and settings.extras_folder_name else current_app.config['EXTRAS_FOLDER_NAME']
         update_files = list_files(game.full_disk_path, update_folder)
-        extra_files = list_files(game.full_disk_path, extras_folder)
+        extras_files = list_files(game.full_disk_path, extras_folder)
         
         library_uuid = game.library_uuid
         
-        return render_template('games/game_details.html', game=game_data, form=csrf_form, library_uuid=library_uuid, update_files=update_files)
+        return render_template('games/game_details.html', game=game_data, form=csrf_form, library_uuid=library_uuid, update_files=update_files, extras_files=extras_files)
     else:
         return jsonify({"error": "Game not found"}), 404
 
@@ -2426,7 +2426,8 @@ def download_game(game_uuid):
         game_uuid=game.uuid,
         status='processing',  
         download_size=game.size,
-        file_location=game.full_disk_path
+        file_location=game.full_disk_path,
+        zip_file_path=game.full_disk_path
     )
     db.session.add(new_request)
     game.times_downloaded += 1
