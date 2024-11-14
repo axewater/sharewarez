@@ -302,6 +302,12 @@ pre {
 	
 }
 
+.additional-content table tr th {
+	margin-bottom: 30px;
+	background-color: #bcb5b5;
+	text-shadow: none;
+}
+
 .game-card-text-summary {
     background-color: #bcb5b5;
     color: #000; 
