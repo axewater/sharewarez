@@ -118,6 +118,8 @@ def inject_settings():
         enable_newsletter = settings_record.settings.get('enableNewsletterFeature', False)
         show_version = settings_record.settings.get('showVersion', False)  # settings fix
         enable_delete_game_on_disk = settings_record.settings.get('enableDeleteGameOnDisk', True)
+        enable_game_updates = settings_record.settings.get('enableGameUpdates', True)
+        enable_game_extras = settings_record.settings.get('enableGameExtras', True)
     else:
         # Default values if no settings_record is found
         show_logo = True
@@ -127,6 +129,8 @@ def inject_settings():
         enable_newsletter = True
         show_version = True  # Default to showing version
         enable_delete_game_on_disk = True
+        enable_game_updates = True
+        enable_game_extras = True
 
     return dict(
         show_logo=show_logo, 
@@ -136,7 +140,9 @@ def inject_settings():
         enable_newsletter=enable_newsletter,
         show_version=show_version,
         app_version=app_version,
-        enable_delete_game_on_disk=enable_delete_game_on_disk
+        enable_delete_game_on_disk=enable_delete_game_on_disk,
+        enable_game_updates=enable_game_updates,
+        enable_game_extras=enable_game_extras
     )
 
 @bp.context_processor
