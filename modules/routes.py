@@ -2010,7 +2010,9 @@ def game_details(game_uuid):
             print("Discord notifications for new games are disabled")
             return
         update_folder = settings.update_folder_name if settings and settings.update_folder_name else current_app.config['UPDATE_FOLDER_NAME']
+        extras_folder = settings.extras_folder_name if settings and settings.extras_folder_name else current_app.config['EXTRAS_FOLDER_NAME']
         update_files = list_files(game.full_disk_path, update_folder)
+        extra_files = list_files(game.full_disk_path, extras_folder)
         
         library_uuid = game.library_uuid
         
