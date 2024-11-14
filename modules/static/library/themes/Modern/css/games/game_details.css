@@ -85,7 +85,6 @@
     cursor: pointer;
     color: white;
     font-size: 24px;
-
     transition: color 0.9s ease, font-size 0.5s ease;
 }
 
@@ -283,6 +282,12 @@ pre {
 
 .updates-content {
 	margin-bottom: 30px;
+}
+
+.updates-content table tr th {
+	margin-bottom: 30px;
+	background-color: #bcb5b5;
+	text-shadow: none;
 }
 
 .game-files-additional {
@@ -588,3 +593,6 @@ pre {
     background-color: rgba(0,0,0,0.8);
 }
 
+.bi {
+	color: white;
+}
