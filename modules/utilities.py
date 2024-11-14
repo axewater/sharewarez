@@ -770,8 +770,9 @@ def zip_game(download_request_id, app):
                     os.makedirs(zip_save_path)
                     print(f"Created missing directory: {zip_save_path}")
                     
-                zip_file_path = os.path.join(zip_save_path, f"{game.uuid}.zip")
-                print(f"Zipping game folder: {source_path} to {zip_file_path} with storage method.")
+                zip_file_path = os.path.join(zip_save_path, f"{game.name}.zip")
+                update_download_request(download_request, 'Processing', zip_file_path)
+                print(f"Zipping game folder: {source_path} to {zip_file_path} with storage  method.")
                 
                 with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_STORED) as zipf:
                     for root, dirs, files in os.walk(source_path):
