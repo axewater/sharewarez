@@ -2451,7 +2451,7 @@ def download_game(game_uuid):
     @copy_current_request_context
     def thread_function():
         print(f"Thread function started for download request {new_request.id}")
-        zip_game(new_request.id, current_app._get_current_object())
+        zip_game(new_request.id, current_app._get_current_object(), zip_file_path)
 
     thread = Thread(target=thread_function)
     thread.start()

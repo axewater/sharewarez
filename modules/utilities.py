@@ -727,7 +727,7 @@ def download_image(url, save_path):
         print(f"An error occurred while saving the image to {save_path}: {e}")        
         
 
-def zip_game(download_request_id, app):
+def zip_game(download_request_id, app, zip_file_path):
     with app.app_context():
         download_request = DownloadRequest.query.get(download_request_id)
         game = download_request.game
@@ -740,6 +740,7 @@ def zip_game(download_request_id, app):
         
         zip_save_path = app.config['ZIP_SAVE_PATH']
         source_path = game.full_disk_path
+        zip_file_path = zip_file_path
 
         # Check if source path exists
         if not os.path.exists(source_path):
@@ -748,49 +749,36 @@ def zip_game(download_request_id, app):
             return
 
         # Check if source path is a file or directory
-        if os.path.isfile(source_path):
-            print(f"Source is a file, providing direct link: {source_path}")
-            update_download_request(download_request, 'available', source_path)
+        if os.path.isfile(zip_file_path):
+            print(f"Source is a file, providing direct link: {zip_file_path}")
+            update_download_request(download_request, 'available', zip_file_path)
             return
-
-        # List all files, case-insensitively excluding .NFO and .SFV files, and file_id.diz
-        files_in_directory = [f for f in os.listdir(source_path) if os.path.isfile(os.path.join(source_path, f))]
-        significant_files = [f for f in files_in_directory if not f.lower().endswith(('.nfo', '.sfv')) and not f.lower() == 'file_id.diz']
-
-        # If only one significant file remains, provide a direct link
-        if len(significant_files) == 1:
-            game_file_path = os.path.join(source_path, significant_files[0])
-            print(f"Single significant file found, providing direct link: {game_file_path}")
-            update_download_request(download_request, 'available', game_file_path)
-            return
-        else:
-            # Proceed to zip the game
-            try:
-                if not os.path.exists(zip_save_path):
-                    os.makedirs(zip_save_path)
-                    print(f"Created missing directory: {zip_save_path}")
-                    
-                zip_file_path = os.path.join(zip_save_path, f"{game.name}.zip")
-                update_download_request(download_request, 'processing', zip_file_path)
-                print(f"Zipping game folder: {source_path} to {zip_file_path} with storage method.")
+       
+        # Proceed to zip the game
+        try:
+            if not os.path.exists(zip_save_path):
+                os.makedirs(zip_save_path)
+                print(f"Created missing directory: {zip_save_path}")
                 
-                with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_STORED) as zipf:
-                    for root, dirs, files in os.walk(source_path):
-                        # Exclude the 'updates' folder
-                        if 'updates' in dirs:
-                            dirs.remove('updates')
-                        for file in files:
-                            file_path = os.path.join(root, file)
-                            # Ensure .NFO, .SFV, and file_id.diz files are still included in the zip
-                            zipf.write(file_path, os.path.relpath(file_path, source_path))
-                zip_file_path = os.path.join(zip_save_path, f"{game.name}.zip")
-                print(f"Archive created at {zip_file_path}")
-                update_download_request(download_request, 'available', zip_file_path)
-                
-            except Exception as e:
-                error_message = str(e)
-                print(f"An error occurred: {error_message}")
-                update_download_request(download_request, 'failed', "Error: " + error_message)
+            update_download_request(download_request, 'processing', zip_file_path)
+            print(f"Zipping game folder: {source_path} to {zip_file_path} with storage method.")
+            
+            with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_STORED) as zipf:
+                for root, dirs, files in os.walk(source_path):
+                    # Exclude the 'updates' folder
+                    if 'updates' in dirs:
+                        dirs.remove('updates')
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        # Ensure .NFO, .SFV, and file_id.diz files are still included in the zip
+                        zipf.write(file_path, os.path.relpath(file_path, source_path))
+            print(f"Archive created at {zip_file_path}")
+            update_download_request(download_request, 'available', zip_file_path)
+            
+        except Exception as e:
+            error_message = str(e)
+            print(f"An error occurred: {error_message}")
+            update_download_request(download_request, 'failed', "Error: " + error_message)
 
 def update_download_request(download_request, status, file_path, file_size=None):
     download_request.status = status
