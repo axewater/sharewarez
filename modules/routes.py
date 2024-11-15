@@ -2466,8 +2466,11 @@ def download_file(file_location, file_size, game_uuid, file_name):
     if os.path.isfile(file_location):
         file_size_stripped = ''.join(filter(str.isdigit, file_size))
         file_size_bytes = int(file_size_stripped)*10000
+        zip_file_path = file_location
     else:
         file_size_bytes = get_folder_size_in_bytes(file_location)
+        zip_save_path = current_app.config['ZIP_SAVE_PATH']
+        zip_file_path = os.path.join(zip_save_path, f"{file_name}.zip")
         
     # Check for any existing download request for the same file by the current user, regardless of status
     existing_request = DownloadRequest.query.filter_by(user_id=current_user.id, file_location=file_location).first()
@@ -2479,7 +2482,7 @@ def download_file(file_location, file_size, game_uuid, file_name):
     print(f"Creating a new download request for user {current_user.id} for file {file_location}")
     new_request = DownloadRequest(
         user_id=current_user.id,
-        zip_file_path=file_location,
+        zip_file_path=zip_file_path,
         status='processing',  
         download_size=file_size_bytes,
         game_uuid=game_uuid,
