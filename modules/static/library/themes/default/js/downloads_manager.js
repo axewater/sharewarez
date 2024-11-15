@@ -9,29 +9,29 @@ document.addEventListener("DOMContentLoaded", function() {
         }, 5000);
     });
 
-    const downloads = document.querySelectorAll("tr[data-game-uuid]");
+    const downloads = document.querySelectorAll("tr[data-download-id]");
     
     downloads.forEach((download) => {
-        const gameUuid = download.getAttribute("data-game-uuid");
-        const gameName = download.querySelector("td").textContent;
+		const download_id = download.getAttribute("data-download-id");
+        const gameName = download.querySelector("td").textContent;	
         
         // Add to processing downloads if status is 'processing'
         const statusCell = download.querySelector(".status-cell .status-value");
         if (statusCell && statusCell.textContent.trim().toLowerCase() === 'processing') {
-            addProcessingDownload(gameUuid, gameName);
+            addProcessingDownload(download_id, gameName);
         }
         
-        checkDownloadStatus(gameUuid);
-        setInterval(() => checkDownloadStatus(gameUuid), 3000);
+        checkDownloadStatus(download_id);
+        setInterval(() => checkDownloadStatus(download_id), 3000);
     });
 });
 
-function checkDownloadStatus(gameUuid) {
-    fetch(`/check_download_status/${gameUuid}`)
+function checkDownloadStatus(download_id) {
+    fetch(`/check_download_status/${download_id}`)
     .then(response => response.json())
     .then(data => {
         if (data.status === 'available') {
-            const downloadRow = document.querySelector(`tr[data-game-uuid="${gameUuid}"]`);
+            const downloadRow = document.querySelector(`tr[data-download-id="${download_id}"]`);
             if (downloadRow) {
                 updateDownloadRow(downloadRow, data.downloadId);
             }

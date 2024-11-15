@@ -59,13 +59,13 @@ function showFlashMessage(message, type = 'info') {
 function checkProcessingDownloads() {
     const downloads = JSON.parse(sessionStorage.getItem('processingDownloads'));
     
-    for (const [gameUuid, info] of Object.entries(downloads)) {
-        fetch(`/check_download_status/${gameUuid}`)
+    for (const [download_id, info] of Object.entries(downloads)) {
+        fetch(`/check_download_status/${download_id}`)
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'available') {
                     showFlashMessage(`Download "${info.name}" has completed processing`, 'success');
-                    removeProcessingDownload(gameUuid);
+                    removeProcessingDownload(download_id);
                 }
             })
             .catch(error => console.error('Error checking download status:', error));
