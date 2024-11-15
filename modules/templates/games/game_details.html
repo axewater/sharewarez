@@ -201,7 +201,7 @@
                         </div>
                         
                     </div>
-					{% if enable_game_updates or enable_game_extras %}
+					{% if (enable_game_updates or enable_game_extras) and (update_files.files or extras_files.files) %}
 						<div class="game-card-q3">
 							<div class="game-files">
 							{% if enable_game_updates %}
