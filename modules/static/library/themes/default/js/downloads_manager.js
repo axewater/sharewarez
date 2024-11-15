@@ -13,12 +13,13 @@ document.addEventListener("DOMContentLoaded", function() {
     
     downloads.forEach((download) => {
 		const download_id = download.getAttribute("data-download-id");
-        const gameName = download.querySelector("td").textContent;	
+        const gameName = download.querySelector("td").textContent;
+		const fileName = download.querySelector(".file-name-cell").textContent;	
         
         // Add to processing downloads if status is 'processing'
         const statusCell = download.querySelector(".status-cell .status-value");
         if (statusCell && statusCell.textContent.trim().toLowerCase() === 'processing') {
-            addProcessingDownload(download_id, gameName);
+            addProcessingDownload(download_id, gameName, fileName);
         }
         
         checkDownloadStatus(download_id);
