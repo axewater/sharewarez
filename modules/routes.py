@@ -2581,18 +2581,17 @@ def download_zip(download_id):
         print(f"Error: {e}") 
         return redirect(url_for('main.library'))
 
-
-@bp.route('/check_download_status/<game_uuid>')
+@bp.route('/check_download_status/<download_id>')
 @login_required
-def check_download_status(game_uuid):
-    print(f"Requested check for game_uuid: {game_uuid}")
+def check_download_status(download_id):
+    print(f"Requested check for Download ID: {download_id}")
     
-    print(f"Current user ID: {current_user.id}, Game UUID: {game_uuid}")
+    print(f"Current user ID: {current_user.id}, Download ID: {download_id}")
     
     all_requests_for_user = DownloadRequest.query.filter_by(user_id=current_user.id).all()
     print(f"All download requests for user: {all_requests_for_user}")
     
-    download_request = DownloadRequest.query.filter_by(game_uuid=game_uuid, user_id=current_user.id).first()
+    download_request = DownloadRequest.query.filter_by(id=download_id, user_id=current_user.id).first()
     
     if download_request:
         print(f"Found download request: {download_request}")
@@ -2600,7 +2599,6 @@ def check_download_status(game_uuid):
     else:
         print("No matching download request found.")
     return jsonify({'status': 'error'}), 404
-
 
 
 @bp.route('/admin/manage-downloads', methods=['GET', 'POST'])

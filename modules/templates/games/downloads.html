@@ -40,15 +40,15 @@
                 </thead>
                 <tbody>
                     {% for download in download_requests %}
-                    <tr data-game-uuid="{{ download.game.uuid }}">
+                    <tr data-download-id="{{ download.id }}">
                         <td>{{ download.game.name }}</td>
-						{% set download_file_name = download.zip_file_path.split('\\')[-1] %}
-						{% set download_file_name = download_file_name.split('/')[-1] %}
-						{% if download_file_name %}
-							<td>{{ download_file_name }}</td>
-						{% else %}
-						<td></td>
+						{% if download.zip_file_path %}
+							{% set download_file_name = download.zip_file_path.split('\\')[-1] %}
+							{% set download_file_name = download_file_name.split('/')[-1] %}
 						{% endif %}
+						<td class="file-name-cell">
+							{{ download_file_name }}
+						</td>
                         <td class="status-cell">
                             <div class="status-value" {% if download.status == 'failed' %}style="color: #ff0000; background-color: #ffe8e8; border: 2px solid #ff0000; padding: 2px 6px; border-radius: 4px; font-weight: bold;"{% endif %}>
                                 {{ download.status }}
