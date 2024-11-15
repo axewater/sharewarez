@@ -2419,14 +2419,29 @@ def download_game(game_uuid):
     if existing_request:
         flash("You already have a download request for this game in your basket. Please check your downloads page.", "info")
         return redirect(url_for('main.downloads'))
+    
+    if os.path.isdir(game.full_disk_path):
+        # List all files, case-insensitively excluding .NFO and .SFV files, and file_id.diz
+        files_in_directory = [f for f in os.listdir(game.full_disk_path) if os.path.isfile(os.path.join(game.full_disk_path, f))]
+        significant_files = [f for f in files_in_directory if not f.lower().endswith(('.nfo', '.sfv')) and not f.lower() == 'file_id.diz']
 
+        # If more than one significant file remains, expect a zip file
+        if len(significant_files) > 1:
+            zip_save_path = current_app.config['ZIP_SAVE_PATH']
+            zip_file_path = os.path.join(zip_save_path, f"{game.name}.zip")
+        else:
+            zip_file_path = os.path.join(game.full_disk_path, significant_files[0])
+    else:
+        zip_file_path = game.full_disk_path
+        
     print(f"Creating a new download request for user {current_user.id} for game {game_uuid}")
     new_request = DownloadRequest(
         user_id=current_user.id,
         game_uuid=game.uuid,
         status='processing',  
         download_size=game.size,
-        file_location=game.full_disk_path
+        file_location=game.full_disk_path,
+        zip_file_path=zip_file_path
     )
     db.session.add(new_request)
     game.times_downloaded += 1
@@ -2440,7 +2455,7 @@ def download_game(game_uuid):
 
     thread = Thread(target=thread_function)
     thread.start()
-    
+
     flash("Your download request is being processed. You will be notified when the download is ready.", "info")
     return redirect(url_for('main.downloads'))
 

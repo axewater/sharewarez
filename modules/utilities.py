@@ -771,8 +771,8 @@ def zip_game(download_request_id, app):
                     print(f"Created missing directory: {zip_save_path}")
                     
                 zip_file_path = os.path.join(zip_save_path, f"{game.name}.zip")
-                update_download_request(download_request, 'Processing', zip_file_path)
-                print(f"Zipping game folder: {source_path} to {zip_file_path} with storage  method.")
+                update_download_request(download_request, 'processing', zip_file_path)
+                print(f"Zipping game folder: {source_path} to {zip_file_path} with storage method.")
                 
                 with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_STORED) as zipf:
                     for root, dirs, files in os.walk(source_path):
@@ -783,6 +783,7 @@ def zip_game(download_request_id, app):
                             file_path = os.path.join(root, file)
                             # Ensure .NFO, .SFV, and file_id.diz files are still included in the zip
                             zipf.write(file_path, os.path.relpath(file_path, source_path))
+                zip_file_path = os.path.join(zip_save_path, f"{game.name}.zip")
                 print(f"Archive created at {zip_file_path}")
                 update_download_request(download_request, 'available', zip_file_path)
                 
