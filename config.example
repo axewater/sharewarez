@@ -21,6 +21,8 @@ class Config(object):
     IGDB_CLIENT_ID = os.getenv('IGDB_CLIENT_ID', 'get this from IGDB')
     IGDB_CLIENT_SECRET = os.getenv('IGDB_CLIENT_SECRET', 'get this from IGDB')
     IGDB_API_ENDPOINT = os.getenv('IGDB_API_ENDPOINT', 'https://api.igdb.com/v4/games')
+	UPDATE_FOLDER_NAME = os.getenv('UPDATE_FOLDER_NAME', 'Updates')
+    EXTRAS_FOLDER_NAME = os.getenv('EXTRAS_FOLDER_NAME', 'Extras')
     SCHEDULER_API_ENABLED = True
     ALLOWED_FILE_TYPES = ['jpg', 'jpeg', 'png', 'gif', 'zip', 'rar', '7z', 'iso', 'nfo', 'nes', 'sfc', 'smc', 'sms', '32x', 'gen', 'gg', 'gba', 'gb', 'gbc', 'prg', 'dat', 'tap', 'z64', 'd64', 'dsk', 'img', 'bin', 'st', 'stx', 'j64', 'jag', 'lnx', 'adf', 'ngc', 'gz', 'm2v', 'ogg', 'fpt', 'fpl', 'vec', 'pce', 'rom']
 

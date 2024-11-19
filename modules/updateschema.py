@@ -43,9 +43,18 @@ class DatabaseManager:
 
         ALTER TABLE user_preferences
         ADD COLUMN IF NOT EXISTS theme VARCHAR(50) DEFAULT 'default';
+        
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS enable_game_updates BOOLEAN DEFAULT TRUE;
 
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS update_folder_name VARCHAR(255) DEFAULT 'updates';
+        
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS enable_game_extras BOOLEAN DEFAULT TRUE;
+        
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS extras_folder_name VARCHAR(255) DEFAULT 'extras';
 
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS discord_notify_new_games BOOLEAN DEFAULT FALSE;

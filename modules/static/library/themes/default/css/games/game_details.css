@@ -52,6 +52,24 @@
 
 }
 
+.game-files {
+    display: flex;
+    flex-direction: column;
+    color: #efeaea;
+    background-color: #42403c;
+    text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    padding-right: 40px;
+    border-radius: 15px;
+    margin-bottom: 10px;
+    line-height: normal;
+    box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    border-radius: 15px;
+    border: 1px solid #080707;
+    position: relative; /* Add this line */
+
+}
+
 .game-card-downloads {
     display: flex;
     flex-direction: row;
@@ -227,6 +245,15 @@ pre {
     display: flex;
     flex-direction: column;
     width: 500px;
+    margin: 10px;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.game-card-q3 {
+    display: flex;
+    flex-direction: column;
+    width: 400px;
     margin: 10px;
     justify-content: space-between;
     height: 100%;

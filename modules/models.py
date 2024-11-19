@@ -386,6 +386,7 @@ class DownloadRequest(db.Model):
     completion_time = db.Column(db.DateTime, nullable=True)
     download_size = db.Column(db.Float, nullable=False, default=0.0)
     game = db.relationship('Game', foreign_keys=[game_uuid], back_populates='download_requests')
+    file_location = db.Column(db.String, nullable=True)
 
 
 class Whitelist(db.Model):
@@ -536,8 +537,10 @@ class GlobalSettings(db.Model):
     discord_bot_name = db.Column(db.String(100), nullable=True)
     discord_bot_avatar_url = db.Column(db.String(255), nullable=True)
     enable_delete_game_on_disk = db.Column(db.Boolean, default=True)
+    enable_game_updates = db.Column(db.Boolean, default=True)
     update_folder_name = db.Column(db.String(255), default='updates')
-    enable_delete_game_on_disk = db.Column(db.Boolean, default=True)
+    enable_game_extras = db.Column(db.Boolean, default=True)
+    extras_folder_name = db.Column(db.String(255), default='extras')
     discord_notify_new_games = db.Column(db.Boolean, default=False)
     discord_notify_game_updates = db.Column(db.Boolean, default=False)
     discord_notify_downloads = db.Column(db.Boolean, default=False)
