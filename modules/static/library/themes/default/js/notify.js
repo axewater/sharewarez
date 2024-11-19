@@ -6,10 +6,11 @@ function initializeProcessingDownloads() {
 }
 
 // Add a download to track
-function addProcessingDownload(gameUuid, gameName) {
+function addProcessingDownload(gameUuid, gameName, fileName) {
     const downloads = JSON.parse(sessionStorage.getItem('processingDownloads'));
     downloads[gameUuid] = {
         name: gameName,
+		file: fileName,
         timestamp: Date.now()
     };
     sessionStorage.setItem('processingDownloads', JSON.stringify(downloads));
@@ -59,13 +60,13 @@ function showFlashMessage(message, type = 'info') {
 function checkProcessingDownloads() {
     const downloads = JSON.parse(sessionStorage.getItem('processingDownloads'));
     
-    for (const [gameUuid, info] of Object.entries(downloads)) {
-        fetch(`/check_download_status/${gameUuid}`)
+    for (const [download_id, info] of Object.entries(downloads)) {
+        fetch(`/check_download_status/${download_id}`)
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'available') {
-                    showFlashMessage(`Download "${info.name}" has completed processing`, 'success');
-                    removeProcessingDownload(gameUuid);
+                    showFlashMessage(`Download file "${info.file}" for ${info.name} has completed processing`, 'success');
+                    removeProcessingDownload(download_id);
                 }
             })
             .catch(error => console.error('Error checking download status:', error));

@@ -8,8 +8,7 @@
     margin: 20px;
     box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     min-height: 80vh;
-	/* min-width: 1900px; */
-	min-width: 1500px;
+	min-width: 1900px;
 }
 
 .button-glass-hamburger {
@@ -85,7 +84,6 @@
     cursor: pointer;
     color: white;
     font-size: 24px;
-
     transition: color 0.9s ease, font-size 0.5s ease;
 }
 
@@ -285,6 +283,12 @@ pre {
 	margin-bottom: 30px;
 }
 
+.updates-content table tr th {
+	margin-bottom: 30px;
+	background-color: #bcb5b5;
+	text-shadow: none;
+}
+
 .game-files-additional {
 	margin-bottom: 20px;
 }
@@ -295,6 +299,12 @@ pre {
 
 .additional-content {
 	
+}
+
+.additional-content table tr th {
+	margin-bottom: 30px;
+	background-color: #bcb5b5;
+	text-shadow: none;
 }
 
 .game-card-text-summary {
@@ -588,3 +598,6 @@ pre {
     background-color: rgba(0,0,0,0.8);
 }
 
+.bi {
+	color: white;
+}
