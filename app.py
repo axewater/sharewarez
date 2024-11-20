@@ -37,7 +37,9 @@ class MyHandler(FileSystemEventHandler):
             if event.src_path.find('~') == -1 and (current_time - last_trigger_time) > 1:                         
                 last_trigger_time = current_time
                 with app.app_context():
+                    from modules.utilities import discord_update
                     print(f"Event: {event.src_path} was {event.event_type}")
+                    discord_update(event.src_path, event.event_type) 
     def on_moved(self, event):
         if not event.is_directory:
             if event.src_path.find('~') == -1:   
