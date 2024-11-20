@@ -1,12 +1,73 @@
 # /app.py
+import time
 from modules import create_app
 from modules.updateschema import DatabaseManager
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+import threading
+from flask import current_app
 
 app = create_app()
+
 
 # Initialize and run the database schema update
 db_manager = DatabaseManager()
 db_manager.add_column_if_not_exists()
 
-if __name__ == '__main__':
-    app.run(host="0.0.0.0", debug=False, port=5001)
+
+shutdown_event = threading.Event()
+
+class MyHandler(FileSystemEventHandler):  
+    global last_trigger_time
+    last_trigger_time = time.time()
+    
+    def on_created(self, event):
+        if event.src_path.find('~') == -1:
+            with app.app_context():
+                from modules.utilities import discord_update
+                print(f"Event: {event.src_path} was {event.event_type}")
+                discord_update(event.src_path, event.event_type)            
+    def on_deleted(self, event):
+        if event.src_path.find('~') == -1:
+            print(f"Event: {event.src_path} was {event.event_type}")
+    def on_modified(self, event):
+        global last_trigger_time
+        current_time = time.time()
+        if not event.is_directory:
+            if event.src_path.find('~') == -1 and (current_time - last_trigger_time) > 1:                         
+                last_trigger_time = current_time
+                with app.app_context():
+                    print(f"Event: {event.src_path} was {event.event_type}")
+    def on_moved(self, event):
+        if not event.is_directory:
+            if event.src_path.find('~') == -1:   
+                with app.app_context():
+                    print(f"Event: {event.src_path} was {event.event_type} to {event.dest_path}")
+        
+def watch_directory(path):
+    observer = Observer()
+    observer.schedule(MyHandler(), path, recursive=True)
+    observer.start()
+    
+    while not shutdown_event.is_set():
+        time.sleep(1)
+
+    observer.stop()
+    observer.join()
+
+if __name__ == "__main__":
+    with app.app_context():
+        path = current_app.config['MONITOR_PATHS']  # Replace with the directory you want to watch
+    # configure a watchdog thread
+    thread = threading.Thread(target=watch_directory, name="Watchdog", daemon=True, args=(path,))
+    # start the watchdog thread
+    try:
+        thread.start()
+    except KeyboardInterrupt:
+        shutdown_event.set()
+
+    app.run(host="0.0.0.0", debug=True, use_reloader=False, port=5001)
+    
+
+
+    
