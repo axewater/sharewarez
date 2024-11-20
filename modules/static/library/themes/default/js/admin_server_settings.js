@@ -35,12 +35,14 @@ document.addEventListener('DOMContentLoaded', function() {
             enableNewsletterFeature: document.getElementById('enableNewsletterFeature').checked,
             enableDeleteGameOnDisk: document.getElementById('enableDeleteGameOnDisk').checked,
             showVersion: document.getElementById('showVersion').checked,
+			enableMainGameUpdates: document.getElementById('enableMainGameUpdates').checked,
 			enableGameUpdates: document.getElementById('enableGameUpdates').checked,
             updateFolderName: document.getElementById('updateFolderName').value,
 			enableGameExtras: document.getElementById('enableGameExtras').checked,
 			extrasFolderName: document.getElementById('extrasFolderName').value,
             discordNotifyNewGames: document.getElementById('discordNotifyNewGames').checked,
             discordNotifyGameUpdates: document.getElementById('discordNotifyGameUpdates').checked,
+			discordNotifyGameExtras: document.getElementById('discordNotifyGameExtras').checked,
             discordNotifyDownloads: document.getElementById('discordNotifyDownloads').checked,
         };
         console.log("Settings to be saved:", settings);

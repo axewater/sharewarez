@@ -45,6 +45,9 @@ class DatabaseManager:
         ADD COLUMN IF NOT EXISTS theme VARCHAR(50) DEFAULT 'default';
         
         ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS enable_main_game_updates BOOLEAN DEFAULT TRUE;
+        
+        ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS enable_game_updates BOOLEAN DEFAULT TRUE;
 
         ALTER TABLE global_settings
@@ -61,6 +64,9 @@ class DatabaseManager:
 
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS discord_notify_game_updates BOOLEAN DEFAULT FALSE;
+        
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS discord_notify_game_extras BOOLEAN DEFAULT FALSE;
 
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS discord_notify_downloads BOOLEAN DEFAULT FALSE;
