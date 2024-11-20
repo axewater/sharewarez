@@ -31,6 +31,8 @@ class Config(object):
         BASE_FOLDER_WINDOWS = os.getenv('BASE_FOLDER_WINDOWS', 'C:/')
     else:  # POSIX (Linux, Unix, MacOS, etc.)
         BASE_FOLDER_POSIX = os.getenv('BASE_FOLDER_POSIX', '/storage')
+	#Dynamic Monitoring
+    MONITOR_PATHS = os.getenv('MONITOR_PATHS', 'C:/')
 	# Discord Notification Settings
     DISCORD_WEBHOOK_URL = os.getenv('DISCORD_WEBHOOK_URL', '')
     DISCORD_BOT_NAME = os.getenv('DISCORD_BOT_NAME', 'SharewareZ')
