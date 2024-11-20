@@ -16,6 +16,8 @@ db_manager.add_column_if_not_exists()
 
 global last_trigger_time
 last_trigger_time = time.time()
+global last_modified
+last_modified = ""
 
 shutdown_event = threading.Event()
 
@@ -34,9 +36,11 @@ class MyHandler(FileSystemEventHandler):
                     discord_update(event.src_path, event.event_type)            
     def on_modified(self, event):
         global last_trigger_time
+        global last_modified
         current_time = time.time()
-        if not event.is_directory:
-            if event.src_path.find('~') == -1 and (current_time - last_trigger_time) > 3:                         
+        if not event.is_directory and last_modified != event.src_path:
+            if event.src_path.find('~') == -1 and (current_time - last_trigger_time) > 1:  
+                last_modified = event.src_path
                 last_trigger_time = current_time
                 with app.app_context():
                     from modules.utilities import discord_update
