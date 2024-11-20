@@ -27,11 +27,11 @@ class MyHandler(FileSystemEventHandler):
         if event.src_path.find('~') == -1:
             with app.app_context():
                 from modules.utilities import discord_update
-                print(f"Event: {event.src_path} was {event.event_type}")
-                discord_update(event.src_path, event.event_type)            
-    def on_deleted(self, event):
-        if event.src_path.find('~') == -1:
-            print(f"Event: {event.src_path} was {event.event_type}")
+                from modules.models import GlobalSettings
+                settings = GlobalSettings.query.first()
+                if settings.enable_game_updates or settings.enable_game_extras:
+                    print(f"Event: {event.src_path} was {event.event_type}")
+                    discord_update(event.src_path, event.event_type)            
     def on_modified(self, event):
         global last_trigger_time
         current_time = time.time()
@@ -40,13 +40,11 @@ class MyHandler(FileSystemEventHandler):
                 last_trigger_time = current_time
                 with app.app_context():
                     from modules.utilities import discord_update
-                    print(f"Event: {event.src_path} was {event.event_type}")
-                    discord_update(event.src_path, event.event_type) 
-    def on_moved(self, event):
-        if not event.is_directory:
-            if event.src_path.find('~') == -1:   
-                with app.app_context():
-                    print(f"Event: {event.src_path} was {event.event_type} to {event.dest_path}")
+                    from modules.models import GlobalSettings
+                    settings = GlobalSettings.query.first()
+                    if settings.enable_main_game_updates:
+                        print(f"Event: {event.src_path} was {event.event_type}")
+                        discord_update(event.src_path, event.event_type) 
         
 def watch_directory(path):
     observer = Observer()
