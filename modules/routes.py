@@ -3186,7 +3186,10 @@ def verify_file(full_path):
         return False
      
 def list_files(path, folder):
-    content = glob(path + "\\" + folder + '/*');
+    if os.name == "nt":
+        content = glob(path + "\\" + folder + '/*');
+    else:
+        content = glob(path + "/" + folder + '/*');
     print(f"Listing content of directory {path} and folder {folder}.")
          
     files = {
