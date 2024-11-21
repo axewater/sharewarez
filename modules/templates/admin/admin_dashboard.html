@@ -81,21 +81,20 @@
                 </a>
             </div>
             <!-- Row 3: Newsletter, API Debug, Theme Management -->
-            <div class="dashboard-column-10">
-				
-				{% if enable_newsletter %}
-					<a href="{{ url_for('main.newsletter') }}" class="btn btn-dark dashboard-button">
-						<i class="fas fa-envelope dashboard-icon"></i>
-						Newsletter
-					</a>
-			</div>
-				{% endif %}
-				<div class="dashboard-column-11">
-					<a href="{{ url_for('main.api_debug') }}" class="btn btn-info dashboard-button">
-						<i class="fas fa-bug dashboard-icon"></i>
-						API Debug
-					</a>
-				</div> 
+			{% if enable_newsletter %}
+				<div class="dashboard-column-10">
+						<a href="{{ url_for('main.newsletter') }}" class="btn btn-dark dashboard-button">
+							<i class="fas fa-envelope dashboard-icon"></i>
+							Newsletter
+						</a>
+				</div>
+			{% endif %}
+			<div class="dashboard-column-11">
+				<a href="{{ url_for('main.api_debug') }}" class="btn btn-info dashboard-button">
+					<i class="fas fa-bug dashboard-icon"></i>
+					API Debug
+				</a>
+			</div> 
             <div class="dashboard-column-12">
                 <a href="{{ url_for('main.manage_themes') }}" class="btn btn-secondary dashboard-button">
                     <i class="fas fa-palette dashboard-icon"></i>
