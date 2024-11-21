@@ -1588,7 +1588,7 @@ def discord_update(path, event):
     elif event == "modified":    
         # Check if Discord notifications are enabled for game updates
         if not settings.discord_notify_game_updates:
-            print("Discord notifications for game updates are disabled")
+            print("Discord notifications for game updates are disabled.")
             return
         
         print("Processing Discord notification main game file update.")
@@ -1600,6 +1600,11 @@ def discord_update(path, event):
             game_path = path.rpartition('/')[0]
             file_name = path.split('/')[-1]
         print(f"Getting game located at path {game_path} with file path {path}")
+        number_of_files = len([f for f in os.listdir(game_path) if os.path.isfile(os.path.join(game_path, f)) and f.split('.')[-1] != 'txt' and f.split('.')[-1] != 'nfo'])
+        
+        if number_of_files > 1:
+            print(f"This game folder contains {number_of_files} game files and will not be included in the update notifications.")
+            return
     
         file_size = os.path.getsize(path)
         file_size = format_size(file_size)
