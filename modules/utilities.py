@@ -1618,7 +1618,10 @@ def discord_update(path, event):
                 return
             file_size = os.path.getsize(game_path)
             last_game_path = game_path
-            file_name = path.split('\\')[-2]
+            if os.name == "nt":
+                file_name = path.split('\\')[-2]
+            else:
+                file_name = path.split('/')[-2]
         else:
             file_size = os.path.getsize(path)
         file_size = format_size(file_size)
