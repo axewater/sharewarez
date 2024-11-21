@@ -976,15 +976,20 @@ def get_game_by_uuid(game_uuid):
         print("Game not found")
         return None
 
-def get_game_by_full_disk_path(path):
-    print(f"Searching for game Path: {path}")
+def get_game_by_full_disk_path(path, file_path):
+    print(f"Searching for game Path: {path} and file {file_path}")
     game = Game.query.filter_by(full_disk_path=path).first()
     if game:
         print(f"Game ID {game.id} with name {game.name} and UUID {game.uuid} relating to IGDB ID {game.igdb_id} found at path {path}")
         return game
     else:
-        print(f"Game not found with path of {path}")
-        return None
+        game = Game.query.filter_by(full_disk_path=file_path).first()
+        if game:
+            print(f"Game ID {game.id} with name {game.name} and UUID {game.uuid} relating to IGDB ID {game.igdb_id} found at path {file_path}")
+            return game
+        else:
+            print(f"Game not found with path of {file_path} or {path}")
+            return None
 
 
 def escape_special_characters(pattern):
@@ -1465,64 +1470,173 @@ def discord_webhook(game_uuid):
     response = webhook.execute()
     
 def discord_update(path, event):
-    print(f"Processing {event} event for game located at path {path}")
-    # Check if Discord webhook URL is configured
+    global settings
     settings = GlobalSettings.query.first()
+    
+    #Get custom folder names and Settings
+    update_folder = settings.update_folder_name if settings and settings.update_folder_name else current_app.config['UPDATE_FOLDER_NAME']
+    extras_folder = settings.extras_folder_name if settings and settings.extras_folder_name else current_app.config['EXTRAS_FOLDER_NAME']
+
+    print(f"Processing {event} event for game located at path {path}")
+    
+    # Check if Discord webhook URL is configured   
     if not settings or not settings.discord_webhook_url:
         print("Discord webhook URL not configured")
         return
+
+    #Check if event is a new file or modification 
+    if event == "created":
+        if os.name == "nt":
+            folder_name = path.split('\\')[-2]
+            game_path = path.rpartition('\\')[0]
+            game_path = game_path.rpartition('\\')[0]
+            file_name = path.split('\\')[-1]
+        else:
+            folder_name = path.split('/')[-2]
+            game_path = path.rpartition('/')[0]
+            game_path = game_path.rpartition('\\')[0]
+            file_name = path.split('/')[-1]
+            
+        print(f"Getting game located at path {game_path}")
+        file_size = os.path.getsize(path)
+        file_size = format_size(file_size)
+        game = get_game_by_full_disk_path(game_path)
         
-    # Check if Discord notifications are enabled for new games
-    if not settings.discord_notify_new_games:
-        print("Discord notifications for new games are disabled")
-        return
+        if game:
+            game_library = get_library_by_uuid(game.library_uuid)
+            
+            if update_folder.lower() == folder_name.lower():
+                # Check if Discord notifications are enabled for game updates
+                if not settings.discord_notify_game_updates:
+                    print("Discord notifications for game updates are disabled")
+                    return
+                
+                print("Processing Discord notification for game file update.")
+                
+                # Get Discord settings from database first, fallback to config
+                discord_webhook = settings.discord_webhook_url if settings and settings.discord_webhook_url else current_app.config['DISCORD_WEBHOOK_URL']
+                discord_bot_name = settings.discord_bot_name if settings and settings.discord_bot_name else current_app.config['DISCORD_BOT_NAME']
+                discord_bot_avatar_url = settings.discord_bot_avatar_url if settings and settings.discord_bot_avatar_url else current_app.config['DISCORD_BOT_AVATAR_URL']
+                
+                site_url = current_app.config['SITE_URL']
+                cover_url = get_cover_url(game.igdb_id)
+                # if rate_limit_retry is True then in the event that you are being rate 
+                # limited by Discord your webhook will automatically be sent once the 
+                # rate limit has been lifted
+                webhook = DiscordWebhook(url=f"{discord_webhook}", rate_limit_retry=True)
+                # create embed object for webhook
+                embed = DiscordEmbed(title=f"Update File Available for {game.name}", url=f"{site_url}/game_details/{game.uuid}", color="21f704")
+                # set author
+                embed.set_author(name=f"{discord_bot_name}", url=f"{site_url}", icon_url=f"{discord_bot_avatar_url}")
+                # set cover image
+                embed.set_image(url=f"{cover_url}")
+                # set footer
+                embed.set_footer(text="This game has an update available for download")
+                # set timestamp (default is now) accepted types are int, float and datetime
+                embed.set_timestamp()
+                # add fields to embed
+                # Set `inline=False` for the embed field to occupy the whole line
+                embed.add_embed_field(name="Library", value=f"{game_library.name}")
+                embed.add_embed_field(name="File", value=f"{file_name}")
+                embed.add_embed_field(name="Size", value=f"{file_size}")
+                # add embed object to webhook
+                webhook.add_embed(embed)
+                response = webhook.execute()
+            
+            elif extras_folder.lower() == folder_name.lower():
+                # Check if Discord notifications are enabled for game extras
+                if not settings.discord_notify_game_extras:
+                    print("Discord notifications for game extras are disabled")
+                    return
+                
+                print("Processing new extra file.")
+                
+                # Get Discord settings from database first, fallback to config
+                discord_webhook = settings.discord_webhook_url if settings and settings.discord_webhook_url else current_app.config['DISCORD_WEBHOOK_URL']
+                discord_bot_name = settings.discord_bot_name if settings and settings.discord_bot_name else current_app.config['DISCORD_BOT_NAME']
+                discord_bot_avatar_url = settings.discord_bot_avatar_url if settings and settings.discord_bot_avatar_url else current_app.config['DISCORD_BOT_AVATAR_URL']
+                
+                site_url = current_app.config['SITE_URL']
+                cover_url = get_cover_url(game.igdb_id)
+                # if rate_limit_retry is True then in the event that you are being rate 
+                # limited by Discord your webhook will automatically be sent once the 
+                # rate limit has been lifted
+                webhook = DiscordWebhook(url=f"{discord_webhook}", rate_limit_retry=True)
+                # create embed object for webhook
+                embed = DiscordEmbed(title=f"Extra File Available for {game.name}", url=f"{site_url}/game_details/{game.uuid}", color="f304f7")
+                # set author
+                embed.set_author(name=f"{discord_bot_name}", url=f"{site_url}", icon_url=f"{discord_bot_avatar_url}")
+                # set cover image
+                embed.set_image(url=f"{cover_url}")
+                # set footer
+                embed.set_footer(text="This game has an extra file available for download")
+                # set timestamp (default is now) accepted types are int, float and datetime
+                embed.set_timestamp()
+                # add fields to embed
+                # Set `inline=False` for the embed field to occupy the whole line
+                embed.add_embed_field(name="Library", value=f"{game_library.name}")
+                embed.add_embed_field(name="File", value=f"{file_name}")
+                embed.add_embed_field(name="Size", value=f"{file_size}")
+                # add embed object to webhook
+                webhook.add_embed(embed)
+                response = webhook.execute()
+                
+            else:
+                print("No matching update notifications for this file.")
+                return
     
-    if os.name == "nt":
-        game_path = path.rpartition('\\')[0]
-        game_path = game_path.rpartition('\\')[0]
-        file_name = path.split('\\')[-1]
-    else:
-        game_path = path.rpartition('/')[0]
-        game_path = game_path.rpartition('\\')[0]
-        file_name = path.split('/')[-1]
-    print(f"Getting game located at path {game_path}")
-    
-    file_size = os.path.getsize(path)
-    file_size = format_size(file_size)
-    game = get_game_by_full_disk_path(game_path)
-    
-    if game:
-        game_library = get_library_by_uuid(game.library_uuid)
+    elif event == "modified":    
+        # Check if Discord notifications are enabled for game updates
+        if not settings.discord_notify_game_updates:
+            print("Discord notifications for game updates are disabled")
+            return
         
-        # Get Discord settings from database first, fallback to config
-        discord_webhook = settings.discord_webhook_url if settings and settings.discord_webhook_url else current_app.config['DISCORD_WEBHOOK_URL']
-        discord_bot_name = settings.discord_bot_name if settings and settings.discord_bot_name else current_app.config['DISCORD_BOT_NAME']
-        discord_bot_avatar_url = settings.discord_bot_avatar_url if settings and settings.discord_bot_avatar_url else current_app.config['DISCORD_BOT_AVATAR_URL']
+        print("Processing Discord notification main game file update.")
         
-        site_url = current_app.config['SITE_URL']
-        cover_url = get_cover_url(game.igdb_id)
-        # if rate_limit_retry is True then in the event that you are being rate 
-        # limited by Discord your webhook will automatically be sent once the 
-        # rate limit has been lifted
-        webhook = DiscordWebhook(url=f"{discord_webhook}", rate_limit_retry=True)
-        # create embed object for webhook
-        embed = DiscordEmbed(title=f"Update Available for {game.name}", url=f"{site_url}/game_details/{game.uuid}", color="03b2f8")
-        # set author
-        embed.set_author(name=f"{discord_bot_name}", url=f"{site_url}", icon_url=f"{discord_bot_avatar_url}")
-        # set cover image
-        embed.set_image(url=f"{cover_url}")
-        # set footer
-        embed.set_footer(text="This game has an update available for download")
-        # set timestamp (default is now) accepted types are int, float and datetime
-        embed.set_timestamp()
-        # add fields to embed
-        # Set `inline=False` for the embed field to occupy the whole line
-        embed.add_embed_field(name="Library", value=f"{game_library.name}")
-        embed.add_embed_field(name="File", value=f"{file_name}")
-        embed.add_embed_field(name="Size", value=f"{file_size}")
-        # add embed object to webhook
-        webhook.add_embed(embed)
-        response = webhook.execute()
+        if os.name == "nt":
+            game_path = path.rpartition('\\')[0]
+            file_name = path.split('\\')[-1]
+        else:
+            game_path = path.rpartition('/')[0]
+            file_name = path.split('/')[-1]
+        print(f"Getting game located at path {game_path} with file path {path}")
+    
+        file_size = os.path.getsize(path)
+        file_size = format_size(file_size)
+        game = get_game_by_full_disk_path(game_path, path)
+        
+        if game:
+            game_library = get_library_by_uuid(game.library_uuid)
+            
+            # Get Discord settings from database first, fallback to config
+            discord_webhook = settings.discord_webhook_url if settings and settings.discord_webhook_url else current_app.config['DISCORD_WEBHOOK_URL']
+            discord_bot_name = settings.discord_bot_name if settings and settings.discord_bot_name else current_app.config['DISCORD_BOT_NAME']
+            discord_bot_avatar_url = settings.discord_bot_avatar_url if settings and settings.discord_bot_avatar_url else current_app.config['DISCORD_BOT_AVATAR_URL']
+            
+            site_url = current_app.config['SITE_URL']
+            cover_url = get_cover_url(game.igdb_id)
+            # if rate_limit_retry is True then in the event that you are being rate 
+            # limited by Discord your webhook will automatically be sent once the 
+            # rate limit has been lifted
+            webhook = DiscordWebhook(url=f"{discord_webhook}", rate_limit_retry=True)
+            # create embed object for webhook
+            embed = DiscordEmbed(title=f"Main Game Update Available for {game.name}", url=f"{site_url}/game_details/{game.uuid}", color="f71604")
+            # set author
+            embed.set_author(name=f"{discord_bot_name}", url=f"{site_url}", icon_url=f"{discord_bot_avatar_url}")
+            # set cover image
+            embed.set_image(url=f"{cover_url}")
+            # set footer
+            embed.set_footer(text=f"The main file for this game has been updated and is available for download.")
+            # set timestamp (default is now) accepted types are int, float and datetime
+            embed.set_timestamp()
+            # add fields to embed
+            # Set `inline=False` for the embed field to occupy the whole line
+            embed.add_embed_field(name="Library", value=f"{game_library.name}")
+            embed.add_embed_field(name="File", value=f"{file_name}")
+            embed.add_embed_field(name="Size", value=f"{file_size}")
+            # add embed object to webhook
+            webhook.add_embed(embed)
+            response = webhook.execute()
     
 def get_library_by_uuid(uuid):
     print(f"Searching for Library UUID: {uuid}")
