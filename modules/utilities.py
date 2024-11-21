@@ -1500,7 +1500,7 @@ def discord_update(path, event):
         print(f"Getting game located at path {game_path}")
         file_size = os.path.getsize(path)
         file_size = format_size(file_size)
-        game = get_game_by_full_disk_path(game_path)
+        game = get_game_by_full_disk_path(game_path, path)
         
         if game:
             game_library = get_library_by_uuid(game.library_uuid)
