@@ -1468,9 +1468,12 @@ def discord_webhook(game_uuid):
     # add embed object to webhook
     webhook.add_embed(embed)
     response = webhook.execute()
+global last_game_path
+last_game_path = ''
     
 def discord_update(path, event):
     global settings
+    global last_game_path
     settings = GlobalSettings.query.first()
     
     #Get custom folder names and Settings
@@ -1603,10 +1606,14 @@ def discord_update(path, event):
         number_of_files = len([f for f in os.listdir(game_path) if os.path.isfile(os.path.join(game_path, f)) and f.split('.')[-1] != 'txt' and f.split('.')[-1] != 'nfo'])
         
         if number_of_files > 1:
-            print(f"This game folder contains {number_of_files} game files and will not be included in the update notifications.")
-            return
-    
-        file_size = os.path.getsize(path)
+            if last_game_path == game_path:
+                print(f"This game folder contains {number_of_files} game files and this file will not be included in the update notifications.")
+                return
+            file_size = os.path.getsize(game_path)
+            last_game_path = game_path
+            file_name = path.split('\\')[-2]
+        else:
+            file_size = os.path.getsize(path)
         file_size = format_size(file_size)
         game = get_game_by_full_disk_path(game_path, path)
         
