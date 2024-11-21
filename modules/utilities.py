@@ -1,5 +1,5 @@
 #/modules/utilities.py
-import re, requests, shutil, os, zipfile, smtplib, socket
+import re, requests, shutil, os, zipfile, smtplib, socket, time
 from functools import wraps
 from flask import flash, redirect, url_for, request, current_app, flash
 from flask_login import current_user, login_user
@@ -1468,8 +1468,13 @@ def discord_webhook(game_uuid):
     # add embed object to webhook
     webhook.add_embed(embed)
     response = webhook.execute()
+    
 global last_game_path
 last_game_path = ''
+global last_update_time
+last_update_time = time.time()
+global first_run
+first_run = 1
     
 def discord_update(path, event):
     global settings
@@ -1606,8 +1611,10 @@ def discord_update(path, event):
         number_of_files = len([f for f in os.listdir(game_path) if os.path.isfile(os.path.join(game_path, f)) and f.split('.')[-1] != 'txt' and f.split('.')[-1] != 'nfo'])
         
         if number_of_files > 1:
-            if last_game_path == game_path:
-                print(f"This game folder contains {number_of_files} game files and this file will not be included in the update notifications.")
+            elapsed_seconds = time.time() - last_update_time
+            elapsed_minutes = elapsed_seconds / 60
+            if last_game_path == game_path and elapsed_minutes < 60:
+                print(f"This game folder contains {number_of_files} game files and this file will not be included in the update notifications. Last updated {int(elapsed_minutes)} minutes ago.")
                 return
             file_size = os.path.getsize(game_path)
             last_game_path = game_path
