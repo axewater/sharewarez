@@ -26,6 +26,8 @@ class MyHandler(FileSystemEventHandler):
     last_trigger_time = time.time()
 
     def on_created(self, event):
+        global last_modified
+        last_modified = event.src_path
         if event.src_path.find('~') == -1:
             with app.app_context():
                 ignore_ext = current_app.config['MONITOR_IGNORE_EXT']  # List of extensions to ignore.
