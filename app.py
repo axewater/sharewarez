@@ -77,7 +77,6 @@ if __name__ == "__main__":
     with app.app_context():
         config_path = current_app.config['MONITOR_PATHS']  # Replace with the directory you want to watch
         paths = config_path
-        print(f"Scanning Paths: {paths}")
         for p in paths:
             targetPath = str(p)
             # configure a watchdog thread
