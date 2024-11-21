@@ -25,14 +25,16 @@ class Config(object):
     EXTRAS_FOLDER_NAME = os.getenv('EXTRAS_FOLDER_NAME', 'Extras')
     SCHEDULER_API_ENABLED = True
     ALLOWED_FILE_TYPES = ['jpg', 'jpeg', 'png', 'gif', 'zip', 'rar', '7z', 'iso', 'nfo', 'nes', 'sfc', 'smc', 'sms', '32x', 'gen', 'gg', 'gba', 'gb', 'gbc', 'prg', 'dat', 'tap', 'z64', 'd64', 'dsk', 'img', 'bin', 'st', 'stx', 'j64', 'jag', 'lnx', 'adf', 'ngc', 'gz', 'm2v', 'ogg', 'fpt', 'fpl', 'vec', 'pce', 'rom']
-
     # OS-specific base folder paths
     if os.name == 'nt':  # Windows
         BASE_FOLDER_WINDOWS = os.getenv('BASE_FOLDER_WINDOWS', 'C:/')
     else:  # POSIX (Linux, Unix, MacOS, etc.)
         BASE_FOLDER_POSIX = os.getenv('BASE_FOLDER_POSIX', '/storage')
 	#Dynamic Monitoring
-    MONITOR_PATHS = os.getenv('MONITOR_PATHS', 'C:/')
+	if os.name == 'nt':  # Windows
+		MONITOR_PATHS = os.getenv('MONITOR_PATHS', ['C:\\']) #Separate paths with a comma. Ex: ['C:\\Games\PC', 'C:\\Games\\NES']
+	else:  # POSIX (Linux, Unix, MacOS, etc.)
+		MONITOR_PATHS = os.getenv('MONITOR_PATHS', ['/storage']) #Separate paths with a comma. Ex: ['/storage/PC', 'C/storage/NES']
 	# Discord Notification Settings
     DISCORD_WEBHOOK_URL = os.getenv('DISCORD_WEBHOOK_URL', '')
     DISCORD_BOT_NAME = os.getenv('DISCORD_BOT_NAME', 'SharewareZ')

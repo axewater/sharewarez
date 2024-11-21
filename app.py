@@ -63,14 +63,18 @@ def watch_directory(path):
 
 if __name__ == "__main__":
     with app.app_context():
-        path = current_app.config['MONITOR_PATHS']  # Replace with the directory you want to watch
-    # configure a watchdog thread
-    thread = threading.Thread(target=watch_directory, name="Watchdog", daemon=True, args=(path,))
-    # start the watchdog thread
-    try:
-        thread.start()
-    except KeyboardInterrupt:
-        shutdown_event.set()
+        config_path = current_app.config['MONITOR_PATHS']  # Replace with the directory you want to watch
+        paths = config_path
+        print(f"Scanning Paths: {paths}")
+        for p in paths:
+            targetPath = str(p)
+            # configure a watchdog thread
+            thread = threading.Thread(target=watch_directory, name="Watchdog", daemon=True, args=(targetPath,))
+            # start the watchdog thread
+            try:
+                thread.start()
+            except KeyboardInterrupt:
+                shutdown_event.set()
 
     app.run(host="0.0.0.0", debug=True, use_reloader=False, port=5001)
     
