@@ -1502,7 +1502,7 @@ def discord_update(path, event):
         else:
             folder_name = path.split('/')[-2]
             game_path = path.rpartition('/')[0]
-            game_path = game_path.rpartition('\\')[0]
+            game_path = game_path.rpartition('/')[0]
             file_name = path.split('/')[-1]
             
         print(f"Getting game located at path {game_path}")
@@ -1624,6 +1624,7 @@ def discord_update(path, event):
                 file_name = path.split('/')[-2]
         else:
             file_size = os.path.getsize(path)
+            last_game_path = game_path
         file_size = format_size(file_size)
         game = get_game_by_full_disk_path(game_path, path)
         
