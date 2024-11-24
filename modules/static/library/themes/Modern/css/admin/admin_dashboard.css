@@ -1,220 +1,115 @@
-.dashboard-button {
-    font-size: 1.2em;
-    margin-bottom: 15px;
-    width: 50%;
-    height: 100%;
-    color: aliceblue;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    transition: all 0.3s ease;
-	border-radius: 0px;
+body {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.dashboard-icon {
-    font-size: 2em; /* Large icons */
-    margin-bottom: 10px;
-
-}
-
-.dashboard-button:hover {
-    text-decoration: none;
-    color: rgb(9, 12, 12);
-    transform: scale(1.1);
-}
-
-.dashboard-panel {
-    display: flex;
-    flex-direction: column;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(3px);
+.admin-panel {
+    background: rgba(30, 30, 30, 0.95);
+    backdrop-filter: blur(10px);
     border-radius: 0px;
-    padding: 20px;
-    margin-top: 20px;
-	margin-left: auto;
-	margin-right: auto;
-    grid-template-columns: auto 1fr auto;
-    gap: 10px;
-    box-shadow: 0 9px 16px rgba(17, 2, 2, 2);
-    padding-bottom: 50px;
-	width: 50%;
-	min-width: 900px;
-
+    padding: 30px;
+    margin: 20px auto;
+    max-width: 1200px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-.dashboard-header {
-    display: block;
-    font-size: 2em;
+.hackplanet_titles {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.hackplanet_titles h1 {
+    color: #fff;
+    font-size: 2.5em;
     font-weight: bold;
-	text-align: center;
-	
+    text-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
 }
 
-
-.captains-image {
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
-    border-radius: 15px;
-    display: block;
-    margin: 0 auto;
-	padding-top: 20px;
-	margin-top: 20px;
-	margin-bottom: 80px;
-
+.admin-section {
+    background: rgba(40, 40, 40, 0.5);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.dashboard-container-fluid {
-	height: 100 vh;
-	
-	
+.admin-section h3 {
+    color: #fff;
+    font-size: 1.3em;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
 }
 
-.dashboard-row {
-	height: 100 vh;
-	display: grid;
-	grid-template-columns: repeat(4, 1fr);
-	grid-template-rows: 1fr auto;
-	column-gap: 1em;
-	row-gap: 1em;
+.admin-section h3 i {
+    margin-right: 10px;
+    color: #0096ff;
 }
 
-
-.dashboard-column-1 {
-	grid-column: auto;
-	align-items: stretch;
-	display: flex;
-	justify-content: center;
-
+.admin-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
-.dashboard-column-2 {
-	grid-column: auto;
-	align-items: stretch;
-	display: flex;
-	justify-content: center;
-
+.admin-button-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100px;
 }
 
-.dashboard-column-3 {
-	grid-column: auto;
-	align-items: stretch;
-	display: flex;
-	justify-content: center;
-
+.btn-circle {
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 24px;
+    line-height: 60px;
+    background: rgba(0, 150, 255, 0.2);
+    color: #fff;
+    border: 1px solid rgba(0, 150, 255, 0.3);
+    transition: all 0.3s ease;
 }
 
-.dashboard-column-4 {
-	grid-column: auto;
-	align-items: stretch;
-	display: flex;
-	justify-content: center;
-
+.btn-circle:hover {
+    transform: translateY(-3px);
+    background: rgba(0, 150, 255, 0.4);
+    box-shadow: 0 0 20px rgba(0, 150, 255, 0.3);
+    color: #fff;
 }
 
-.dashboard-column-4 a{
-	background-color: orange;
-	border: none;
-
-}
-.dashboard-column-4:hover a{
-	background-color: orange;
-	border: none;
-
+.button-label {
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: #fff;
+    text-align: center;
 }
 
-.dashboard-column-5 {
-	grid-column: auto;
-	align-items: stretch;
-	display: flex;
-	justify-content: center;
+@media (max-width: 768px) {
+    .admin-panel {
+        padding: 15px;
+        margin: 10px;
+    }
 
-}
+    .admin-buttons {
+        gap: 15px;
+    }
 
-.dashboard-column-6 {
-	grid-column: auto;
-	align-items: stretch;
-	display: flex;
-	justify-content: center;
+    .admin-button-item {
+        width: 80px;
+    }
 
-}
+    .btn-circle {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+        line-height: 50px;
+    }
 
-.dashboard-column-7 {
-	grid-column: auto;
-	align-items: stretch;
-	display: flex;
-	justify-content: center;
-
-}
-
-.dashboard-column-8 {
-	grid-column: auto;
-	align-items: stretch;
-	display: flex;
-	justify-content: center;
-
-}
-
-.dashboard-column-9 {
-	grid-column: auto;
-	align-items: stretch;
-	display: flex;
-	justify-content: center;
-
-}
-
-.dashboard-column-10 {
-	grid-column: auto;
-	align-items: stretch;
-	display: flex;
-	justify-content: center;
-
-}
-
-.dashboard-column-11 {
-	grid-column: auto;
-	align-items: stretch;
-	display: flex;
-	justify-content: center;
-
-}
-
-.dashboard-column-12 {
-	grid-column: auto;
-	align-items: stretch;
-	display: flex;
-	justify-content: center;
-
-}
-
-.dashboard-column-13 {
-	grid-column: auto;
-	align-items: stretch;
-	display: flex;
-	justify-content: center;
-
-}
-
-.dashboard-column-13 a{
-	background-color: #7289da;
-	border: none;
-
-}
-
-.dashboard-column-13:hover a{
-	background-color: #667bc4;
-	border: none;
-
-}
-
-.settingsform-admin {
-        
-	padding: 20px;
-	border-radius: 15px;
-}
-.settingsform-admin .form-check-label {
-	color: #000000; /* Ensuring labels are readable against the dark background */
+    .button-label {
+        font-size: 0.8em;
+    }
 }
