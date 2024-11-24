@@ -74,6 +74,9 @@ class DatabaseManager:
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS discord_bot_avatar_url VARCHAR(255) DEFAULT '{Config.DISCORD_BOT_AVATAR_URL}';
 
+        ALTER TABLE download_requests
+        ADD COLUMN IF NOT EXISTS file_location VARCHAR(255);
+
         CREATE TABLE IF NOT EXISTS game_updates (
             id SERIAL PRIMARY KEY,
             uuid VARCHAR(36) UNIQUE NOT NULL,
