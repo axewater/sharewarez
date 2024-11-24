@@ -1625,7 +1625,9 @@ def manage_settings():
         settings_record.enable_delete_game_on_disk = new_settings.get('enableDeleteGameOnDisk', True)
         settings_record.discord_notify_new_games = new_settings.get('discordNotifyNewGames', False)
         settings_record.discord_notify_game_updates = new_settings.get('discordNotifyGameUpdates', False)
+        settings_record.discord_notify_game_extras = new_settings.get('discordNotifyGameExtras', False)
         settings_record.discord_notify_downloads = new_settings.get('discordNotifyDownloads', False)
+        settings_record.enable_main_game_updates = new_settings.get('enableMainGameUpdates', True)
         settings_record.enable_game_updates = new_settings.get('enableGameUpdates', True)
         settings_record.update_folder_name = new_settings.get('updateFolderName', 'updates')
         settings_record.enable_game_extras = new_settings.get('enableGameExtras', True)
@@ -1641,7 +1643,9 @@ def manage_settings():
         current_settings['enableDeleteGameOnDisk'] = settings_record.enable_delete_game_on_disk if settings_record else True
         current_settings['discordNotifyNewGames'] = settings_record.discord_notify_new_games if settings_record else False
         current_settings['discordNotifyGameUpdates'] = settings_record.discord_notify_game_updates if settings_record else False
+        current_settings['discordNotifyGameExtras'] = settings_record.discord_notify_game_extras if settings_record else False
         current_settings['discordNotifyDownloads'] = settings_record.discord_notify_downloads if settings_record else False
+        current_settings['enableMainGameUpdates'] = settings_record.enable_main_game_updates if settings_record else True
         current_settings['enableGameUpdates'] = settings_record.enable_game_updates if settings_record else True
         current_settings['updateFolderName'] = settings_record.update_folder_name if settings_record else 'updates'
         current_settings['enableGameExtras'] = settings_record.enable_game_extras if settings_record else True
@@ -3185,7 +3189,10 @@ def verify_file(full_path):
         return False
      
 def list_files(path, folder):
-    content = glob(path + "\\" + folder + '/*');
+    if os.name == "nt":
+        content = glob(path + "\\" + folder + '/*');
+    else:
+        content = glob(path + "/" + folder + '/*');
     print(f"Listing content of directory {path} and folder {folder}.")
          
     files = {
