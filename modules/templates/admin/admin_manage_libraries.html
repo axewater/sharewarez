@@ -2,9 +2,9 @@
 {% block content %}
 
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_manage_libraries.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_manage_libraries.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_manage_libraries.css') }}">
 {% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_libraries.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_libraries.css') }}">
 {% endif %}
 
 
@@ -50,28 +50,43 @@
 
 <div class="admin_manage_libraries-library-container glass-panel">
     <h2>Game Libraries</h2>
-    <div class="list-group">
-        <a href="{{ url_for('main.add_edit_library') }}" class="list-group-item list-group-item-action d-flex align-items-center">
-            <div class="bg-primary text-white me-3" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 24px;">+</div>
-            <div>Add Library</div>
-        </a>
-        {% for library in libraries %}
-            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                <div>
-                    <img src="{{ library.image_url or url_for('static', filename='default-image.jpg') }}" alt="{{ library.name }}" style="width: 50px; height: 50px; object-fit: cover;" class="me-3 rounded">
-                    <span>{{ library.name }} - {{ library.platform.name }}</span>
-                </div>
-                <div>
-                    <a href="{{ url_for('main.scan_management', library_uuid=library.uuid) }}" class="admin_manage_libraries-scan-btn btn btn-secondary">Scan Games</a>
-                    <a href="{{ url_for('main.add_edit_library', library_uuid=library.uuid) }}" class="admin_manage_libraries-edit-btn btn btn-primary">Edit</a>
-                    <form action="{{ url_for('main.delete_full_library', library_uuid=library.uuid) }}" method="post" style="display: inline-block;">
-                        {{ csrf_form.csrf_token }}
-                        <button type="button" class="admin_manage_libraries-danger-btn btn btn-danger delete-btn" data-toggle="modal" data-target="#deleteWarningModal" data-library-uuid="{{ library.uuid }}">Delete</button>
-                    </form>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
+    <a href="{{ url_for('main.add_edit_library') }}" class="btn btn-primary mb-3">
+        <i class="fas fa-plus"></i> Add Library
+    </a>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Library Name</th>
+                <th>Games Count</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for library in libraries %}
+                <tr>
+                    <td>
+                        <img src="{{ library.image_url or url_for('static', filename='default-image.jpg') }}" alt="{{ library.name }}" style="width: 30px; height: 30px; object-fit: cover;" class="me-2 rounded">
+                        {{ library.name }} - {{ library.platform.name }}
+                    </td>
+                    <td>{{ library.games|length }}</td>
+                    <td>
+                        <a href="{{ url_for('main.scan_management', library_uuid=library.uuid) }}" class="btn btn-sm btn-secondary">
+                            <i class="fas fa-search"></i> Scan
+                        </a>
+                        <a href="{{ url_for('main.add_edit_library', library_uuid=library.uuid) }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <form action="{{ url_for('main.delete_full_library', library_uuid=library.uuid) }}" method="post" style="display: inline-block;">
+                            {{ csrf_form.csrf_token }}
+                            <button type="button" class="btn btn-sm btn-danger delete-btn" data-toggle="modal" data-target="#deleteWarningModal" data-library-uuid="{{ library.uuid }}">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 {% if libraries %}
