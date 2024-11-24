@@ -1,4 +1,3 @@
-<!-- templates/admin/admin_dashboard.html -->
 {% extends "base.html" %}
 {% block content %}
 
@@ -17,98 +16,113 @@
     </div>
 {% endif %}
 {% endwith %}
-<div class="dashboard-panel">
-    <div class="dashboard-header">
-        Captain's Cabin
-        <img src="{{ url_for('static', filename='newstyle/captainscabin.png') }}" alt="Captain's Cabin" class="captains-image">
+
+<div class="admin-panel">
+    <div class="hackplanet_titles">
+        <h1>SharewareZ Admin Panel</h1>
     </div>
-    <div class="dashboard-container-fluid">
-        <div class="dashboard-row">
-            <!-- Row 1: Library Manager, Scan Manager, Server Settings, Server Info -->
-            <div class="dashboard-column-1">
-                <a href="{{ url_for('main.libraries') }}" class="btn btn-primary dashboard-button">
-                    <i class="fas fa-book dashboard-icon"></i>
-                    Library Manager
-                </a>
+    
+    <div class="container">
+        <!-- Library Management Section -->
+        <div class="admin-section">
+            <h3><i class="fas fa-book"></i> Library Management</h3>
+            <div class="admin-buttons">
+                <div class="admin-button-item">
+                    <a href="{{ url_for('main.libraries') }}" class="btn btn-circle">
+                        <i class="fas fa-book"></i>
+                    </a>
+                    <span class="button-label">Libraries</span>
+                </div>
+                <div class="admin-button-item">
+                    <a href="{{ url_for('main.scan_management') }}" class="btn btn-circle">
+                        <i class="fas fa-search"></i>
+                    </a>
+                    <span class="button-label">Scan Manager</span>
+                </div>
             </div>
-            <div class="dashboard-column-2">
-                <a href="{{ url_for('main.scan_management') }}" class="btn btn-primary dashboard-button">
-                    <i class="fas fa-book dashboard-icon"></i>
-                    Scan Manager
-                </a>
-            </div>
-            <div class="dashboard-column-3">
-                <a href="{{ url_for('main.manage_settings') }}" class="btn btn-info dashboard-button">
-                    <i class="fas fa-cogs dashboard-icon"></i>
-                    Server Settings
-                </a>
-            </div>
-            {% if enable_server_status %}
-            <div class="dashboard-column-4">
-                <a href="{{ url_for('main.admin_server_status') }}" class="btn btn-warning dashboard-button">
-                    <i class="fas fa-info dashboard-icon"></i>
-                    Server Info
-                </a>
-            </div>
-            {% endif %}
-			
+        </div>
 
-            <!-- Row 2: Downloads, Invite System, Whitelist, User Manager-->
-            <div class="dashboard-column-5">
-                <a href="{{ url_for('main.manage_downloads') }}" class="btn btn-danger dashboard-button">
-                    <i class="fas fa-download dashboard-icon"></i>
-                    Downloads
-                </a>
+        <!-- Server Management Section -->
+        <div class="admin-section">
+            <h3><i class="fas fa-server"></i> Server Management</h3>
+            <div class="admin-buttons">
+                <div class="admin-button-item">
+                    <a href="{{ url_for('main.manage_settings') }}" class="btn btn-circle">
+                        <i class="fas fa-cogs"></i>
+                    </a>
+                    <span class="button-label">Settings</span>
+                </div>
+                {% if enable_server_status %}
+                <div class="admin-button-item">
+                    <a href="{{ url_for('main.admin_server_status') }}" class="btn btn-circle">
+                        <i class="fas fa-info"></i>
+                    </a>
+                    <span class="button-label">Server Info</span>
+                </div>
+                {% endif %}
             </div>
+        </div>
 
-            <div class="dashboard-column-7">
-                <a href="{{ url_for('main.manage_invites') }}" class="btn btn-dark dashboard-button">
-                    <i class="fas fa-envelope-open-text dashboard-icon"></i>
-                    Invite System
-                </a>
+        <!-- User Management Section -->
+        <div class="admin-section">
+            <h3><i class="fas fa-users"></i> User Management</h3>
+            <div class="admin-buttons">
+                <div class="admin-button-item">
+                    <a href="{{ url_for('main.manage_users') }}" class="btn btn-circle">
+                        <i class="fas fa-users-cog"></i>
+                    </a>
+                    <span class="button-label">Users</span>
+                </div>
+                <div class="admin-button-item">
+                    <a href="{{ url_for('main.whitelist') }}" class="btn btn-circle">
+                        <i class="fas fa-user-shield"></i>
+                    </a>
+                    <span class="button-label">Whitelist</span>
+                </div>
+                <div class="admin-button-item">
+                    <a href="{{ url_for('main.manage_invites') }}" class="btn btn-circle">
+                        <i class="fas fa-envelope-open-text"></i>
+                    </a>
+                    <span class="button-label">Invites</span>
+                </div>
             </div>
-            <div class="dashboard-column-8">
-                <a href="{{ url_for('main.whitelist') }}" class="btn btn-dark dashboard-button">
-                    <i class="fas fa-user-shield dashboard-icon"></i>
-                    Whitelist
-                </a>
-            </div>
+        </div>
 
-            <div class="dashboard-column-9">
-                <a href="{{ url_for('main.usermanager') }}" class="btn btn-success dashboard-button">
-                    <i class="fas fa-users-cog dashboard-icon"></i>
-                    User Manager
-                </a>
+        <!-- Content Tools Section -->
+        <div class="admin-section">
+            <h3><i class="fas fa-tools"></i> Other Tools</h3>
+            <div class="admin-buttons">
+                <div class="admin-button-item">
+                    <a href="{{ url_for('main.manage_downloads') }}" class="btn btn-circle">
+                        <i class="fas fa-download"></i>
+                    </a>
+                    <span class="button-label">Downloads</span>
+                </div>
+                <div class="admin-button-item">
+                    <a href="{{ url_for('main.discord_settings') }}" class="btn btn-circle">
+                        <i class="fab fa-discord"></i>
+                    </a>
+                    <span class="button-label">Discord</span>
+                </div>
+                <div class="admin-button-item">
+                    <a href="{{ url_for('main.manage_themes') }}" class="btn btn-circle">
+                        <i class="fas fa-palette"></i>
+                    </a>
+                    <span class="button-label">Themes</span>
+                </div>
+                {% if enable_newsletter %}
+                <div class="admin-button-item">
+                    <a href="{{ url_for('main.newsletter') }}" class="btn btn-circle">
+                        <i class="fas fa-newspaper"></i>
+                    </a>
+                    <span class="button-label">Newsletter</span>
+                </div>
+                {% endif %}
             </div>
-            <!-- Row 3: Newsletter, API Debug, Theme Management -->
-			{% if enable_newsletter %}
-				<div class="dashboard-column-10">
-						<a href="{{ url_for('main.newsletter') }}" class="btn btn-dark dashboard-button">
-							<i class="fas fa-envelope dashboard-icon"></i>
-							Newsletter
-						</a>
-				</div>
-			{% endif %}
-			<div class="dashboard-column-11">
-				<a href="{{ url_for('main.api_debug') }}" class="btn btn-info dashboard-button">
-					<i class="fas fa-bug dashboard-icon"></i>
-					API Debug
-				</a>
-			</div> 
-            <div class="dashboard-column-12">
-                <a href="{{ url_for('main.manage_themes') }}" class="btn btn-secondary dashboard-button">
-                    <i class="fas fa-palette dashboard-icon"></i>
-                    Manage Themes
-                </a>
-            </div>
-            <div class="dashboard-column-13">
-                <a href="{{ url_for('main.discord_settings') }}" class="btn btn-primary dashboard-button">
-                    <i class="fab fa-discord dashboard-icon"></i>
-                    Discord Settings
-                </a>
-            </div>
-	</div>
+        </div>
+
+
+    </div>
 </div>
-
 
 {% endblock %}
