@@ -60,7 +60,7 @@ has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '1.5.1'
+app_version = '1.6.0'
 
 
 @bp.before_app_request
@@ -1921,9 +1921,12 @@ def check_igdb_id():
 @bp.route('/game_details/<string:game_uuid>')
 @login_required
 def game_details(game_uuid):
+    # Initialize default values for update_files and extras_files
+    update_files = {'path': '', 'folder': '', 'files': []}
+    extras_files = {'path': '', 'folder': '', 'files': []}
+
     print(f"Fetching game details for UUID: {game_uuid}")
     csrf_form = CsrfForm()
-    
     try:
         valid_uuid = uuid.UUID(game_uuid, version=4)
     except ValueError:
@@ -1997,7 +2000,6 @@ def game_details(game_uuid):
             # Add or update mappings as needed
         }
 
-
         # Augment game_data with URLs
         game_data['urls'] = [{
             "type": url.url_type,
@@ -2006,20 +2008,21 @@ def game_details(game_uuid):
         } for url in game.urls]
         
         settings = GlobalSettings.query.first()
-        if not settings or not settings.discord_notify_new_games:
-            print("Discord notifications for new games are disabled")
-            return
-        update_folder = settings.update_folder_name if settings and settings.update_folder_name else current_app.config['UPDATE_FOLDER_NAME']
-        extras_folder = settings.extras_folder_name if settings and settings.extras_folder_name else current_app.config['EXTRAS_FOLDER_NAME']
-        update_files = list_files(game.full_disk_path, update_folder)
-        extras_files = list_files(game.full_disk_path, extras_folder)
+        # Only process updates and extras if settings exist and features are enabled
+        if settings:
+            if settings.enable_game_updates:
+                update_folder = settings.update_folder_name or current_app.config['UPDATE_FOLDER_NAME']
+                update_files = list_files(game.full_disk_path, update_folder)
+            
+            if settings.enable_game_extras:
+                extras_folder = settings.extras_folder_name or current_app.config['EXTRAS_FOLDER_NAME']
+                extras_files = list_files(game.full_disk_path, extras_folder)
         
         library_uuid = game.library_uuid
         
         return render_template('games/game_details.html', game=game_data, form=csrf_form, library_uuid=library_uuid, update_files=update_files, extras_files=extras_files)
     else:
         return jsonify({"error": "Game not found"}), 404
-
 
 
 

@@ -1,4 +1,4 @@
-# 🎮 Welcome to SharewareZ v1.5.1 🚀
+# 🎮 Welcome to SharewareZ v1.6.0 🚀
 
 SharewareZ transforms any game folder into a dynamic, searchable library. With IGDB integration, it indexes games and adds cover images, screenshots, and metadata for easy filtering. Plus, you can invite friends to download games from your library.
 
@@ -14,6 +14,7 @@ When updating from 1.2.1 run the update_game_sizes.py script
 1. **Game Library Management** 🎲
     - Multiple library support.
     - Automated scanning of folders to catalog games.
+    - Support for 'updates' and 'extras' within game folders.
     - Library page includes Steam-style popup with screenshot slideshow.
     - Filtering options based on genre, rating, and gameplay modes
     - Discovery page showcasing latest additions, top downloads, and highly rated games.
