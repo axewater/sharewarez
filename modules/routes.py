@@ -2053,7 +2053,7 @@ def refresh_game_images(game_uuid):
 @login_required
 @admin_required
 def admin_dashboard():
-    pass
+    print(f"Route: /admin/dashboard - {current_user.name} - {current_user.role} method: {request.method}")
     return render_template('admin/admin_dashboard.html')
 
 @bp.route('/admin/discord_settings', methods=['GET', 'POST'])
