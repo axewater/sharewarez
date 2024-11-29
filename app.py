@@ -30,16 +30,16 @@ class MyHandler(FileSystemEventHandler):
         last_modified = event.src_path
         if event.src_path.find('~') == -1:
             with app.app_context():
+                allowed_ext = current_app.config['ALLOWED_FILE_TYPES'] # List of allowed extensions.
                 ignore_ext = current_app.config['MONITOR_IGNORE_EXT']  # List of extensions to ignore.
                 file_name = event.src_path.split('/')[-1]
                 file_ext = file_name.split('.')[-1]
-                print(f"File Name: {file_name} and File Extension {file_ext}")
-                if file_ext not in ignore_ext:
+                if file_ext not in ignore_ext and file_ext in allowed_ext:
                     from modules.utilities import discord_update
                     from modules.models import GlobalSettings
                     settings = GlobalSettings.query.first()
                     if settings.enable_game_updates or settings.enable_game_extras:
-                        print(f"Event: {event.src_path} was {event.event_type}")
+                        print(f"Event: {event.src_path} was {event.event_type} - Processing File Name: {file_name} with File Extension {file_ext}")
                         discord_update(event.src_path, event.event_type)            
     def on_modified(self, event):
         global last_trigger_time
@@ -50,16 +50,16 @@ class MyHandler(FileSystemEventHandler):
                 last_modified = event.src_path
                 last_trigger_time = current_time
                 with app.app_context():
+                    allowed_ext = current_app.config['ALLOWED_FILE_TYPES'] # List of allowed extensions.
                     ignore_ext = current_app.config['MONITOR_IGNORE_EXT']  # List of extensions to ignore.
                     file_name = event.src_path.split('/')[-1]
                     file_ext = file_name.split('.')[-1]
-                    print(f"File Name: {file_name} and File Extension {file_ext}")
-                    if file_ext not in ignore_ext:
+                    if file_ext not in ignore_ext and file_ext in allowed_ext:
                         from modules.utilities import discord_update
                         from modules.models import GlobalSettings
                         settings = GlobalSettings.query.first()
                         if settings.enable_main_game_updates:
-                            print(f"Event: {event.src_path} was {event.event_type}")
+                            print(f"Event: {event.src_path} was {event.event_type} - Processing File Name: {file_name} with File Extension {file_ext}")
                             discord_update(event.src_path, event.event_type) 
         
 def watch_directory(path):
