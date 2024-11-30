@@ -1667,13 +1667,13 @@ def discord_update(path, event):
             else:
                 file_name = path.split('/')[-2]
         else:
-            file_size = get_folder_size_in_bytes_updates(path)
+            file_size = os.path.getsize(path)
             last_game_path = game_path
-            
+
         #If OS is Windows and the exe file detected is a not a main game file change, ignore it. If main game file change, check to see if size actually changed.
-        if os.name == "nt" and file_ext == "exe":
+        if os.name == "nt":
             if game:
-                if update_folder.lower() in path.lower()  or extras_folder.lower() in path.lower() :
+                if update_folder.lower() in path.lower()  or extras_folder.lower() in path.lower()  and file_ext == "exe":
                     print(f"The extension {file_ext} will not used for {folder_name}")
                     return
                 else:
@@ -1685,6 +1685,9 @@ def discord_update(path, event):
             else:
                 print(f"No found game.")
                 return
+                
+        if game.full_disk_path == game_path:
+            update_game_size(game.uuid, file_size)
                     
         file_size = format_size(file_size)
             
@@ -1740,3 +1743,9 @@ def get_game_name_by_uuid(uuid):
     else:
         print("Game not found")
         return None
+        
+def update_game_size(game_uuid, size):
+    game = get_game_by_uuid(game_uuid)
+    game.size = size
+    db.session.commit()
+    return
