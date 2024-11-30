@@ -204,366 +204,362 @@
 					{% if (enable_game_updates or enable_game_extras) and (update_files.files or extras_files.files) %}
 						<div class="game-card-q3">
 							<div class="game-files">
-							{% if enable_game_updates %}
-								<div class="game-files-updates">
-									<div class="updates-header">Updates</div>
-								</div>
-									{% if update_files.files %}
-										<div class="updates-content">
-											<table class="table table-hover">
-												{% for file in update_files.files|sort(attribute='isfile') %}
-												<tr>
-													<th>
-													{% set file_extension = file.name.split('.')[-1] %}
-													{% if '.' not in file.name %}
-														<i class="bi bi-folder"></i>
-														<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "exe" %}
-														<i class="bi bi-filetype-exe"></i>
-														<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "rar" %}
-														<i class="bi bi-file-zip"></i>
-														<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "zip" %}
-														<i class="bi bi-file-zip"></i>
-														<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "iso" %}
-														<i class="bi bi-disc"></i>
-														<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "doc" %}
-														<i class="bi bi-filetype-doc"></i>
-														<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "doc" %}
-														<i class="bi bi-filetype-doc"></i>
-														<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "docx" %}
-														<i class="bi bi-filetype-docx"></i>
-														<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "json" %}
-														<i class="bi bi-filetype-json"></i>
-														<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "pdf" %}
-														<i class="bi bi-filetype-pdf"></i>
-														<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "png" %}
-														<i class="bi bi-filetype-png"></i>
-														<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "txt" %}
-														<i class="bi bi-filetype-txt"></i>
-														<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "gif" %}
-														<i class="bi bi-filetype-gif"></i>
-														<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "jpg" %}
-														<i class="bi bi-filetype-jpg"></i>
-														<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "jpeg" %}
-														<i class="bi bi-filetype-jpg"></i>
-														<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% else %}
-														<i class="bi bi-file"></i>
-														<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% endif %}
-													</th>				
-												</tr>
-												{% endfor %}
-											</table>
-										</div>
-									{% else %}
-										<p>None</p>
-									{% endif %}
-								{% endif %}
-								{% if enable_game_extras %}
-									<div class="game-files-additional">
-										<div class="additional-header">Extra Files</div>
+							{% if update_files.files %}
+								{% if enable_game_updates %}
+									<div class="game-files-updates">
+										<div class="updates-header">Updates</div>
 									</div>
+											<div class="updates-content">
+												<table class="table table-hover">
+													{% for file in update_files.files|sort(attribute='isfile') %}
+													<tr>
+														<th>
+														{% set file_extension = file.name.split('.')[-1] %}
+														{% if '.' not in file.name %}
+															<i class="bi bi-folder"></i>
+															<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "exe" %}
+															<i class="bi bi-filetype-exe"></i>
+															<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "rar" %}
+															<i class="bi bi-file-zip"></i>
+															<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "zip" %}
+															<i class="bi bi-file-zip"></i>
+															<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "iso" %}
+															<i class="bi bi-disc"></i>
+															<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "doc" %}
+															<i class="bi bi-filetype-doc"></i>
+															<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "doc" %}
+															<i class="bi bi-filetype-doc"></i>
+															<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "docx" %}
+															<i class="bi bi-filetype-docx"></i>
+															<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "json" %}
+															<i class="bi bi-filetype-json"></i>
+															<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "pdf" %}
+															<i class="bi bi-filetype-pdf"></i>
+															<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "png" %}
+															<i class="bi bi-filetype-png"></i>
+															<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "txt" %}
+															<i class="bi bi-filetype-txt"></i>
+															<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "gif" %}
+															<i class="bi bi-filetype-gif"></i>
+															<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "jpg" %}
+															<i class="bi bi-filetype-jpg"></i>
+															<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "jpeg" %}
+															<i class="bi bi-filetype-jpg"></i>
+															<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% else %}
+															<i class="bi bi-file"></i>
+															<a href="{{ url_for('main.download_file', file_location='updates', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% endif %}
+														</th>				
+													</tr>
+													{% endfor %}
+												</table>
+											</div>
+								{% endif %}
+							{% endif %}
+								{% if enable_game_extras %}
 									{% if extras_files.files %}
-										<div class="additional-content">
-											<table class="table table-hover">
-												{% for file in extras_files.files|sort(attribute='isfile') %}
-												<tr>
-													<th>
-													{% set file_extension = file.name.split('.')[-1] %}
-													{% if '.' not in file.name %}
-														<i class="bi bi-folder"></i>
-														<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "exe" %}
-														<i class="bi bi-filetype-exe"></i>
-														<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "rar" %}
-														<i class="bi bi-file-zip"></i>
-														<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "zip" %}
-														<i class="bi bi-file-zip"></i>
-														<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "iso" %}
-														<i class="bi bi-disc"></i>
-														<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "doc" %}
-														<i class="bi bi-filetype-doc"></i>
-														<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "doc" %}
-														<i class="bi bi-filetype-doc"></i>
-														<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "docx" %}
-														<i class="bi bi-filetype-docx"></i>
-														<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "json" %}
-														<i class="bi bi-filetype-json"></i>
-														<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "pdf" %}
-														<i class="bi bi-filetype-pdf"></i>
-														<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "png" %}
-														<i class="bi bi-filetype-png"></i>
-														<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "txt" %}
-														<i class="bi bi-filetype-txt"></i>
-														<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "gif" %}
-														<i class="bi bi-filetype-gif"></i>
-														<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "jpg" %}
-														<i class="bi bi-filetype-jpg"></i>
-														<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% elif file_extension == "jpeg" %}
-														<i class="bi bi-filetype-jpg"></i>
-														<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% else %}
-														<i class="bi bi-file"></i>
-														<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
-														<span class="file-name">
-															{{ file.name }}
-														</span>
-														</a>
-														<span class="file-size">
-															({{ file.size }})
-														</span>
-													{% endif %}
-													</th>				
-												</tr>
-												{% endfor %}
-											</table>
+										<div class="game-files-additional">
+											<div class="additional-header">Extra Files</div>
 										</div>
-									{% else %}
-										<p>None</p>
+											<div class="additional-content">
+												<table class="table table-hover">
+													{% for file in extras_files.files|sort(attribute='isfile') %}
+													<tr>
+														<th>
+														{% set file_extension = file.name.split('.')[-1] %}
+														{% if '.' not in file.name %}
+															<i class="bi bi-folder"></i>
+															<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "exe" %}
+															<i class="bi bi-filetype-exe"></i>
+															<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "rar" %}
+															<i class="bi bi-file-zip"></i>
+															<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "zip" %}
+															<i class="bi bi-file-zip"></i>
+															<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "iso" %}
+															<i class="bi bi-disc"></i>
+															<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "doc" %}
+															<i class="bi bi-filetype-doc"></i>
+															<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "doc" %}
+															<i class="bi bi-filetype-doc"></i>
+															<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "docx" %}
+															<i class="bi bi-filetype-docx"></i>
+															<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "json" %}
+															<i class="bi bi-filetype-json"></i>
+															<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "pdf" %}
+															<i class="bi bi-filetype-pdf"></i>
+															<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "png" %}
+															<i class="bi bi-filetype-png"></i>
+															<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "txt" %}
+															<i class="bi bi-filetype-txt"></i>
+															<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "gif" %}
+															<i class="bi bi-filetype-gif"></i>
+															<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "jpg" %}
+															<i class="bi bi-filetype-jpg"></i>
+															<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% elif file_extension == "jpeg" %}
+															<i class="bi bi-filetype-jpg"></i>
+															<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% else %}
+															<i class="bi bi-file"></i>
+															<a href="{{ url_for('main.download_file', file_location='extras', game_uuid=game.uuid, file_size=file.size, file_name=file.name) }}" method="get" class="download-form" onclick="return doFormSubmit();">
+															<span class="file-name">
+																{{ file.name }}
+															</span>
+															</a>
+															<span class="file-size">
+																({{ file.size }})
+															</span>
+														{% endif %}
+														</th>				
+													</tr>
+													{% endfor %}
+												</table>
+											</div>
 									{% endif %}			
 								{% endif %}
 							</div>
