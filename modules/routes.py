@@ -48,7 +48,7 @@ from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
     get_game_by_uuid, make_igdb_api_request, load_release_group_patterns, check_existing_game_by_igdb_id,
     get_game_names_from_folder, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_files,
-    zip_game, zip_folder, format_size, delete_game_images, read_first_nfo_content, get_folder_size_in_bytes, PLATFORM_IDS
+    zip_game, zip_folder, format_size, delete_game_images, read_first_nfo_content, get_folder_size_in_bytes, get_folder_size_in_bytes_updates, PLATFORM_IDS
 )
 from modules.theme_manager import ThemeManager
 
@@ -1158,6 +1158,7 @@ def cancel_scan_job(job_id):
 
 
 def handle_manual_scan(manual_form):
+    settings = GlobalSettings.query.first()
     session['active_tab'] = 'manual'
     if manual_form.validate_on_submit():
         # check job status
@@ -1189,7 +1190,7 @@ def handle_manual_scan(manual_form):
             if scan_mode == 'folders':
                 games_with_paths = get_game_names_from_folder(full_path, insensitive_patterns, sensitive_patterns)
             else:  # files mode
-                supported_extensions = ["32x", "7z", "a26", "a52", "a78", "adf", "arj", "bin", "col", "crt", "d64", "exe", "fds", "fig", "gb", "gba", "gbc", "gen", "gg", "img", "iso", "lnx", "md", "n64", "nes", "ng", "pce", "rar", "rom", "sfc", "smc", "smd", "sms", "swc", "t64", "tap", "uae", "unf", "v64", "z64", "z80", "zip"]
+                supported_extensions = current_app.config['ALLOWED_FILE_TYPES']
                 games_with_paths = get_game_names_from_files(full_path, supported_extensions, insensitive_patterns, sensitive_patterns)
             session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
             print(f"Found {len(session['game_paths'])} games in the folder.")
@@ -1418,7 +1419,7 @@ def game_edit(game_uuid):
         
         # Updating size
         print(f"Calculating folder size for {game.full_disk_path}.")
-        new_folder_size_bytes = get_folder_size_in_bytes(game.full_disk_path)
+        new_folder_size_bytes = get_folder_size_in_bytes_updates(game.full_disk_path)
         print(f"New folder size for {game.full_disk_path}: {format_size(new_folder_size_bytes)}")
         game.size = new_folder_size_bytes
 
