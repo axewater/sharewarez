@@ -26,6 +26,7 @@ class MyHandler(FileSystemEventHandler):
     last_trigger_time = time.time()
 
     def on_created(self, event):
+        time.sleep(5)
         global last_modified
         last_modified = event.src_path
         if event.src_path.find('~') == -1:
@@ -42,6 +43,7 @@ class MyHandler(FileSystemEventHandler):
                         print(f"Event: {event.src_path} was {event.event_type} - Processing File Name: {file_name} with File Extension {file_ext}")
                         discord_update(event.src_path, event.event_type)            
     def on_modified(self, event):
+        time.sleep(5)
         global last_trigger_time
         global last_modified
         current_time = time.time()
