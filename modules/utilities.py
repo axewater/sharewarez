@@ -535,6 +535,17 @@ def get_folder_size_in_bytes(folder_path):
             if os.path.exists(fp):
                 total_size += os.path.getsize(fp)
     return total_size
+    
+def get_folder_size_in_bytes_updates(folder_path):
+    settings = GlobalSettings.query.first()
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(folder_path):
+        for f in filenames:
+            if settings.update_folder_name.lower() not in dirpath.lower() and settings.extras_folder_name.lower() not in dirpath.lower():
+                fp = os.path.join(dirpath, f)
+                if os.path.exists(fp):
+                    total_size += os.path.getsize(fp)
+    return total_size
 
 def process_game_updates(game_name, full_disk_path, updates_folder, library_uuid):
     print(f"Processing updates for game: {game_name}")
@@ -1593,7 +1604,7 @@ def discord_update(path, event):
                 print("No matching update notifications for this file.")
                 return
     
-    elif event == "modified":    
+    elif event == "modified":
         # Check if Discord notifications are enabled for game updates
         if not settings.discord_notify_game_updates:
             print("Discord notifications for game updates are disabled.")
@@ -1604,10 +1615,15 @@ def discord_update(path, event):
         if os.name == "nt":
             game_path = path.rpartition('\\')[0]
             file_name = path.split('\\')[-1]
+            folder_name = path.split('\\')[-2]
+            file_ext = path.split('.')[-1]
         else:
             game_path = path.rpartition('/')[0]
             file_name = path.split('/')[-1]
         print(f"Getting game located at path {game_path} with file path {path}")
+        
+        game = get_game_by_full_disk_path(game_path, path)
+        
         number_of_files = len([f for f in os.listdir(game_path) if os.path.isfile(os.path.join(game_path, f)) and f.split('.')[-1] != 'txt' and f.split('.')[-1] != 'nfo'])
         
         if number_of_files > 1:
@@ -1616,18 +1632,30 @@ def discord_update(path, event):
             if last_game_path == game_path and elapsed_minutes < 60:
                 print(f"This game folder contains {number_of_files} game files and this file will not be included in the update notifications. Last updated {int(elapsed_minutes)} minutes ago.")
                 return
-            file_size = os.path.getsize(game_path)
+            file_size = get_folder_size_in_bytes_updates(game_path)
             last_game_path = game_path
             if os.name == "nt":
                 file_name = path.split('\\')[-2]
             else:
                 file_name = path.split('/')[-2]
         else:
-            file_size = os.path.getsize(path)
+            file_size = get_folder_size_in_bytes_updates(path)
             last_game_path = game_path
+            
+        #If OS is Windows and the exe file detected is a not a main game file change, ignore it. If main game file change, check to see if size actually changed.
+        if os.name == "nt" and file_ext == "exe":
+            if update_folder.lower() in path.lower()  or extras_folder.lower() in path.lower() :
+                print(f"The extension {file_ext} will not used for {folder_name}")
+                return
+            else:
+                if file_size == game.size:
+                    print(f"There is no change in {file_name}. File size is {file_size} and original size is {game.size}.")
+                    return
+                else:
+                    print(f"There is a change in {file_name} at path {game_path}. New file size is {file_size} and original size is {game.size}.")
+                    
         file_size = format_size(file_size)
-        game = get_game_by_full_disk_path(game_path, path)
-        
+            
         if game:
             game_library = get_library_by_uuid(game.library_uuid)
             
