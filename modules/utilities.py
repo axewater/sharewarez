@@ -1673,7 +1673,7 @@ def discord_update(path, event):
         #If OS is Windows and the exe file detected is a not a main game file change, ignore it. If main game file change, check to see if size actually changed.
         if os.name == "nt":
             if game:
-                if update_folder.lower() in path.lower()  or extras_folder.lower() in path.lower()  and file_ext == "exe":
+                if update_folder.lower() in path.lower() or extras_folder.lower() in path.lower() and file_ext == "exe":
                     print(f"The extension {file_ext} will not used for {folder_name}")
                     return
                 else:
@@ -1687,6 +1687,7 @@ def discord_update(path, event):
                 return
                 
         if game.full_disk_path == game_path:
+            print(f"Updating new game size as {file_size} and original size is {game.size}. Path is {path}")
             update_game_size(game.uuid, file_size)
                     
         file_size = format_size(file_size)
@@ -1748,4 +1749,3 @@ def update_game_size(game_uuid, size):
     game = get_game_by_uuid(game_uuid)
     game.size = size
     db.session.commit()
-    return
