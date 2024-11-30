@@ -406,7 +406,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
             print(f"attempting to read NFO content for game {game_name} on {full_disk_path}.")
             nfo_content = read_first_nfo_content(full_disk_path)            
             print(f"Calculating folder size for {full_disk_path}.")
-            folder_size_bytes = get_folder_size_in_bytes(full_disk_path)
+            folder_size_bytes = get_folder_size_in_bytes_updates(full_disk_path)
             print(f"Folder size for {full_disk_path}: {format_size(folder_size_bytes)}")
             new_game = create_game_instance(game_data=response_json[0], full_disk_path=full_disk_path, folder_size_bytes=folder_size_bytes, library_uuid=library.uuid)
             
@@ -1075,6 +1075,7 @@ def get_cover_url(igdb_id):
 
 
 def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None):
+    settings = GlobalSettings.query.first()
     # First, find the library and its platform
     library = Library.query.filter_by(uuid=library_uuid).first()
     if not library:
@@ -1120,7 +1121,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None):
     insensitive_patterns, sensitive_patterns = load_release_group_patterns()
 
     try:
-        supported_extensions = ["32x", "7z", "a26", "a52", "a78", "adf", "arj", "bin", "col", "crt", "d64", "exe", "fds", "fig", "gb", "gba", "gbc", "gen", "gg", "img", "iso", "lnx", "md", "n64", "nes", "ng", "pce", "rar", "rom", "sfc", "smc", "smd", "sms", "swc", "t64", "tap", "uae", "unf", "v64", "z64", "z80", "zip"]
+        supported_extensions = current_app.config['ALLOWED_FILE_TYPES']
 
         # Use patterns in function calls
         if scan_mode == 'folders':
