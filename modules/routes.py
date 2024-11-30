@@ -2469,6 +2469,22 @@ def download_game(game_uuid):
 @bp.route('/download_file/<file_location>/<file_size>/<game_uuid>/<file_name>', methods=['GET'])
 @login_required
 def download_file(file_location, file_size, game_uuid, file_name):
+    settings = GlobalSettings.query.first()
+    game = get_game_by_uuid(game_uuid)
+    if file_location == "updates":
+        if os.name == "nt":
+            file_location = game.full_disk_path + "\\" + settings.update_folder_name + "\\" + file_name
+        else:
+            file_location = game.full_disk_path + "/" + settings.update_folder_name + "/" + file_name
+    elif file_location == "extras":
+        if os.name == "nt":
+            file_location = game.full_disk_path + "\\" + settings.extras_folder_name + "\\" + file_name
+        else:
+            file_location = game.full_disk_path + "/" + settings.extras_folder_name + "/" + file_name
+    else:
+        print(f"Error - No location: {file_location}")
+        return
+    
     print(f"Downloading file with location: {file_location}")
     if os.path.isfile(file_location):
         file_size_stripped = ''.join(filter(str.isdigit, file_size))
