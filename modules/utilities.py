@@ -754,6 +754,7 @@ def download_image(url, save_path):
         
 
 def zip_game(download_request_id, app, zip_file_path):
+    settings = GlobalSettings.query.first()
     with app.app_context():
         download_request = DownloadRequest.query.get(download_request_id)
         game = download_request.game
@@ -791,9 +792,19 @@ def zip_game(download_request_id, app, zip_file_path):
             
             with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_STORED) as zipf:
                 for root, dirs, files in os.walk(source_path):
-                    # Exclude the 'updates' folder
-                    if 'updates' in dirs:
-                        dirs.remove('updates')
+                    # Exclude the updates and extras folders
+                    if settings.update_folder_name in dirs:
+                        dirs.remove(settings.update_folder_name)
+                    if settings.update_folder_name.lower() in dirs:
+                        dirs.remove(settings.update_folder_name.lower())
+                    if settings.update_folder_name.capitalize() in dirs:
+                        dirs.remove(settings.update_folder_name.capitalize())
+                    if settings.extras_folder_name in dirs:
+                        dirs.remove(settings.extras_folder_name)
+                    if settings.extras_folder_name.lower() in dirs:
+                        dirs.remove(settings.extras_folder_name.lower())
+                    if settings.extras_folder_name.capitalize() in dirs:
+                        dirs.remove(settings.extras_folder_name.capitalize())
                     for file in files:
                         file_path = os.path.join(root, file)
                         # Ensure .NFO, .SFV, and file_id.diz files are still included in the zip
