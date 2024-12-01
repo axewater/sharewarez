@@ -6,6 +6,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import threading
 from flask import current_app
+import os
 
 app = create_app()
 
@@ -26,24 +27,29 @@ class MyHandler(FileSystemEventHandler):
     last_trigger_time = time.time()
 
     def on_created(self, event):
-        time.sleep(5)
         global last_modified
         last_modified = event.src_path
         if event.src_path.find('~') == -1:
             with app.app_context():
                 allowed_ext = current_app.config['ALLOWED_FILE_TYPES'] # List of allowed extensions.
                 ignore_ext = current_app.config['MONITOR_IGNORE_EXT']  # List of extensions to ignore.
-                file_name = event.src_path.split('/')[-1]
-                file_ext = file_name.split('.')[-1]
-                if file_ext not in ignore_ext and file_ext in allowed_ext:
+                if os.name == "nt":
+                    file_name = event.src_path.split('\\')[-1]
+                else:
+                    file_name = event.src_path.split('/')[-1]
+                if not event.is_directory:
+                    file_ext = file_name.split('.')[-1]
+                else:
+                    file_ext = "None"
+                if (file_ext not in ignore_ext and file_ext in allowed_ext) or file_ext == "None":
                     from modules.utilities import discord_update
                     from modules.models import GlobalSettings
                     settings = GlobalSettings.query.first()
                     if settings.enable_game_updates or settings.enable_game_extras:
                         print(f"Event: {event.src_path} was {event.event_type} - Processing File Name: {file_name} with File Extension {file_ext}")
+                        time.sleep(5)
                         discord_update(event.src_path, event.event_type)            
     def on_modified(self, event):
-        time.sleep(5)
         global last_trigger_time
         global last_modified
         current_time = time.time()
@@ -62,6 +68,7 @@ class MyHandler(FileSystemEventHandler):
                         settings = GlobalSettings.query.first()
                         if settings.enable_main_game_updates:
                             print(f"Event: {event.src_path} was {event.event_type} - Processing File Name: {file_name} with File Extension {file_ext}")
+                            time.sleep(5)
                             discord_update(event.src_path, event.event_type) 
         
 def watch_directory(path):
