@@ -1,11 +1,11 @@
 
 body {
     background-image: url('/static/library/themes/Modern/images/background-image.png'); 
-    background-size: cover;
+	background-size: cover;
     background-repeat: no-repeat;
-
     font-family: Arial, sans-serif;
-    color: white;
+	color: white;
+	background-color: #747574;
 }
 
 
