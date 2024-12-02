@@ -1544,7 +1544,11 @@ def discord_update(path, event):
             file_name = path.split('/')[-1]
             
         print(f"Getting game located at path {game_path}")
-        file_size = os.path.getsize(path)
+        
+        if os.path.isfile(path):
+            file_size = os.path.getsize(path)
+        else:
+            file_size = get_folder_size_in_bytes(path)
         file_size = format_size(file_size)
         game = get_game_by_full_disk_path(game_path, path)
         
@@ -1749,3 +1753,4 @@ def update_game_size(game_uuid, size):
     game = get_game_by_uuid(game_uuid)
     game.size = size
     db.session.commit()
+    return None
