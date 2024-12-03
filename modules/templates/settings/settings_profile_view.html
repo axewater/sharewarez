@@ -31,17 +31,15 @@
         <div class="settings_profile_view-userinfo">
             <p><strong>Name:</strong> {{ current_user.name }}</p>
             <p><strong>Email:</strong> {{ current_user.email }}</p>
+            <p><strong>Role:</strong> {{ current_user.role|title }}</p>
+            <p><strong>Member Since:</strong> {{ current_user.created.strftime('%B %d, %Y') }}</p>
             <p><strong>About:</strong> {{ current_user.about }}</p>
             <p><strong>Invites:</strong> {{ remaining_invites }} out of {{ total_invites }}</p>
         </div>
         <div class="settings_profile_view-edit-button">
-            <a href="{{ url_for('main.settings_profile_edit') }}" class="btn btn-primary">Edit Profile</a>
+            <a href="{{ url_for('main.settings_profile_edit') }}" class="btn btn-primary">Change Avatar</a>
         </div>
-        <div class="settings_profile_view-welcome">
-            <p>Ahoy, {{ current_user.name }}, welcome to ShareWareZ!</p>
-            <p>Set sail through vast digital seas where treasures abound in every corner. Here, ye can effortlessly chart yer course through libraries brimming with the finest games, each chest filled with images and lore.</p>
-            <p>Seek and ye shall find with our trusty maps (search and filters), uncovering the jewels of your liking. And fret not, for every treasure is yours for the taking, cracked and ready to embark upon your device. Aye, for we are pirates, and the horizon is ours to explore!</p>
-        </div>
+
     </div>
 </div>
 
