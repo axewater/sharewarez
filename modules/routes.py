@@ -60,7 +60,7 @@ has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '1.6.0'
+app_version = '1.6.2'
 
 
 @bp.before_app_request
@@ -348,7 +348,11 @@ def invites():
         current_invites = InviteToken.query.filter_by(creator_user_id=current_user.user_id, used=False).count()
         if current_user.invite_quota > current_invites:
             token = str(uuid.uuid4())
-            invite_token = InviteToken(token=token, creator_user_id=current_user.user_id)
+            invite_token = InviteToken(
+                token=token, 
+                creator_user_id=current_user.user_id,
+                recipient_email=email
+            )
             db.session.add(invite_token)
             db.session.commit()
 
@@ -508,7 +512,16 @@ def settings_profile_edit():
 @login_required
 def settings_profile_view():
     print("Route: Settings profile view")
-    return render_template('settings/settings_profile_view.html')
+    # Calculate remaining invites
+    unused_invites = InviteToken.query.filter_by(
+        creator_user_id=current_user.user_id, 
+        used=False
+    ).count()
+    remaining_invites = max(0, current_user.invite_quota - unused_invites)
+    
+    return render_template('settings/settings_profile_view.html', 
+                         remaining_invites=remaining_invites,
+                         total_invites=current_user.invite_quota)
 
 @bp.route('/settings_password', methods=['GET', 'POST'])
 @login_required
