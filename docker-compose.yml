@@ -1,4 +1,5 @@
-# Use postgres/example user/password credentials
+# Mount volume data folder warez to a drive with games
+# Mount volume 
 services:
   app:
     build:
@@ -14,9 +15,8 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}
       - WAIT_HOSTS="db:5432"
     volumes:
-      - "${DATA_FOLDER_WAREZ}:/storage"
-      - "${DATA_FOLDER_IMAGEZ}:/app/modules/static/library/images"
-      - "${DATA_FOLDER_ZIPZ}:/app/modules/static/library/zips"
+      - "${DATA_FOLDER_WAREZ}:/"
+      - "${UPLOAD_FOLDER}:/app/modules/static/library/"
     depends_on:
       - db     
 
