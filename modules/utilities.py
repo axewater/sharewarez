@@ -406,7 +406,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
             print(f"attempting to read NFO content for game {game_name} on {full_disk_path}.")
             nfo_content = read_first_nfo_content(full_disk_path)            
             print(f"Calculating folder size for {full_disk_path}.")
-            folder_size_bytes = get_folder_size_in_bytes(full_disk_path)
+            folder_size_bytes = get_folder_size_in_bytes_updates(full_disk_path)
             print(f"Folder size for {full_disk_path}: {format_size(folder_size_bytes)}")
             new_game = create_game_instance(game_data=response_json[0], full_disk_path=full_disk_path, folder_size_bytes=folder_size_bytes, library_uuid=library.uuid)
             
@@ -534,6 +534,32 @@ def get_folder_size_in_bytes(folder_path):
             fp = os.path.join(dirpath, f)
             if os.path.exists(fp):
                 total_size += os.path.getsize(fp)
+    return total_size
+    
+def get_folder_size_in_bytes_updates(folder_path):
+    settings = GlobalSettings.query.first()
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(folder_path):
+        for f in filenames:
+            if settings.update_folder_name and settings.update_folder_name != "" and settings.extras_folder_name and settings.extras_folder_name != "":
+                if settings.update_folder_name.lower() not in dirpath.lower() and settings.extras_folder_name.lower() not in dirpath.lower():
+                    fp = os.path.join(dirpath, f)
+                    if os.path.exists(fp):
+                        total_size += os.path.getsize(fp)
+            elif settings.update_folder_name and settings.update_folder_name != "":
+                if settings.update_folder_name.lower() not in dirpath.lower():
+                    fp = os.path.join(dirpath, f)
+                    if os.path.exists(fp):
+                        total_size += os.path.getsize(fp)
+            elif settings.extras_folder_name and settings.extras_folder_name != "":
+                if settings.extras_folder_name.lower() not in dirpath.lower():
+                    fp = os.path.join(dirpath, f)
+                    if os.path.exists(fp):
+                        total_size += os.path.getsize(fp)
+            else:
+                fp = os.path.join(dirpath, f)
+                if os.path.exists(fp):
+                    total_size += os.path.getsize(fp)
     return total_size
 
 def process_game_updates(game_name, full_disk_path, updates_folder, library_uuid):
@@ -728,6 +754,7 @@ def download_image(url, save_path):
         
 
 def zip_game(download_request_id, app, zip_file_path):
+    settings = GlobalSettings.query.first()
     with app.app_context():
         download_request = DownloadRequest.query.get(download_request_id)
         game = download_request.game
@@ -765,9 +792,19 @@ def zip_game(download_request_id, app, zip_file_path):
             
             with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_STORED) as zipf:
                 for root, dirs, files in os.walk(source_path):
-                    # Exclude the 'updates' folder
-                    if 'updates' in dirs:
-                        dirs.remove('updates')
+                    # Exclude the updates and extras folders
+                    if settings.update_folder_name in dirs:
+                        dirs.remove(settings.update_folder_name)
+                    if settings.update_folder_name.lower() in dirs:
+                        dirs.remove(settings.update_folder_name.lower())
+                    if settings.update_folder_name.capitalize() in dirs:
+                        dirs.remove(settings.update_folder_name.capitalize())
+                    if settings.extras_folder_name in dirs:
+                        dirs.remove(settings.extras_folder_name)
+                    if settings.extras_folder_name.lower() in dirs:
+                        dirs.remove(settings.extras_folder_name.lower())
+                    if settings.extras_folder_name.capitalize() in dirs:
+                        dirs.remove(settings.extras_folder_name.capitalize())
                     for file in files:
                         file_path = os.path.join(root, file)
                         # Ensure .NFO, .SFV, and file_id.diz files are still included in the zip
@@ -1064,6 +1101,7 @@ def get_cover_url(igdb_id):
 
 
 def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None):
+    settings = GlobalSettings.query.first()
     # First, find the library and its platform
     library = Library.query.filter_by(uuid=library_uuid).first()
     if not library:
@@ -1109,7 +1147,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None):
     insensitive_patterns, sensitive_patterns = load_release_group_patterns()
 
     try:
-        supported_extensions = ["32x", "7z", "a26", "a52", "a78", "adf", "arj", "bin", "col", "crt", "d64", "exe", "fds", "fig", "gb", "gba", "gbc", "gen", "gg", "img", "iso", "lnx", "md", "n64", "nes", "ng", "pce", "rar", "rom", "sfc", "smc", "smd", "sms", "swc", "t64", "tap", "uae", "unf", "v64", "z64", "z80", "zip"]
+        supported_extensions = current_app.config['ALLOWED_FILE_TYPES']
 
         # Use patterns in function calls
         if scan_mode == 'folders':
@@ -1506,7 +1544,11 @@ def discord_update(path, event):
             file_name = path.split('/')[-1]
             
         print(f"Getting game located at path {game_path}")
-        file_size = os.path.getsize(path)
+        
+        if os.path.isfile(path):
+            file_size = os.path.getsize(path)
+        else:
+            file_size = get_folder_size_in_bytes(path)
         file_size = format_size(file_size)
         game = get_game_by_full_disk_path(game_path, path)
         
@@ -1593,7 +1635,7 @@ def discord_update(path, event):
                 print("No matching update notifications for this file.")
                 return
     
-    elif event == "modified":    
+    elif event == "modified":
         # Check if Discord notifications are enabled for game updates
         if not settings.discord_notify_game_updates:
             print("Discord notifications for game updates are disabled.")
@@ -1604,10 +1646,15 @@ def discord_update(path, event):
         if os.name == "nt":
             game_path = path.rpartition('\\')[0]
             file_name = path.split('\\')[-1]
+            folder_name = path.split('\\')[-2]
+            file_ext = path.split('.')[-1]
         else:
             game_path = path.rpartition('/')[0]
             file_name = path.split('/')[-1]
         print(f"Getting game located at path {game_path} with file path {path}")
+        
+        game = get_game_by_full_disk_path(game_path, path)
+        
         number_of_files = len([f for f in os.listdir(game_path) if os.path.isfile(os.path.join(game_path, f)) and f.split('.')[-1] != 'txt' and f.split('.')[-1] != 'nfo'])
         
         if number_of_files > 1:
@@ -1616,7 +1663,8 @@ def discord_update(path, event):
             if last_game_path == game_path and elapsed_minutes < 60:
                 print(f"This game folder contains {number_of_files} game files and this file will not be included in the update notifications. Last updated {int(elapsed_minutes)} minutes ago.")
                 return
-            file_size = os.path.getsize(game_path)
+
+            file_size = get_folder_size_in_bytes_updates(game_path)
             last_game_path = game_path
             if os.name == "nt":
                 file_name = path.split('\\')[-2]
@@ -1625,9 +1673,29 @@ def discord_update(path, event):
         else:
             file_size = os.path.getsize(path)
             last_game_path = game_path
+
+        #If OS is Windows and the exe file detected is a not a main game file change, ignore it. If main game file change, check to see if size actually changed.
+        if os.name == "nt":
+            if game:
+                if update_folder.lower() in path.lower() or extras_folder.lower() in path.lower() and file_ext == "exe":
+                    print(f"The extension {file_ext} will not used for {folder_name}")
+                    return
+                else:
+                    if file_size == game.size:
+                        print(f"There is no change in {file_name}. File size is {file_size} and original size is {game.size}.")
+                        return
+                    else:
+                        print(f"There is a change in {file_name} at path {game_path}. New file size is {file_size} and original size is {game.size}.")
+            else:
+                print(f"No found game.")
+                return
+                
+        if game.full_disk_path == game_path:
+            print(f"Updating new game size as {file_size} and original size is {game.size}. Path is {path}")
+            update_game_size(game.uuid, file_size)
+                    
         file_size = format_size(file_size)
-        game = get_game_by_full_disk_path(game_path, path)
-        
+            
         if game:
             game_library = get_library_by_uuid(game.library_uuid)
             
@@ -1680,3 +1748,9 @@ def get_game_name_by_uuid(uuid):
     else:
         print("Game not found")
         return None
+        
+def update_game_size(game_uuid, size):
+    game = get_game_by_uuid(game_uuid)
+    game.size = size
+    db.session.commit()
+    return None

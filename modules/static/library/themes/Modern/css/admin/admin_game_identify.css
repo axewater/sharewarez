@@ -36,9 +36,10 @@
 .glass-panel-addgame {
 	border-radius: 0px;
 	background-color: gray;
-	max-width: 38%;
 	align-items: center;
-	margin-left: 31%;
+	margin-left: auto;
+	margin-right: auto;
+	min-width: 800px;
 
 }
 
