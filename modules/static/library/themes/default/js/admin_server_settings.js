@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
             discordNotifyGameUpdates: document.getElementById('discordNotifyGameUpdates').checked,
 			discordNotifyGameExtras: document.getElementById('discordNotifyGameExtras').checked,
             discordNotifyDownloads: document.getElementById('discordNotifyDownloads').checked,
+            siteUrl: document.getElementById('siteUrl').value
         };
         console.log("Settings to be saved:", settings);
 

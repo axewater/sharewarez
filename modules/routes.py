@@ -120,6 +120,7 @@ def inject_settings():
         enable_delete_game_on_disk = settings_record.settings.get('enableDeleteGameOnDisk', True)
         enable_game_updates = settings_record.settings.get('enableGameUpdates', True)
         enable_game_extras = settings_record.settings.get('enableGameExtras', True)
+        site_url = settings_record.site_url if settings_record else 'http://127.0.0.1'
     else:
         # Default values if no settings_record is found
         show_logo = True
@@ -341,6 +342,9 @@ def reset_password(token):
 @bp.route('/login/invites', methods=['GET', 'POST'])
 @login_required
 def invites():
+    settings = GlobalSettings.query.first()
+    site_url = settings.site_url if settings else 'http://127.0.0.1'
+    
     form = InviteForm()
     if form.validate_on_submit():
         email = request.form.get('email')
@@ -356,7 +360,11 @@ def invites():
             db.session.add(invite_token)
             db.session.commit()
 
-            invite_url = url_for('main.register', token=token, _external=True, _scheme='https')
+            settings = GlobalSettings.query.first()
+            site_url = settings.site_url if settings else 'http://127.0.0.1'
+            
+            # Build the invite URL using the configured site URL
+            invite_url = f"{site_url}/register?token={token}"
 
             send_invite_email(email, invite_url)
 
@@ -1646,6 +1654,7 @@ def manage_settings():
         settings_record.update_folder_name = new_settings.get('updateFolderName', 'updates')
         settings_record.enable_game_extras = new_settings.get('enableGameExtras', True)
         settings_record.extras_folder_name = new_settings.get('extrasFolderName', 'extras')
+        settings_record.site_url = new_settings.get('siteUrl', 'http://127.0.0.1')
         settings_record.last_updated = datetime.utcnow()
         db.session.commit()
         cache.delete('global_settings')
