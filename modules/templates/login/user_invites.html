@@ -43,6 +43,7 @@
         <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
             <div>
                 Invite Link: <span class="text-primary">{{ url_for('main.register', token=invite.token, _external=True) }}</span><br>
+                Sent to: <strong>{{ invite.recipient_email }}</strong><br>
                 Status: <strong>{{ "Used" if invite.used else "Pending" }}</strong><br>
                 {% if invite.used %}
                     Used by: <strong>{{ invite.used_by_user.name }}</strong><br>

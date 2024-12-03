@@ -559,6 +559,7 @@ class InviteToken(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     expires_at = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(days=2), nullable=False)
     used = db.Column(db.Boolean, default=False, nullable=False)
+    recipient_email = db.Column(db.String(120), nullable=True)
     used_by = db.Column(db.String(36), db.ForeignKey('users.user_id'), nullable=True)
     used_at = db.Column(db.DateTime, nullable=True)
 

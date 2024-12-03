@@ -41,6 +41,9 @@ class DatabaseManager:
         ALTER TABLE invite_tokens
         ADD COLUMN IF NOT EXISTS used_at TIMESTAMP;
 
+        ALTER TABLE invite_tokens
+        ADD COLUMN IF NOT EXISTS recipient_email VARCHAR(120);
+
         ALTER TABLE user_preferences
         ADD COLUMN IF NOT EXISTS theme VARCHAR(50) DEFAULT 'default';
         
