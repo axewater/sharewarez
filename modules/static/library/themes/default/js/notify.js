@@ -64,12 +64,24 @@ function checkProcessingDownloads() {
         fetch(`/check_download_status/${download_id}`)
             .then(response => response.json())
             .then(data => {
+                if (!data.found) {
+                    // Remove from tracking if the download no longer exists
+                    removeProcessingDownload(download_id);
+                    return;
+                }
+                
                 if (data.status === 'available') {
                     showFlashMessage(`Download file "${info.file}" for ${info.name} has completed processing`, 'success');
                     removeProcessingDownload(download_id);
+                } else if (data.status === 'failed') {
+                    showFlashMessage(`Download failed for "${info.file}"`, 'error');
+                    removeProcessingDownload(download_id);
                 }
             })
-            .catch(error => console.error('Error checking download status:', error));
+            .catch(error => {
+                console.warn('Error checking download status:', error);
+                // Don't remove the download from tracking on network errors
+            });
     }
 }
 
@@ -78,5 +90,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeProcessingDownloads();
     
     // Start periodic checking of processing downloads
-    setInterval(checkProcessingDownloads, 3000);
+    setInterval(checkProcessingDownloads, 5000);
 });

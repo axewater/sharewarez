@@ -2633,21 +2633,20 @@ def download_zip(download_id):
 @bp.route('/check_download_status/<download_id>')
 @login_required
 def check_download_status(download_id):
-    print(f"Requested check for Download ID: {download_id}")
-    
-    print(f"Current user ID: {current_user.id}, Download ID: {download_id}")
-    
-    all_requests_for_user = DownloadRequest.query.filter_by(user_id=current_user.id).all()
-    print(f"All download requests for user: {all_requests_for_user}")
-    
     download_request = DownloadRequest.query.filter_by(id=download_id, user_id=current_user.id).first()
     
     if download_request:
-        print(f"Found download request: {download_request}")
-        return jsonify({'status': download_request.status, 'downloadId': download_request.id})
-    else:
-        print("No matching download request found.")
-    return jsonify({'status': 'error'}), 404
+        return jsonify({
+            'status': download_request.status,
+            'downloadId': download_request.id,
+            'found': True
+        })
+    
+    return jsonify({
+        'status': 'not_found',
+        'downloadId': download_id,
+        'found': False
+    }), 200
 
 
 @bp.route('/admin/manage-downloads', methods=['GET', 'POST'])
