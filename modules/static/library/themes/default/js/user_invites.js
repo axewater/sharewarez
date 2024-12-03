@@ -1,7 +1,10 @@
-function copyToClipboard(buttonElement, textToCopy) {
+function copyToClipboard(textToCopy) {
+    // Find the button that triggered this
+    const buttonElement = event.target;
+    
     // Copy text to clipboard
     navigator.clipboard.writeText(textToCopy).then(() => {
-        // Change button text to "COPIED!"
+        // Store original text and change to "COPIED!"
         const originalText = buttonElement.textContent;
         buttonElement.textContent = 'COPIED!';
         

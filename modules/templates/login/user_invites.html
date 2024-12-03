@@ -60,9 +60,12 @@
             </div>
             <div>
                 <button type="button" class="btn btn-outline-secondary btn-sm" {% if invite.used or seconds_remaining <= 0 %}disabled{% endif %}
-                onclick="copyToClipboard(this, '{{ url_for('main.register', token=invite.token, _external=True) }}')">Copy Invite URL</button>
+                onclick="copyToClipboard('{{ url_for('main.register', token=invite.token, _external=True) }}')">Copy Invite URL</button>
                 <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteInvite('{{ invite.token }}')">Delete</button>
             </div>
+            
+            <!-- Add CSRF token meta tag -->
+            <meta name="csrf-token" content="{{ csrf_token() }}">
         </div>
         {% else %}
         <div class="list-group-item">You have no active invites. Invite some pirates onto your crew!</div>
@@ -74,9 +77,9 @@
 <script id="csrf_token" type="application/json">{{ csrf_token() }}</script>
 
 <!-- External JS for invite management functionality -->
-{% if verify_file('./modules/static/library/themes/' + current_theme + 'js/user_invites.js') == True %}
-	<script src="{{ url_for('static', filename='library/themes/' + current_theme + 'js/user_invites.js') }}"></script>
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/user_invites.js') == True %}
+    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/user_invites.js') }}"></script>
 {% else %}
-	<script src="{{ url_for('static', filename='js/user_invites.js') }}"></script>
+    <script src="{{ url_for('static', filename='library/themes/default/js/user_invites.js') }}"></script>
 {% endif %}
 {% endblock %}
