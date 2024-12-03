@@ -60,7 +60,7 @@ has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '1.6.3'
+app_version = '1.6.4'
 
 
 @bp.before_app_request
@@ -2693,6 +2693,7 @@ def delete_download(download_id):
     download_request = DownloadRequest.query.filter_by(id=download_id, user_id=current_user.id).first_or_404()
     zip_save_path = current_app.config['ZIP_SAVE_PATH']
 
+    # Allow deletion regardless of status
     if download_request.zip_file_path and os.path.exists(download_request.zip_file_path):
         # Only delete the file if it's a generated zip file in our ZIP_SAVE_PATH
         try:

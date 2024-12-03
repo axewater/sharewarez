@@ -58,11 +58,11 @@
                         <td class="actions-cell">
                             {% if download.status == 'available' %}
                             <a href="{{ url_for('main.download_zip', download_id=download.id) }}" class="btn btn-primary">Download</a>
+                            {% endif %}
                             <form action="{{ url_for('main.delete_download', download_id=download.id) }}" method="post" class="inline-form">
                                 {{ form.csrf_token }}
                                 <button type="submit" class="btn btn-danger">Delete</button>
                             </form>
-                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}

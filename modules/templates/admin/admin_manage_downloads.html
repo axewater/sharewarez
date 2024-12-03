@@ -40,6 +40,7 @@
 						<th class="admin_manage_downloads-th-headings-5">Zip File Path</th>
 						<th class="admin_manage_downloads-th-headings-6">Request Time</th>
 						<th class="admin_manage_downloads-th-headings-7">Completion Time</th>
+						<th class="admin_manage_downloads-th-headings-8">Actions</th>
 					</tr>
 				</thead>
 				<tbody class="admin_manage_downloads-table-body">
@@ -52,6 +53,12 @@
 						<td class="admin_manage_downloads-td-data-5">{{ request.zip_file_path }}</td>
 						<td class="admin_manage_downloads-td-data-6">{{ request.request_time.strftime('%Y-%m-%d %H:%M') if request.request_time else 'N/A' }}</td>
 						<td class="admin_manage_downloads-td-data-7">{{ request.completion_time.strftime('%Y-%m-%d %H:%M') if request.completion_time else 'N/A' }}</td>
+						<td>
+							<form action="{{ url_for('main.delete_download_request', request_id=request.id) }}" method="post" style="display: inline;">
+								<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+								<button type="submit" class="btn btn-danger btn-sm">Delete</button>
+							</form>
+						</td>
 					</tr>
 					{% endfor %}
 				</tbody>
