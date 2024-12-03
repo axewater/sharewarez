@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         
         checkDownloadStatus(download_id);
-        setInterval(() => checkDownloadStatus(download_id), 3000);
+        setInterval(() => checkDownloadStatus(download_id), 5000);
     });
 });
 
