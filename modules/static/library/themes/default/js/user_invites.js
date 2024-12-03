@@ -1,5 +1,5 @@
 function copyToClipboard(textToCopy) {
-    // Find the button that triggered this
+    // Use the full URL that's already in the textToCopy parameter
     const buttonElement = event.target;
     
     // Copy text to clipboard

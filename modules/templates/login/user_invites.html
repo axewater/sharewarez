@@ -7,6 +7,18 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/login/user_invites.css') }}">
 {% endif %}
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+    {% for category, message in messages %}
+        {% if category == 'error' %}
+            <div class="alert alert-danger" role="alert">
+                {{ message }}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+{% endwith %}
+
 <div class="glass-panel container py-4">
     <h2 class="mb-3">Invite friends to your pirate crew!</h2>
     <p>Invites expire automatically after 48 hours. If not used by then, the invite is returned to you.</p>
@@ -20,17 +32,6 @@
         You have <strong>{{ remaining_invites }}</strong> out of <strong>{{ invite_quota }}</strong> invites left to send.
     </div>
     
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                {% if category == 'error' %}
-                    <div class="alert alert-danger" role="alert">
-                        {{ message }}
-                    </div>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
 
     <div class="mb-5">
         <form action="{{ url_for('main.invites') }}" method="POST" class="row g-3">
@@ -48,7 +49,7 @@
         {% for invite in invites %}
         <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
             <div>
-                Invite Link: <span class="text-primary">{{ site_url }}/register?token={{ invite.token }}</span><br>
+                Invite Link: <span class="text-primary" id="invite-link-{{ invite.token }}">{{ site_url }}/register?token={{ invite.token }}</span><br>
                 Sent to: <strong>{{ invite.recipient_email }}</strong><br>
                 Status: <strong>{{ "Used" if invite.used else "Pending" }}</strong><br>
                 {% if invite.used %}
@@ -66,7 +67,7 @@
             </div>
             <div>
                 <button type="button" class="btn btn-outline-secondary btn-sm" {% if invite.used or seconds_remaining <= 0 %}disabled{% endif %}
-                onclick="copyToClipboard('{{ url_for('main.register', token=invite.token, _external=True) }}')">Copy Invite URL</button>
+                onclick="copyToClipboard('{{ site_url }}/register?token={{ invite.token }}')">Copy Invite URL</button>
                 <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteInvite('{{ invite.token }}')">Delete</button>
             </div>
             
@@ -82,7 +83,7 @@
 <!-- Embed CSRF token -->
 <script id="csrf_token" type="application/json">{{ csrf_token() }}</script>
 
-<!-- External JS for invite management functionality -->
+<!-- External JavaScript for invite management functionality -->
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/user_invites.js') == True %}
     <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/user_invites.js') }}"></script>
 {% else %}
