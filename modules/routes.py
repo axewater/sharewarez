@@ -60,7 +60,7 @@ has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '1.6.5.1'
+app_version = '1.6.5.2'
 
 
 @bp.before_app_request
@@ -344,7 +344,8 @@ def reset_password(token):
 def invites():
     settings = GlobalSettings.query.first()
     site_url = settings.site_url if settings else 'http://127.0.0.1'
-    
+    if site_url == 'http://127.0.0.1'and current_user.role == 'admin':
+        flash('Please configure the site URL in the admin settings.', 'danger')
     form = InviteForm()
     if form.validate_on_submit():
         email = request.form.get('email')
@@ -377,7 +378,7 @@ def invites():
     current_invites_count = len(invites)
     remaining_invites = max(0, current_user.invite_quota - current_invites_count)
 
-    return render_template('/login/user_invites.html', form=form, invites=invites, invite_quota=current_user.invite_quota, remaining_invites=remaining_invites)
+    return render_template('/login/user_invites.html', form=form, invites=invites, invite_quota=current_user.invite_quota, site_url=site_url, current_invites_count=current_invites_count, remaining_invites=remaining_invites)
 
 @bp.route('/delete_invite/<token>', methods=['POST'])
 @login_required
