@@ -1118,6 +1118,7 @@ def scan_management():
 def handle_auto_scan(auto_form):
     print("handle_auto_scan: function running.")
     if auto_form.validate_on_submit():
+        library_uuid = auto_form.library_uuid.data
         
         running_job = ScanJob.query.filter_by(status='Running').first()
         if running_job:
@@ -1126,11 +1127,10 @@ def handle_auto_scan(auto_form):
             return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='auto'))
 
     
-        library_uuid = auto_form.library_uuid.data
         library = Library.query.filter_by(uuid=library_uuid).first()
         if not library:
-            flash('Selected library does not exist.', 'error')
-            return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='auto'))
+            flash('Selected library does not exist. Please select a valid library.', 'error')
+            return redirect(url_for('main.scan_management', active_tab='auto'))
 
         
         folder_path = auto_form.folder_path.data

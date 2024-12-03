@@ -2,44 +2,43 @@ import os
 from datetime import timedelta
 
 class Config(object):
-    SECRET_KEY = os.getenv('SECRET_KEY', 'enter1your2own3random4key5here')
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:!Piratingin2024!@postgresqlservername:5432/sharewarez')
+    SECRET_KEY = os.getenv('SECRET_KEY', 'set-anything-random-here')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:!Piratingin2024!@db:5432/sharewarez_dev')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     IMAGE_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/library/images')
     ZIP_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/library/zips')
-    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'modules/static/library')
     UPDATE_FOLDER_NAME = os.getenv('UPDATE_FOLDER_NAME', 'updates')
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'modules/static/library')
+    DATA_FOLDER_WAREZ= os.getenv('DATA_FOLDER_WAREZ', '/warez') # Path to the folder where the game files are stored, for windows use C:/warez, for linux use /warez
     THEME_FILES = os.path.join(os.path.dirname(__file__), 'modules/static/library/themes')
-    MAIL_SERVER = os.getenv('MAIL_SERVER', 'mail.yourisp.com')
+    MAIL_SERVER = os.getenv('MAIL_SERVER', 'smtp.mail.com')
     MAIL_PORT = int(os.getenv('MAIL_PORT', 25))
     MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', 'False')
-    MAIL_USERNAME = os.getenv('MAIL_USERNAME', anonymous)
-    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD', anonymous)
-    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', 'blackbeard@sharewarez.com')
+    MAIL_USERNAME = os.getenv('MAIL_USERNAME')
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
+    MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', 'ace@aceboard.pleasewaitloading.com')
     REMEMBER_COOKIE_DURATION = timedelta(days=int(os.getenv('REMEMBER_COOKIE_DURATION', 30)))
-    INITIAL_WHITELIST = os.getenv('INITIAL_WHITELIST', 'kapitanczarnobrody@proton.me')
-    IGDB_CLIENT_ID = os.getenv('IGDB_CLIENT_ID', 'get this from IGDB')
-    IGDB_CLIENT_SECRET = os.getenv('IGDB_CLIENT_SECRET', 'get this from IGDB')
+    INITIAL_WHITELIST = os.getenv('INITIAL_WHITELIST', 'put-yer-emailhere@andyouremailserverdomain.here')
+    IGDB_CLIENT_ID = os.getenv('IGDB_CLIENT_ID', 'get-this-from-igdb')
+    IGDB_CLIENT_SECRET = os.getenv('IGDB_CLIENT_SECRET', 'get-this-from-igdb')
     IGDB_API_ENDPOINT = os.getenv('IGDB_API_ENDPOINT', 'https://api.igdb.com/v4/games')
-	UPDATE_FOLDER_NAME = os.getenv('UPDATE_FOLDER_NAME', 'Updates')
-    EXTRAS_FOLDER_NAME = os.getenv('EXTRAS_FOLDER_NAME', 'Extras')
     SCHEDULER_API_ENABLED = True
-    ALLOWED_FILE_TYPES = ['exe', 'jpg', 'jpeg', 'png', 'gif', 'zip', 'rar', '7z', 'iso', 'nfo', 'nes', 'sfc', 'smc', 'sms', '32x', 'gen', 'gg', 'gba', 'gb', 'gbc', 'prg', 'dat', 'tap', 'z64', 'd64', 'dsk', 'img', 'bin', 'st', 'stx', 'j64', 'jag', 'lnx', 'adf', 'ngc', 'gz', 'm2v', 'ogg', 'fpt', 'fpl', 'vec', 'pce', 'rom']
+    ALLOWED_FILE_TYPES = ['jpg', 'jpeg', 'png', 'gif', 'zip', 'rar', '7z', 'iso', 'nfo', 'nes', 'sfc', 'smc', 'sms', '32x', 'gen', 'gg', 'gba', 'gb', 'gbc', 'prg', 'dat', 'tap', 'z64', 'd64', 'dsk', 'img', 'bin', 'st', 'stx', 'j64', 'jag', 'lnx', 'adf', 'ngc', 'gz', 'm2v', 'ogg', 'fpt', 'fpl', 'vec', 'pce', 'rom']
+    MONITOR_IGNORE_EXT = os.getenv('MONITOR_IGNORE_EXT', ['txt', 'nfo']) #File extensions for dynamic monitoring to ignore.
+    
     # OS-specific base folder paths
     if os.name == 'nt':  # Windows
         BASE_FOLDER_WINDOWS = os.getenv('BASE_FOLDER_WINDOWS', 'C:/')
     else:  # POSIX (Linux, Unix, MacOS, etc.)
         BASE_FOLDER_POSIX = os.getenv('BASE_FOLDER_POSIX', '/storage')
-	#Dynamic Monitoring
-	if os.name == 'nt':  # Windows
-		MONITOR_PATHS = os.getenv('MONITOR_PATHS', ['']) #Separate paths with a comma. Ex: ['C:\\Games\PC', 'C:\\Games\\NES'] #Do not set to the root of a drive. Only target game folders or it will monitor system files and throw errors. Non-existant paths will throw an error.
-	else:  # POSIX (Linux, Unix, MacOS, etc.)
-		MONITOR_PATHS = os.getenv('MONITOR_PATHS', ['']) #Separate paths with a comma. Ex: ['/storage/PC', '/storage/NES'] #Do not set to the root of a drive. Only target game folders or it will monitor system files and throw errors. Non-existant paths will throw an error.
-	MONITOR_IGNORE_EXT = os.getenv('MONITOR_IGNORE_EXT', ['txt', 'nfo', 'tmp', 'png', 'jpg', 'jpeg', 'gif']) #File extensions for dynamic monitoring to ignore.
-	# Discord Notification Settings
+    
+    if os.name == 'nt':  # Windows
+        MONITOR_PATHS = os.getenv('MONITOR_PATHS', ['Z:\\Gamez\\PC']) #Separate paths with a comma. Ex: ['C:\\Games\PC', 'C:\\Games\\NES']
+    else:  # POSIX (Linux, Unix, MacOS, etc.)
+        MONITOR_PATHS = os.getenv('MONITOR_PATHS', ['/storage']) #Separate paths with a comma. Ex: ['/storage/PC', 'C/storage/NES']
+	
+    # Discord Notification Settings
     DISCORD_WEBHOOK_URL = os.getenv('DISCORD_WEBHOOK_URL', '')
     DISCORD_BOT_NAME = os.getenv('DISCORD_BOT_NAME', 'SharewareZ')
     DISCORD_BOT_AVATAR_URL = os.getenv('DISCORD_BOT_AVATAR_URL', '')
-    #Branding
-    SITE_URL = os.getenv('SITE_URL', 'http://127.0.0.1') #The URL the site is accessed from by users.
     
