@@ -60,7 +60,7 @@ has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '1.6.5.2'
+app_version = '1.6.5.3'
 
 
 @bp.before_app_request
@@ -1581,7 +1581,6 @@ def upload_image(game_uuid):
     db.session.commit()
     print(f"File saved to DB with ID: {new_image.id}")
 
-    flash('Image(s) uploaded successfully', 'success')
     return jsonify({
         'message': 'File uploaded successfully',
         'url': url_for('static', filename=f'library/images/{filename}'),
