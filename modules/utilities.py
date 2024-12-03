@@ -361,63 +361,13 @@ PLATFORM_IDS = {
     
 def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_uuid=None):
     print(f"rns Retrieving and saving game: {game_name} on {full_disk_path} to library with UUID {library_uuid}.")
+    # Fetch the library using the UUID
     library = Library.query.filter_by(uuid=library_uuid).first()
     if not library:
         print(f"rns Library with UUID {library_uuid} not found.")
         return None
     
     print(f"rns Finding a way to add {game_name} on {full_disk_path} to the library with UUID {library_uuid}.")
-
-    # Check for existing game first
-    existing_game_by_path = check_existing_game_by_path(full_disk_path)
-    if existing_game_by_path:
-        return existing_game_by_path
-
-    # Get platform ID for the library
-    platform_id = PLATFORM_IDS.get(library.platform.name)
-    print(f"Platform ID for {library.platform.name}: {platform_id}")
-
-    # Try exact match with quotes first
-    query_fields = """fields id, name, cover, summary, url, release_dates.date, platforms.name, 
-                     genres.name, themes.name, game_modes.name, screenshots, videos.video_id, 
-                     first_release_date, aggregated_rating, involved_companies, player_perspectives.name,
-                     aggregated_rating_count, rating, rating_count, slug, status, category, total_rating, 
-                     total_rating_count;"""
-    
-    # First attempt: Exact match with quotes
-    exact_query = f'search "\"{game_name}\""; limit 10;'
-    if platform_id:
-        exact_query += f' where platforms = ({platform_id});'
-    
-    response_json = make_igdb_api_request(current_app.config['IGDB_API_ENDPOINT'], query_fields + exact_query)
-    
-    # If no results or low relevance, try without quotes
-    if not response_json or not _check_relevance_scores(response_json, game_name):
-        print(f"Exact match failed or low relevance, trying without quotes for: {game_name}")
-        regular_query = f'search "{game_name}"; limit 10;'
-        if platform_id:
-            regular_query += f' where platforms = ({platform_id});'
-        response_json = make_igdb_api_request(current_app.config['IGDB_API_ENDPOINT'], query_fields + regular_query)
-
-    # If still no results, try fallback with word removal
-    if not response_json or not _check_relevance_scores(response_json, game_name):
-        print(f"Regular search failed, trying word removal fallback for: {game_name}")
-        words = game_name.split()
-        for i in range(len(words) - 1, max(0, len(words) - 3), -1):
-            fallback_name = ' '.join(words[:i])
-            if len(words) <= 3:
-                # For short names, try exact match again
-                fallback_query = f'search "\"{fallback_name}\""; limit 10;'
-            else:
-                fallback_query = f'search "{fallback_name}"; limit 10;'
-            
-            if platform_id:
-                fallback_query += f' where platforms = ({platform_id});'
-            
-            response_json = make_igdb_api_request(current_app.config['IGDB_API_ENDPOINT'], query_fields + fallback_query)
-            if response_json and _check_relevance_scores(response_json, fallback_name):
-                break
-
 
     existing_game_by_path = check_existing_game_by_path(full_disk_path)
     if existing_game_by_path:
@@ -1804,38 +1754,3 @@ def update_game_size(game_uuid, size):
     game.size = size
     db.session.commit()
     return None
-
-
-def _check_relevance_scores(response_json, search_name):
-    """
-    Check if any result has a high enough relevance score.
-    Returns True if at least one result is relevant enough.
-    """
-    if not response_json:
-        return False
-        
-    MIN_RELEVANCE_SCORE = 75  # Minimum relevance score (out of 100)
-    
-    for result in response_json:
-        # Calculate simple string similarity score
-        game_name = result.get('name', '').lower()
-        search_name = search_name.lower()
-        
-        # Print relevance information for debugging
-        print(f"Checking relevance for '{game_name}' against search term '{search_name}'")
-        
-        # Calculate Levenshtein distance-based similarity
-        similarity = _calculate_similarity(game_name, search_name)
-        relevance_score = similarity * 100
-        
-        print(f"Relevance score: {relevance_score:.2f}%")
-        
-        if relevance_score >= MIN_RELEVANCE_SCORE:
-            return True
-            
-    return False
-
-def _calculate_similarity(s1, s2):
-    """Calculate string similarity using Levenshtein distance"""
-    from difflib import SequenceMatcher
-    return SequenceMatcher(None, s1, s2).ratio()
