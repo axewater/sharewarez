@@ -1,13 +1,62 @@
+// Enhanced cookie handling functions
+function setCookie(name, value, days) {
+    var expires = "";
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days*24*60*60*1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + encodeURIComponent(JSON.stringify(value)) + expires + "; path=/";
+    console.log(`Cookie set: ${name} with value:`, value);
+}
+
+function getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+        if (c.indexOf(nameEQ) == 0) {
+            try {
+                var value = decodeURIComponent(c.substring(nameEQ.length,c.length));
+                return JSON.parse(value);
+            } catch (e) {
+                console.error('Error parsing cookie:', e);
+                return null;
+            }
+        }
+    }
+    return null;
+}
+
+function deleteCookie(name) {
+    document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
 // When updating this file, remember to update popup_menu.html too
 var csrfToken;
 var sortOrder = 'asc'; // Default sort order
 
 $('#sortOrderToggle').text(sortOrder === 'asc' ? '^' : '~');
 
-
 $(document).ready(function() {
-  var initialParams = getUrlParams();
-  console.log("Initial URL Parameters:", initialParams);
+  // Load filters from cookie if they exist
+  var savedFilters = getCookie('libraryFilters');
+  if (savedFilters) {
+    try {
+      savedFilters = JSON.parse(savedFilters);
+      // Apply saved filters to form elements
+      $('#libraryNameSelect').val(savedFilters.library_uuid || '');
+      $('#genreSelect').val(savedFilters.genre || '');
+      $('#themeSelect').val(savedFilters.theme || '');
+      $('#gameModeSelect').val(savedFilters.game_mode || '');
+      $('#playerPerspectiveSelect').val(savedFilters.player_perspective || '');
+      $('#ratingSlider').val(savedFilters.rating || 0);
+      $('#ratingValue').text(savedFilters.rating || 0);
+    } catch (e) {
+      console.error('Error parsing saved filters:', e);
+    }
+  }
 
   // Read preferences from data attributes
   var userPerPage = $('body').data('user-per-page');
@@ -58,11 +107,7 @@ $(document).ready(function() {
         }
         fetchFilteredGames();
     });
-}
-
-
-
-
+  }
 
   function populateGenres(callback) {
     $.ajax({
@@ -326,19 +371,14 @@ $(document).ready(function() {
     </div>
     `;
     return gameCardHtml;
-}
+  }
 
-
-// let i =0;
-
-function createPopupMenuHtml(game) {
+  function createPopupMenuHtml(game) {
     // when modifying this function, make sure to update the popup_menu.html template as well
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    // console.log(i++, game); // super handy debug
-    window.game = game;
     
     // Fetch the current setting for enableDeleteGameOnDisk
-    const enableDeleteGameOnDisk = document.body.getAttribute('data-enable-delete-game-on-disk') === 'true';
+const enableDeleteGameOnDisk = document.body.getAttribute('data-enable-delete-game-on-disk') === 'true';
 
     let menuHtml = `
     <div id="popupMenu-${game.uuid}" class="popup-menu" style="display: none;">
@@ -378,8 +418,7 @@ function createPopupMenuHtml(game) {
     `;
 
     return menuHtml;
-}
-
+  }
 
   $('#sortOrderToggle').click(function() {
       sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
@@ -387,7 +426,6 @@ function createPopupMenuHtml(game) {
       console.log('sortOrderToggle clicked, new sort order:', sortOrder);
       fetchFilteredGames(currentPage); // Refetch games with the new sort order
   });
-  
 
   function updatePaginationControls() {
       $('#prevPage').parent().toggleClass('disabled', currentPage <= 1);
@@ -413,61 +451,93 @@ function createPopupMenuHtml(game) {
       }
   });
 
-    $('#filterForm').on('submit', function(e) {
-        e.preventDefault();
-        fetchFilteredGames(1);
-    });
+  $('#filterForm').on('submit', function(e) {
+    e.preventDefault();
+    // Save filters to cookie
+    var filters = {
+        library_uuid: $('#libraryNameSelect').val(),
+        genre: $('#genreSelect').val(),
+        theme: $('#themeSelect').val(),
+        game_mode: $('#gameModeSelect').val(),
+        player_perspective: $('#playerPerspectiveSelect').val(),
+        rating: $('#ratingSlider').val()
+    };
+    console.log('Saving filters to cookie:', filters);
+    setCookie('libraryFilters', filters, 30); // Save for 30 days
+    fetchFilteredGames(1);
+  });
 
-    $('#ratingSlider').on('input', function() {
-        $('#ratingValue').text($(this).val());
-    });
+  $('#ratingSlider').on('input', function() {
+    $('#ratingValue').text($(this).val());
+  });
 
-    $('#clearFilters').click(function() {
-        // Reset all select elements to their first option
-        $('#libraryNameSelect, #genreSelect, #themeSelect, #gameModeSelect, #playerPerspectiveSelect').val('');
-        
-        // Reset rating slider
-        $('#ratingSlider').val(0);
-        $('#ratingValue').text('0');
-        
-        // Reset sort select to default (assuming 'name' is the default)
-        $('#sortSelect').val('name');
-        
-        // Fetch games with cleared filters
-        fetchFilteredGames(1);
-    });
+  $('#clearFilters').click(function() {
+    // Reset all select elements to their first option
+    $('#libraryNameSelect, #genreSelect, #themeSelect, #gameModeSelect, #playerPerspectiveSelect').val('');
+    
+    // Reset rating slider
+    $('#ratingSlider').val(0);
+    $('#ratingValue').text('0');
+    
+    // Reset sort select to default (assuming 'name' is the default)
+    $('#sortSelect').val('name');
+    
+    // Clear the cookie
+    deleteCookie('libraryFilters');
+    
+    // Fetch games with cleared filters
+    fetchFilteredGames(1);
+  });
 
-    $('#sortSelect').change(function() {
-      fetchFilteredGames(1); 
-    });
-
+  $('#sortSelect').change(function() {
+    fetchFilteredGames(1); 
+  });
 
   var initialParams = getUrlParams();
-    if (initialParams.genre) {
+  if (initialParams.genre) {
     $('#genreSelect').val(initialParams.genre);
   }
   var initialParams = getUrlParams();
-    if (initialParams.theme) {
+  if (initialParams.theme) {
     $('#themeSelect').val(initialParams.theme);
   }
   var initialParams = getUrlParams();
-    if (initialParams.gameMode) {
+  if (initialParams.gameMode) {
     $('#gameModeSelect').val(initialParams.gameMode);
   }
   var initialParams = getUrlParams();
-    if (initialParams.playerPerspective) {
+  if (initialParams.playerPerspective) {
     $('#playerPerspectiveSelect').val(initialParams.playerPerspective);
   }
 
- 
-
-  // Initialize filter dropdowns and fetch games on load
-  populateLibraries();
-  populateGenres();
-  populateThemes();
-  populateGameModes();
-  populatePlayerPerspectives();
-  fetchFilteredGames();
+  // Initialize filter dropdowns
+  populateLibraries(function() {
+    populateGenres(function() {
+      populateThemes(function() {
+        populateGameModes(function() {
+          populatePlayerPerspectives(function() {
+            // After all dropdowns are populated, restore filters from cookie
+            var savedFilters = getCookie('libraryFilters');
+            if (savedFilters) {
+              console.log('Restoring filters from cookie:', savedFilters);
+              $('#libraryNameSelect').val(savedFilters.library_uuid || '');
+              $('#genreSelect').val(savedFilters.genre || '');
+              $('#themeSelect').val(savedFilters.theme || '');
+              $('#gameModeSelect').val(savedFilters.game_mode || '');
+              $('#playerPerspectiveSelect').val(savedFilters.player_perspective || '');
+              $('#ratingSlider').val(savedFilters.rating || 0);
+              $('#ratingValue').text(savedFilters.rating || 0);
+              
+              // Now fetch games with restored filters
+              fetchFilteredGames();
+            } else {
+              fetchFilteredGames();
+            }
+          });
+        });
+      });
+    });
+  });
 });
 
 document.body.addEventListener('click', function(event) {
