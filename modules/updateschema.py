@@ -34,6 +34,9 @@ class DatabaseManager:
         add_columns_sql = f"""
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS enable_delete_game_on_disk BOOLEAN DEFAULT TRUE;
+        
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS site_url VARCHAR(255) DEFAULT 'http://127.0.0.1';
 
         ALTER TABLE invite_tokens
         ADD COLUMN IF NOT EXISTS used_by VARCHAR(36);

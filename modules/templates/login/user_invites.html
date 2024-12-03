@@ -10,6 +10,12 @@
 <div class="glass-panel container py-4">
     <h2 class="mb-3">Invite friends to your pirate crew!</h2>
     <p>Invites expire automatically after 48 hours. If not used by then, the invite is returned to you.</p>
+    {% if site_url == 'http://127.0.0.1' and current_user.role == 'admin' %}
+    <div class="alert alert-warning" role="alert">
+        <i class="fas fa-exclamation-triangle"></i> Warning: Site URL is still set to default value (127.0.0.1). 
+        Please <a href="{{ url_for('main.manage_settings') }}">configure the site URL</a> in admin settings for proper invite functionality.
+    </div>
+    {% endif %}
     <div class="alert alert-info" role="alert">
         You have <strong>{{ remaining_invites }}</strong> out of <strong>{{ invite_quota }}</strong> invites left to send.
     </div>
@@ -42,7 +48,7 @@
         {% for invite in invites %}
         <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
             <div>
-                Invite Link: <span class="text-primary">{{ url_for('main.register', token=invite.token, _external=True) }}</span><br>
+                Invite Link: <span class="text-primary">{{ site_url }}/register?token={{ invite.token }}</span><br>
                 Sent to: <strong>{{ invite.recipient_email }}</strong><br>
                 Status: <strong>{{ "Used" if invite.used else "Pending" }}</strong><br>
                 {% if invite.used %}
