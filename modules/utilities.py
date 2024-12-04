@@ -225,7 +225,7 @@ def fetch_and_store_game_urls(game_uuid, igdb_id):
         if websites_response and 'error' not in websites_response:
             # print(f"Retrieved URLs for game IGDB ID {igdb_id} : {websites_response}.")
             for website in websites_response:
-                print(f"Storing URL: {website.get('url')}, Category: {website.get('category')}.")
+                # print(f"Storing URL: {website.get('url')}, Category: {website.get('category')}.")
                 
                 new_url = GameURL(
                     game_uuid=game_uuid,
@@ -673,7 +673,6 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
         return
 
     try:
-        print(f"DEBUG Committing changes to database.")
         db.session.commit()
     except Exception as e:
         db.session.rollback()
@@ -879,23 +878,25 @@ def zip_folder(download_request_id, app, file_location, file_name):
 
 def read_first_nfo_content(full_disk_path):
     print(f"Searching for NFO file in: {full_disk_path}")
-    for root, dirs, files in os.walk(full_disk_path):
-        print(f"Searching in directory: {root}")
-        print(f"Files found: {files}")
-        for file in files:
+    try:
+        for file in os.listdir(full_disk_path):
             if file.lower().endswith('.nfo'):
-                nfo_path = os.path.join(root, file)
+                nfo_path = os.path.join(full_disk_path, file)
                 print(f"Found NFO file: {nfo_path}")
                 try:
                     with open(nfo_path, 'r', encoding='utf-8', errors='ignore') as nfo_file:
                         content = nfo_file.read()
-                        sanitized_content = content.replace('\x00', '')  # Remove NULL bytes
+                        sanitized_content = content.replace('\x00', '')
                         print(f"Successfully read NFO content (length: {len(sanitized_content)})")
                         return sanitized_content
                 except Exception as e:
                     print(f"Error reading NFO file {nfo_path}: {str(e)}")
+    except Exception as e:
+        print(f"Error accessing directory {full_disk_path}: {str(e)}")
+    
     print("No NFO file found")
     return None
+
 
         
 def check_existing_game_by_igdb_id(igdb_id):
@@ -1334,11 +1335,18 @@ def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
     
     # Check and remove 'setup' at the start, case-insensitive
     if filename.lower().startswith('setup'):
-        filename = filename[len('setup'):].lstrip("_").lstrip("-").lstrip()  # Remove 'setup', leading underscores, hyphens, and whitespace
+        filename = filename[len('setup'):].lstrip("_").lstrip("-").lstrip()
         print(f"After removing 'setup': {filename}")
 
-    # Normalize separators
-    filename = re.sub(r'(?<!\.\d)(?<!\d\.)(?<!\b[A-Z])\.(?![A-Z]\b)|_', ' ', filename)
+    # First handle version numbers and known patterns that should be removed
+    filename = re.sub(r'v\d+(\.\d+)*', '', filename)  # Remove version numbers like v1.0.3
+    filename = re.sub(r'\b\d+(\.\d+)+\b', '', filename)  # Remove standalone version numbers like 1.0.3
+    
+    # Handle dots between single letters (like A.Tale -> A Tale)
+    filename = re.sub(r'(?<=\b[A-Z])\.(?=[A-Z]\b|\s|$)', ' ', filename)
+    
+    # Replace remaining dots and underscores with spaces, but preserve dots in known patterns
+    filename = re.sub(r'(?<!^)(?<![\d])\.|_', ' ', filename)
     # print(f"After normalizing separators: {filename}")
 
     # Define a regex pattern for version numbers
