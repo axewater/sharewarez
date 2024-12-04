@@ -145,6 +145,9 @@ def admin_required(f):
     return decorated_function
 
 def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_uuid):
+    global settings
+    settings = GlobalSettings.query.first()
+    
     try:
         if not isinstance(game_data, dict):
             raise ValueError("create_game_instance game_data is not a dictionary")
@@ -205,7 +208,7 @@ def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_u
         fetch_and_store_game_urls(new_game.uuid, game_data['id'])
         
         print(f"create_game_instance Finished processing game '{new_game.name}'. URLs (if any) have been fetched and stored.")
-        if current_app.config['DISCORD_WEBHOOK_URL']:
+        if settings.discord_webhook_url and settings.discord_notify_new_games:
             notifications_manager(None, "newgame", new_game.uuid)
         
     except Exception as e:
@@ -1487,9 +1490,9 @@ def discord_webhook(game_uuid): #Used for notifying of new games.
     newgame_library = get_library_by_uuid(newgame.library_uuid)
     
     # Get Discord settings from database first, fallback to config
-    discord_webhook = settings.discord_webhook_url if settings and settings.discord_webhook_url else current_app.config['DISCORD_WEBHOOK_URL']
-    discord_bot_name = settings.discord_bot_name if settings and settings.discord_bot_name else current_app.config['DISCORD_BOT_NAME']
-    discord_bot_avatar_url = settings.discord_bot_avatar_url if settings and settings.discord_bot_avatar_url else current_app.config['DISCORD_BOT_AVATAR_URL']
+    discord_webhook = settings.discord_webhook_url
+    discord_bot_name = settings.discord_bot_name
+    discord_bot_avatar_url = settings.discord_bot_avatar_url
     
     site_url = settings.site_url
     cover_url = get_cover_url(newgame.igdb_id)
@@ -1572,9 +1575,9 @@ def discord_update(path, event): #Used for notifying of game and file updates.
                 print("Processing Discord notification for game file update.")
                 
                 # Get Discord settings from database first, fallback to config
-                discord_webhook = settings.discord_webhook_url if settings and settings.discord_webhook_url else current_app.config['DISCORD_WEBHOOK_URL']
-                discord_bot_name = settings.discord_bot_name if settings and settings.discord_bot_name else current_app.config['DISCORD_BOT_NAME']
-                discord_bot_avatar_url = settings.discord_bot_avatar_url if settings and settings.discord_bot_avatar_url else current_app.config['DISCORD_BOT_AVATAR_URL']
+                discord_webhook = settings.discord_webhook_url
+                discord_bot_name = settings.discord_bot_name
+                discord_bot_avatar_url = settings.discord_bot_avatar_url
                 
                 site_url = current_app.config['SITE_URL']
                 cover_url = get_cover_url(game.igdb_id)
@@ -1612,7 +1615,7 @@ def discord_update(path, event): #Used for notifying of game and file updates.
                 # Get Discord settings from database first, fallback to config
                 discord_webhook = settings.discord_webhook_url if settings and settings.discord_webhook_url else current_app.config['DISCORD_WEBHOOK_URL']
                 discord_bot_name = settings.discord_bot_name if settings and settings.discord_bot_name else current_app.config['DISCORD_BOT_NAME']
-                discord_bot_avatar_url = settings.discord_bot_avatar_url if settings and settings.discord_bot_avatar_url else current_app.config['DISCORD_BOT_AVATAR_URL']
+                discord_bot_avatar_url = settings.discord_bot_avatar_url
                 
                 site_url = settings.site_url
                 cover_url = get_cover_url(game.igdb_id)
@@ -1708,9 +1711,9 @@ def discord_update(path, event): #Used for notifying of game and file updates.
             game_library = get_library_by_uuid(game.library_uuid)
             
             # Get Discord settings from database first, fallback to config
-            discord_webhook = settings.discord_webhook_url if settings and settings.discord_webhook_url else current_app.config['DISCORD_WEBHOOK_URL']
-            discord_bot_name = settings.discord_bot_name if settings and settings.discord_bot_name else current_app.config['DISCORD_BOT_NAME']
-            discord_bot_avatar_url = settings.discord_bot_avatar_url if settings and settings.discord_bot_avatar_url else current_app.config['DISCORD_BOT_AVATAR_URL']
+            discord_webhook = settings.discord_webhook_url
+            discord_bot_name = settings.discord_bot_name
+            discord_bot_avatar_url = settings.discord_bot_avatar_url
             
             site_url = current_app.config['SITE_URL']
             cover_url = get_cover_url(game.igdb_id)
