@@ -36,7 +36,7 @@ class DatabaseManager:
         ADD COLUMN IF NOT EXISTS enable_delete_game_on_disk BOOLEAN DEFAULT TRUE;
         
         ALTER TABLE global_settings
-        ADD COLUMN IF NOT EXISTS site_url VARCHAR(255) DEFAULT 'http://127.0.0.1';
+        ADD COLUMN IF NOT EXISTS site_url VARCHAR(255) DEFAULT 'http://127.0.0.1:5001';
 
         ALTER TABLE invite_tokens
         ADD COLUMN IF NOT EXISTS used_by VARCHAR(36);
@@ -78,13 +78,13 @@ class DatabaseManager:
         ADD COLUMN IF NOT EXISTS discord_notify_downloads BOOLEAN DEFAULT FALSE;
         
         ALTER TABLE global_settings
-        ADD COLUMN IF NOT EXISTS discord_webhook_url VARCHAR(255) DEFAULT '{Config.DISCORD_WEBHOOK_URL}';
+        ADD COLUMN IF NOT EXISTS discord_webhook_url VARCHAR(255);
             
         ALTER TABLE global_settings
-        ADD COLUMN IF NOT EXISTS discord_bot_name VARCHAR(255) DEFAULT '{Config.DISCORD_BOT_NAME}';
+        ADD COLUMN IF NOT EXISTS discord_bot_name VARCHAR(255);
         
         ALTER TABLE global_settings
-        ADD COLUMN IF NOT EXISTS discord_bot_avatar_url VARCHAR(255) DEFAULT '{Config.DISCORD_BOT_AVATAR_URL}';
+        ADD COLUMN IF NOT EXISTS discord_bot_avatar_url VARCHAR(255);
 
         ALTER TABLE download_requests
         ADD COLUMN IF NOT EXISTS file_location VARCHAR(255);

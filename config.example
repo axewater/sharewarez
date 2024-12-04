@@ -24,7 +24,7 @@ class Config(object):
     IGDB_API_ENDPOINT = os.getenv('IGDB_API_ENDPOINT', 'https://api.igdb.com/v4/games')
     SCHEDULER_API_ENABLED = True
     ALLOWED_FILE_TYPES = ['jpg', 'jpeg', 'png', 'gif', 'zip', 'rar', '7z', 'iso', 'nfo', 'nes', 'sfc', 'smc', 'sms', '32x', 'gen', 'gg', 'gba', 'gb', 'gbc', 'prg', 'dat', 'tap', 'z64', 'd64', 'dsk', 'img', 'bin', 'st', 'stx', 'j64', 'jag', 'lnx', 'adf', 'ngc', 'gz', 'm2v', 'ogg', 'fpt', 'fpl', 'vec', 'pce', 'rom']
-    MONITOR_IGNORE_EXT = os.getenv('MONITOR_IGNORE_EXT', ['txt', 'nfo']) #File extensions for dynamic monitoring to ignore.
+    MONITOR_IGNORE_EXT = os.getenv('MONITOR_IGNORE_EXT', ['txt', 'nfo', 'tmp', 'png', 'jpg', 'jpeg', 'gif']) #File extensions for dynamic monitoring to ignore.
     
     # OS-specific base folder paths
     if os.name == 'nt':  # Windows
@@ -33,12 +33,7 @@ class Config(object):
         BASE_FOLDER_POSIX = os.getenv('BASE_FOLDER_POSIX', '/storage')
     
     if os.name == 'nt':  # Windows
-        MONITOR_PATHS = os.getenv('MONITOR_PATHS', ['Z:\\Gamez\\PC']) #Separate paths with a comma. Ex: ['C:\\Games\PC', 'C:\\Games\\NES']
+        MONITOR_PATHS = os.getenv('MONITOR_PATHS', ['Z:\\Gamez\\PC']) #Separate paths with a comma. Ex: ['C:\\Games\PC', 'C:\\Games\\NES'] #Do not set to the root of a drive. Only target game folders or it will monitor system files and throw errors. Non-existant paths will throw an error.
     else:  # POSIX (Linux, Unix, MacOS, etc.)
-        MONITOR_PATHS = os.getenv('MONITOR_PATHS', ['/storage']) #Separate paths with a comma. Ex: ['/storage/PC', 'C/storage/NES']
-	
-    # Discord Notification Settings
-    DISCORD_WEBHOOK_URL = os.getenv('DISCORD_WEBHOOK_URL', '')
-    DISCORD_BOT_NAME = os.getenv('DISCORD_BOT_NAME', 'SharewareZ')
-    DISCORD_BOT_AVATAR_URL = os.getenv('DISCORD_BOT_AVATAR_URL', '')
+        MONITOR_PATHS = os.getenv('MONITOR_PATHS', ['/storage']) #Separate paths with a comma. Ex: ['/storage/PC', '/storage/NES'] #Do not set to the root of a drive. Only target game folders or it will monitor system files and throw errors. Non-existant paths will throw an error.
     
