@@ -206,7 +206,7 @@ def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_u
         
         print(f"create_game_instance Finished processing game '{new_game.name}'. URLs (if any) have been fetched and stored.")
         if current_app.config['DISCORD_WEBHOOK_URL']:
-            discord_webhook(new_game.uuid)
+            notifications_manager(None, "newgame", new_game.uuid)
         
     except Exception as e:
         print(f"create_game_instance Error during the game instance creation or URL fetching for game '{game_data.get('name')}'. Error: {e}")
@@ -1470,7 +1470,7 @@ def comma_separated_urls(form, field):
         if not url_pattern.match(url.strip()):
             raise ValidationError('One or more URLs are invalid. Please provide valid YouTube embed URLs.')
 
-def discord_webhook(game_uuid):
+def discord_webhook(game_uuid): #Used for notifying of new games.
     # Check if Discord webhook URL is configured
     settings = GlobalSettings.query.first()
     if not settings or not settings.discord_webhook_url:
@@ -1491,7 +1491,7 @@ def discord_webhook(game_uuid):
     discord_bot_name = settings.discord_bot_name if settings and settings.discord_bot_name else current_app.config['DISCORD_BOT_NAME']
     discord_bot_avatar_url = settings.discord_bot_avatar_url if settings and settings.discord_bot_avatar_url else current_app.config['DISCORD_BOT_AVATAR_URL']
     
-    site_url = current_app.config['SITE_URL']
+    site_url = settings.site_url
     cover_url = get_cover_url(newgame.igdb_id)
     # if rate_limit_retry is True then in the event that you are being rate 
     # limited by Discord your webhook will automatically be sent once the 
@@ -1522,7 +1522,7 @@ last_update_time = time.time()
 global first_run
 first_run = 1
     
-def discord_update(path, event):
+def discord_update(path, event): #Used for notifying of game and file updates.
     global settings
     global last_game_path
     settings = GlobalSettings.query.first()
@@ -1614,7 +1614,7 @@ def discord_update(path, event):
                 discord_bot_name = settings.discord_bot_name if settings and settings.discord_bot_name else current_app.config['DISCORD_BOT_NAME']
                 discord_bot_avatar_url = settings.discord_bot_avatar_url if settings and settings.discord_bot_avatar_url else current_app.config['DISCORD_BOT_AVATAR_URL']
                 
-                site_url = current_app.config['SITE_URL']
+                site_url = settings.site_url
                 cover_url = get_cover_url(game.igdb_id)
                 # if rate_limit_retry is True then in the event that you are being rate 
                 # limited by Discord your webhook will automatically be sent once the 
@@ -1762,3 +1762,20 @@ def update_game_size(game_uuid, size):
     game.size = size
     db.session.commit()
     return None
+    
+def notifications_manager(path, event, game_uuid=None):
+    global settings
+    settings = GlobalSettings.query.first()
+    
+    #If fired by Watchdog
+    if event == "created" or event == "modified":
+        #Send Discord notification if enabled.
+        if settings.discord_notify_game_updates or settings.discord_notify_game_extras:
+            discord_update(path,event)
+        return None     
+    
+    #If a new game is being added.
+    if event == "newgame":
+        #If Discord new game announcements are enabled.
+        if settings.discord_notify_new_games:        
+            discord_webhook(game_uuid)
