@@ -1579,7 +1579,7 @@ def discord_update(path, event): #Used for notifying of game and file updates.
                 discord_bot_name = settings.discord_bot_name
                 discord_bot_avatar_url = settings.discord_bot_avatar_url
                 
-                site_url = current_app.config['SITE_URL']
+                site_url = settings.site_url
                 cover_url = get_cover_url(game.igdb_id)
                 # if rate_limit_retry is True then in the event that you are being rate 
                 # limited by Discord your webhook will automatically be sent once the 
@@ -1715,7 +1715,7 @@ def discord_update(path, event): #Used for notifying of game and file updates.
             discord_bot_name = settings.discord_bot_name
             discord_bot_avatar_url = settings.discord_bot_avatar_url
             
-            site_url = current_app.config['SITE_URL']
+            site_url = settings.site_url
             cover_url = get_cover_url(game.igdb_id)
             # if rate_limit_retry is True then in the event that you are being rate 
             # limited by Discord your webhook will automatically be sent once the 
