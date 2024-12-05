@@ -88,6 +88,9 @@ class DatabaseManager:
 
         ALTER TABLE download_requests
         ADD COLUMN IF NOT EXISTS file_location VARCHAR(255);
+        
+        ALTER TABLE games
+        ADD COLUMN IF NOT EXISTS last_updated TIMESTAMP;
 
         CREATE TABLE IF NOT EXISTS game_updates (
             id SERIAL PRIMARY KEY,
