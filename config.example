@@ -7,7 +7,6 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     IMAGE_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/library/images')
     ZIP_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/library/zips')
-    UPDATE_FOLDER_NAME = os.getenv('UPDATE_FOLDER_NAME', 'updates')
     UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'modules/static/library')
     DATA_FOLDER_WAREZ= os.getenv('DATA_FOLDER_WAREZ', '/warez') # Path to the folder where the game files are stored, for windows use C:/warez, for linux use /warez
     THEME_FILES = os.path.join(os.path.dirname(__file__), 'modules/static/library/themes')
