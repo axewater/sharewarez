@@ -2590,12 +2590,13 @@ def discover():
     latest_games = fetch_game_details(Game.query.order_by(Game.date_created.desc()))
     most_downloaded_games = fetch_game_details(Game.query.order_by(Game.times_downloaded.desc()))
     highest_rated_games = fetch_game_details(Game.query.filter(Game.rating != None).order_by(Game.rating.desc()))
+    last_updated_games = fetch_game_details(Game.query.filter(Game.last_updated != None).order_by(Game.last_updated.desc()))
 
     return render_template('games/discover.html',
                            latest_games=latest_games,
                            most_downloaded_games=most_downloaded_games,
                            highest_rated_games=highest_rated_games,
-                           libraries=libraries, loc=page_loc)
+                           libraries=libraries, loc=page_loc, last_updated_games=last_updated_games)
 
 
 
