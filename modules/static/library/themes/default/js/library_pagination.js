@@ -258,24 +258,14 @@ $(document).ready(function() {
 
   function updateGamesContainer(games) {
     $('#gamesContainer').empty();
-    
-    // Check if any filters are active
-    const hasActiveFilters = Boolean(
-        $('#libraryNameSelect').val() ||
-        $('#genreSelect').val() ||
-        $('#themeSelect').val() ||
-        $('#gameModeSelect').val() ||
-        $('#playerPerspectiveSelect').val() ||
-        $('#ratingSlider').val() > 0
-    );
-
-    if (libraryCount < 1) {
+	
+	if (libraryCount < 1) {
         // Fetch the current user's role from the server
         $.ajax({
-            url: '/api/current_user_role',
+            url: '/api/current_user_role',  // Ensure this URL is correct and accessible
             method: 'GET',
             success: function(response) {
-                let message;
+                let message;  // Declare the message variable here for wider scope
                 if (response.role === 'admin') {
                     // Dynamic URL for the Library Manager
                     message = `<p>You have no Libraries!<br><br> Go to <a href="${libraryManagerUrl}">Library Manager</a> and create one.</p>`;
@@ -284,9 +274,9 @@ $(document).ready(function() {
                     message = '<p>No games or libraries found. Complain to the Captain of this vessel!</p>';
                 }
                 // Append the message to the gamesContainer
-                if ($('#gamesContainer').empty()) {
-                    $('#gamesContainer').append(message);
-                }
+				if( $('#gamesContainer').empty() ){
+					$('#gamesContainer').append(message);
+				}
             },
             error: function() {
                 // Handle errors, e.g., if the endpoint is unreachable
@@ -295,50 +285,65 @@ $(document).ready(function() {
         });
         return;
     }
-    
-    else if (games.length === 0) {
-        if (hasActiveFilters) {
-            // Show "no results from filters" message with clear filters link
-            const message = `<p>No games found matching your filters!<br><br><a href="#" id="clearFiltersLink">Click here to Clear All Filters</a></p>`;
-            $('#gamesContainer').append(message);
-            
-            // Add click handler for the clear filters link
-            $('#clearFiltersLink').click(function(e) {
-                e.preventDefault();
-                $('#clearFilters').click(); // Trigger the existing clear filters function
-            });
-        } else {
-            // Show regular "no games" message
-            $.ajax({
-                url: '/api/current_user_role',
-                method: 'GET',
-                success: function(response) {
-                    let message;
-                    if (response.role === 'admin') {
-                        message = `<p>You have no games in this library!<br><br>Go to <a href="${libraryScanUrl}">Scan Manager</a> and add some games to the library.</p>`;
-                    } else {
-                        // User is not an admin, show a generic message
-                        message = '<p>No games or libraries found. Complain to the Captain of this vessel!</p>';
-                    }
-                    // Append the message to the gamesContainer
-                    if ($('#gamesContainer').empty()) {
-                        $('#gamesContainer').append(message);
-                    }
-                },
-                error: function() {
-                    // Handle errors, e.g., if the endpoint is unreachable
-                    $('#gamesContainer').append('<p>Error fetching user role. Please try again later.</p>');
+	
+	else if (gamesCount < 1) {
+        // Fetch the current user's role from the server
+        $.ajax({
+            url: '/api/current_user_role',  // Ensure this URL is correct and accessible
+            method: 'GET',
+            success: function(response) {
+                let message;  // Declare the message variable here for wider scope
+                if (response.role === 'admin') {
+                    // Dynamic URL for the Library Manager
+                    message = `<p>You have no games!<br> <br>Go to <a href="${libraryScanUrl}">Scan Manager</a> and add some games.</p>`;
+                } else {
+                    // User is not an admin, show a generic message
+                    message = '<p>No games or libraries found. Complain to the Captain of this vessel!</p>';
                 }
-            });
-            return;
-        }
-    }
-    else {
-        games.forEach(function(game) {
-            var gameCardHtml = createGameCardHtml(game);
-            $('#gamesContainer').append(gameCardHtml);
+                // Append the message to the gamesContainer
+				if( $('#gamesContainer').empty() ){
+					$('#gamesContainer').append(message);
+				}
+            },
+            error: function() {
+                // Handle errors, e.g., if the endpoint is unreachable
+                $('#gamesContainer').append('<p>Error fetching user role. Please try again later.</p>');
+            }
         });
+        return;
     }
+	
+    else if (games.length === 0) {
+        // Fetch the current user's role from the server
+        $.ajax({
+            url: '/api/current_user_role',  // Ensure this URL is correct and accessible
+            method: 'GET',
+            success: function(response) {
+                let message;  // Declare the message variable here for wider scope
+                if (response.role === 'admin') {
+                    // Dynamic URL for the Library Manager
+                    message = `<p>You have no games in this library!<br> <br>Go to <a href="${libraryScanUrl}">Scan Manager</a> and add some games to the library.</p>`;
+                } else {
+                    // User is not an admin, show a generic message
+                    message = '<p>No games or libraries found. Complain to the Captain of this vessel!</p>';
+                }
+                // Append the message to the gamesContainer
+				if( $('#gamesContainer').empty() ){
+					$('#gamesContainer').append(message);
+				}
+            },
+            error: function() {
+                // Handle errors, e.g., if the endpoint is unreachable
+                $('#gamesContainer').append('<p>Error fetching user role. Please try again later.</p>');
+            }
+        });
+        return;
+    }
+
+      games.forEach(function(game) {
+          var gameCardHtml = createGameCardHtml(game);
+          $('#gamesContainer').append(gameCardHtml);
+      });
   }
 
   function createGameCardHtml(game) {
