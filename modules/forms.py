@@ -31,6 +31,7 @@ class AutoScanForm(FlaskForm):
     folder_path = StringField('Browse Folder Path', validators=[DataRequired()])
     library_uuid = SelectField('Select Library', coerce=str, validators=[DataRequired()])
     scan_mode = RadioField('Select Scan Mode', choices=[('folders', 'My Games are Folders'), ('files', 'My Games are Files')], default='folders')
+    remove_missing = BooleanField('Remove games no longer found in scan path')
     submit = SubmitField('AutoScan')
 
 

@@ -82,6 +82,14 @@
                             {% endfor %}
                         {% endif %}
                     </div>
+    
+                    <!-- Remove Missing Games Option -->
+                    <div class="admin_manage_scanjobs-removemissing form-group">
+                        <div class="form-check">
+                            {{ auto_form.remove_missing(class="form-check-input") }}
+                            {{ auto_form.remove_missing.label(class="form-check-label") }}
+                        </div>
+                    </div>
 
                     <!-- Folder Path -->
                     <div class="admin_manage_scanjobs-folderpath form-group">
