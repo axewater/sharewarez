@@ -50,18 +50,6 @@
     text-shadow: -1px -1px 0 black, 1px -1px 0 black, 1px 1px 0 black, 1px 1px 0 black;
 }
 
-.discovery-last-updated-label {
-    font-size: 28px;
-    font-weight: bold;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    text-align: center;
-	font-family: Verdana, Times, serif;
-	
-	/* Text Shadow Property */
-    text-shadow: -1px -1px 0 black, 1px -1px 0 black, 1px 1px 0 black, 1px 1px 0 black;
-}
-
 
 .discovery-libraries-container {
     
@@ -84,13 +72,6 @@
 }
 
 .discovery-highest-rated-container {
-	display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-	justify-items:center;
-    
-}
-
-.discovery-last-updated-container {
 	display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 	justify-items:center;
