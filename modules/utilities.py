@@ -1108,6 +1108,8 @@ def get_cover_url(igdb_id):
     return None
 
 
+
+
 def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remove_missing=False):
     settings = GlobalSettings.query.first()
     # First, find the library and its platform
@@ -1117,6 +1119,19 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
         return
 
     print(f"Starting auto scan for games in folder: {folder_path} with scan mode: {scan_mode} and library UUID: {library_uuid} for platform: {library.platform.name}")
+    
+    # If remove_missing is enabled, check for games that no longer exist
+    if remove_missing:
+        print("Checking for missing games...")
+        games_in_library = Game.query.filter_by(library_uuid=library_uuid).all()
+        for game in games_in_library:
+            if not os.path.exists(game.full_disk_path):
+                print(f"Game no longer found at path: {game.full_disk_path}")
+                try:
+                    remove_from_lib(game.uuid)
+                    print(f"Removed game {game.name} as it no longer exists at {game.full_disk_path}")
+                except Exception as e:
+                    print(f"Error removing game {game.name}: {e}")
 
     # Create initial scan job
     scan_job_entry = ScanJob(
@@ -1217,29 +1232,11 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
     if scan_job_entry.status != 'Failed':
         scan_job_entry.status = 'Completed'
     
-        try:
-            # If remove_missing is True, check for games that should be removed
-            if remove_missing:
-                print(f"Checking for removed games in folder: {folder_path}")
-                # Get all games in database that match the scan path
-                games_in_db = Game.query.filter(
-                    Game.full_disk_path.like(f"{folder_path}%"),
-                    Game.library_uuid == library_uuid
-                ).all()
-                
-                # Create a set of all found game paths for efficient lookup
-                found_paths = {game_info['full_path'] for game_info in game_names_with_paths}
-                
-                # Remove games that no longer exist
-                for game in games_in_db:
-                    if game.full_disk_path not in found_paths:
-                        print(f"Removing game no longer found: {game.name} at {game.full_disk_path}")
-                        remove_from_lib(game.uuid)
-
-            db.session.commit()
-            print(f"Scan completed for folder: {folder_path} with ScanJob ID: {scan_job_entry.id}")
-        except SQLAlchemyError as e:
-            print(f"Database error when finalizing ScanJob: {str(e)}")
+    try:
+        db.session.commit()
+        print(f"Scan completed for folder: {folder_path} with ScanJob ID: {scan_job_entry.id}")
+    except SQLAlchemyError as e:
+        print(f"Database error when finalizing ScanJob: {str(e)}")
 
         
 def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_uuid):
