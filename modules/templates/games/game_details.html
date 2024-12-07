@@ -146,7 +146,7 @@
                                     <a href="{{ url_for('main.library', **{filter_type: item}) }}" class="chip-detailspage">{{ item }}</a>
                                 {% endfor %}
                             {% else %}
-                                <p>N/A</p>
+                                <p class="chip-detailspage">N/A</p>
                             {% endif %}
                         </div>
                         {% endmacro %}
@@ -173,11 +173,14 @@
                             {{ detail_item("Category", game.category) }}
                             {{ detail_item("Released", game.first_release_date) }}
                             {{ detail_item("Developer", game.developer) }}
-                            
 
-
-                            
                         </div>
+						
+						{% if game.last_updated != "N/A" %}
+							<div class="flex-row-horiz">
+								{{ detail_item("Last Updated", game.last_updated) }}
+							</div>
+						{% endif %}
  
                         </div>
                         <div class="game-card-downloads">

@@ -77,13 +77,13 @@ class MyHandler(FileSystemEventHandler):
                 else:
                     file_ext = "None"
                 if (file_ext not in ignore_ext and file_ext in allowed_ext) or file_ext == "None":
-                    from modules.utilities import discord_update
+                    from modules.utilities import notifications_manager
                     from modules.models import GlobalSettings
                     settings = GlobalSettings.query.first()
                     if settings.enable_game_updates or settings.enable_game_extras:
                         print(f"Event: {event.src_path} was {event.event_type} - Processing File Name: {file_name} with File Extension {file_ext}")
                         time.sleep(5)
-                        discord_update(event.src_path, event.event_type)            
+                        notifications_manager(event.src_path, event.event_type)            
     def on_modified(self, event):
         global last_trigger_time
         global last_modified
@@ -98,13 +98,13 @@ class MyHandler(FileSystemEventHandler):
                     file_name = event.src_path.split('/')[-1]
                     file_ext = file_name.split('.')[-1]
                     if file_ext not in ignore_ext and file_ext in allowed_ext:
-                        from modules.utilities import discord_update
+                        from modules.utilities import notifications_manager
                         from modules.models import GlobalSettings
                         settings = GlobalSettings.query.first()
                         if settings.enable_main_game_updates:
                             print(f"Event: {event.src_path} was {event.event_type} - Processing File Name: {file_name} with File Extension {file_ext}")
                             time.sleep(5)
-                            discord_update(event.src_path, event.event_type) 
+                            notifications_manager(event.src_path, event.event_type) 
         
 def watch_directory(path):
     observer = Observer()
