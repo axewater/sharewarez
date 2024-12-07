@@ -2001,6 +2001,7 @@ def game_details(game_uuid):
             "date_identified": game.date_identified.strftime('%Y-%m-%d %H:%M:%S') if game.date_identified else 'Not available',
             "steam_url": game.steam_url if game.steam_url else 'Not available',
             "times_downloaded": game.times_downloaded,
+            "last_updated": game.last_updated.strftime('%Y-%m-%d') if game.last_updated else 'N/A',
             "updates": [{
                 "id": update.id,
                 "file_path": update.file_path,
@@ -2592,12 +2593,13 @@ def discover():
     latest_games = fetch_game_details(Game.query.order_by(Game.date_created.desc()))
     most_downloaded_games = fetch_game_details(Game.query.order_by(Game.times_downloaded.desc()))
     highest_rated_games = fetch_game_details(Game.query.filter(Game.rating != None).order_by(Game.rating.desc()))
+    last_updated_games = fetch_game_details(Game.query.filter(Game.last_updated != None).order_by(Game.last_updated.desc()))
 
     return render_template('games/discover.html',
                            latest_games=latest_games,
                            most_downloaded_games=most_downloaded_games,
                            highest_rated_games=highest_rated_games,
-                           libraries=libraries, loc=page_loc)
+                           libraries=libraries, loc=page_loc, last_updated_games=last_updated_games)
 
 
 

@@ -12,5 +12,9 @@
 	"highestrated": {
 		"title": "Highest Rated Games",
 		"empty": "No games rated yet."
+	},
+	"lastupdated": {
+		"title": "Latest Updates",
+		"empty": "No games updated yet."
 	}
 }
