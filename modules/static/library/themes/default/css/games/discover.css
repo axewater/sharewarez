@@ -30,14 +30,6 @@
     text-align: center;
 }
 
-.discovery-last-updated-label {
-    font-size: 20px;
-    font-weight: bold;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
 
 .discovery-libraries-container {
     
@@ -60,13 +52,6 @@
 }
 
 .discovery-highest-rated-container {
-	display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-	justify-items:center;
-    
-}
-
-.discovery-last-updated-container {
 	display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 	justify-items:center;
