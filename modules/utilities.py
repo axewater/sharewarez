@@ -881,11 +881,18 @@ def zip_folder(download_request_id, app, file_location, file_name):
 
 def read_first_nfo_content(full_disk_path):
     print(f"Searching for NFO file in: {full_disk_path}")
+    
+    # If the path is a file, skip NFO scanning
+    if os.path.isfile(full_disk_path):
+        print("Path is a file, not a directory. Skipping NFO scan.")
+        return None
+        
     try:
         for file in os.listdir(full_disk_path):
             if file.lower().endswith('.nfo'):
                 nfo_path = os.path.join(full_disk_path, file)
                 print(f"Found NFO file: {nfo_path}")
+                
                 try:
                     with open(nfo_path, 'r', encoding='utf-8', errors='ignore') as nfo_file:
                         content = nfo_file.read()
@@ -894,6 +901,8 @@ def read_first_nfo_content(full_disk_path):
                         return sanitized_content
                 except Exception as e:
                     print(f"Error reading NFO file {nfo_path}: {str(e)}")
+                    continue
+                    
     except Exception as e:
         print(f"Error accessing directory {full_disk_path}: {str(e)}")
     
@@ -956,7 +965,6 @@ def refresh_images_in_background(game_uuid):
             db.session.rollback()
             flash(f"Failed to refresh game images: {str(e)}", "error")
             
-            
 def delete_game_images(game_uuid):
     with current_app.app_context():
         game = Game.query.filter_by(uuid=game_uuid).first()
@@ -965,8 +973,6 @@ def delete_game_images(game_uuid):
             return
 
         images_to_delete = Image.query.filter_by(game_uuid=game_uuid).all()
-
-
 
         for image in images_to_delete:
             try:
@@ -1036,8 +1042,6 @@ def get_game_by_full_disk_path(path, file_path):
 def escape_special_characters(pattern):
     return re.escape(pattern)
 
-
-
 def get_access_token(client_id, client_secret):
     url = "https://id.twitch.tv/oauth2/token"
     params = {
@@ -1104,7 +1108,7 @@ def get_cover_url(igdb_id):
     return None
 
 
-def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None):
+def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remove_missing=False):
     settings = GlobalSettings.query.first()
     # First, find the library and its platform
     library = Library.query.filter_by(uuid=library_uuid).first()
@@ -1213,11 +1217,29 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None):
     if scan_job_entry.status != 'Failed':
         scan_job_entry.status = 'Completed'
     
-    try:
-        db.session.commit()
-        print(f"Scan completed for folder: {folder_path} with ScanJob ID: {scan_job_entry.id}")
-    except SQLAlchemyError as e:
-        print(f"Database error when finalizing ScanJob: {str(e)}")
+        try:
+            # If remove_missing is True, check for games that should be removed
+            if remove_missing:
+                print(f"Checking for removed games in folder: {folder_path}")
+                # Get all games in database that match the scan path
+                games_in_db = Game.query.filter(
+                    Game.full_disk_path.like(f"{folder_path}%"),
+                    Game.library_uuid == library_uuid
+                ).all()
+                
+                # Create a set of all found game paths for efficient lookup
+                found_paths = {game_info['full_path'] for game_info in game_names_with_paths}
+                
+                # Remove games that no longer exist
+                for game in games_in_db:
+                    if game.full_disk_path not in found_paths:
+                        print(f"Removing game no longer found: {game.name} at {game.full_disk_path}")
+                        remove_from_lib(game.uuid)
+
+            db.session.commit()
+            print(f"Scan completed for folder: {folder_path} with ScanJob ID: {scan_job_entry.id}")
+        except SQLAlchemyError as e:
+            print(f"Database error when finalizing ScanJob: {str(e)}")
 
         
 def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_uuid):
@@ -1330,8 +1352,6 @@ def escape_special_characters(pattern):
     if not isinstance(pattern, str):
         pattern = str(pattern)  # Convert to string if not already
     return re.escape(pattern)
-
-
 
 def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
     print(f"Original filename: {filename}")
@@ -1797,14 +1817,102 @@ def notifications_manager(path, event, game_uuid=None):
         if game:
             updated_time = datetime.utcnow()
             game_library = get_library_by_uuid(game.library_uuid)
-            update_game_last_updated(game.uuid, updated_time)
-        
-        #Send Discord notification if enabled.
-        if settings.discord_notify_game_updates or settings.discord_notify_game_extras:
-            discord_update(path,event, folder_name, game_path, file_name, file_size, game, game_library)   
+            
+            # Get Discord settings from database first, fallback to config
+            discord_webhook = settings.discord_webhook_url if settings and settings.discord_webhook_url else current_app.config['DISCORD_WEBHOOK_URL']
+            discord_bot_name = settings.discord_bot_name if settings and settings.discord_bot_name else current_app.config['DISCORD_BOT_NAME']
+            discord_bot_avatar_url = settings.discord_bot_avatar_url if settings and settings.discord_bot_avatar_url else current_app.config['DISCORD_BOT_AVATAR_URL']
+            
+            site_url = current_app.config['SITE_URL']
+            cover_url = get_cover_url(game.igdb_id)
+            # if rate_limit_retry is True then in the event that you are being rate 
+            # limited by Discord your webhook will automatically be sent once the 
+            # rate limit has been lifted
+            webhook = DiscordWebhook(url=f"{discord_webhook}", rate_limit_retry=True)
+            # create embed object for webhook
+            embed = DiscordEmbed(title=f"Main Game Update Available for {game.name}", url=f"{site_url}/game_details/{game.uuid}", color="f71604")
+            # set author
+            embed.set_author(name=f"{discord_bot_name}", url=f"{site_url}", icon_url=f"{discord_bot_avatar_url}")
+            # set cover image
+            embed.set_image(url=f"{cover_url}")
+            # set footer
+            embed.set_footer(text=f"The main file for this game has been updated and is available for download.")
+            # set timestamp (default is now) accepted types are int, float and datetime
+            embed.set_timestamp()
+            # add fields to embed
+            # Set `inline=False` for the embed field to occupy the whole line
+            embed.add_embed_field(name="Library", value=f"{game_library.name}")
+            embed.add_embed_field(name="File", value=f"{file_name}")
+            embed.add_embed_field(name="Size", value=f"{file_size}")
+            # add embed object to webhook
+            webhook.add_embed(embed)
+            response = webhook.execute()
     
-    #Process newgame event and fire notifications.
-    elif event == "newgame":
-        #If Discord new game announcements are enabled.
-        if settings.discord_notify_new_games:        
-            discord_webhook(game_uuid)
+def get_library_by_uuid(uuid):
+    print(f"Searching for Library UUID: {uuid}")
+    library = Library.query.filter_by(uuid=uuid).first()
+    if library:
+        print(f"Library with name {library.name} and UUID {library.uuid} found")
+        return library
+    else:
+        print("Library not found")
+        return None
+        
+def get_game_name_by_uuid(uuid):
+    print(f"Searching for game UUID: {uuid}")
+    game = Game.query.filter_by(uuid=uuid).first()
+    if game:
+        print(f"Game with name {game.name} and UUID {game.uuid} found")
+        return game.name
+    else:
+        print("Game not found")
+        return None
+        
+def update_game_size(game_uuid, size):
+    game = get_game_by_uuid(game_uuid)
+    game.size = size
+    db.session.commit()
+    return None
+
+def remove_from_lib(game_uuid):
+    """
+    Remove a game and its associated data from the database.
+    
+    Args:
+        game_uuid (str): The UUID of the game to remove
+        
+    Returns:
+        str: 'OK' if successful, 'FAIL' if an error occurs
+    """
+    try:
+        # Find the game
+        game = Game.query.filter_by(uuid=game_uuid).first()
+        if not game:
+            print(f"Game with UUID {game_uuid} not found")
+            return 'FAIL'
+
+        # Delete associated URLs
+        GameURL.query.filter_by(game_uuid=game_uuid).delete()
+
+        # Clear all many-to-many relationships
+        game.genres.clear()
+        game.platforms.clear()
+        game.game_modes.clear()
+        game.themes.clear()
+        game.player_perspectives.clear()
+        game.multiplayer_modes.clear()
+
+        # Delete associated images from filesystem and database
+        delete_game_images(game_uuid)
+
+        # Delete the game record
+        db.session.delete(game)
+        db.session.commit()
+        
+        print(f"Successfully removed game {game_uuid} from library")
+        return 'OK'
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error removing game {game_uuid} from library: {e}")
+        return 'FAIL'

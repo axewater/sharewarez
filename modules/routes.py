@@ -60,7 +60,7 @@ has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '1.6.6'
+app_version = '1.6.7'
 
 
 @bp.before_app_request
@@ -1119,6 +1119,7 @@ def handle_auto_scan(auto_form):
     print("handle_auto_scan: function running.")
     if auto_form.validate_on_submit():
         library_uuid = auto_form.library_uuid.data
+        remove_missing = auto_form.remove_missing.data
         
         running_job = ScanJob.query.filter_by(status='Running').first()
         if running_job:
@@ -1136,6 +1137,7 @@ def handle_auto_scan(auto_form):
         folder_path = auto_form.folder_path.data
         
         scan_mode = auto_form.scan_mode.data
+
         
         print(f"Auto-scan form submitted. Library: {library.name}, Folder: {folder_path}, Scan mode: {scan_mode}")
         # Prepend the base path
@@ -1149,7 +1151,7 @@ def handle_auto_scan(auto_form):
 
         @copy_current_request_context
         def start_scan():
-            scan_and_add_games(full_path, scan_mode, library_uuid)
+            scan_and_add_games(full_path, scan_mode, library_uuid, remove_missing)
 
         thread = Thread(target=start_scan)
         thread.start()
