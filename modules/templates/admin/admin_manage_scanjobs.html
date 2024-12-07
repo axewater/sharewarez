@@ -56,16 +56,17 @@
             <form action="" method="post">
                 {{ auto_form.hidden_tag() }}
                 
-                <!-- Library Dropdown -->
-                <div class="admin_manage_scanjobs-library form-group">
-                    {{ auto_form.library_uuid.label }}
-                    {{ auto_form.library_uuid(class="form-control", id="libraryUuid", onchange='onLibraryChange(this.value, "auto")') }}
-                    {% if auto_form.library_uuid.errors %}
-                        {% for error in auto_form.library_uuid.errors %}
-                            <div class="alert alert-danger">{{ error }}</div>
-                        {% endfor %}
-                    {% endif %}
-                </div>
+                <div class="selection-container">
+                    <!-- Library Dropdown -->
+                    <div class="admin_manage_scanjobs-library form-group">
+                        {{ auto_form.library_uuid.label }}
+                        {{ auto_form.library_uuid(class="form-control", id="libraryUuid", onchange='onLibraryChange(this.value, "auto")') }}
+                        {% if auto_form.library_uuid.errors %}
+                            {% for error in auto_form.library_uuid.errors %}
+                                <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
 
                     <!-- Scan Mode -->
                     <div class="admin_manage_scanjobs-scanmode form-group">
@@ -90,7 +91,7 @@
                             {{ auto_form.remove_missing.label(class="form-check-label") }}
                         </div>
                     </div>
-
+                </div>
                     <!-- Folder Path -->
                     <div class="admin_manage_scanjobs-folderpath form-group">
                         {{ auto_form.folder_path.label }}
