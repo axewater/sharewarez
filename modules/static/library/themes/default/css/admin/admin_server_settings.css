@@ -1,7 +1,45 @@
-.table {
-	background-color: #333;
-	color: #fff;
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
 }
+
+.table {
+    background-color: #333;
+    color: #fff;
+    margin-bottom: 0;
+}
+
 .table th {
-	background-color: #444;
+    background-color: #444;
+    padding: 12px;
+}
+
+.table th i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+.table th i {
+    margin-right: 8px;
+}
+
+.form-check {
+    margin: 8px 0;
+}
+
+.form-check-label i {
+    margin-right: 6px;
+    width: 16px;
+}
+
+.col-md-6 {
+    flex: 0 0 calc(50% - 10px);
+    max-width: calc(50% - 10px);
+}
+
+.settingsform-admin {
+    padding: 20px;
 }
