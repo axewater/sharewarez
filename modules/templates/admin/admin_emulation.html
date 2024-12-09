@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_emulation.css') == True %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_emulation.css') }}">
+{% else %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_emulation.css') }}">
+{% endif %}
+
+<div class="content-flash">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flashes">
+                {% for message in messages %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+</div>
+
+<div class="admin_emulation-container glass-panel">
+    <h2>Emulation Management</h2>
+    
+    <div class="emulation-section">
+        <h3>ROM Management</h3>
+        <p>ROM management features will be implemented here.</p>
+    </div>
+
+    <div class="emulation-section">
+        <h3>Emulator Settings</h3>
+        <p>Emulator configuration options will be available here.</p>
+    </div>
+
+    <div class="emulation-section">
+        <h3>System Compatibility</h3>
+        <p>System compatibility information will be displayed here.</p>
+    </div>
+</div>
+
+{% endblock %}

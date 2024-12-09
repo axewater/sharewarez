@@ -2105,6 +2105,13 @@ def admin_dashboard():
     print(f"Route: /admin/dashboard - {current_user.name} - {current_user.role} method: {request.method}")
     return render_template('admin/admin_dashboard.html')
 
+@bp.route('/admin/emulation')
+@login_required
+@admin_required
+def emulation():
+    print(f"Route: /admin/emulation - {current_user.name} - {current_user.role} method: {request.method}")
+    return render_template('admin/admin_emulation.html')
+
 @bp.route('/admin/discord_settings', methods=['GET', 'POST'])
 @login_required
 @admin_required
