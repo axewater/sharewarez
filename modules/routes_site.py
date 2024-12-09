@@ -35,5 +35,12 @@ def favicon():
     return send_from_directory(full_dir, 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
+@site_bp.route('/airwolf.nes')
+def airwolf():
+    romdir = "roms"
+    full_dir = os.path.join(current_app.static_folder, romdir)
+    print(f"Full dir: {full_dir}" if os.path.isdir(full_dir) else f"Dir not found: {full_dir}")
+    return send_from_directory(full_dir, 'airwolf.nes')
+
 
 
