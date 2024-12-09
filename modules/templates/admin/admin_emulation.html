@@ -24,7 +24,53 @@
     
     <div class="emulation-section">
         <h3>ROM Management</h3>
-        <p>ROM management features will be implemented here.</p>
+        <div class="rom-upload-form">
+            <form action="{{ url_for('main.upload_rom') }}" method="post" enctype="multipart/form-data">
+                {{ form.csrf_token }}
+                <div class="form-group">
+                    <label for="rom_file">Select ROM File:</label>
+                    <input type="file" class="form-control" id="rom_file" name="rom_file" accept=".nes,.snes,.n64">
+                </div>
+                <div class="form-group">
+                    <label for="system">System:</label>
+                    <select class="form-control" id="system" name="system">
+                        <option value="NES">Nintendo (NES)</option>
+                        <option value="SNES">Super Nintendo (SNES)</option>
+                        <option value="N64">Nintendo 64 (N64)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Upload ROM</button>
+            </form>
+        </div>
+        
+        <div class="rom-list">
+            <h4>Uploaded ROMs</h4>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>System</th>
+                        <th>Upload Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rom in roms %}
+                    <tr>
+                        <td>{{ rom.filename }}</td>
+                        <td>{{ rom.system }}</td>
+                        <td>{{ rom.upload_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td>
+                            <form action="{{ url_for('main.delete_rom', rom_id=rom.id) }}" method="post" style="display: inline;">
+                                {{ form.csrf_token }}
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="emulation-section">
