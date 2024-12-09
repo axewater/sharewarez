@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>EmulatorJS Test Page</title>
+        <style>
+            body {
+                margin: 0;
+                background-color: #000;
+                color: #fff;
+            }
+            #game {
+                width: 800px;
+                height: 600px;
+                margin: 20px auto;
+            }
+            .controls {
+                text-align: center;
+                margin: 10px;
+            }
+            button {
+                padding: 10px;
+                margin: 5px;
+                background: #333;
+                color: #fff;
+                border: 1px solid #555;
+                cursor: pointer;
+            }
+            button:hover {
+                background: #444;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="game"></div>
+        <div class="controls">
+            <button onclick="EJS_emulator.resetGame()">Reset Game</button>
+            <button onclick="EJS_emulator.toggleFullscreen()">Fullscreen</button>
+        </div>
+
+        <script>
+            window.EJS_player = '#game';
+            window.EJS_gameUrl = 'http://127.0.0.1:5001/airwolf.nes'; // Using the Flask route
+            window.EJS_core = 'nes';
+            window.EJS_pathtodata = '/static/EmulatorJS/data/';
+            window.EJS_startOnLoaded = true;
+            window.EJS_defaultOptions = {
+                'save-state-slot': 1,
+                'save-state-location': 'browser',
+                'load-state-slot': 1
+            };
+        </script>
+        <script src="/static/EmulatorJS/data/loader.js"></script>
+    </body>
+</html>

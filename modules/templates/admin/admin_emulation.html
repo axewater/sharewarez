@@ -24,12 +24,13 @@
     
     <div class="emulation-section">
         <h3>ROM Management</h3>
+        <!-- ROM Upload Form -->
         <div class="rom-upload-form">
             <form action="{{ url_for('main.upload_rom') }}" method="post" enctype="multipart/form-data">
                 {{ form.csrf_token }}
                 <div class="form-group">
                     <label for="rom_file">Select ROM File:</label>
-                    <input type="file" class="form-control" id="rom_file" name="rom_file" accept=".nes,.snes,.n64">
+                    <input type="file" class="form-control" id="rom_file" name="rom_file" accept=".nes,.snes,.n64,.smc,.sfc,.z64">
                 </div>
                 <div class="form-group">
                     <label for="system">System:</label>
@@ -61,6 +62,11 @@
                         <td>{{ rom.system }}</td>
                         <td>{{ rom.upload_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                         <td>
+                            <button type="button" class="btn btn-success btn-sm play-rom" 
+                                    data-filepath="{{ rom.file_path }}" 
+                                    data-system="{{ rom.system }}">
+                                <i class="fas fa-play"></i> Play
+                            </button>
                             <form action="{{ url_for('main.delete_rom', rom_id=rom.id) }}" method="post" style="display: inline;">
                                 {{ form.csrf_token }}
                                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -73,15 +79,107 @@
         </div>
     </div>
 
+    <!-- Emulator Section -->
     <div class="emulation-section">
-        <h3>Emulator Settings</h3>
-        <p>Emulator configuration options will be available here.</p>
+        <h3>Emulator</h3>
+        <div id="game" style="width: 800px; height: 600px;"></div>
+        <div class="emulator-controls" id="emulator-controls" style="display: none;">
+            <button onclick="EJS_emulator.resetGame()">Reset Game</button>
+            <button onclick="EJS_emulator.toggleFullscreen()">Fullscreen</button>
+        </div>
     </div>
 
     <div class="emulation-section">
         <h3>System Compatibility</h3>
-        <p>System compatibility information will be displayed here.</p>
+        <ul>
+            <li>Nintendo (NES) - .nes files</li>
+            <li>Super Nintendo (SNES) - .smc, .sfc files</li>
+            <li>Nintendo 64 (N64) - .n64, .z64 files</li>
+        </ul>
     </div>
 </div>
+
+<script>
+    // Initialize EmulatorJS when a ROM is selected
+    document.querySelector('input[name="rom_file"]').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        initializeEmulator(file);
+    });
+
+    // Handle Play button clicks
+    document.querySelectorAll('.play-rom').forEach(button => {
+        button.addEventListener('click', function() {
+            const filepath = this.getAttribute('data-filepath');
+            const system = this.getAttribute('data-system');
+            
+            fetch(filepath)
+                .then(response => response.blob())
+                .then(blob => {
+                    const file = new File([blob], filepath.split('/').pop());
+                    initializeEmulator(file, system);
+                });
+        });
+    });
+
+    function initializeEmulator(file, system = null) {
+        // Remove any existing emulator
+        const gameDiv = document.getElementById('game');
+        gameDiv.innerHTML = '';
+        
+        // Show controls
+        document.getElementById('emulator-controls').style.display = 'block';
+
+        // Configure EmulatorJS
+        window.EJS_player = '#game';
+        window.EJS_gameUrl = URL.createObjectURL(file);
+        window.EJS_core = determineCore(file.name, system);
+        window.EJS_pathtodata = '/static/EmulatorJS/data/';
+        window.EJS_startOnLoaded = true;
+        window.EJS_defaultOptions = {
+            'save-state-slot': 1,
+            'save-state-location': 'browser',
+            'load-state-slot': 1
+        };
+
+        // Load the emulator
+        const script = document.createElement('script');
+        script.src = '/static/EmulatorJS/data/loader.js';
+        document.body.appendChild(script);
+    }
+
+    function determineCore(filename, system = null) {
+        if (system) {
+            // If system is provided, use it directly
+            const systemCores = {
+                'NES': 'nes',
+                'SNES': 'snes',
+                'N64': 'n64'
+            };
+            return systemCores[system] || null;
+        }
+        
+        // Otherwise fallback to extension detection
+        const ext = filename.split('.').pop().toLowerCase();
+        const cores = {
+            'nes': 'nes',
+            'fds': 'nes',
+            'unif': 'nes',
+            'unf': 'nes',
+            'smc': 'snes',
+            'fig': 'snes',
+            'sfc': 'snes',
+            'gd3': 'snes',
+            'gd7': 'snes',
+            'dx2': 'snes',
+            'bsx': 'snes',
+            'swc': 'snes',
+            'n64': 'n64',
+            'z64': 'n64',
+            'v64': 'n64'
+        };
+        return cores[ext] || null;
+    }
+</script>
 
 {% endblock %}

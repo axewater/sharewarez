@@ -2114,6 +2114,13 @@ def emulation():
     form = CsrfForm()
     return render_template('admin/admin_emulation.html', roms=roms, form=form)
 
+@bp.route('/emulator_test')
+@login_required
+def emulator_test():
+    return render_template('admin/emulator_test.html')
+
+
+
 @bp.route('/admin/upload_rom', methods=['POST'])
 @login_required
 @admin_required
