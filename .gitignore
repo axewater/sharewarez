@@ -23,3 +23,5 @@ modules/static/library/images
 /.git
 /.github
 /EmulatorJS/
+/modules/static/EmulatorJS/
+modules/static/EmulatorJS
