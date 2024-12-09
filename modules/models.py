@@ -570,3 +570,13 @@ class InviteToken(db.Model):
 
     def __repr__(self):
         return f'<InviteToken {self.token}, Creator: {self.creator_user_id}, Expires: {self.expires_at}, Used: {self.used}>'
+    
+class ROM(db.Model):
+    __tablename__ = 'roms'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(36), default=lambda: str(uuid4()), unique=True)
+    filename = db.Column(db.String(255), nullable=False)
+    system = db.Column(db.String(50), nullable=False)  # NES, SNES, N64
+    upload_date = db.Column(db.DateTime, default=datetime.utcnow)
+    file_path = db.Column(db.String(512), nullable=False)

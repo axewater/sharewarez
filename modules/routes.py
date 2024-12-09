@@ -41,7 +41,7 @@ from modules.forms import (
     ThemeUploadForm
 )
 from modules.models import (
-    User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, 
+    User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, ROM,
     Genre, Theme, GameMode, PlayerPerspective, Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, LibraryPlatform
 )
 from modules.utilities import (
@@ -2110,7 +2110,70 @@ def admin_dashboard():
 @admin_required
 def emulation():
     print(f"Route: /admin/emulation - {current_user.name} - {current_user.role} method: {request.method}")
-    return render_template('admin/admin_emulation.html')
+    roms = ROM.query.order_by(ROM.upload_date.desc()).all()
+    form = CsrfForm()
+    return render_template('admin/admin_emulation.html', roms=roms, form=form)
+
+@bp.route('/admin/upload_rom', methods=['POST'])
+@login_required
+@admin_required
+def upload_rom():
+    if 'rom_file' not in request.files:
+        flash('No file selected', 'error')
+        return redirect(url_for('main.emulation'))
+    
+    file = request.files['rom_file']
+    system = request.form.get('system')
+    
+    if file.filename == '':
+        flash('No file selected', 'error')
+        return redirect(url_for('main.emulation'))
+    
+    if file and allowed_rom_file(file.filename):
+        filename = secure_filename(file.filename)
+        
+        # Create system-specific directory if it doesn't exist
+        system_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'roms', system.lower())
+        os.makedirs(system_path, exist_ok=True)
+        
+        file_path = os.path.join(system_path, filename)
+        file.save(file_path)
+        
+        rom = ROM(
+            filename=filename,
+            system=system,
+            file_path=file_path
+        )
+        
+        db.session.add(rom)
+        db.session.commit()
+        
+        flash('ROM uploaded successfully', 'success')
+    else:
+        flash('Invalid file type', 'error')
+    
+    return redirect(url_for('main.emulation'))
+
+@bp.route('/admin/delete_rom/<int:rom_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_rom(rom_id):
+    rom = ROM.query.get_or_404(rom_id)
+    
+    # Delete the physical file
+    if os.path.exists(rom.file_path):
+        os.remove(rom.file_path)
+    
+    # Delete the database entry
+    db.session.delete(rom)
+    db.session.commit()
+    
+    flash('ROM deleted successfully', 'success')
+    return redirect(url_for('main.emulation'))
+
+def allowed_rom_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in {'nes', 'snes', 'n64'}
 
 @bp.route('/admin/discord_settings', methods=['GET', 'POST'])
 @login_required
