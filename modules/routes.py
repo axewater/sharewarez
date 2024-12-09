@@ -60,7 +60,7 @@ has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '1.6.8'
+app_version = '1.6.9'
 
 
 @bp.before_app_request
@@ -1713,6 +1713,22 @@ def admin_server_status():
     }
     return render_template('admin/admin_server_info.html', config_values=config_values, system_info=system_info, app_version=app_version)
 
+@bp.route('/api/reorder_libraries', methods=['POST'])
+@login_required
+@admin_required
+def reorder_libraries():
+    try:
+        new_order = request.json.get('order', [])
+        for index, library_uuid in enumerate(new_order):
+            library = Library.query.get(library_uuid)
+            if library:
+                library.display_order = index
+        db.session.commit()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @bp.route('/admin/manage_invites', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -2939,7 +2955,7 @@ def helpfaq():
 @login_required
 @admin_required
 def libraries():
-    libraries = Library.query.all()
+    libraries = Library.query.order_by(Library.display_order.asc()).all()
     csrf_form = CsrfProtectForm()
     game_count = Game.query.count()  # Fetch the game count here
     return render_template('admin/admin_manage_libraries.html', libraries=libraries, csrf_form=csrf_form, game_count=game_count)

@@ -155,6 +155,7 @@ class Library(db.Model):
     name = db.Column(db.String(255), nullable=False)
     image_url = db.Column(db.String(255), nullable=True)
     platform = db.Column(db.Enum(LibraryPlatform), nullable=False)
+    display_order = db.Column(db.Integer, default=0)
     games = db.relationship('Game', backref='library', lazy=True)
     unmatched_folders = relationship("UnmatchedFolder", backref='library', cascade="all, delete-orphan")
 
