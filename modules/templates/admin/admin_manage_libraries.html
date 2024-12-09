@@ -6,6 +6,7 @@
 {% else %}
     <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_libraries.css') }}">
 {% endif %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
 
 <div class="content-flash">
@@ -53,9 +54,10 @@
     <a href="{{ url_for('main.add_edit_library') }}" class="btn btn-primary mb-3">
         <i class="fas fa-plus"></i> Add Library
     </a>
-    <table class="table table-hover">
+    <table class="table table-hover" id="librariesTable">
         <thead>
             <tr>
+                <th style="width: 50px;"></th>
                 <th>Library Name</th>
                 <th>Games Count</th>
                 <th>Actions</th>
@@ -63,7 +65,10 @@
         </thead>
         <tbody>
             {% for library in libraries %}
-                <tr>
+                <tr data-library-uuid="{{ library.uuid }}">
+                    <td>
+                        <i class="fas fa-grip-vertical drag-handle" style="cursor: move;"></i>
+                    </td>
                     <td>
                         <img src="{{ library.image_url or url_for('static', filename='default-image.jpg') }}" alt="{{ library.name }}" style="width: 30px; height: 30px; object-fit: cover;" class="me-2 rounded">
                         {{ library.name }} - {{ library.platform.name }}
@@ -89,17 +94,6 @@
     </table>
 </div>
 
-{% if libraries %}
-<div class="admin_manage_libraries-delete-panel glass-panel-black">
-    <!-- Include Delete All Games functionality -->
-    <div id="deleteLibrary" class="admin_manage_libraries-delete-library mt-4">
-        <h3>Delete All Libraries</h3>
-        <p>This action will delete ALL GAMES IN ALL LIBRARIES. Proceed with caution.</p>
-        <p>Total # of games currently in all libraries: <strong>{{ game_count }}</strong></p>
-        <button id="deleteAllGamesBtn" class="admin_manage_libraries-danger-btn btn btn-danger" data-toggle="modal" data-target="#deleteWarningModal">Delete All Libraries</button>
-    </div>
-</div>
-{% endif %}
 
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/library_manager.js') %}
 <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/library_manager.js') }}"></script>
