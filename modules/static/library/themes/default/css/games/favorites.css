@@ -1,0 +1,100 @@
+.game-library-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.game-card-container {
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.game-card-container:hover {
+    transform: scale(1.05);
+}
+
+.game-card {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    height: 100%;
+}
+
+.game-cover {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.game-card:hover .game-cover {
+    transform: scale(1.05);
+}
+
+.no-favorites {
+    text-align: center;
+    color: #fff;
+    font-size: 1.2em;
+    padding: 20px;
+    grid-column: 1 / -1;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    border-radius: 10px;
+    margin: 20px 0;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+    padding: 10px;
+}
+
+.pagination a, .pagination span {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    border-radius: 5px;
+    color: white;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.pagination a:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.pagination .current-page {
+    background: rgba(255, 255, 255, 0.3);
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    .game-library-container {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+        padding: 15px;
+    }
+
+    .game-cover {
+        height: 220px;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-library-container {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .game-cover {
+        height: 180px;
+    }
+}
