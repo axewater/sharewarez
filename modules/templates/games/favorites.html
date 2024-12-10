@@ -1,59 +1,69 @@
 {% extends "base.html" %}
 
 {% block content %}
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/games/favorites.css') == True %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/games/favorites.css') }}">
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/games/discover.css') == True %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/games/discover.css') }}">
 {% else %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/games/favorites.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/games/discover.css') }}">
 {% endif %}
 
-<div class="content-flash">
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="flashes">
-                {% for message in messages %}
-                    <div class="flash">{{ message }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
-</div>
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/library_slideshow.js') %}
+    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/library_slideshow.js') }}"></script>
+{% else %}
+    <script src="{{ url_for('static', filename='library/themes/default/js/library_slideshow.js') }}"></script>
+{% endif %}
 
-<div class="glass-panel">
-    <h1>My Favorites</h1>
-    
-    <div class="game-library-container">
-        {% if games %}
-            {% for game in games %}
-            <div class="game-card-container">
-                <div class="game-card" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
-                    {% if game.cover_url %}
-                        <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">
-                            <img src="{{ url_for('static', filename='library/images/' ~ game.cover_url) }}" alt="{{ game.name }}" class="game-cover">
-                        </a>
-                    {% else %}
-                        <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">
-                            <img src="{{ url_for('static', filename='newstyle/default_cover.jpg') }}" alt="Default Cover Image" class="game-cover">
-                        </a>
-                    {% endif %}
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/popup_menu.js') %}
+    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/popup_menu.js') }}"></script>
+{% else %}
+    <script src="{{ url_for('static', filename='library/themes/default/js/popup_menu.js') }}"></script>
+{% endif %}
+
+<body>
+    <div class="content-flash">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flashes">
+                    {% for message in messages %}
+                        <div class="flash">{{ message }}</div>
+                    {% endfor %}
                 </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <p class="no-favorites">You haven't added any favorites yet!</p>
-        {% endif %}
-    </div>
-
-    {% if pagination.pages > 1 %}
-    <div class="pagination">
-        {% for page in range(1, pagination.pages + 1) %}
-            {% if page == pagination.page %}
-                <span class="current-page">{{ page }}</span>
-            {% else %}
-                <a href="{{ url_for('main.favorites', page=page) }}">{{ page }}</a>
             {% endif %}
-        {% endfor %}
+        {% endwith %}
     </div>
-    {% endif %}
-</div>
+    <div class="discovery-panel">
+        <h1 class="discovery-header">    
+            <p>My Favorites</p>
+        </h1>
+        <div class="discovery-favorites-container">
+            {% if favorites %}
+                <div class="discovery-favorites-games">
+                    {% for game in favorites %}
+                    <div class="game-card-container">
+                        <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
+                            {% with game_uuid=game.uuid, game_url=game.url %}
+                            {% endwith %}
+                            {% if game.cover_url %}
+                                <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">
+                                    <img src="{{ url_for('static', filename='library/images/' ~ game.cover_url) }}" alt="{{ game.name }}" class="game-cover">
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('main.game_details', game_uuid=game.uuid) }}">
+                                    <img src="{{ url_for('static', filename='newstyle/default_cover.jpg') }}" alt="Default Cover Image" class="game-cover">
+                                </a>
+                            {% endif %}
+                            <div id="details-{{ game.uuid }}" class="popup-game-details hidden">
+                                <!-- Details and screenshots will be injected here by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>You haven't added any favorites yet!</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
 {% endblock %}
