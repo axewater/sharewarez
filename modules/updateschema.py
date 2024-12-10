@@ -95,6 +95,14 @@ class DatabaseManager:
         ALTER TABLE games
         ADD COLUMN IF NOT EXISTS last_updated TIMESTAMP;
 
+        -- Create user_favorites table if it doesn't exist
+        CREATE TABLE IF NOT EXISTS user_favorites (
+            user_id INTEGER REFERENCES users(id),
+            game_uuid VARCHAR(36) REFERENCES games(uuid),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (user_id, game_uuid)
+        );
+
         CREATE TABLE IF NOT EXISTS game_updates (
             id SERIAL PRIMARY KEY,
             uuid VARCHAR(36) UNIQUE NOT NULL,
