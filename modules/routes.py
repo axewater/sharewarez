@@ -2187,6 +2187,24 @@ def discovery_setup():
     print(f"Route: /admin/discovery_setup - {current_user.name} - {current_user.role} method: {request.method}")
     return render_template('admin/admin_discovery_setup.html')
 
+@bp.route('/admin/api/discovery_settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def discovery_settings():
+    settings = GlobalSettings.query.first()
+    if not settings:
+        settings = GlobalSettings()
+        db.session.add(settings)
+        db.session.commit()
+
+    if request.method == 'POST':
+        data = request.get_json()
+        settings.discovery_settings['sections'] = data['sections']
+        db.session.commit()
+        return jsonify({'success': True})
+
+    return jsonify(settings.discovery_settings)
+
 @bp.route('/admin/discord_settings', methods=['GET', 'POST'])
 @login_required
 @admin_required

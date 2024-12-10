@@ -554,6 +554,16 @@ class GlobalSettings(db.Model):
     discord_notify_game_extras = db.Column(db.Boolean, default=False)
     discord_notify_downloads = db.Column(db.Boolean, default=False)
     site_url = db.Column(db.String(255), default='http://127.0.0.1')
+    discovery_settings = db.Column(JSONEncodedDict, default=lambda: {
+        'sections': {
+            'libraries': {'enabled': True, 'order': 1, 'title': 'Libraries'},
+            'latest_games': {'enabled': True, 'order': 2, 'title': 'Latest Games'},
+            'most_downloaded': {'enabled': True, 'order': 3, 'title': 'Most Downloaded'},
+            'highest_rated': {'enabled': True, 'order': 4, 'title': 'Highest Rated'},
+            'last_updated': {'enabled': True, 'order': 5, 'title': 'Last Updated'},
+            'most_favorited': {'enabled': True, 'order': 6, 'title': 'Most Favorited'}
+        }
+    })
 
     def __repr__(self):
         return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'    
