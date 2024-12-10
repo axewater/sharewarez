@@ -444,6 +444,7 @@ const enableDeleteGameOnDisk = document.body.getAttribute('data-enable-delete-ga
       }
   });
 
+  
   $('#nextPage').click(function(e) {
       e.preventDefault();
       if (currentPage < totalPages) {
