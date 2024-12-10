@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const csrfToken = csrfMeta.content;
 
     for (const button of favoriteButtons) {
+        button.classList.add('processing');
         const gameUuid = button.dataset.gameUuid;
         console.log(`[Favorites] Setting up favorite button for game UUID: ${gameUuid}`);
 
@@ -26,6 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log(`[Favorites] Initial status check for ${gameUuid}:`, data);
             if (data.is_favorite) {
                 button.classList.add('favorited');
+                console.log(`[Favorites] Game ${gameUuid} is favorited`);
             } else {
                 console.log(`[Favorites] Game ${gameUuid} is not favorited`);
             }
@@ -33,6 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('[Favorites] Error checking initial favorite status:', error);
         }
 
+        button.classList.remove('processing');
         // Add click handler to toggle favorite
         button.addEventListener('click', async () => {
             console.log(`[Favorites] Button clicked for game ${gameUuid}`);
@@ -56,14 +59,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const toggleData = await toggleResponse.json();
                 console.log(`[Favorites] Server response for ${gameUuid}:`, toggleData);
 
-                button.classList.remove('processing');
                 if (toggleData.is_favorite) {
                     button.classList.add('favorited');
+                    console.log(`[Favorites] Added favorite class for ${gameUuid}`);
                 } else {
                     button.classList.remove('favorited');
+                    console.log(`[Favorites] Removed favorite class for ${gameUuid}`);
                 }
             } catch (error) {
                 console.error('[Favorites] Error toggling favorite:', error);
+            } finally {
                 button.classList.remove('processing');
             }
         });
