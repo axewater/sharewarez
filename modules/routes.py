@@ -60,7 +60,7 @@ has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '1.7.0'
+app_version = '1.7.1'
 
 
 @bp.before_app_request

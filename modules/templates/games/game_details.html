@@ -97,7 +97,7 @@
                 <div class="game-card-q2">
                     <div class="game-card-meta">
                         <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
-
+                        <button class="favorite-btn" data-game-uuid="{{ game.uuid }}"><i class="fas fa-heart"></i></button>
                             {% with game_uuid=game.uuid, game_url=game.url %}
                             {% include 'games/popup_menu.html' %}
                             {% endwith %}
@@ -188,9 +188,7 @@
  
                         </div>
                         <div class="game-card-downloads">
-                            <button class="favorite-btn" data-game-uuid="{{ game.uuid }}">
-                                <i class="fas fa-heart"></i>
-                            </button>
+
                             {% if game.size %}
                             <div class="chip-size">
                                 {{ game.size }}

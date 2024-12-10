@@ -4,6 +4,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const favoriteButtons = document.querySelectorAll('.favorite-btn');
     console.log(`[Favorites] Found ${favoriteButtons.length} favorite buttons`);
 
+    // Add transition class to all buttons
+    favoriteButtons.forEach(button => {
+        button.querySelector('i').style.transition = 'color 0.3s ease';
+    });
+
     // Get CSRF token
     const csrfMeta = document.querySelector('meta[name="csrf-token"]');
     if (!csrfMeta) {
