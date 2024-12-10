@@ -42,6 +42,42 @@
     text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
     padding: 20px;
     padding-right: 40px;
+    position: relative; /* Add this to make it a positioning context */
+}
+
+/* Favorite button styling */
+.favorite-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #000;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10; /* Ensure it stays above other elements */
+}
+
+.favorite-btn i {
+    font-size: 20px;
+    color: #fff;
+    transition: color 0.3s ease;
+}
+
+.favorite-btn:hover {
+    transform: scale(1.1);
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.favorite-btn.favorited i {
+    color: #ff69b4;
+}
+
+.favorite-btn.processing {
+    pointer-events: none;
+    opacity: 0.7;
     border-radius: 15px;
     margin-bottom: 10px;
     line-height: normal;
