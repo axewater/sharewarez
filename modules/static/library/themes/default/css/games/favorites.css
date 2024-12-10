@@ -11,7 +11,7 @@
 }
 
 .game-card-container:hover {
-    transform: scale(1.05);
+    transform: scale(1.2);
 }
 
 .game-card {
@@ -25,15 +25,17 @@
 }
 
 .game-cover {
+    display: flex;
+    position: relative;
     width: 100%;
-    height: 280px;
-    object-fit: cover;
-    border-radius: 10px;
-    transition: transform 0.3s ease;
+    height: auto;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 5px 5px 9px rgba(0, 0, 0, 0.7);
 }
 
-.game-card:hover .game-cover {
-    transform: scale(1.05);
+.game-card:hover {
+    z-index: 6;
+    box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.7);
 }
 
 .no-favorites {
