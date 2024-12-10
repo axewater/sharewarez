@@ -2649,9 +2649,18 @@ def discover():
     page_loc = get_loc("discover")
     
     def fetch_game_details(games_query, limit=8):
-        games = games_query.limit(limit).all()
+        # Handle both query objects and lists
+        if hasattr(games_query, 'limit'):
+            games = games_query.limit(limit).all()
+        else:
+            games = games_query[:limit] if limit else games_query
+
         game_details = []
         for game in games:
+            # If game is a tuple (from group by query), get the Game object
+            if isinstance(game, tuple):
+                game = game[0]
+                
             cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
             cover_url = cover_image.url if cover_image else url_for('static', filename='newstyle/default_cover.jpg')
             game_details.append({
@@ -2685,8 +2694,21 @@ def discover():
     most_downloaded_games = fetch_game_details(Game.query.order_by(Game.times_downloaded.desc()))
     highest_rated_games = fetch_game_details(Game.query.filter(Game.rating != None).order_by(Game.rating.desc()))
     last_updated_games = fetch_game_details(Game.query.filter(Game.last_updated != None).order_by(Game.last_updated.desc()))
+    
+    # Get most favorited games using a subquery to count favorites
+    most_favorited = db.session.query(
+        Game,
+        func.count(user_favorites.c.user_id).label('favorite_count')
+    ).join(user_favorites).group_by(Game).order_by(
+        func.count(user_favorites.c.user_id).desc()
+    )
+    
+    # Extract just the Game objects from the query results
+    most_favorited_games_list = [game[0] for game in most_favorited]
+    most_favorited_games = fetch_game_details(most_favorited_games_list)
 
     return render_template('games/discover.html',
+                           most_favorited_games=most_favorited_games,
                            latest_games=latest_games,
                            most_downloaded_games=most_downloaded_games,
                            highest_rated_games=highest_rated_games,

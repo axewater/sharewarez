@@ -123,33 +123,6 @@
     width: 100%;
 }
 
-.favorite-btn {
-    background: none;
-    border: 2px solid white;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    margin-right: 10px;
-}
-
-.favorite-btn i {
-    color: white;
-    font-size: 20px;
-    transition: all 0.3s ease;
-}
-
-.favorite-btn.favorited {
-    border-color: #ff69b4;
-}
-
-.favorite-btn.favorited i {
-    color: #ff69b4;
-}
 
 .game-card-links {
     position: absolute;
