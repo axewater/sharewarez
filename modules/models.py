@@ -210,7 +210,11 @@ player_perspective_mapping = {
     3: PlayerPerspective.FIRST_THIRD
 }
 
-
+user_favorites = db.Table('user_favorites',
+    db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+    db.Column('game_uuid', db.String(36), db.ForeignKey('games.uuid'), primary_key=True),
+    db.Column('created_at', db.DateTime, default=datetime.utcnow)
+)
 
 class Game(db.Model):
     __tablename__ = 'games'
@@ -218,6 +222,7 @@ class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     uuid = db.Column(db.String(36), default=lambda: str(uuid4()), unique=True, nullable=False)
     igdb_id = db.Column(db.Integer, unique=True, nullable=True)
+    favorited_by = db.relationship('User', secondary='user_favorites', back_populates='favorites')
     name = db.Column(db.String, nullable=False)
     summary = db.Column(db.Text, nullable=True)
     storyline = db.Column(db.Text, nullable=True)
@@ -316,6 +321,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
+    favorites = db.relationship('Game', secondary='user_favorites', back_populates='favorited_by')
     password_hash = db.Column(db.String(128), nullable=False)
     role = db.Column(db.String(64), nullable=False)
     state = db.Column(db.Boolean, default=True)
