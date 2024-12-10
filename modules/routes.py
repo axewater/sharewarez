@@ -41,7 +41,7 @@ from modules.forms import (
     ThemeUploadForm
 )
 from modules.models import (
-    User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, 
+    User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, user_favorites,
     Genre, Theme, GameMode, PlayerPerspective, Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, LibraryPlatform
 )
 from modules.utilities import (
@@ -966,12 +966,18 @@ def browse_folders_ss():
         return jsonify({'error': 'SS folder browser: Folder not found'}), 404
 
 
-
 @bp.route('/api/search')
 @login_required
 def search():
     query = request.args.get('query', '')
     results = []
+    if query:
+        games = Game.query.filter(Game.name.ilike(f'%{query}%')).all()
+        results = [{'id': game.id, 'uuid': game.uuid, 'name': game.name} for game in games]
+
+        # print(f'Search results for "{query}": {results}')
+    return jsonify(results)
+
 
 @bp.route('/toggle_favorite/<game_uuid>', methods=['POST'])
 @login_required
@@ -994,10 +1000,14 @@ def favorites():
     page = request.args.get('page', 1, type=int)
     per_page = current_user.preferences.items_per_page if current_user.preferences else 20
     
-    # Get user's favorited games with pagination
-    pagination = current_user.favorites.paginate(page=page, per_page=per_page, error_out=False)
+    # Create a proper query for pagination
+    favorites_query = Game.query.join(user_favorites).filter(
+        user_favorites.c.user_id == current_user.id
+    )
+    pagination = favorites_query.paginate(page=page, per_page=per_page, error_out=False)
     games = pagination.items
     
+    # Process game data for display
     game_data = []
     for game in games:
         cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
@@ -1027,12 +1037,7 @@ def check_favorite(game_uuid):
     is_favorite = game in current_user.favorites
     return jsonify({'is_favorite': is_favorite})
 
-    if query:
-        games = Game.query.filter(Game.name.ilike(f'%{query}%')).all()
-        results = [{'id': game.id, 'uuid': game.uuid, 'name': game.name} for game in games]
 
-        # print(f'Search results for "{query}": {results}')
-    return jsonify(results)
 
 
 @bp.route('/downloads')
