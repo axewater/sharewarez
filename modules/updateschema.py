@@ -31,7 +31,7 @@ class DatabaseManager:
         """
 
         # SQL commands to add new columns and tables
-        add_columns_sql = f"""
+        add_columns_sql = """
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS enable_delete_game_on_disk BOOLEAN DEFAULT TRUE;
         
@@ -85,6 +85,18 @@ class DatabaseManager:
         
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS discord_bot_avatar_url VARCHAR(255);
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS discovery_settings JSONB DEFAULT '{
+            "sections": {
+                "libraries": {"enabled": true, "order": 1, "title": "Libraries"},
+                "latest_games": {"enabled": true, "order": 2, "title": "Latest Games"},
+                "most_downloaded": {"enabled": true, "order": 3, "title": "Most Downloaded"},
+                "highest_rated": {"enabled": true, "order": 4, "title": "Highest Rated"},
+                "last_updated": {"enabled": true, "order": 5, "title": "Last Updated"},
+                "most_favorited": {"enabled": true, "order": 6, "title": "Most Favorited"}
+            }
+        }'::jsonb;
 
         ALTER TABLE libraries
         ADD COLUMN IF NOT EXISTS display_order INTEGER DEFAULT 0;
