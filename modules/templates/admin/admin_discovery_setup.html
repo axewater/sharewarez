@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_discovery_setup.css') == True %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_discovery_setup.css') }}">
+{% else %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_discovery_setup.css') }}">
+{% endif %}
+
+<div class="admin-panel">
+    <div class="hackplanet_titles">
+        <h1>Discovery Page Setup</h1>
+    </div>
+    
+    <div class="setup-container">
+        <div class="setup-section">
+            <h3>Discovery Page Configuration</h3>
+            <p>This page will allow you to customize what is displayed on the discovery page.</p>
+            <p>Coming soon!</p>
+            <ul>
+
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

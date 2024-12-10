@@ -2180,6 +2180,13 @@ def admin_dashboard():
     print(f"Route: /admin/dashboard - {current_user.name} - {current_user.role} method: {request.method}")
     return render_template('admin/admin_dashboard.html')
 
+@bp.route('/admin/discovery_setup')
+@login_required
+@admin_required
+def discovery_setup():
+    print(f"Route: /admin/discovery_setup - {current_user.name} - {current_user.role} method: {request.method}")
+    return render_template('admin/admin_discovery_setup.html')
+
 @bp.route('/admin/discord_settings', methods=['GET', 'POST'])
 @login_required
 @admin_required
