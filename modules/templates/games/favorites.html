@@ -36,9 +36,9 @@
         <h1 class="discovery-header">    
             <p>My Favorites</p>
         </h1>
-        <div class="discovery-favorites-container">
+        <div class="discovery-favorites-container discovery-panel">
             {% if favorites %}
-                <div class="discovery-favorites-games">
+                <div class="discovery-favorites-games game-library-container">
                     {% for game in favorites %}
                     <div class="game-card-container">
                         <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
