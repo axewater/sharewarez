@@ -59,8 +59,10 @@
 }
 
 
-.game-card-container {
-	
+.discovery-last-updated-container {
+	display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	justify-items:center;
     
 }
 
@@ -299,26 +301,4 @@
 
 
 
-}
-
-.discovery-favorites-container {
-    display: flex;
-    flex-direction: row;
-
-}
-
-.discovery-favorites-container {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: flex-start;
-    padding: 20px;
-}
-
-.discovery-favorites-games {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 20px;
 }
