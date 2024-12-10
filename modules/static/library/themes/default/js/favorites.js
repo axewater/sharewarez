@@ -1,45 +1,71 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize favorite buttons
-    const favoriteButtons = document.querySelectorAll('.favorite-btn');
-    
-    favoriteButtons.forEach(button => {
-        const gameUuid = button.dataset.gameUuid;
-        
-        // Check initial favorite status
-        fetch(`/check_favorite/${gameUuid}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.is_favorite) {
-                    button.classList.add('favorited');
-                }
-            });
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('[Favorites] Initializing favorites functionality');
 
-        // Add click handler
-        button.addEventListener('click', function() {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-            
+    const favoriteButtons = document.querySelectorAll('.favorite-btn');
+    console.log(`[Favorites] Found ${favoriteButtons.length} favorite buttons`);
+
+    // Get CSRF token
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    if (!csrfMeta) {
+        console.error('[Favorites] Error: CSRF token meta tag not found. Cannot proceed.');
+        return; 
+    }
+    const csrfToken = csrfMeta.content;
+
+    for (const button of favoriteButtons) {
+        const gameUuid = button.dataset.gameUuid;
+        console.log(`[Favorites] Setting up favorite button for game UUID: ${gameUuid}`);
+
+        // Check initial favorite status
+        try {
+            const response = await fetch(`/check_favorite/${gameUuid}`);
+            if (!response.ok) {
+                throw new Error(`Failed to check favorite status: ${response.statusText}`);
+            }
+            const data = await response.json();
+            console.log(`[Favorites] Initial status check for ${gameUuid}:`, data);
+            if (data.is_favorite) {
+                button.classList.add('favorited');
+            } else {
+                console.log(`[Favorites] Game ${gameUuid} is not favorited`);
+            }
+        } catch (error) {
+            console.error('[Favorites] Error checking initial favorite status:', error);
+        }
+
+        // Add click handler to toggle favorite
+        button.addEventListener('click', async () => {
+            console.log(`[Favorites] Button clicked for game ${gameUuid}`);
+            console.log(`[Favorites] CSRF Token: ${csrfToken.substring(0, 10)}...`);
+
             button.classList.add('processing');
-            
-            fetch(`/toggle_favorite/${gameUuid}`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'Content-Type': 'application/json'
+
+            try {
+                const toggleResponse = await fetch(`/toggle_favorite/${gameUuid}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!toggleResponse.ok) {
+                    throw new Error(`Failed to toggle favorite: ${toggleResponse.statusText}`);
                 }
-            })
-            .then(response => response.json())
-            .then(data => {
+
+                const toggleData = await toggleResponse.json();
+                console.log(`[Favorites] Server response for ${gameUuid}:`, toggleData);
+
                 button.classList.remove('processing');
-                if (data.is_favorite) {
+                if (toggleData.is_favorite) {
                     button.classList.add('favorited');
                 } else {
                     button.classList.remove('favorited');
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
+            } catch (error) {
+                console.error('[Favorites] Error toggling favorite:', error);
                 button.classList.remove('processing');
-            });
+            }
         });
-    });
+    }
 });
