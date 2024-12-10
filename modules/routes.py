@@ -994,9 +994,9 @@ def toggle_favorite(game_uuid):
     db.session.commit()
     return jsonify({'success': True, 'is_favorite': is_favorite})
 
-@bp.route('/favorites')
+@bp.route('/favoritesz')
 @login_required
-def favorites():
+def favoritesz():
     page = request.args.get('page', 1, type=int)
     per_page = current_user.preferences.items_per_page if current_user.preferences else 20
     
@@ -1029,6 +1029,22 @@ def favorites():
     return render_template('games/favorites.html', 
                          games=game_data,
                          pagination=pagination)
+
+
+@bp.route('/favorites')
+@login_required
+def favorites():
+    favorites = current_user.favorites
+    game_data = []
+    for game in favorites:
+        cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
+        cover_url = cover_image.url if cover_image else 'newstyle/default_cover.jpg'
+        genres = [genre.name for genre in game.genres]
+        game_size_formatted = format_size(game.size)
+        game_data.append({'uuid': game.uuid, 'name': game.name, 'cover_url': cover_url, 'size': game_size_formatted, 'genres': genres})
+    
+    return render_template('games/favorites.html', favorites=game_data)
+
 
 @bp.route('/check_favorite/<game_uuid>')
 @login_required
