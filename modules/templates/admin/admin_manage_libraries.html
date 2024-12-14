@@ -71,7 +71,7 @@
                     </td>
                     <td>
                         <img src="{{ library.image_url or url_for('static', filename='default-image.jpg') }}" alt="{{ library.name }}" style="width: 30px; height: 30px; object-fit: cover;" class="me-2 rounded">
-                        {{ library.name }} - {{ library.platform.name }}
+                        {{ library.name }} - {{ library.platform.value }}
                     </td>
                     <td>{{ library.games|length }}</td>
                     <td>
