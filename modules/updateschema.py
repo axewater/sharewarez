@@ -110,6 +110,15 @@ class DatabaseManager:
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS discord_bot_avatar_url VARCHAR(255);
 
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS igdb_client_id VARCHAR(255);
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS igdb_client_secret VARCHAR(255);
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS igdb_last_tested TIMESTAMP;
+
         ALTER TABLE libraries
         ADD COLUMN IF NOT EXISTS display_order INTEGER DEFAULT 0;
 

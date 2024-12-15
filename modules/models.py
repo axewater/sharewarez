@@ -554,6 +554,10 @@ class GlobalSettings(db.Model):
     discord_bot_avatar_url = db.Column(db.String(255), nullable=True)
     enable_delete_game_on_disk = db.Column(db.Boolean, default=True)
     enable_main_game_updates = db.Column(db.Boolean, default=False)
+    # IGDB Settings
+    igdb_client_id = db.Column(db.String(255), nullable=True)
+    igdb_client_secret = db.Column(db.String(255), nullable=True)
+    igdb_last_tested = db.Column(db.DateTime, nullable=True)
     enable_game_updates = db.Column(db.Boolean, default=False)
     update_folder_name = db.Column(db.String(255), default='updates')
     enable_game_extras = db.Column(db.Boolean, default=False)
