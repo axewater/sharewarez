@@ -213,20 +213,7 @@ def send_email(to, subject, template):
 
 def send_password_reset_email(user_email, token):
     reset_url = url_for('main.reset_password', token=token, _external=True)
-    msg = MailMessage(
-        'Avast Ye! Password Reset Request Arrr!',
-        sender=current_app.config['MAIL_DEFAULT_SENDER'], 
-        recipients=[user_email]
-    )
-    msg.body = '''Ahoy there!
-
-Ye be wantin' to reset yer password, aye? No worries, we got ye covered! Unfortunately, yer email client doesn't support HTML messages. For a plain sailing, please ensure ye can view HTML emails.
-
-Fair winds and followin' seas,
-
-Captain Blackbeard
-'''
-    msg.html = f'''<p>Ahoy there!</p>
+    html = f'''<p>Ahoy there!</p>
 
 <p>Ye be wantin' to reset yer password, aye? No worries, we got ye covered! Jus' click on the link below to set a new course for yer password:</p>
 
@@ -236,11 +223,10 @@ Captain Blackbeard
 
 <p>Fair winds and followin' seas,</p>
 
-<p>Captain Blackbeard</p>
+<p>Captain Blackbeard</p>'''
 
-<p>P.S. If ye be havin' any troubles, send a message to the crew at <a href="mailto:{current_app.config['MAIL_DEFAULT_SENDER']}">{current_app.config['MAIL_DEFAULT_SENDER']}</a>, and we'll help ye navigate yer way back into yer account! Arrr!</p>
-'''
-    mail.send(msg)
+    subject = "Avast Ye! Password Reset Request Arrr!"
+    send_email(user_email, subject, html)
 
 
 
