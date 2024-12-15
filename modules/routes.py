@@ -30,7 +30,7 @@ from authlib.jose import jwt
 
 from urllib.parse import unquote
 
-from .utilities import get_game_name_by_uuid
+from .utilities import get_game_name_by_uuid, is_smtp_config_valid
 
 
 from modules.forms import (
@@ -2179,6 +2179,95 @@ def refresh_game_images(game_uuid):
 def admin_dashboard():
     print(f"Route: /admin/dashboard - {current_user.name} - {current_user.role} method: {request.method}")
     return render_template('admin/admin_dashboard.html')
+
+@bp.route('/admin/smtp_settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def smtp_settings():
+    settings = GlobalSettings.query.first()
+    if request.method == 'POST':
+        data = request.json
+        if not settings:
+            settings = GlobalSettings()
+            db.session.add(settings)
+        
+        settings.smtp_server = data.get('smtp_server')
+        settings.smtp_port = int(data.get('smtp_port', 587))
+        settings.smtp_username = data.get('smtp_username')
+        settings.smtp_password = data.get('smtp_password')
+        settings.smtp_use_tls = data.get('smtp_use_tls', True)
+        settings.smtp_default_sender = data.get('smtp_default_sender')
+        settings.smtp_enabled = data.get('smtp_enabled', False)
+        
+        try:
+            db.session.commit()
+            return jsonify({'status': 'success', 'message': 'SMTP settings updated successfully'})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'status': 'error', 'message': str(e)}), 500
+    
+    return render_template('admin/admin_smtp_settings.html', settings=settings)
+
+@bp.route('/admin/test_smtp', methods=['POST'])
+@login_required
+@admin_required
+def test_smtp():
+    import socket
+    import smtplib
+    from email.mime.text import MIMEText
+    
+    print("Testing SMTP connection")
+    settings = GlobalSettings.query.first()
+    if not settings:
+        return jsonify({'status': 'error', 'message': 'No SMTP settings found'}), 404
+
+    try:
+        # Test server connection first with a shorter timeout
+        print(f"Testing connection to {settings.smtp_server}:{settings.smtp_port}")
+        with socket.create_connection((settings.smtp_server, int(settings.smtp_port)), timeout=5) as sock:
+            if settings.smtp_use_tls:
+                import ssl
+                context = ssl.create_default_context()
+                with context.wrap_socket(sock, server_hostname=settings.smtp_server) as ssock:
+                    print("TLS connection established successfully")
+
+        # Now test SMTP authentication with a longer timeout
+        print("Testing SMTP authentication")
+        with smtplib.SMTP(settings.smtp_server, int(settings.smtp_port), timeout=10) as server:
+            server.set_debuglevel(1)  # Enable debugging output
+            if settings.smtp_use_tls:
+                server.starttls()
+            server.login(settings.smtp_username, settings.smtp_password)
+            print("SMTP authentication successful")
+
+            # Send test email
+            msg = MIMEText('This is a test email from your SharewareZ instance.')
+            msg['Subject'] = 'SharewareZ SMTP Test'
+            msg['From'] = settings.smtp_default_sender
+            msg['To'] = settings.smtp_default_sender
+            
+            server.send_message(msg)
+            print("Test email sent successfully")
+
+        return jsonify({'status': 'success', 'message': 'SMTP test completed successfully'})
+
+    except socket.timeout:
+        error_msg = "Connection timed out. Please check the server address and port."
+        print(f"SMTP test failed: {error_msg}")
+        return jsonify({'status': 'error', 'message': error_msg}), 500
+    except socket.gaierror:
+        error_msg = "Could not resolve SMTP server hostname."
+        print(f"SMTP test failed: {error_msg}")
+        return jsonify({'status': 'error', 'message': error_msg}), 500
+    except smtplib.SMTPAuthenticationError:
+        error_msg = "Authentication failed. Please check your username and password."
+        print(f"SMTP test failed: {error_msg}")
+        return jsonify({'status': 'error', 'message': error_msg}), 500
+    except Exception as e:
+        error_msg = f"An unexpected error occurred: {str(e)}"
+        print(f"SMTP test failed: {error_msg}")
+        return jsonify({'status': 'error', 'message': error_msg}), 500
+
 
 @bp.route('/admin/discord_settings', methods=['GET', 'POST'])
 @login_required

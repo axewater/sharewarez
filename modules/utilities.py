@@ -1,5 +1,5 @@
 #/modules/utilities.py
-import re, requests, shutil, os, zipfile, smtplib, socket, time
+import re, requests, shutil, os, zipfile, smtplib, socket, time, ssl
 from functools import wraps
 from flask import flash, redirect, url_for, request, current_app, flash
 from flask_login import current_user, login_user
@@ -14,47 +14,139 @@ from modules.models import (
 from modules import db, mail
 from sqlalchemy import func, String
 from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
-
+from flask import current_app
 from PIL import Image as PILImage
 from PIL import ImageOps
 from datetime import datetime
 from wtforms.validators import ValidationError
 from discord_webhook import DiscordWebhook, DiscordEmbed
 
+def get_smtp_settings():
+    """Get SMTP settings from database, falling back to config values."""
+    settings = GlobalSettings.query.first()
+    
+    if settings and settings.smtp_enabled:
+        return {
+            'MAIL_SERVER': settings.smtp_server,
+            'MAIL_PORT': settings.smtp_port,
+            'MAIL_USERNAME': settings.smtp_username,
+            'MAIL_PASSWORD': settings.smtp_password,
+            'MAIL_USE_TLS': settings.smtp_use_tls,
+            'MAIL_DEFAULT_SENDER': settings.smtp_default_sender,
+            'SMTP_ENABLED': settings.smtp_enabled,
+            'SERVER_HOSTNAME': settings.smtp_server  # Add server hostname for SSL validation
+        }
+    
+    # Fallback to config values
+    return {
+        'MAIL_SERVER': current_app.config['MAIL_SERVER'],
+        'MAIL_PORT': current_app.config['MAIL_PORT'],
+        'MAIL_USERNAME': current_app.config['MAIL_USERNAME'],
+        'MAIL_PASSWORD': current_app.config['MAIL_PASSWORD'],
+        'MAIL_USE_TLS': current_app.config['MAIL_USE_TLS'],
+        'MAIL_DEFAULT_SENDER': current_app.config['MAIL_DEFAULT_SENDER'],
+        'SMTP_ENABLED': True
+    }
+
 def is_smtp_config_valid():
     """
     Check if the SMTP configuration is valid and complete.
+    Returns tuple (bool, str) indicating validity and error message if any.
     """
-    required_config = ['MAIL_SERVER', 'MAIL_PORT', 'MAIL_USERNAME', 'MAIL_PASSWORD', 'MAIL_USE_TLS', 'MAIL_DEFAULT_SENDER']
-    for config in required_config:
-        if not current_app.config.get(config):
-            print(f"Missing SMTP configuration: {config}")
-            return False
-    return True
+    smtp_settings = get_smtp_settings()
+    
+    if not smtp_settings['SMTP_ENABLED']:
+        return False, "SMTP is not enabled"
+    
+    # Enhanced validation for required fields with detailed error messages
+    required_fields = {
+        'MAIL_SERVER': 'SMTP Server',
+        'MAIL_PORT': 'SMTP Port',
+        'MAIL_USERNAME': 'Username',
+        'MAIL_PASSWORD': 'Password',
+        'MAIL_DEFAULT_SENDER': 'Default Sender Email'
+    }
+    
+    missing_fields = []
+    for field, display_name in required_fields.items():
+        if not smtp_settings[field]:
+            missing_fields.append(display_name)
+    
+    if missing_fields:
+        return False, f"Missing required fields: {', '.join(missing_fields)}"
+    
+    try:
+        port = int(smtp_settings['MAIL_PORT'])
+        if port <= 0 or port > 65535:
+            return False, "Invalid port number"
+    except ValueError:
+        return False, "Port must be a valid number"
+    
+    return True, "Configuration valid"
 
 def is_server_reachable(server, port):
     """
-    Check if the mail server is reachable.
+    Check if the mail server is reachable and supports SSL/TLS if required.
+    Implements proper STARTTLS handling for different SMTP ports.
     """
+    import ssl  # Move the import to the top of the function
+    
     try:
-        with socket.create_connection((server, port), timeout=5):
-            print(f"Successfully connected to mail server {server}:{port}")
+        # First try basic socket connection
+        with socket.create_connection((server, port), timeout=5) as sock:
+            print(f"Basic connection successful to {server}:{port}")
+            
+            # Handle different SMTP security protocols
+            if port == 465:  # SMTPS - Direct SSL/TLS
+                context = ssl.create_default_context()
+                with context.wrap_socket(sock, server_hostname=server) as ssl_sock:
+                    print(f"Direct SSL/TLS connection successful to {server}:{port}")
+            elif port == 587:  # SMTP with STARTTLS
+                smtp = smtplib.SMTP(server, port)
+                smtp.ehlo()
+                if smtp.has_extn('STARTTLS'):
+                    context = ssl.create_default_context()
+                    smtp.starttls(context=context)
+                    smtp.ehlo()
+                    print(f"STARTTLS connection successful to {server}:{port}")
+                smtp.quit()
             return True
+    except ssl.SSLError as e:
+        print(f"SSL/TLS error connecting to {server}:{port}: {e}")
+        return False
+    except socket.timeout:
+        print(f"Connection timeout to {server}:{port}")
+        return False
     except Exception as e:
-        print(f"Error connecting to mail server {server}:{port}: {e}")
+        print(f"Error connecting to {server}:{port}: {e}")
         return False
 
 def send_email(to, subject, template):
     """
-    Send an email with robust error handling and pre-send checks.
+    Send an email with robust error logging and pre-send checks.
     """
-    if not is_smtp_config_valid():
-        print("Invalid SMTP configuration. Email not sent.")
-        flash("Invalid SMTP configuration. Email not sent.", "error")
+    print("\n=== Starting Email Send Process ===")
+    smtp_settings = get_smtp_settings()
+    
+    if not smtp_settings['SMTP_ENABLED']:
+        print("SMTP is not enabled. Email not sent.")
+        flash("SMTP is not enabled. Email not sent.", "error")
         return False
 
-    mail_server = current_app.config['MAIL_SERVER']
-    mail_port = current_app.config['MAIL_PORT']
+    is_valid, error_message = is_smtp_config_valid()
+    if not is_valid:
+        print(f"Invalid SMTP configuration: {error_message}")
+        flash(f"Invalid SMTP configuration: {error_message}", "error")
+        return False
+
+    mail_server = smtp_settings['MAIL_SERVER']
+    mail_port = smtp_settings['MAIL_PORT']
+    
+    print(f"Attempting connection to {mail_server}:{mail_port}")
+    print(f"Using username: {smtp_settings['MAIL_USERNAME']}")
+    print(f"From address: {smtp_settings['MAIL_DEFAULT_SENDER']}")
+    print(f"To address: {to}")
+    print(f"Subject: {subject}")
 
     if not is_server_reachable(mail_server, mail_port):
         print(f"Mail server {mail_server}:{mail_port} is unreachable. Email not sent.")
@@ -62,23 +154,59 @@ def send_email(to, subject, template):
         return False
 
     try:
+        print("Creating message object...")
         msg = MailMessage(
             subject,
-            sender=current_app.config['MAIL_DEFAULT_SENDER'],
+            sender=smtp_settings['MAIL_DEFAULT_SENDER'],
             recipients=[to],
             html=template
         )
-        mail.send(msg)
-        print(f"Email sent successfully to {to} with subject: {subject}")
+        
+        print("Attempting to send email...")
+        print("=== SMTP Transaction Start ===")
+        with smtplib.SMTP(mail_server, mail_port, timeout=30) as server:
+            print("1. Server connection established")
+            server.set_debuglevel(1)  # Enable SMTP debug logging
+            
+            if smtp_settings['MAIL_USE_TLS']:
+                print("2. Starting TLS handshake")
+                server.starttls()
+                print("3. TLS handshake completed")
+            
+            print("4. Attempting login")
+            server.login(smtp_settings['MAIL_USERNAME'], smtp_settings['MAIL_PASSWORD'])
+            print("5. Login successful")
+            
+            print("6. Sending message")
+            server.send_message(msg)
+            print("7. Message sent successfully")
+            
+        print("=== SMTP Transaction Complete ===")
+        print(f"Email sent successfully to {to}")
         flash(f"Email sent successfully to {to}", "success")
         return True
+        
+    except smtplib.SMTPAuthenticationError as e:
+        print(f"SMTP Authentication failed: {e}")
+        flash(f"SMTP Authentication failed: {e}", "error")
     except smtplib.SMTPException as e:
-        print(f"SMTP error occurred while sending email: {e}")
-        flash(f"An error occurred while sending the email: {e}", "error")
+        print(f"SMTP error occurred: {str(e)}")
+        flash(f"SMTP error occurred: {str(e)}", "error")
+    except socket.timeout as e:
+        print(f"Connection timed out: {str(e)}")
+        flash("Connection timed out while sending email", "error")
+    except socket.gaierror as e:
+        print(f"DNS lookup failed: {str(e)}")
+        flash("DNS lookup failed for SMTP server", "error")
     except Exception as e:
-        print(f"Unexpected error occurred while sending email: {e}")
+        print(f"Unexpected error occurred while sending email: {str(e)}")
+        print(f"Error type: {type(e)}")
+        print(f"Error details: {traceback.format_exc()}")
         flash("An unexpected error occurred while sending the email", "error")
+    
+    print("=== Email Send Process Failed ===\n")
     return False
+
 
 
 def send_password_reset_email(user_email, token):

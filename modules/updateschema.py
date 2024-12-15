@@ -81,6 +81,30 @@ class DatabaseManager:
         ADD COLUMN IF NOT EXISTS discord_webhook_url VARCHAR(255);
             
         ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS smtp_server VARCHAR(255);
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS smtp_port INTEGER;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS smtp_username VARCHAR(255);
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS smtp_password VARCHAR(255);
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS smtp_use_tls BOOLEAN DEFAULT TRUE;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS smtp_default_sender VARCHAR(255);
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS smtp_last_tested TIMESTAMP;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS smtp_enabled BOOLEAN DEFAULT FALSE;
+
+        ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS discord_bot_name VARCHAR(255);
         
         ALTER TABLE global_settings
