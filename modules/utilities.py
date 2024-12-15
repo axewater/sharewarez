@@ -1,5 +1,5 @@
 #/modules/utilities.py
-import re, requests, shutil, os, zipfile, smtplib, socket, time, ssl
+import re, requests, shutil, os, zipfile, smtplib, socket, time, ssl, traceback
 from functools import wraps
 from flask import flash, redirect, url_for, request, current_app, flash
 from flask_login import current_user, login_user
@@ -125,6 +125,8 @@ def send_email(to, subject, template):
     """
     Send an email with robust error logging and pre-send checks.
     """
+    from email.message import EmailMessage  # Add this import at the top of utilities.py
+    
     print("\n=== Starting Email Send Process ===")
     smtp_settings = get_smtp_settings()
     
@@ -155,12 +157,11 @@ def send_email(to, subject, template):
 
     try:
         print("Creating message object...")
-        msg = MailMessage(
-            subject,
-            sender=smtp_settings['MAIL_DEFAULT_SENDER'],
-            recipients=[to],
-            html=template
-        )
+        msg = EmailMessage()
+        msg.set_content(template, subtype='html')  # Set HTML content
+        msg['Subject'] = subject
+        msg['From'] = smtp_settings['MAIL_DEFAULT_SENDER']
+        msg['To'] = to
         
         print("Attempting to send email...")
         print("=== SMTP Transaction Start ===")
@@ -206,6 +207,7 @@ def send_email(to, subject, template):
     
     print("=== Email Send Process Failed ===\n")
     return False
+
 
 
 
