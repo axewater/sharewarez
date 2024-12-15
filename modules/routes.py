@@ -289,28 +289,35 @@ def confirm_email(token):
         return render_template('login/confirmation_success.html')
 
 
+
 @bp.route('/reset_password_request', methods=['GET', 'POST'])
 def reset_password_request():
     if current_user.is_authenticated:
         return redirect(url_for('main.login'))
+    print(f'pwr Reset Password Request')
     form = ResetPasswordRequestForm()
-    
     if form.validate_on_submit():
-        email = form.email.data
-        user = User.query.filter_by(email=email).first()
+        print(f'pwr form data: {form.data}')
+        user = User.query.filter_by(email=form.email.data.lower()).first()
+        print(f'pwr user: {user}')
         if user:
-            if user.token_creation_time and (datetime.utcnow() - user.token_creation_time).total_seconds() < 120:
-                flash('Please wait a bit before requesting another password reset.')
-                return redirect(url_for('main.login'))
-            password_reset_token = str(uuid.uuid4())
-            user.password_reset_token = password_reset_token
+            # Generate a unique token
+            token = s.dumps(user.email, salt='password-reset-salt')
+            user.password_reset_token = token
             user.token_creation_time = datetime.utcnow()
+            print(f'pwr token: {token}')
             db.session.commit()
-            send_password_reset_email(user.email, password_reset_token)
-        flash('Check your email for the instructions to reset your password')
-        return redirect(url_for('main.login'))
 
-    return render_template('login/reset_password_request.html', form=form)
+            # Send reset email
+            print('Calling send password reset email function...')
+            send_password_reset_email(user.email, token)
+            flash('Check your email for instructions to reset your password.')
+            return redirect(url_for('main.login'))
+        else:
+            flash('Email address not found.')
+            return redirect(url_for('main.reset_password_request'))
+
+    return render_template('login/reset_password_request.html', title='Reset Password', form=form)
 
 @bp.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
