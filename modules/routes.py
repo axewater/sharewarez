@@ -1,5 +1,5 @@
 # modules/routes.py
-import sys,ast, uuid, json, random, requests, html, os, re, shutil, traceback, time, schedule, os, platform, tempfile, socket
+import sys, ast, uuid, json, random, requests, html, os, re, shutil, traceback, time, schedule, os, platform, tempfile, socket
 from threading import Thread
 from config import Config
 from flask import (
@@ -38,7 +38,7 @@ from modules.forms import (
     UserManagementForm, ScanFolderForm, IGDBApiForm, ClearDownloadRequestsForm, CsrfProtectForm, 
     AddGameForm, LoginForm, ResetPasswordRequestForm, AutoScanForm, UpdateUnmatchedFolderForm, 
     ReleaseGroupForm, RegistrationForm, CreateUserForm, UserPreferencesForm, InviteForm, LibraryForm, CsrfForm,
-    ThemeUploadForm
+    ThemeUploadForm, SetupForm
 )
 from modules.models import (
     User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, user_favorites,
@@ -64,27 +64,25 @@ app_version = '1.7.2'
 
 
 @bp.before_app_request
-def initial_setup():
+def check_setup_required():
+    # Skip setup check for static files and setup-related routes
+    if request.endpoint and (request.endpoint.startswith('static') or 
+        request.endpoint == 'main.setup' or
+        request.endpoint == 'main.complete_setup' or
+        request.endpoint in ['main.setup', 'main.complete_setup']
+    ):
+        return
+
+    # Check if we need to do initial setup
+    if not User.query.first() and request.endpoint != 'main.setup':
+        return redirect(url_for('main.setup'))
+
+    # Normal initialization continues only if setup is complete
     global has_initialized_setup
     if has_initialized_setup:
         return
     has_initialized_setup = True
-    app_start_time = datetime.now()  # Record the startup time
-
-    # Initialize whitelist
-    try:
-        if not Whitelist.query.first():
-            default_email = Config.INITIAL_WHITELIST
-            default_whitelist = Whitelist(email=default_email)
-            db.session.add(default_whitelist)
-            db.session.commit()
-            print("Default email added to Whitelist.")
-    except IntegrityError:
-        db.session.rollback()
-        print('Default email already exists in Whitelist.')
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        print(f'error adding default email to Whitelist: {e}')
+    app_start_time = datetime.now()
 
     # Upgrade first user to admin
     try:
@@ -149,6 +147,36 @@ def inject_settings():
 @bp.context_processor
 def utility_processor():
     return dict(datetime=datetime)
+
+@bp.route('/setup', methods=['GET', 'POST'])
+def setup():
+    if User.query.first():
+        flash('Setup has already been completed.', 'warning')
+        return redirect(url_for('main.login'))
+
+    form = SetupForm()
+    if form.validate_on_submit():
+        user = User(
+            name=form.username.data,
+            email=form.email.data.lower(),
+            role='admin',
+            is_email_verified=True,
+            user_id=str(uuid4()),
+            created=datetime.utcnow()
+        )
+        user.set_password(form.password.data)
+        
+        try:
+            db.session.add(user)
+            db.session.commit()
+            flash('Setup completed successfully! You can now log in.', 'success')
+            return redirect(url_for('main.login'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error during setup: {str(e)}', 'error')
+            return redirect(url_for('main.setup'))
+
+    return render_template('setup/setup.html', form=form)
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
