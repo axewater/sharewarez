@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_smtp_settings.css') == True %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_smtp_settings.css') }}">
+{% else %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_smtp_settings.css') }}">
+{% endif %}
+
+<div class="smtp-settings-container">
+    <h2>SMTP Settings</h2>
+    
+    <div class="settings-form">
+        <div class="form-group">
+            <label for="smtp_enabled">Enable SMTP</label>
+            <input type="checkbox" id="smtp_enabled" {% if settings and settings.smtp_enabled %}checked{% endif %}>
+        </div>
+        
+        <div class="form-group">
+            <label for="smtp_server">SMTP Server</label>
+            <input type="text" id="smtp_server" value="{{ settings.smtp_server if settings else '' }}" class="form-control">
+        </div>
+        
+        <div class="form-group">
+            <label for="smtp_port">Port</label>
+            <input type="number" id="smtp_port" value="{{ settings.smtp_port if settings else 587 }}" class="form-control">
+        </div>
+        
+        <div class="form-group">
+            <label for="smtp_username">Username</label>
+            <input type="text" id="smtp_username" value="{{ settings.smtp_username if settings else '' }}" class="form-control">
+        </div>
+        
+        <div class="form-group">
+            <label for="smtp_password">Password</label>
+            <input type="password" id="smtp_password" value="{{ settings.smtp_password if settings else '' }}" class="form-control">
+        </div>
+        
+        <div class="form-group">
+            <label for="smtp_use_tls">Use TLS</label>
+            <input type="checkbox" id="smtp_use_tls" {% if not settings or settings.smtp_use_tls %}checked{% endif %}>
+        </div>
+        
+        <div class="form-group">
+            <label for="smtp_default_sender">Default Sender Email</label>
+            <input type="email" id="smtp_default_sender" value="{{ settings.smtp_default_sender if settings else '' }}" class="form-control">
+        </div>
+        
+        {% if settings and settings.smtp_last_tested %}
+        <div class="last-tested">
+            Last tested: {{ settings.smtp_last_tested.strftime('%Y-%m-%d %H:%M:%S') }}
+        </div>
+        {% endif %}
+        
+        <div class="button-group">
+            <button onclick="saveSettings()" class="btn btn-primary">Save Settings</button>
+            <button onclick="testSettings()" class="btn btn-secondary">Test Connection</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function saveSettings() {
+    const data = {
+        smtp_enabled: document.getElementById('smtp_enabled').checked,
+        smtp_server: document.getElementById('smtp_server').value,
+        smtp_port: document.getElementById('smtp_port').value,
+        smtp_username: document.getElementById('smtp_username').value,
+        smtp_password: document.getElementById('smtp_password').value,
+        smtp_use_tls: document.getElementById('smtp_use_tls').checked,
+        smtp_default_sender: document.getElementById('smtp_default_sender').value
+    };
+
+    fetch('/admin/smtp_settings', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            $.notify("SMTP settings saved successfully", "success");
+        } else {
+            $.notify("Error saving SMTP settings: " + data.message, "error");
+        }
+    })
+    .catch(error => {
+        $.notify("Error saving SMTP settings: " + error, "error");
+    });
+}
+
+function testSettings() {
+    // Show loading indicator
+    const testButton = document.querySelector('button.btn-secondary');
+    const originalText = testButton.textContent;
+    testButton.disabled = true;
+    testButton.textContent = 'Testing...';
+    
+    fetch('/admin/test_smtp', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.message || 'Network response was not ok');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            $.notify({
+                message: "SMTP test successful",
+                type: 'success',
+                delay: 2000,
+                placement: {
+                    from: 'top',
+                    align: 'center'
+                }
+            });
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            $.notify({
+                message: "SMTP test failed: " + data.message,
+                type: 'error',
+                delay: 5000,
+                placement: {
+                    from: 'top',
+                    align: 'center'
+                }
+            });
+        }
+    })
+    .catch(error => {
+        $.notify({
+            message: "Error testing SMTP: " + error.message,
+            type: 'error',
+            delay: 5000,
+            placement: {
+                from: 'top',
+                align: 'center'
+            }
+        });
+    })
+    .finally(() => {
+        // Reset button state
+        testButton.disabled = false;
+        testButton.textContent = originalText;
+    });
+}
+</script>
+
+{% endblock %}

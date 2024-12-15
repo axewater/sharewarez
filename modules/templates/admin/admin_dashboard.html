@@ -52,6 +52,12 @@
                     </a>
                     <span class="button-label">Settings</span>
                 </div>
+                <div class="admin-button-item">
+                    <a href="{{ url_for('main.smtp_settings') }}" class="btn btn-circle">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                    <span class="button-label">Email Settings</span>
+                </div>
                 {% if enable_server_status %}
                 <div class="admin-button-item">
                     <a href="{{ url_for('main.admin_server_status') }}" class="btn btn-circle">
