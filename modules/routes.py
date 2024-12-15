@@ -744,67 +744,6 @@ def manage_user_api(user_id):
             db.session.rollback()
             return jsonify({'success': False, 'message': str(e)}), 500
 
-@bp.route('/admin/user_manager', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def usermanager():
-    # check if this is redundant
-    return redirect(url_for('main.manage_users'))
-    form = UserManagementForm()
-    users_query = User.query.order_by(User.name).all()
-    form.user_id.choices = [(user.id, user.name) for user in users_query]
-    print(f"ADMIN USRMGR: User list : {users_query}")
-    # Pre-populate the form when the page loads or re-populate upon validation failure
-    if request.method == 'GET' or not form.validate_on_submit():
-        # You could also use a default user here or based on some criteria
-        default_user_id = request.args.get('user_id', 3)  # Example of getting a user_id from query parameters
-        default_user = User.query.get(default_user_id)
-        if default_user:
-            form.user_id.data = default_user.id
-            form.name.data = default_user.name
-            form.email.data = default_user.email
-            form.role.data = default_user.role
-            form.state.data = default_user.state
-            form.is_email_verified.data = default_user.is_email_verified
-            form.about.data = default_user.about  # Pre-populate the 'about' field
-
-    else:
-        # This block handles the form submission for both updating and deleting users
-        print(f"ADMIN USRMGR: Form data: {form.data}")
-        user_id = form.user_id.data
-        user = User.query.get(user_id)
-        if not user:
-            flash(f'User not found with ID: {user_id}', 'danger')
-            return redirect(url_for('.usermanager'))  # Make sure the redirect is correct
-
-        if form.submit.data:
-            # Update user logic
-            try:
-                user.name = form.name.data or user.name
-                user.email = form.email.data or user.email
-                user.role = form.role.data or user.role
-                user.state = form.state.data if form.state.data is not None else user.state
-                user.is_email_verified = form.is_email_verified.data
-                user.about = form.about.data
-                print(f"ADMIN USRMGR: User updated: {user} about field : {user.about}")
-                db.session.commit()
-                flash('User updated successfully!', 'success')
-            except Exception as e:
-                db.session.rollback()
-                flash(f'Database error on update: {e}', 'danger')
-
-        elif form.delete.data:
-            # Delete user logic
-            try:
-                db.session.delete(user)
-                db.session.commit()
-                flash('User deleted successfully!', 'success')
-            except Exception as e:
-                db.session.rollback()
-                flash(f'Database error on delete: {e}', 'danger')
-
-    return render_template('admin/admin_manage_users.html', form=form, users=users_query)
-
 
 @bp.route('/get_user/<int:user_id>', methods=['GET'])
 @login_required
