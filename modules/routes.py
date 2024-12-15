@@ -154,29 +154,68 @@ def setup():
         flash('Setup has already been completed.', 'warning')
         return redirect(url_for('main.login'))
 
-    form = SetupForm()
-    if form.validate_on_submit():
-        user = User(
-            name=form.username.data,
-            email=form.email.data.lower(),
-            role='admin',
-            is_email_verified=True,
-            user_id=str(uuid4()),
-            created=datetime.utcnow()
-        )
-        user.set_password(form.password.data)
-        
+    # Store setup progress in session
+    setup_step = session.get('setup_step', 1)
+    
+    if setup_step == 1:
+        form = SetupForm()
+        if form.validate_on_submit():
+            user = User(
+                name=form.username.data,
+                email=form.email.data.lower(),
+                role='admin',
+                is_email_verified=True,
+                user_id=str(uuid4()),
+                created=datetime.utcnow()
+            )
+            user.set_password(form.password.data)
+            
+            try:
+                db.session.add(user)
+                db.session.commit()
+                session['setup_step'] = 2  # Move to SMTP setup
+                flash('Admin account created successfully! Please configure your SMTP settings.', 'success')
+                return redirect(url_for('main.setup_smtp'))
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error during setup: {str(e)}', 'error')
+                return redirect(url_for('main.setup'))
+
+        return render_template('setup/setup.html', form=form)
+    
+    return redirect(url_for('main.setup_smtp'))
+
+@bp.route('/setup/smtp', methods=['GET', 'POST'])
+def setup_smtp():
+    if not session.get('setup_step') == 2:
+        flash('Please complete the admin account setup first.', 'warning')
+        return redirect(url_for('main.setup'))
+
+    if request.method == 'POST':
+        settings = GlobalSettings.query.first()
+        if not settings:
+            settings = GlobalSettings()
+            db.session.add(settings)
+
+        settings.smtp_server = request.form.get('smtp_server')
+        settings.smtp_port = int(request.form.get('smtp_port', 587))
+        settings.smtp_username = request.form.get('smtp_username')
+        settings.smtp_password = request.form.get('smtp_password')
+        settings.smtp_use_tls = request.form.get('smtp_use_tls') == 'true'
+        settings.smtp_default_sender = request.form.get('smtp_default_sender')
+        settings.smtp_enabled = request.form.get('smtp_enabled') == 'true'
+
         try:
-            db.session.add(user)
             db.session.commit()
+            session.pop('setup_step', None)  # Clear setup progress
             flash('Setup completed successfully! You can now log in.', 'success')
             return redirect(url_for('main.login'))
         except Exception as e:
             db.session.rollback()
-            flash(f'Error during setup: {str(e)}', 'error')
-            return redirect(url_for('main.setup'))
+            flash(f'Error saving SMTP settings: {str(e)}', 'error')
 
-    return render_template('setup/setup.html', form=form)
+    return render_template('setup/setup_smtp.html')
+
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
