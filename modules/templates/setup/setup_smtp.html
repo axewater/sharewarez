@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/setup/setup.css') == True %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/setup/setup.css') }}">
+{% else %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/setup/setup.css') }}">
+{% endif %}
+
+<div class="container-login">
+    <div class="content-login">
+        <img src="{{ url_for('static', filename='newstyle/sharewarez_pirate.png') }}" alt="ShareWareZ Logo" class="login-logo">
+        
+        <h2>SharewareZ SMTP Setup</h2>
+        <p class="setup-info">Configure your email settings to enable user registration and password reset functionality.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('main.setup_smtp') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="form-group">
+                <label>Enable SMTP</label>
+                <input type="checkbox" name="smtp_enabled" checked class="form-check-input">
+            </div>
+
+            <div class="form-group">
+                <label>SMTP Server</label>
+                <input type="text" name="smtp_server" class="input-glass" required>
+            </div>
+
+            <div class="form-group">
+                <label>SMTP Port</label>
+                <input type="number" name="smtp_port" value="587" class="input-glass" required>
+            </div>
+
+            <div class="form-group">
+                <label>SMTP Username</label>
+                <input type="text" name="smtp_username" class="input-glass" required>
+            </div>
+
+            <div class="form-group">
+                <label>SMTP Password</label>
+                <input type="password" name="smtp_password" class="input-glass" required>
+            </div>
+
+            <div class="form-group">
+                <label>Use TLS</label>
+                <input type="checkbox" name="smtp_use_tls" checked class="form-check-input">
+            </div>
+
+            <div class="form-group">
+                <label>Default Sender Email</label>
+                <input type="email" name="smtp_default_sender" class="input-glass" required>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Complete Setup</button>
+                <button type="button" onclick="skipSetup()" class="btn btn-secondary">Skip SMTP Setup</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function skipSetup() {
+    if (confirm('Are you sure you want to skip SMTP setup? Email functionality will be disabled.')) {
+        window.location.href = "{{ url_for('main.login') }}";
+    }
+}
+</script>
+
+{% endblock %}
