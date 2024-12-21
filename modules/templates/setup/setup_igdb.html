@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="glass-panel">
+                <h2>IGDB API Setup</h2>
+                
+                <div class="instructions-panel">
+                    <h3>How to Get Your IGDB API Credentials</h3>
+                    <ol>
+                        <li>Go to the <a href="https://dev.twitch.tv/console" target="_blank">Twitch Developer Console</a></li>
+                        <li>Log in with your Twitch account (or create one if needed)</li>
+                        <li>Click on "Register Your Application"</li>
+                        <li>Fill in the application details:
+                            <ul>
+                                <li>Name: Your choice (e.g., "MySharewareZ")</li>
+                                <li>OAuth Redirect URL: http://localhost (if testing locally)</li>
+                                <li>Category: Select "Website Integration"</li>
+                            </ul>
+                        </li>
+                        <li>After registering, you'll receive your Client ID</li>
+                        <li>Click "New Secret" to generate your Client Secret</li>
+                    </ol>
+                    <div class="note">
+                        <strong>Note:</strong> IGDB is owned by Twitch, which is why credentials are obtained through the Twitch Developer Console.
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ url_for('main.setup_igdb') }}">
+                    {{ form.csrf_token }}
+                    <div class="form-group">
+                        <label for="igdb_client_id">{{ form.igdb_client_id.label }}</label>
+                        {{ form.igdb_client_id(class="form-control") }}
+                        {% if form.igdb_client_id.errors %}
+                            {% for error in form.igdb_client_id.errors %}
+                                <span class="error-message">{{ error }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="igdb_client_secret">{{ form.igdb_client_secret.label }}</label>
+                        {{ form.igdb_client_secret(class="form-control") }}
+                        {% if form.igdb_client_secret.errors %}
+                            {% for error in form.igdb_client_secret.errors %}
+                                <span class="error-message">{{ error }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="button-group mt-4">
+                        <button type="submit" class="btn btn-primary">Complete Setup</button>
+                        <button type="button" onclick="testSettings()" class="btn btn-secondary">Test Connection</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function testSettings() {
+    const clientId = document.getElementById('igdb_client_id').value;
+    const clientSecret = document.getElementById('igdb_client_secret').value;
+
+    if (!clientId || !clientSecret) {
+        $.notify("Please fill in both Client ID and Secret", "error");
+        return;
+    }
+
+    const testButton = document.querySelector('button.btn-secondary');
+    const originalText = testButton.textContent;
+    testButton.disabled = true;
+    testButton.textContent = 'Testing...';
+    
+    fetch('/admin/test_igdb', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            $.notify("IGDB API test successful", "success");
+        } else {
+            $.notify("IGDB API test failed: " + data.message, "error");
+        }
+    })
+    .catch(error => {
+        $.notify("Error testing IGDB API: " + error, "error");
+    })
+    .finally(() => {
+        testButton.disabled = false;
+        testButton.textContent = originalText;
+    });
+}
+</script>
+
+{% endblock %}

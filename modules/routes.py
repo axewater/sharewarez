@@ -38,7 +38,7 @@ from modules.forms import (
     UserManagementForm, ScanFolderForm, IGDBApiForm, ClearDownloadRequestsForm, CsrfProtectForm, 
     AddGameForm, LoginForm, ResetPasswordRequestForm, AutoScanForm, UpdateUnmatchedFolderForm, 
     ReleaseGroupForm, RegistrationForm, CreateUserForm, UserPreferencesForm, InviteForm, LibraryForm, CsrfForm,
-    ThemeUploadForm, SetupForm
+    ThemeUploadForm, SetupForm, IGDBSetupForm
 )
 from modules.models import (
     User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, user_favorites,
@@ -250,14 +250,42 @@ def setup_smtp():
 
         try:
             db.session.commit()
-            session.pop('setup_step', None)  # Clear setup progress
-            flash('Setup completed successfully! You can now log in.', 'success')
-            return redirect(url_for('main.login'))
+            session['setup_step'] = 3  # Move to IGDB setup
+            flash('SMTP settings saved successfully! Please configure your IGDB settings.', 'success')
+            return redirect(url_for('main.setup_igdb'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error saving SMTP settings: {str(e)}', 'error')
 
     return render_template('setup/setup_smtp.html')
+
+
+@bp.route('/setup/igdb', methods=['GET', 'POST'])
+def setup_igdb():
+    if not session.get('setup_step') == 3:
+        flash('Please complete the SMTP setup first.', 'warning')
+        return redirect(url_for('main.setup'))
+
+    form = IGDBSetupForm()
+    if form.validate_on_submit():
+        settings = GlobalSettings.query.first()
+        if not settings:
+            settings = GlobalSettings()
+            db.session.add(settings)
+        
+        settings.igdb_client_id = form.igdb_client_id.data
+        settings.igdb_client_secret = form.igdb_client_secret.data
+        
+        try:
+            db.session.commit()
+            session.pop('setup_step', None)  # Clear setup progress
+            flash('Setup completed successfully! You can now log in.', 'success')
+            return redirect(url_for('main.login'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error saving IGDB settings: {str(e)}', 'error')
+
+    return render_template('setup/setup_igdb.html', form=form)
 
 
 @bp.route('/login', methods=['GET', 'POST'])
