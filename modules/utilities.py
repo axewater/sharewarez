@@ -660,12 +660,12 @@ def get_folder_size_in_bytes_updates(folder_path):
     total_size = 0
     for dirpath, dirnames, filenames in os.walk(folder_path):
         for f in filenames:
-            if settings.update_folder_name and settings.update_folder_name != "" and settings.extras_folder_name and settings.extras_folder_name != "":
+            if settings and settings.update_folder_name and settings.update_folder_name != "" and settings.extras_folder_name and settings.extras_folder_name != "":
                 if settings.update_folder_name.lower() not in dirpath.lower() and settings.extras_folder_name.lower() not in dirpath.lower():
                     fp = os.path.join(dirpath, f)
                     if os.path.exists(fp):
                         total_size += os.path.getsize(fp)
-            elif settings.update_folder_name and settings.update_folder_name != "":
+            elif settings and settings.update_folder_name and settings.update_folder_name != "":
                 if settings.update_folder_name.lower() not in dirpath.lower():
                     fp = os.path.join(dirpath, f)
                     if os.path.exists(fp):
@@ -682,6 +682,11 @@ def get_folder_size_in_bytes_updates(folder_path):
     return total_size
 
 def process_game_updates(game_name, full_disk_path, updates_folder, library_uuid):
+    settings = GlobalSettings.query.first()
+    if not settings or not settings.update_folder_name:
+        print("No update folder configuration found in database")
+        return
+
     print(f"Processing updates for game: {game_name}")
     print(f"Full disk path: {full_disk_path}")
     print(f"Updates folder: {updates_folder}")
@@ -800,16 +805,18 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
 
 
 def make_igdb_api_request(endpoint_url, query_params):
-    # print(f"make_igdb_api_request {endpoint_url} with query: {query_params}")
-    client_id = current_app.config['IGDB_CLIENT_ID']
-    client_secret = current_app.config['IGDB_CLIENT_SECRET']
-    access_token = get_access_token(client_id, client_secret) 
+    # Get IGDB settings from database
+    settings = GlobalSettings.query.first()
+    if not settings or not settings.igdb_client_id or not settings.igdb_client_secret:
+        return {"error": "IGDB settings not configured in database"}
+
+    access_token = get_access_token(settings.igdb_client_id, settings.igdb_client_secret) 
 
     if not access_token:
-        return {"error": "make_igdb_api_request Failed to retrieve access token"}
+        return {"error": "Failed to retrieve access token"}
 
     headers = {
-        'Client-ID': client_id,
+        'Client-ID': settings.igdb_client_id,
         'Authorization': f"Bearer {access_token}"
     }
 
@@ -1228,6 +1235,8 @@ def get_cover_url(igdb_id):
 
 def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remove_missing=False):
     settings = GlobalSettings.query.first()
+    update_folder_name = settings.update_folder_name if settings else current_app.config['UPDATE_FOLDER_NAME']
+    
     # First, find the library and its platform
     library = Library.query.filter_by(uuid=library_uuid).first()
     if not library:
@@ -1349,6 +1358,10 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
         scan_job_entry.status = 'Completed'
     
     try:
+        # Truncate error message if it's too long
+        if scan_job_entry.error_message and len(scan_job_entry.error_message) > 500:
+            scan_job_entry.error_message = scan_job_entry.error_message[:497] + "..."
+        
         db.session.commit()
         print(f"Scan completed for folder: {folder_path} with ScanJob ID: {scan_job_entry.id}")
     except SQLAlchemyError as e:
@@ -1822,8 +1835,12 @@ def notifications_manager(path, event, game_uuid=None):
     global settings
     settings = GlobalSettings.query.first()
     
-    update_folder = settings.update_folder_name
-    extras_folder = settings.extras_folder_name
+    if not settings:
+        print("No settings found in database")
+        return
+        
+    update_folder = settings.update_folder_name or 'updates'  # Fallback to default if not set
+    extras_folder = settings.extras_folder_name or 'extras'
     
     #If fired by Watchdog
     print(f"Processing {event} event for game located at path {path}")

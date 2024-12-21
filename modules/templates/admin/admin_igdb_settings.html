@@ -11,7 +11,13 @@
     <div class="glass-panel">
         <h2>IGDB API Settings</h2>
 
-        <div class="instructions-panel">
+        <div class="instructions-toggle">
+            <button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#instructionsPanel" aria-expanded="false" aria-controls="instructionsPanel">
+                <i class="fas fa-chevron-down" id="toggleIcon"></i> Show Instructions
+            </button>
+        </div>
+
+        <div class="collapse instructions-panel" id="instructionsPanel">
             <h3>How to Get Your IGDB API Credentials</h3>
             <ol>
                 <li>Go to the <a href="https://dev.twitch.tv/console" target="_blank">Twitch Developer Console</a></li>
