@@ -73,6 +73,30 @@ def check_setup_required():
     ):
         return
 
+    # Ensure default settings exist
+    settings_record = GlobalSettings.query.first()
+    if not settings_record:
+        try:
+            default_settings = {
+                'showSystemLogo': True,
+                'showHelpButton': True,
+                'enableWebLinksOnDetailsPage': True,
+                'enableServerStatusFeature': True,
+                'enableNewsletterFeature': True,
+                'showVersion': True,
+                'enableDeleteGameOnDisk': True,
+                'enableGameUpdates': True,
+                'enableGameExtras': True,
+                'siteUrl': 'http://127.0.0.1'
+            }
+            settings_record = GlobalSettings(settings=default_settings)
+            db.session.add(settings_record)
+            db.session.commit()
+            print("Created default global settings")
+        except Exception as e:
+            print(f"Error creating default settings: {e}")
+            db.session.rollback()
+
     # Check if we need to do initial setup
     if not User.query.first() and request.endpoint != 'main.setup':
         return redirect(url_for('main.setup'))
@@ -107,11 +131,30 @@ def check_setup_required():
 @cache.cached(timeout=500, key_prefix='global_settings')
 def inject_settings():
     settings_record = GlobalSettings.query.first()
-    if settings_record:
-        # Fetch existing settings
-        show_logo = settings_record.settings.get('showSystemLogo', False)
-        show_help_button = settings_record.settings.get('showHelpButton', False)
-        enable_web_links = settings_record.settings.get('enableWebLinksOnDetailsPage', False)
+    
+    # Default settings if no record exists
+    default_settings = {
+        'showSystemLogo': True,
+        'showHelpButton': True,
+        'enableWebLinksOnDetailsPage': True,
+        'enableServerStatusFeature': True,
+        'enableNewsletterFeature': True,
+        'showVersion': True,
+        'enableDeleteGameOnDisk': True,
+        'enableGameUpdates': True,
+        'enableGameExtras': True,
+        'siteUrl': 'http://127.0.0.1'
+    }
+    
+    # Initialize settings with defaults
+    settings = default_settings.copy()
+    
+    # Only update with database settings if they exist and are not None
+    if settings_record and settings_record.settings:
+        settings.update(settings_record.settings)
+        show_logo = settings.get('showSystemLogo')
+        show_help_button = settings.get('showHelpButton')
+        enable_web_links = settings.get('enableWebLinksOnDetailsPage')
         enable_server_status = settings_record.settings.get('enableServerStatusFeature', False)
         enable_newsletter = settings_record.settings.get('enableNewsletterFeature', False)
         show_version = settings_record.settings.get('showVersion', False)  # settings fix
@@ -1752,8 +1795,30 @@ def manage_settings():
 
     else:  # GET request
         settings_record = GlobalSettings.query.first()
-        current_settings = settings_record.settings if settings_record else {}
-        current_settings['enableDeleteGameOnDisk'] = settings_record.enable_delete_game_on_disk if settings_record else True
+        if not settings_record:
+            # Initialize default settings if no record exists
+            current_settings = {
+                'showSystemLogo': True,
+                'showHelpButton': True,
+                'enableWebLinksOnDetailsPage': True,
+                'enableServerStatusFeature': True,
+                'enableNewsletterFeature': True,
+                'showVersion': True,
+                'enableDeleteGameOnDisk': True,
+                'enableGameUpdates': True,
+                'enableGameExtras': True,
+                'siteUrl': 'http://127.0.0.1',
+                'discordNotifyNewGames': False,
+                'discordNotifyGameUpdates': False,
+                'discordNotifyGameExtras': False,
+                'discordNotifyDownloads': False,
+                'enableMainGameUpdates': True,
+                'updateFolderName': 'updates',
+                'extrasFolderName': 'extras'
+            }
+        else:
+            current_settings = settings_record.settings or {}
+            current_settings['enableDeleteGameOnDisk'] = settings_record.enable_delete_game_on_disk
         current_settings['discordNotifyNewGames'] = settings_record.discord_notify_new_games if settings_record else False
         current_settings['discordNotifyGameUpdates'] = settings_record.discord_notify_game_updates if settings_record else False
         current_settings['discordNotifyGameExtras'] = settings_record.discord_notify_game_extras if settings_record else False
@@ -1817,22 +1882,39 @@ def test_igdb():
 @login_required
 @admin_required
 def admin_server_status():
-    
-    settings_record = GlobalSettings.query.first()
-    enable_server_status = settings_record.settings.get('enableServerStatusFeature', False) if settings_record else False
-
-    if not enable_server_status:
-        flash('Server Status feature is disabled.', 'warning')
+    try:
+        settings_record = GlobalSettings.query.first()
+        if not settings_record or not settings_record.settings:
+            flash('Server settings not configured.', 'warning')
+            return redirect(url_for('main.admin_dashboard'))
+            
+        enable_server_status = settings_record.settings.get('enableServerStatusFeature', False)
+        if not enable_server_status:
+            flash('Server Status feature is disabled.', 'warning')
+            return redirect(url_for('main.admin_dashboard'))
+            
+    except Exception as e:
+        flash(f'Error accessing server settings: {str(e)}', 'error')
         return redirect(url_for('main.admin_dashboard'))
-    
-    uptime = datetime.now() - app_start_time
-    config_values = {item: getattr(Config, item) for item in dir(Config) if not item.startswith("__")}
-    
+
+    try:
+        uptime = datetime.now() - app_start_time
+    except Exception as e:
+        uptime = 'Unavailable'
+        print(f"Error calculating uptime: {e}")
+
+    # Filter sensitive config values
+    safe_config_values = {}
+    sensitive_keys = {'SECRET_KEY', 'DATABASE_URL', 'API_KEYS'}  # Add other sensitive keys
+    for item in dir(Config):
+        if not item.startswith("__") and item not in sensitive_keys:
+            safe_config_values[item] = getattr(Config, item)
     
     try:
         hostname = socket.gethostname()
         ip_address = socket.gethostbyname(hostname)
     except Exception as e:
+        hostname = 'Unavailable'
         ip_address = 'Unavailable'
         print(f"Error retrieving IP address: {e}")
     
@@ -1840,13 +1922,19 @@ def admin_server_status():
         'OS': platform.system(),
         'OS Version': platform.version(),
         'Python Version': platform.python_version(),
-        'Hostname': socket.gethostname(),
-        'IP Address': socket.gethostbyname(socket.gethostname()),
+        'Hostname': hostname,
+        'IP Address': ip_address,
         'Flask Port': request.environ.get('SERVER_PORT'),
         'Uptime': str(uptime),
         'Current Time': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
-    return render_template('admin/admin_server_info.html', config_values=config_values, system_info=system_info, app_version=app_version)
+
+    return render_template(
+        'admin/admin_server_info.html', 
+        config_values=safe_config_values, 
+        system_info=system_info, 
+        app_version=app_version
+    )
 
 @bp.route('/api/reorder_libraries', methods=['POST'])
 @login_required

@@ -1,0 +1,81 @@
+.table {
+    background-color: #333;
+    color: #fff;
+}
+.table th {
+    background-color: #444;
+}
+
+.instructions-toggle {
+    margin-bottom: 1rem;
+}
+
+.instructions-toggle button {
+    width: 100%;
+    text-align: left;
+    position: relative;
+}
+
+.instructions-toggle button i {
+    position: absolute;
+    right: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.instructions-toggle button[aria-expanded="true"] i {
+    transform: rotate(180deg);
+}
+
+.collapse {
+    transition: all 0.3s ease-out;
+}
+
+.collapsing {
+    position: relative;
+    height: 0;
+    overflow: hidden;
+    transition: height 0.35s ease;
+}
+
+.instructions-panel {
+    background-color: #222;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.instructions-panel h3 {
+    color: #fff;
+    margin-bottom: 1rem;
+}
+
+.instructions-panel ol {
+    color: #ddd;
+    margin-left: 1.5rem;
+}
+
+.instructions-panel li {
+    margin-bottom: 0.5rem;
+}
+
+.instructions-panel a {
+    color: #17a2b8;
+    text-decoration: none;
+}
+
+.instructions-panel a:hover {
+    text-decoration: underline;
+}
+
+.note {
+    background-color: #333;
+    padding: 1rem;
+    border-left: 4px solid #17a2b8;
+    margin-top: 1rem;
+    border-radius: 0 4px 4px 0;
+}
+
+.note strong {
+    color: #17a2b8;
+}
