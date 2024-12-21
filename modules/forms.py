@@ -37,7 +37,7 @@ class SetupForm(FlaskForm):
         DataRequired(),
         EqualTo('password', message='Passwords must match')
     ])
-    submit = SubmitField('Complete Setup')
+    submit = SubmitField('Next Step')
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
@@ -231,3 +231,14 @@ class ThemeUploadForm(FlaskForm):
         FileAllowed(['zip'], 'ZIP files only!')
     ])
     submit = SubmitField('Upload Theme')
+
+class IGDBSetupForm(FlaskForm):
+    igdb_client_id = StringField('Client ID', validators=[
+        DataRequired(),
+        Length(min=20, max=50, message='Client ID must be between 20 and 50 characters')
+    ])
+    igdb_client_secret = StringField('Client Secret', validators=[
+        DataRequired(),
+        Length(min=20, max=50, message='Client Secret must be between 20 and 50 characters')
+    ])
+    submit = SubmitField('Complete Setup')
