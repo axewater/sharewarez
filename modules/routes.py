@@ -2426,7 +2426,55 @@ def admin_dashboard():
 @login_required
 @admin_required
 def extensions():
-    return render_template('admin/admin_extensions.html')
+    allowed_types = AllowedFileType.query.all()
+    ignored_types = IgnoredFileType.query.all()
+    return render_template('admin/admin_extensions.html', 
+                         allowed_types=allowed_types,
+                         ignored_types=ignored_types)
+
+# File type management routes
+@bp.route('/api/file_types/<string:type_category>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
+@admin_required
+def manage_file_types(type_category):
+    if type_category not in ['allowed', 'ignored']:
+        return jsonify({'error': 'Invalid type category'}), 400
+
+    ModelClass = AllowedFileType if type_category == 'allowed' else IgnoredFileType
+
+    if request.method == 'GET':
+        types = ModelClass.query.all()
+        return jsonify([{'id': t.id, 'value': t.value} for t in types])
+
+    elif request.method == 'POST':
+        data = request.get_json()
+        new_type = ModelClass(value=data['value'].lower())
+        try:
+            db.session.add(new_type)
+            db.session.commit()
+            return jsonify({'id': new_type.id, 'value': new_type.value})
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify({'error': 'Type already exists'}), 400
+
+    elif request.method == 'PUT':
+        data = request.get_json()
+        file_type = ModelClass.query.get_or_404(data['id'])
+        file_type.value = data['value'].lower()
+        try:
+            db.session.commit()
+            return jsonify({'id': file_type.id, 'value': file_type.value})
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify({'error': 'Type already exists'}), 400
+
+    elif request.method == 'DELETE':
+        file_type = ModelClass.query.get_or_404(request.get_json()['id'])
+        db.session.delete(file_type)
+        db.session.commit()
+        return jsonify({'success': True})
+
+
 
 @bp.route('/admin/smtp_settings', methods=['GET', 'POST'])
 @login_required
