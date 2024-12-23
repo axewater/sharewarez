@@ -68,8 +68,9 @@ def check_setup_required():
     # Skip setup check for static files and setup-related routes
     if request.endpoint and (request.endpoint.startswith('static') or 
         request.endpoint == 'main.setup' or
-        request.endpoint == 'main.complete_setup' or
-        request.endpoint in ['main.setup', 'main.complete_setup']
+        request.endpoint == 'main.setup_smtp' or
+        request.endpoint == 'main.setup_igdb' or
+        request.endpoint.startswith('main.setup_')
     ):
         return
 
@@ -193,11 +194,15 @@ def utility_processor():
 
 @bp.route('/setup', methods=['GET', 'POST'])
 def setup():
+    # Clear any existing session data when starting setup
+    if request.method == 'GET':
+        session.clear()
+        session['setup_step'] = 1
+
     if User.query.first():
         flash('Setup has already been completed.', 'warning')
         return redirect(url_for('main.login'))
 
-    # Store setup progress in session
     setup_step = session.get('setup_step', 1)
     
     if setup_step == 1:
@@ -230,11 +235,24 @@ def setup():
 
 @bp.route('/setup/smtp', methods=['GET', 'POST'])
 def setup_smtp():
-    if not session.get('setup_step') == 2:
+    # Ensure we're in the correct setup step
+    setup_step = session.get('setup_step')
+    
+    if setup_step is None:
+        flash('Setup already completed.', 'warning')
+        return redirect(url_for('main.login'))
+    
+    if setup_step != 2:
         flash('Please complete the admin account setup first.', 'warning')
         return redirect(url_for('main.setup'))
+    print(f"Route: /setup/smtp - {current_user.name} - {current_user.role} method: {request.method} setup step: {session.get('setup_step')}")
 
     if request.method == 'POST':
+        if 'skip_smtp' in request.form:
+            session['setup_step'] = 3  # Move to IGDB setup even when skipping
+            flash('SMTP setup skipped. Please configure your IGDB settings.', 'info')
+            return redirect(url_for('main.setup_igdb'))
+
         settings = GlobalSettings.query.first()
         if not settings:
             settings = GlobalSettings()
