@@ -1,8 +1,8 @@
 import os, secrets
 
 class Config(object):
-    # Set DB connection string here
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:!Piratingin2024!@db:5432/sharewarez_dev')
+    # Set DB connection string here or in your .env file
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/sharewarez')
     
     # Set the path to the folder where the game files are stored
     DATA_FOLDER_WAREZ = os.getenv('DATA_FOLDER_WAREZ', '/gamez')
