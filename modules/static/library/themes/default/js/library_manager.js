@@ -1,42 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Sortable on the libraries table
-    var tbody = document.querySelector('#librariesTable tbody');
-    if (tbody) {
-        new Sortable(tbody, {
-            handle: '.drag-handle',
-            animation: 150,
-            onEnd: function(evt) {
-                // Collect new order of libraries
-                var rows = tbody.getElementsByTagName('tr');
-                var newOrder = Array.from(rows).map(row => row.dataset.libraryUuid);
-                
-                // Send new order to server
-                fetch('/api/reorder_libraries', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({ order: newOrder })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status !== 'success') {
-                        console.error('Error saving library order');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-            }
-        });
-    }
-
-    // Existing delete confirmation code
     var confirmDeleteButton = document.getElementById('confirmDeleteButton');
     var deleteForm = document.createElement('form');
     deleteForm.method = 'post';
-    deleteForm.style.display = 'none';
+    deleteForm.style.display = 'none'; // Ensure the form isn't visible on the page.
     document.body.appendChild(deleteForm);
     var csrfInput = document.createElement('input');
     csrfInput.type = 'hidden';
