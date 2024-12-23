@@ -7,6 +7,16 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/readme_theme.css') }}">
 {% endif %}
 
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="alert alert-info" role="alert">
+        {% for message in messages %}
+            {{ message }}<br>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
+
 <div class="container">
     <div class="glass-panel">
         <h1>Creating Your Own Theme</h1>

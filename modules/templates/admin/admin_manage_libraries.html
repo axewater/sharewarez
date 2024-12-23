@@ -11,13 +11,13 @@
 
 <div class="content-flash">
     {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="flashes">
-                {% for message in messages %}
-                    <div class="flash">{{ message }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
+    {% if messages %}
+        <div class="alert alert-info" role="alert">
+            {% for message in messages %}
+                {{ message }}<br>
+            {% endfor %}
+        </div>
+    {% endif %}
     {% endwith %}
 </div>
 <body data-base-delete-url="{{ url_for('main.delete_full_library', library_uuid='') }}">
