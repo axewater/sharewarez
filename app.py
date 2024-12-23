@@ -7,6 +7,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import threading
 from flask import current_app
+from modules.models import AllowedFileType, IgnoredFileType
 import os
 import zipfile
 import shutil
@@ -93,8 +94,9 @@ class MyHandler(FileSystemEventHandler):
         last_modified = event.src_path
         if event.src_path.find('~') == -1:
             with app.app_context():
-                allowed_ext = current_app.config['ALLOWED_FILE_TYPES'] # List of allowed extensions.
-                ignore_ext = current_app.config['MONITOR_IGNORE_EXT']  # List of extensions to ignore.
+                # Get allowed and ignored extensions from database
+                allowed_ext = [ext.value for ext in AllowedFileType.query.all()]
+                ignore_ext = [ext.value for ext in IgnoredFileType.query.all()]
                 if os.name == "nt":
                     file_name = event.src_path.split('\\')[-1]
                 else:
@@ -120,8 +122,9 @@ class MyHandler(FileSystemEventHandler):
                 last_modified = event.src_path
                 last_trigger_time = current_time
                 with app.app_context():
-                    allowed_ext = current_app.config['ALLOWED_FILE_TYPES'] # List of allowed extensions.
-                    ignore_ext = current_app.config['MONITOR_IGNORE_EXT']  # List of extensions to ignore.
+                    # Get allowed and ignored extensions from database
+                    allowed_ext = [ext.value for ext in AllowedFileType.query.all()]
+                    ignore_ext = [ext.value for ext in IgnoredFileType.query.all()]
                     file_name = event.src_path.split('/')[-1]
                     file_ext = file_name.split('.')[-1]
                     if file_ext not in ignore_ext and file_ext in allowed_ext:

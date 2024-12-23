@@ -1,22 +1,22 @@
 #/modules/utilities.py
-import re, requests, shutil, os, zipfile, smtplib, socket, time, ssl, traceback
+import re, requests, os, zipfile, smtplib, socket, time, traceback
 from functools import wraps
 from flask import flash, redirect, url_for, request, current_app, flash
 from flask_login import current_user, login_user
-from flask_mail import Message as MailMessage
 from datetime import datetime
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from modules.models import (
-    User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, Platform, Genre, Publisher, Developer, GameURL, Library, GameUpdate,
-    Theme, GameMode, MultiplayerMode, PlayerPerspective, ScanJob, UnmatchedFolder, category_mapping, status_mapping, player_perspective_mapping, GlobalSettings
+    User, User, ReleaseGroup, Game, Image, DownloadRequest, Platform, Genre, 
+    Publisher, Developer, GameURL, Library, GameUpdate, AllowedFileType, 
+    Theme, GameMode, PlayerPerspective, ScanJob, UnmatchedFolder,
+    category_mapping, status_mapping, player_perspective_mapping, GlobalSettings
 )
 from modules import db, mail
 from sqlalchemy import func, String
-from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from flask import current_app
 from PIL import Image as PILImage
-from PIL import ImageOps
 from datetime import datetime
 from wtforms.validators import ValidationError
 from discord_webhook import DiscordWebhook, DiscordEmbed
@@ -1243,6 +1243,12 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
         print(f"Library with UUID {library_uuid} not found.")
         return
 
+    # Get allowed file types from database
+    allowed_extensions = [ext.value.lower() for ext in AllowedFileType.query.all()]
+    if not allowed_extensions:
+        print("No allowed file types found in database. Please configure them in the admin panel.")
+        return
+
     print(f"Starting auto scan for games in folder: {folder_path} with scan mode: {scan_mode} and library UUID: {library_uuid} for platform: {library.platform.name}")
     
     # If remove_missing is enabled, check for games that no longer exist
@@ -1295,13 +1301,11 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
     insensitive_patterns, sensitive_patterns = load_release_group_patterns()
 
     try:
-        supported_extensions = current_app.config['ALLOWED_FILE_TYPES']
-
-        # Use patterns in function calls
+        # Use database-stored allowed extensions
         if scan_mode == 'folders':
             game_names_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
         elif scan_mode == 'files':
-            game_names_with_paths = get_game_names_from_files(folder_path, supported_extensions, insensitive_patterns, sensitive_patterns)
+            game_names_with_paths = get_game_names_from_files(folder_path, allowed_extensions, insensitive_patterns, sensitive_patterns)
 
         scan_job_entry.total_folders = len(game_names_with_paths)
         db.session.commit()

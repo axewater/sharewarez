@@ -33,10 +33,10 @@
                             </thead>
                             <tbody>
                                 {% for type in allowed_types %}
-                                <tr data-id="{{ type.id }}">
+                                <tr data-id="{{ type.id }}" data-category="allowed">
                                     <td class="type-value">{{ type.value }}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-warning" onclick="editFileType('allowed', {{ type.id }})">
+                                        <button class="btn btn-sm btn-warning" onclick="editFileType(this)">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button class="btn btn-sm btn-danger" onclick="deleteFileType('allowed', {{ type.id }})">
@@ -51,42 +51,6 @@
                 </div>
             </div>
 
-            <!-- Ignored File Types -->
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Ignored File Types</h3>
-                        <button class="btn btn-primary btn-sm" onclick="addFileType('ignored')">
-                            <i class="fas fa-plus"></i> Add New
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-hover" id="ignoredTypesTable">
-                            <thead>
-                                <tr>
-                                    <th>Extension</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for type in ignored_types %}
-                                <tr data-id="{{ type.id }}">
-                                    <td class="type-value">{{ type.value }}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-warning" onclick="editFileType('ignored', {{ type.id }})">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteFileType('ignored', {{ type.id }})">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
