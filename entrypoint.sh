@@ -16,5 +16,5 @@ wait_for_postgres() {
 wait_for_postgres
 
 # Execute your Python scripts
-python /app/docker_adduser.py
+# python /app/docker_adduser.py
 python /app/app.py
