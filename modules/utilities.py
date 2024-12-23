@@ -1235,7 +1235,7 @@ def get_cover_url(igdb_id):
 
 def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remove_missing=False):
     settings = GlobalSettings.query.first()
-    update_folder_name = settings.update_folder_name if settings else current_app.config['UPDATE_FOLDER_NAME']
+    update_folder_name = settings.update_folder_name if settings else 'updates'
     
     # First, find the library and its platform
     library = Library.query.filter_by(uuid=library_uuid).first()
@@ -1337,9 +1337,12 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
             success = process_game_with_fallback(game_name, full_disk_path, scan_job_entry.id, library_uuid)
             if success:
                 scan_job_entry.folders_success += 1
+                # Get settings from database
+                settings = GlobalSettings.query.first()
+                update_folder_name = settings.update_folder_name if settings else 'updates'  # Default fallback
                 
-                # Check for updates folder
-                updates_folder = os.path.join(full_disk_path, current_app.config['UPDATE_FOLDER_NAME'])
+                # Check for updates folder using the database setting
+                updates_folder = os.path.join(full_disk_path, update_folder_name)
                 print(f"Checking for updates folder: {updates_folder}")
                 if os.path.exists(updates_folder) and os.path.isdir(updates_folder):
                     print(f"Updates folder found for game: {game_name}")

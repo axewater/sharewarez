@@ -1414,7 +1414,13 @@ def handle_manual_scan(manual_form):
             if scan_mode == 'folders':
                 games_with_paths = get_game_names_from_folder(full_path, insensitive_patterns, sensitive_patterns)
             else:  # files mode
-                supported_extensions = current_app.config['ALLOWED_FILE_TYPES']
+                # Load allowed file types from database
+                allowed_file_types = AllowedFileType.query.all()
+                supported_extensions = [file_type.value for file_type in allowed_file_types]
+                if not supported_extensions:
+                    flash("No allowed file types defined in the database.", "error")
+                    return redirect(url_for('main.scan_management', active_tab='manual'))
+                
                 games_with_paths = get_game_names_from_files(full_path, supported_extensions, insensitive_patterns, sensitive_patterns)
             session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
             print(f"Found {len(session['game_paths'])} games in the folder.")
@@ -1427,6 +1433,7 @@ def handle_manual_scan(manual_form):
         
     print("Game paths: ", session.get('game_paths', {}))
     return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='manual'))
+
 
 
 
@@ -2368,11 +2375,11 @@ def game_details(game_uuid):
         # Only process updates and extras if settings exist and features are enabled
         if settings:
             if settings.enable_game_updates:
-                update_folder = settings.update_folder_name or current_app.config['UPDATE_FOLDER_NAME']
+                update_folder = settings.update_folder_name or 'updates'
                 update_files = list_files(game.full_disk_path, update_folder)
             
             if settings.enable_game_extras:
-                extras_folder = settings.extras_folder_name or current_app.config['EXTRAS_FOLDER_NAME']
+                extras_folder = settings.extras_folder_name or 'extras'
                 extras_files = list_files(game.full_disk_path, extras_folder)
         
         library_uuid = game.library_uuid
