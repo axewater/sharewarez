@@ -2,7 +2,8 @@
 
 > **⚠️ BETA APPLICATION - USE AT YOUR OWN RISK**
 
-SharewareZ transforms game folders into dynamic, searchable libraries with IGDB integration, adding cover images, screenshots, and metadata for enhanced filtering. Share your library with friends and enable downloads!
+SharewareZ transforms any game folder into a searchable library with IGDB integration, adding cover images, screenshots, and metadata for enhanced filtering.
+Invite your friends securely and share your favorite games!
 
 ## 📢 Important Notes
 
@@ -23,7 +24,7 @@ SharewareZ transforms game folders into dynamic, searchable libraries with IGDB 
   - ⭐ Top downloads
   - ❤️ Most favorited
   - 🏆 Highly rated games
-- 💬 Discord webhook integration
+- 💬 Discord webhook integration (bot posts in your channel when there is a new game)
 
 ### 💾 Download Features
 - 📦 Auto-zip functionality for multi-file folders
@@ -106,9 +107,9 @@ docker pull kapitanczarnobrod/sharewarez:latest
 ```
 
 ## 🔧 Additional Settings
-- 🌐 Default port: `5001` (configurable in `app.py`)
-- 👥 User creation via admin panel
+- 🌐 Default port: `5001` (configurable in `app.py` or in docker-compose.yml for docker)
+- 👥 Go the admin dashboard for further configuration
 
 ## 💬 Support
 - 📝 Open an issue on GitHub
-- 💭 Join our Discord community
+- 💭 Join our Discord community https://discord.gg/WTwp236zU7
