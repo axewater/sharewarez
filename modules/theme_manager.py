@@ -10,7 +10,7 @@ from modules import db
 class ThemeManager:
     def __init__(self, app):
         self.app = app
-        self.theme_folder = app.config['THEME_FILES']
+        self.theme_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'modules/static/library/themes')
         self.default_theme = {
             'name': 'Default',
             'author': 'SharewareZ Team',
