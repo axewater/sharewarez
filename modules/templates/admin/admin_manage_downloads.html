@@ -9,15 +9,15 @@
 {% endif %}
 
 <div class="content-flash">
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    <div class="flashes">
-        {% for message in messages %}
-        <div class="alert alert-info" role="alert">{{ message }}</div>
-        {% endfor %}
-    </div>
-    {% endif %}
-    {% endwith %}
+	{% with messages = get_flashed_messages() %}
+	{% if messages %}
+		<div class="alert alert-info" role="alert">
+			{% for message in messages %}
+				{{ message }}<br>
+			{% endfor %}
+		</div>
+	{% endif %}
+	{% endwith %}
 </div>
 
 <div class="admin_manage_downloads-panel glass-panel">

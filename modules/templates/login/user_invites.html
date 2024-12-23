@@ -7,15 +7,13 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/login/user_invites.css') }}">
 {% endif %}
 
-{% with messages = get_flashed_messages(with_categories=true) %}
+{% with messages = get_flashed_messages() %}
 {% if messages %}
-    {% for category, message in messages %}
-        {% if category == 'error' %}
-            <div class="alert alert-danger" role="alert">
-                {{ message }}
-            </div>
-        {% endif %}
-    {% endfor %}
+    <div class="alert alert-info" role="alert">
+        {% for message in messages %}
+            {{ message }}<br>
+        {% endfor %}
+    </div>
 {% endif %}
 {% endwith %}
 
