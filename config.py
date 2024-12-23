@@ -7,9 +7,6 @@ class Config(object):
     # Set the path to the folder where the game files are stored (ie: use c:\gamez for windows or /gamez for linux)
     DATA_FOLDER_WAREZ = os.getenv('DATA_FOLDER_WAREZ', r'C:\gamez')
     
-    # Set the folder within the app where the application saves it files
-    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'modules/static/library')
-    
     # OS-specific base folder paths
     if os.name == 'nt':  # Windows
         BASE_FOLDER_WINDOWS = os.getenv('BASE_FOLDER_WINDOWS', r'C:/')
@@ -17,6 +14,7 @@ class Config(object):
         BASE_FOLDER_POSIX = os.getenv('BASE_FOLDER_POSIX', '/storage')
 
     # YOU CAN LEAVE ALL THESE SETTINGS AT DEFAULT:
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'modules/static/library')
     SECRET_KEY = os.getenv('SECRET_KEY') or secrets.token_hex(32)
     IMAGE_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/library/images')
     ZIP_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/library/zips')
