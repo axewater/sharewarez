@@ -40,7 +40,7 @@ def initialize_library_folders():
     
     # Check if default theme exists
     if not os.path.exists(os.path.join(themes_path, 'default', 'theme.json')):
-        print("Default theme not found. Initializing from themes.zip...")
+        print(f"Default theme not found at {os.path.join(themes_path, 'default', 'theme.json')}")
         
         # Extract themes.zip
         themes_zip = os.path.join('modules', 'setup', 'themes.zip')
