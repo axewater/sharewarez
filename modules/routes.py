@@ -1,19 +1,17 @@
 # modules/routes.py
-import sys, ast, uuid, json, random, requests, html, os, re, shutil, traceback, time, schedule, os, platform, tempfile, socket
+import sys, uuid, json, requests, os, shutil, os, platform, socket
 from threading import Thread
 from config import Config
 from flask import (
     Flask, render_template, flash, redirect, url_for, request, Blueprint, 
     jsonify, session, abort, current_app, send_from_directory, 
-    copy_current_request_context, g, make_response
+    copy_current_request_context, g
 )
 from flask_login import current_user, login_user, logout_user, login_required
-from flask_wtf import FlaskForm
 from flask_mail import Message as MailMessage
-from wtforms.validators import DataRequired, Email, Length
-from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import joinedload
-from sqlalchemy import func, Integer, Text, case
+from sqlalchemy import func, case
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from glob import glob
@@ -24,25 +22,21 @@ from functools import wraps
 from uuid import uuid4
 from datetime import datetime, timedelta
 from PIL import Image as PILImage
-from PIL import ImageOps
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
-from authlib.jose import jwt
-
-from urllib.parse import unquote
-
-from .utilities import get_game_name_by_uuid, is_smtp_config_valid
+from .utilities import get_game_name_by_uuid
 
 
 from modules.forms import (
-    UserPasswordForm, UserDetailForm, EditProfileForm, NewsletterForm, WhitelistForm, EditUserForm, 
-    UserManagementForm, ScanFolderForm, IGDBApiForm, ClearDownloadRequestsForm, CsrfProtectForm, 
+    UserPasswordForm, EditProfileForm, NewsletterForm, WhitelistForm, 
+    ScanFolderForm, IGDBApiForm, ClearDownloadRequestsForm, CsrfProtectForm, 
     AddGameForm, LoginForm, ResetPasswordRequestForm, AutoScanForm, UpdateUnmatchedFolderForm, 
-    ReleaseGroupForm, RegistrationForm, CreateUserForm, UserPreferencesForm, InviteForm, LibraryForm, CsrfForm,
+    ReleaseGroupForm, RegistrationForm, UserPreferencesForm, InviteForm, LibraryForm, CsrfForm,
     ThemeUploadForm, SetupForm, IGDBSetupForm
 )
 from modules.models import (
-    User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, user_favorites,
-    Genre, Theme, GameMode, PlayerPerspective, Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, LibraryPlatform, AllowedFileType, IgnoredFileType
+    User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder,
+    Publisher, Developer, user_favorites, Genre, Theme, GameMode, PlayerPerspective,
+    Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, LibraryPlatform, AllowedFileType, IgnoredFileType
 )
 from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
@@ -2427,10 +2421,8 @@ def admin_dashboard():
 @admin_required
 def extensions():
     allowed_types = AllowedFileType.query.order_by(AllowedFileType.value.asc()).all()
-    ignored_types = IgnoredFileType.query.order_by(IgnoredFileType.value.asc()).all()
     return render_template('admin/admin_extensions.html', 
-                         allowed_types=allowed_types,
-                         ignored_types=ignored_types)
+                         allowed_types=allowed_types)
 
 # File type management routes
 @bp.route('/api/file_types/<string:type_category>', methods=['GET', 'POST', 'PUT', 'DELETE'])
