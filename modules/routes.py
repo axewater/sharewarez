@@ -263,7 +263,6 @@ def setup_smtp():
     if setup_step != 2:
         flash('Please complete the admin account setup first.', 'warning')
         return redirect(url_for('main.setup'))
-    print(f"Route: /setup/smtp - {current_user.name} - {current_user.role} method: {request.method} setup step: {session.get('setup_step')}")
 
     if request.method == 'POST':
         # Check if skip button was clicked
@@ -3722,10 +3721,10 @@ def get_loc(page):
 @bp.add_app_template_global  
 def verify_file(full_path):
     if os.path.exists(full_path) or os.access(full_path, os.R_OK):
-        print(f"File Exists: {full_path}.")
+        # print(f"File Exists: {full_path}.")
         return True
     else:
-        print(f"Cannot find theme specific file: {full_path}. Using default theme file.", 'warning')
+        # print(f"Cannot find theme specific file: {full_path}. Using default theme file.", 'warning')
         return False
      
 def list_files(path, folder):
