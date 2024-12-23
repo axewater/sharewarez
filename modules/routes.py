@@ -81,6 +81,17 @@ def check_setup_required():
             default_settings = {
                 'showSystemLogo': True,
                 'showHelpButton': True,
+                'allowUsersToInviteOthers': True,
+                'enableMainGameUpdates': True,
+                'enableGameUpdates': True,
+                'updateFolderName': 'updates',
+                'enableGameExtras': True,
+                'extrasFolderName': 'extras',
+                'discordNotifyNewGames': False,
+                'discordNotifyGameUpdates': False,
+                'discordNotifyGameExtras': False,
+                'discordNotifyDownloads': False,
+                'siteUrl': 'http://127.0.0.1',
                 'enableWebLinksOnDetailsPage': True,
                 'enableServerStatusFeature': True,
                 'enableNewsletterFeature': True,
@@ -135,6 +146,19 @@ def inject_settings():
     
     # Default settings if no record exists
     default_settings = {
+        'showSystemLogo': True,
+        'showHelpButton': True,
+        'allowUsersToInviteOthers': False,
+        'enableMainGameUpdates': True,
+        'enableGameUpdates': True,
+        'updateFolderName': 'updates',
+        'enableGameExtras': True,
+        'extrasFolderName': 'extras',
+        'discordNotifyNewGames': False,
+        'discordNotifyGameUpdates': False,
+        'discordNotifyGameExtras': False,
+        'discordNotifyDownloads': False,
+        'siteUrl': 'http://127.0.0.1',
         'showSystemLogo': True,
         'showHelpButton': True,
         'enableWebLinksOnDetailsPage': True,
@@ -248,6 +272,11 @@ def setup_smtp():
     print(f"Route: /setup/smtp - {current_user.name} - {current_user.role} method: {request.method} setup step: {session.get('setup_step')}")
 
     if request.method == 'POST':
+        # Check if skip button was clicked
+        if 'skip_smtp' in request.form:
+            session['setup_step'] = 3  # Move to IGDB setup even when skipping
+            flash('SMTP setup skipped. Please configure your IGDB settings.', 'info')
+            return redirect(url_for('main.setup_igdb'))
         if 'skip_smtp' in request.form:
             session['setup_step'] = 3  # Move to IGDB setup even when skipping
             flash('SMTP setup skipped. Please configure your IGDB settings.', 'info')
@@ -1816,11 +1845,30 @@ def delete_image():
 def manage_settings():
     if request.method == 'POST':
         new_settings = request.json
-
+        
         settings_record = GlobalSettings.query.first()
         if not settings_record:
             settings_record = GlobalSettings(settings={})
             db.session.add(settings_record)
+        
+        # Merge new settings with existing ones instead of replacing
+        current_settings = settings_record.settings or {}
+        current_settings.update(new_settings)
+        settings_record.settings = current_settings
+        
+        # Update specific boolean fields
+        settings_record.enable_delete_game_on_disk = new_settings.get('enableDeleteGameOnDisk', True)
+        settings_record.discord_notify_new_games = new_settings.get('discordNotifyNewGames', False)
+        settings_record.discord_notify_game_updates = new_settings.get('discordNotifyGameUpdates', False)
+        settings_record.discord_notify_game_extras = new_settings.get('discordNotifyGameExtras', False)
+        settings_record.discord_notify_downloads = new_settings.get('discordNotifyDownloads', False)
+        settings_record.enable_main_game_updates = new_settings.get('enableMainGameUpdates', False)
+        settings_record.enable_game_updates = new_settings.get('enableGameUpdates', False)
+        settings_record.update_folder_name = new_settings.get('updateFolderName', 'updates')
+        settings_record.enable_game_extras = new_settings.get('enableGameExtras', False)
+        settings_record.extras_folder_name = new_settings.get('extrasFolderName', 'extras')
+        settings_record.site_url = new_settings.get('siteUrl', 'http://127.0.0.1')
+        settings_record.last_updated = datetime.utcnow()
         
         settings_record.settings = new_settings
         settings_record.enable_delete_game_on_disk = new_settings.get('enableDeleteGameOnDisk', True)
@@ -1828,10 +1876,10 @@ def manage_settings():
         settings_record.discord_notify_game_updates = new_settings.get('discordNotifyGameUpdates', False)
         settings_record.discord_notify_game_extras = new_settings.get('discordNotifyGameExtras', False)
         settings_record.discord_notify_downloads = new_settings.get('discordNotifyDownloads', False)
-        settings_record.enable_main_game_updates = new_settings.get('enableMainGameUpdates', True)
-        settings_record.enable_game_updates = new_settings.get('enableGameUpdates', True)
+        settings_record.enable_main_game_updates = new_settings.get('enableMainGameUpdates', False)
+        settings_record.enable_game_updates = new_settings.get('enableGameUpdates', False)
         settings_record.update_folder_name = new_settings.get('updateFolderName', 'updates')
-        settings_record.enable_game_extras = new_settings.get('enableGameExtras', True)
+        settings_record.enable_game_extras = new_settings.get('enableGameExtras', False)
         settings_record.extras_folder_name = new_settings.get('extrasFolderName', 'extras')
         settings_record.site_url = new_settings.get('siteUrl', 'http://127.0.0.1')
         settings_record.last_updated = datetime.utcnow()

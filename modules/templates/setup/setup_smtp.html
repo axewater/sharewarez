@@ -34,22 +34,22 @@
 
             <div class="form-group">
                 <label>SMTP Server</label>
-                <input type="text" name="smtp_server" class="input-glass" required>
+                <input type="text" name="smtp_server" class="input-glass">
             </div>
 
             <div class="form-group">
                 <label>SMTP Port</label>
-                <input type="number" name="smtp_port" value="587" class="input-glass" required>
+                <input type="number" name="smtp_port" value="587" class="input-glass">
             </div>
 
             <div class="form-group">
                 <label>SMTP Username</label>
-                <input type="text" name="smtp_username" class="input-glass" required>
+                <input type="text" name="smtp_username" class="input-glass">
             </div>
 
             <div class="form-group">
                 <label>SMTP Password</label>
-                <input type="password" name="smtp_password" class="input-glass" required>
+                <input type="password" name="smtp_password" class="input-glass">
             </div>
 
             <div class="form-group">
@@ -59,23 +59,15 @@
 
             <div class="form-group">
                 <label>Default Sender Email</label>
-                <input type="email" name="smtp_default_sender" class="input-glass" required>
+                <input type="email" name="smtp_default_sender" class="input-glass">
             </div>
 
             <div class="form-group">
                 <button type="submit" class="btn btn-primary">Next Step</button>
-                <button type="button" onclick="skipSetup()" class="btn btn-secondary">Skip SMTP Setup</button>
+                <button type="submit" name="skip_smtp" value="1" class="btn btn-secondary">Skip SMTP Setup</button>
             </div>
         </form>
     </div>
 </div>
-
-<script>
-function skipSetup() {
-    if (confirm('Are you sure you want to skip SMTP setup? Email functionality will be disabled.')) {
-        window.location.href = "{{ url_for('main.login') }}";
-    }
-}
-</script>
 
 {% endblock %}
