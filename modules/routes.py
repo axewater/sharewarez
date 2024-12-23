@@ -48,13 +48,13 @@ from modules.theme_manager import ThemeManager
 
 
 bp = Blueprint('main', __name__)
-s = URLSafeTimedSerializer('YMecr3tK?IzzsSa@e!Zithpze') 
+s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '2.0.0'
+app_version = '2.0.1'
 
 
 @bp.before_app_request
