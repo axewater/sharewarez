@@ -168,7 +168,8 @@ function saveFileType() {
             alert(data.error);
             return;
         }
-        location.reload();
+        // Instead of reloading, update the table maintaining sort order
+        updateTableWithNewData(category, data);
     })
     .catch(error => {
         console.error('Error:', error);
