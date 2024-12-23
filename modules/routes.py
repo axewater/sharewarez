@@ -2426,8 +2426,8 @@ def admin_dashboard():
 @login_required
 @admin_required
 def extensions():
-    allowed_types = AllowedFileType.query.all()
-    ignored_types = IgnoredFileType.query.all()
+    allowed_types = AllowedFileType.query.order_by(AllowedFileType.value.asc()).all()
+    ignored_types = IgnoredFileType.query.order_by(IgnoredFileType.value.asc()).all()
     return render_template('admin/admin_extensions.html', 
                          allowed_types=allowed_types,
                          ignored_types=ignored_types)
@@ -2443,7 +2443,7 @@ def manage_file_types(type_category):
     ModelClass = AllowedFileType if type_category == 'allowed' else IgnoredFileType
 
     if request.method == 'GET':
-        types = ModelClass.query.all()
+        types = ModelClass.query.order_by(ModelClass.value.asc()).all()
         return jsonify([{'id': t.id, 'value': t.value} for t in types])
 
     elif request.method == 'POST':
