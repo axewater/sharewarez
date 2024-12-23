@@ -128,6 +128,18 @@ class DatabaseManager:
         ALTER TABLE games
         ADD COLUMN IF NOT EXISTS last_updated TIMESTAMP;
 
+        -- Create allowed_file_types table if it doesn't exist
+        CREATE TABLE IF NOT EXISTS allowed_file_types (
+            id SERIAL PRIMARY KEY,
+            value VARCHAR(10) UNIQUE NOT NULL
+        );
+
+        -- Create ignored_file_types table if it doesn't exist
+        CREATE TABLE IF NOT EXISTS ignored_file_types (
+            id SERIAL PRIMARY KEY,
+            value VARCHAR(10) UNIQUE NOT NULL
+        );
+
         -- Create user_favorites table if it doesn't exist
         CREATE TABLE IF NOT EXISTS user_favorites (
             user_id INTEGER REFERENCES users(id),
@@ -159,6 +171,35 @@ class DatabaseManager:
                 connection.execute(text(add_columns_sql))
                 connection.commit()
             print("Columns and tables successfully added to the database.")
+            
+            # Initialize default values for allowed and ignored file types
+            try:
+                with self.engine.connect() as connection:
+                    # Check if allowed_file_types table is empty
+                    result = connection.execute(text("SELECT COUNT(*) FROM allowed_file_types")).scalar()
+                    if result == 0:
+                        # Insert default allowed file types from Config
+                        for file_type in Config.ALLOWED_FILE_TYPES:
+                            connection.execute(
+                                text("INSERT INTO allowed_file_types (value) VALUES (:value) ON CONFLICT DO NOTHING"),
+                                {"value": file_type}
+                            )
+                    
+                    # Check if ignored_file_types table is empty
+                    result = connection.execute(text("SELECT COUNT(*) FROM ignored_file_types")).scalar()
+                    if result == 0:
+                        # Insert default ignored file types from Config
+                        for file_type in Config.MONITOR_IGNORE_EXT:
+                            connection.execute(
+                                text("INSERT INTO ignored_file_types (value) VALUES (:value) ON CONFLICT DO NOTHING"),
+                                {"value": file_type}
+                            )
+                    
+                    connection.commit()
+                print("Default file types initialized successfully.")
+            except Exception as e:
+                print(f"An error occurred while initializing default file types: {e}")
+                raise
         except Exception as e:
             print(f"An error occurred: {e}")
             raise  # Re-raise the exception to propagate it

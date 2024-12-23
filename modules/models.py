@@ -589,3 +589,22 @@ class InviteToken(db.Model):
 
     def __repr__(self):
         return f'<InviteToken {self.token}, Creator: {self.creator_user_id}, Expires: {self.expires_at}, Used: {self.used}>'
+    
+    
+class AllowedFileType(db.Model):
+    __tablename__ = 'allowed_file_types'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(db.String(10), unique=True, nullable=False)
+
+    def __repr__(self):
+        return f'<AllowedFileType {self.value}>'
+
+class IgnoredFileType(db.Model):
+    __tablename__ = 'ignored_file_types'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(db.String(10), unique=True, nullable=False)
+
+    def __repr__(self):
+        return f'<IgnoredFileType {self.value}>'

@@ -122,6 +122,12 @@
                     </a>
                     <span class="button-label">Themes</span>
                 </div>
+                <div class="admin-button-item">
+                    <a href="{{ url_for('main.extensions') }}" class="btn btn-circle">
+                        <i class="fas fa-puzzle-piece"></i>
+                    </a>
+                    <span class="button-label">Extensions</span>
+                </div>
                 {% if enable_newsletter %}
                 <div class="admin-button-item">
                     <a href="{{ url_for('main.newsletter') }}" class="btn btn-circle">

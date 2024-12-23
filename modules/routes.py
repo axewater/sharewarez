@@ -42,7 +42,7 @@ from modules.forms import (
 )
 from modules.models import (
     User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, user_favorites,
-    Genre, Theme, GameMode, PlayerPerspective, Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, LibraryPlatform
+    Genre, Theme, GameMode, PlayerPerspective, Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, LibraryPlatform, AllowedFileType, IgnoredFileType
 )
 from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
@@ -60,7 +60,7 @@ has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '1.7.2'
+app_version = '1.7.3'
 
 
 @bp.before_app_request
@@ -2421,6 +2421,12 @@ def refresh_game_images(game_uuid):
 def admin_dashboard():
     print(f"Route: /admin/dashboard - {current_user.name} - {current_user.role} method: {request.method}")
     return render_template('admin/admin_dashboard.html')
+
+@bp.route('/admin/extensions')
+@login_required
+@admin_required
+def extensions():
+    return render_template('admin/admin_extensions.html')
 
 @bp.route('/admin/smtp_settings', methods=['GET', 'POST'])
 @login_required

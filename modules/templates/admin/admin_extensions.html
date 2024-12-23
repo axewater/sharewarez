@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_extensions.css') == True %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_extensions.css') }}">
+{% else %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_extensions.css') }}">
+{% endif %}
+
+<div class="glass-panel">
+    <div class="container mt-3">
+        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
+    </div>
+    <div class="content-panel">
+        <h2>Extensions</h2>
+        <p>This is placeholder text</p>
+    </div>
+</div>
+
+{% endblock %}
