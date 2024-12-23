@@ -14,14 +14,14 @@
         <h2>SharewareZ SMTP Setup</h2>
         <p class="setup-info">Configure your email settings to enable user registration and password reset functionality.</p>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}" role="alert">
-                        {{ message }}
-                    </div>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-info" role="alert">
+                {% for message in messages %}
+                    {{ message }}<br>
                 {% endfor %}
-            {% endif %}
+            </div>
+        {% endif %}
         {% endwith %}
 
         <form method="POST" action="{{ url_for('main.setup_smtp') }}">
