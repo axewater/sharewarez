@@ -8,19 +8,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/games/game_edit_images.css') }}">
 {% endif %}
 
-<div id="flash-messages">
-    <div class="content-flash">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <div class="flashes">
-            {% for message in messages %}
-            <div class="flash">{{ message }}</div>
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% endwith %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="alert alert-info" role="alert">
+        {% for message in messages %}
+            {{ message }}<br>
+        {% endfor %}
     </div>
-</div>
+{% endif %}
+{% endwith %}
 <html>
     <head>
         <title>Edit Game Images</title>
@@ -89,10 +85,10 @@
                 <script>
                     var gameUuid = "{{ game.uuid }}";
                 </script>
-                {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/edit_game_images.js') %}
-                    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/edit_game_images.js') }}"></script>
+                {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/game_edit_images.js') %}
+                    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/game_edit_images.js') }}"></script>
                 {% else %}
-                    <script src="{{ url_for('static', filename='library/themes/default/js/edit_game_images.js') }}"></script>
+                    <script src="{{ url_for('static', filename='library/themes/default/js/game_edit_images.js') }}"></script>
                 {% endif %}
                 <button id="upload-button" class="btn btn-primary">Upload</button>
             </div>

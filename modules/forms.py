@@ -18,6 +18,27 @@ class UpdateUnmatchedFolderForm(FlaskForm):
     new_status = HiddenField('New Status', default='Ignore')
     submit = SubmitField('Ignore')
 
+class SetupForm(FlaskForm):
+    username = StringField('Admin Username', validators=[
+        DataRequired(),
+        Length(min=3, max=64),
+        Regexp(r'^[\w.]+$', message="Username can only contain letters, numbers, dots and underscores")
+    ])
+    email = StringField('Admin Email', validators=[
+        DataRequired(),
+        Email(),
+        Length(max=120)
+    ])
+    password = PasswordField('Password', validators=[
+        DataRequired(),
+        Length(min=8, message='Password must be at least 8 characters long')
+    ])
+    confirm_password = PasswordField('Confirm Password', validators=[
+        DataRequired(),
+        EqualTo('password', message='Passwords must match')
+    ])
+    submit = SubmitField('Next Step')
+
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
@@ -210,3 +231,14 @@ class ThemeUploadForm(FlaskForm):
         FileAllowed(['zip'], 'ZIP files only!')
     ])
     submit = SubmitField('Upload Theme')
+
+class IGDBSetupForm(FlaskForm):
+    igdb_client_id = StringField('Client ID', validators=[
+        DataRequired(),
+        Length(min=20, max=50, message='Client ID must be between 20 and 50 characters')
+    ])
+    igdb_client_secret = StringField('Client Secret', validators=[
+        DataRequired(),
+        Length(min=20, max=50, message='Client Secret must be between 20 and 50 characters')
+    ])
+    submit = SubmitField('Complete Setup')

@@ -7,7 +7,15 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/login/registration_already_confirmed.css') }}">
 {% endif %}
 
-
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="alert alert-info" role="alert">
+        {% for message in messages %}
+            {{ message }}<br>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
 <div class="container-base">
     <div class="messages">
         <div class="ai">

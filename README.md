@@ -1,138 +1,115 @@
-# 🎮 Welcome to SharewareZ v1.7.2 🚀
+# 🎮 SharewareZ v2.0 beta
 
-SharewareZ transforms any game folder into a dynamic, searchable library. With IGDB integration, it indexes games and adds cover images, screenshots, and metadata for easy filtering. Plus, you can invite friends to download games from your library.
+> **⚠️ BETA APPLICATION - USE AT YOUR OWN RISK**
 
-**⚠️ THIS IS A BETA APPLICATION - USE AT YOUR OWN RISK ⚠️**
-When updating from 1.2.1 run the update_game_sizes.py script
+SharewareZ transforms any game folder into a searchable library with IGDB integration, adding cover images, screenshots, and metadata for enhanced filtering.
+Invite your friends securely and share your favorite games!
 
-🚧 IF YOU HAVE VERSION BELOW 1.2.1, INSTALLED YOU WILL NEED TO RESET YOUR DATABASE OR TAKE CARE OF YOUR OWN MIGRATION 🚧
-(run setup_nosmpty.py to recreate your db if needed)
+## 📢 Important Notes
 
-***[SharewareZ promotes legal use of its application]***
+- 🔄 Updating from older versions: Automatic update supported - simply overwrite files
+- ⚠️ For versions below 1.2.1: Database reset required
+  - Run `app.py --force-setup` to recreate database
+- ⚖️ SharewareZ promotes legal usage only
 
-## 🌟 Features Overview
-1. **Game Library Management** 🎲
-    - Multiple library support.
-    - Automated scanning of folders to catalog games.
-    - Support for 'updates' and 'extras' within game folders.
-    - Library page includes Steam-style popup with screenshot slideshow.
-    - Filtering options based on genre, rating, and gameplay modes
-    - Discovery page showcasing latest additions, top downloads, most favorited and highly rated games.
-    - Discord webhook for announcements
-2. **Download games** 💻
-    - Auto-zip. Folders with multiple files are zipped on demand.
-    - NFO files are indexed and viewable on games details page.
-3. **User and Role management** 🔐
-    - Role-based access control for admins and regular users.
-    - User invite system. Optionally grant invites to users, by admin.
+## ✨ Core Features
 
-# 🛠️ Sharewarez App Setup Guide
+### 📚 Game Library Management
+- 🔍 Smart folder scanning & cataloging
+- 📁 Support for 'updates' and 'extras' folders
+- 🖼️ Steam-style popup with screenshot galleries
+- 🏷️ Advanced filtering (genre, rating, gameplay modes)
+- 🎯 Discovery page features:
+  - 🆕 Latest additions
+  - ⭐ Top downloads
+  - ❤️ Most favorited
+  - 🏆 Highly rated games
+- 💬 Discord webhook integration (bot posts in your channel when there is a new game)
 
-Read these instructions carefully before diving into things :)
-You can install SharewareZ manually, or use the Docker image.
-The following instructions are for the manual installation.
+### 💾 Download Features
+- 📦 Auto-zip functionality for multi-file folders
+- 📄 NFO file indexing with viewer
 
-## 📋 Prerequisites
+### 👥 User Management
+- 🛡️ Role-based access control
+- 📨 Invitation system (admin-controlled)
+- 🔑 Self-service password reset (requires SMTP)
 
-Before you start, make sure you have the following prerequisites installed on your system:
+## 🚀 Installation Guide
 
-- **Linux**: 🐧
-    - Python 3.11
-    - pip
-    - git
+### 📋 Prerequisites
 
-- **Windows**: 🪟
-    - Python 3.11
-    - pip
-    - git [Git for Windows (github.com)](https://github.com/git-for-windows)
-    - Microsoft Visual C++ 14.0 or greater is required (VC_redist.x64.exe) [Download Visual Studio Tools (microsoft.com)](https://visualstudio.microsoft.com/downloads/)
+#### 🐧 Linux Requirements
+- Python 3.11
+- pip
+- git
 
-## 🚀 1️⃣ Download SharewareZ files
-First things first, git clone that treasure onto your system:
-(open a command prompt)
-```
+#### 🪟 Windows Requirements
+- Python 3.11
+- pip
+- git ([Download Git for Windows](https://github.com/git-for-windows))
+- Microsoft Visual C++ 14.0+ ([Download Visual Studio Tools](https://visualstudio.microsoft.com/downloads/))
+
+### 💻 Setup Steps
+
+#### 1️⃣ Clone Repository
+```bash
 git clone https://github.com/axewater/sharewarez/
 cd sharewarez
 ```
 
-## 🕶️ 1️⃣ Setup Your Virtual Environment
-Let’s get a virtual environment up and running! 🏃‍♂️ This will keep the libraries used by the app all in 1 place💨
+#### 2️⃣ Virtual Environment Setup
 
-🐧For Linux: 
-```
+##### 🐧 Linux
+```bash
 python -m venv venv
 source venv/bin/activate
 python -m pip install -r requirements.txt
 ```
-📝Note: You might need to use `python3` instead of python in some cases.
 
-🪟 For Windows: 
-```
+##### 🪟 Windows
+```bash
 python -m venv venv
 .\venv\Scripts\Activate
 python -m pip install -r requirements.txt
 ```
 
- 🤔Remember: If python doesn’t do the trick, try python3!
+> 💡 Note: Use `python3` if `python` command fails
 
-## 🗃️ 2. Install PostgreSQL
-Time to set up the database where all your game data will live! 🎮📚
+#### 3️⃣ PostgreSQL Installation
 
-🐧For Linux:
-```
+##### 🐧 Linux
+```bash
 sudo apt install postgresql
 psql -U postgres -h localhost
 CREATE DATABASE sharewarez;
 ```
 
-🪟For Windows:
+##### 🪟 Windows
+- 📥 Download [PostgreSQL for Windows](https://www.postgresql.org/download/windows/)
+- 🔧 Run installer & launch Stack Builder
+- ➕ Select "Add a new server"
+- 📊 Use pgAdmin or CLI:
+  ```sql
+  psql -U postgres
+  CREATE DATABASE sharewarez;
+  ```
 
-- Download PostgreSQL server for Windows [PostgreSQL: Windows installers](https://www.postgresql.org/download/windows/)
-- Run the installer and launch `Stack Builder`
-- Choose `Add a new server`
-- use pgAdmin to connect to your PostgreSQL server.
-- Right-click on `Databases` and select `New Database`
-- Name it **sharewarez** and hit `Save` or `OK`
+### ⚙️ Configuration
+1. Edit `config.py`
+2. Configure:
+   - 🔗 Database connection string
+   - 📁 Games folder path
 
-🔧 Alternatively, using command-line:
-```
-SQL
-psql -U postgres
-CREATE DATABASE sharewarez;
-```
-## 📧 3a. Setup with Mail Features Enabled
-📬Why do I need to setup SMTP settings ?
-✉️ Mail is required for user self-service. Registration, password resets and the invite system all work by sending 'secure links' to a user's email.
-
-- **Create 'config.py'**: Copy `config.example` and rename it to `config.py`.
-- **Set a Secret Key**: This key is used for securing session cookies, it's important you have your own unique key here. Just put 32 (for instance) random🎲 characters there.
-- **Enter Database URI**: Fill in the DATABASE_URI with your database details.
-- **Configure SMTP Settings**: Set up your mail server 📬details to enable online user registration, invites and pw resets. Usually your ISP will have an SMTP server you can use here.
-
-🔑 Make sure to add the admin’s email to the `INITIAL_WHITELIST` for your admin account! This will be the only email address that can register the first account. The first account is automatically admin.
-
-🔐 Get your IGDB API Keys from [IGDB API docs](https://api-docs.igdb.com/#getting-started). Follow the steps outlined there and put the keys in your `config.py`
-
-🛠️ 3b. Setup without Mail (NO SMTP)
-📭❌Single user system ? Whatever your reason, you can easily setup the application without SMTP. No mail? No problem!
-
-- Create 'config.py': copy 'config.example' file supplied.
-- Database URI: Point it to your `sharewarez` database.
-- Run `setup_nosmtp.py` to create an admin user.
-- Start the application by running `app.py`.
-
-## ⚠️ Known Issues
-- **Upgrading from older versions**: Unfortunately we do not support backward compatibility with older databases. Use `config_nosmtp.py` to recreate the database.
-- **Server settings bug**: If you open server settings and change any settings, some settings may not apply the correct defaults resulting in settings like 'display logo' to disable themselves. Just go to settings and apply settings as needed.
-
-### Other notes
-
-- Use the admin panel to create any additional users as needed.
-- The app runs on port `5001`, you can simply change this in `app.py`
-
-### Docker image
-```
+### 🐳 Docker Alternative
+```bash
 docker pull kapitanczarnobrod/sharewarez:latest
 ```
----
-Thank you for setting up the Sharewarez App. For further assistance, please open an issue on this repository or join my Discord.
+
+## 🔧 Additional Settings
+- 🌐 Default port: `5001` (configurable in `app.py` or in docker-compose.yml for docker)
+- 👥 Go the admin dashboard for further configuration
+
+## 💬 Support
+- 📝 Open an issue on GitHub
+- 💭 Join our Discord community https://discord.gg/WTwp236zU7

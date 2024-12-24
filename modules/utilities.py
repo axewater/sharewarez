@@ -1,60 +1,154 @@
 #/modules/utilities.py
-import re, requests, shutil, os, zipfile, smtplib, socket, time
+import re, requests, os, zipfile, smtplib, socket, time, traceback
 from functools import wraps
 from flask import flash, redirect, url_for, request, current_app, flash
 from flask_login import current_user, login_user
-from flask_mail import Message as MailMessage
 from datetime import datetime
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from modules.models import (
-    User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, Platform, Genre, Publisher, Developer, GameURL, Library, GameUpdate,
-    Theme, GameMode, MultiplayerMode, PlayerPerspective, ScanJob, UnmatchedFolder, category_mapping, status_mapping, player_perspective_mapping, GlobalSettings
+    User, User, ReleaseGroup, Game, Image, DownloadRequest, Platform, Genre, 
+    Publisher, Developer, GameURL, Library, GameUpdate, AllowedFileType, 
+    Theme, GameMode, PlayerPerspective, ScanJob, UnmatchedFolder,
+    category_mapping, status_mapping, player_perspective_mapping, GlobalSettings
 )
 from modules import db, mail
 from sqlalchemy import func, String
-from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
-
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from flask import current_app
 from PIL import Image as PILImage
-from PIL import ImageOps
 from datetime import datetime
 from wtforms.validators import ValidationError
 from discord_webhook import DiscordWebhook, DiscordEmbed
 
+def get_smtp_settings():
+    """Get SMTP settings from database, falling back to config values."""
+    settings = GlobalSettings.query.first()
+    
+    if settings and settings.smtp_enabled:
+        return {
+            'MAIL_SERVER': settings.smtp_server,
+            'MAIL_PORT': settings.smtp_port,
+            'MAIL_USERNAME': settings.smtp_username,
+            'MAIL_PASSWORD': settings.smtp_password,
+            'MAIL_USE_TLS': settings.smtp_use_tls,
+            'MAIL_DEFAULT_SENDER': settings.smtp_default_sender,
+            'SMTP_ENABLED': settings.smtp_enabled,
+            'SERVER_HOSTNAME': settings.smtp_server  # Add server hostname for SSL validation
+        }
+    
+    # Fallback to config values
+    return {
+        'MAIL_SERVER': current_app.config['MAIL_SERVER'],
+        'MAIL_PORT': current_app.config['MAIL_PORT'],
+        'MAIL_USERNAME': current_app.config['MAIL_USERNAME'],
+        'MAIL_PASSWORD': current_app.config['MAIL_PASSWORD'],
+        'MAIL_USE_TLS': current_app.config['MAIL_USE_TLS'],
+        'MAIL_DEFAULT_SENDER': current_app.config['MAIL_DEFAULT_SENDER'],
+        'SMTP_ENABLED': True
+    }
+
 def is_smtp_config_valid():
     """
     Check if the SMTP configuration is valid and complete.
+    Returns tuple (bool, str) indicating validity and error message if any.
     """
-    required_config = ['MAIL_SERVER', 'MAIL_PORT', 'MAIL_USERNAME', 'MAIL_PASSWORD', 'MAIL_USE_TLS', 'MAIL_DEFAULT_SENDER']
-    for config in required_config:
-        if not current_app.config.get(config):
-            print(f"Missing SMTP configuration: {config}")
-            return False
-    return True
+    smtp_settings = get_smtp_settings()
+    
+    if not smtp_settings['SMTP_ENABLED']:
+        return False, "SMTP is not enabled"
+    
+    # Enhanced validation for required fields with detailed error messages
+    required_fields = {
+        'MAIL_SERVER': 'SMTP Server',
+        'MAIL_PORT': 'SMTP Port',
+        'MAIL_USERNAME': 'Username',
+        'MAIL_PASSWORD': 'Password',
+        'MAIL_DEFAULT_SENDER': 'Default Sender Email'
+    }
+    
+    missing_fields = []
+    for field, display_name in required_fields.items():
+        if not smtp_settings[field]:
+            missing_fields.append(display_name)
+    
+    if missing_fields:
+        return False, f"Missing required fields: {', '.join(missing_fields)}"
+    
+    try:
+        port = int(smtp_settings['MAIL_PORT'])
+        if port <= 0 or port > 65535:
+            return False, "Invalid port number"
+    except ValueError:
+        return False, "Port must be a valid number"
+    
+    return True, "Configuration valid"
 
 def is_server_reachable(server, port):
     """
-    Check if the mail server is reachable.
+    Check if the mail server is reachable and supports SSL/TLS if required.
+    Implements proper STARTTLS handling for different SMTP ports.
     """
+    import ssl  # Move the import to the top of the function
+    
     try:
-        with socket.create_connection((server, port), timeout=5):
-            print(f"Successfully connected to mail server {server}:{port}")
+        # First try basic socket connection
+        with socket.create_connection((server, port), timeout=5) as sock:
+            print(f"Basic connection successful to {server}:{port}")
+            
+            # Handle different SMTP security protocols
+            if port == 465:  # SMTPS - Direct SSL/TLS
+                context = ssl.create_default_context()
+                with context.wrap_socket(sock, server_hostname=server) as ssl_sock:
+                    print(f"Direct SSL/TLS connection successful to {server}:{port}")
+            elif port == 587:  # SMTP with STARTTLS
+                smtp = smtplib.SMTP(server, port)
+                smtp.ehlo()
+                if smtp.has_extn('STARTTLS'):
+                    context = ssl.create_default_context()
+                    smtp.starttls(context=context)
+                    smtp.ehlo()
+                    print(f"STARTTLS connection successful to {server}:{port}")
+                smtp.quit()
             return True
+    except ssl.SSLError as e:
+        print(f"SSL/TLS error connecting to {server}:{port}: {e}")
+        return False
+    except socket.timeout:
+        print(f"Connection timeout to {server}:{port}")
+        return False
     except Exception as e:
-        print(f"Error connecting to mail server {server}:{port}: {e}")
+        print(f"Error connecting to {server}:{port}: {e}")
         return False
 
 def send_email(to, subject, template):
     """
-    Send an email with robust error handling and pre-send checks.
+    Send an email with robust error logging and pre-send checks.
     """
-    if not is_smtp_config_valid():
-        print("Invalid SMTP configuration. Email not sent.")
-        flash("Invalid SMTP configuration. Email not sent.", "error")
+    from email.message import EmailMessage  # Add this import at the top of utilities.py
+    
+    print("\n=== Starting Email Send Process ===")
+    smtp_settings = get_smtp_settings()
+    
+    if not smtp_settings['SMTP_ENABLED']:
+        print("SMTP is not enabled. Email not sent.")
+        flash("SMTP is not enabled. Email not sent.", "error")
         return False
 
-    mail_server = current_app.config['MAIL_SERVER']
-    mail_port = current_app.config['MAIL_PORT']
+    is_valid, error_message = is_smtp_config_valid()
+    if not is_valid:
+        print(f"Invalid SMTP configuration: {error_message}")
+        flash(f"Invalid SMTP configuration: {error_message}", "error")
+        return False
+
+    mail_server = smtp_settings['MAIL_SERVER']
+    mail_port = smtp_settings['MAIL_PORT']
+    
+    print(f"Attempting connection to {mail_server}:{mail_port}")
+    print(f"Using username: {smtp_settings['MAIL_USERNAME']}")
+    print(f"From address: {smtp_settings['MAIL_DEFAULT_SENDER']}")
+    print(f"To address: {to}")
+    print(f"Subject: {subject}")
 
     if not is_server_reachable(mail_server, mail_port):
         print(f"Mail server {mail_server}:{mail_port} is unreachable. Email not sent.")
@@ -62,41 +156,64 @@ def send_email(to, subject, template):
         return False
 
     try:
-        msg = MailMessage(
-            subject,
-            sender=current_app.config['MAIL_DEFAULT_SENDER'],
-            recipients=[to],
-            html=template
-        )
-        mail.send(msg)
-        print(f"Email sent successfully to {to} with subject: {subject}")
+        print("Creating message object...")
+        msg = EmailMessage()
+        msg.set_content(template, subtype='html')  # Set HTML content
+        msg['Subject'] = subject
+        msg['From'] = smtp_settings['MAIL_DEFAULT_SENDER']
+        msg['To'] = to
+        
+        print("Attempting to send email...")
+        print("=== SMTP Transaction Start ===")
+        with smtplib.SMTP(mail_server, mail_port, timeout=30) as server:
+            print("1. Server connection established")
+            server.set_debuglevel(1)  # Enable SMTP debug logging
+            
+            if smtp_settings['MAIL_USE_TLS']:
+                print("2. Starting TLS handshake")
+                server.starttls()
+                print("3. TLS handshake completed")
+            
+            print("4. Attempting login")
+            server.login(smtp_settings['MAIL_USERNAME'], smtp_settings['MAIL_PASSWORD'])
+            print("5. Login successful")
+            
+            print("6. Sending message")
+            server.send_message(msg)
+            print("7. Message sent successfully")
+            
+        print("=== SMTP Transaction Complete ===")
+        print(f"Email sent successfully to {to}")
         flash(f"Email sent successfully to {to}", "success")
         return True
+        
+    except smtplib.SMTPAuthenticationError as e:
+        print(f"SMTP Authentication failed: {e}")
+        flash(f"SMTP Authentication failed: {e}", "error")
     except smtplib.SMTPException as e:
-        print(f"SMTP error occurred while sending email: {e}")
-        flash(f"An error occurred while sending the email: {e}", "error")
+        print(f"SMTP error occurred: {str(e)}")
+        flash(f"SMTP error occurred: {str(e)}", "error")
+    except socket.timeout as e:
+        print(f"Connection timed out: {str(e)}")
+        flash("Connection timed out while sending email", "error")
+    except socket.gaierror as e:
+        print(f"DNS lookup failed: {str(e)}")
+        flash("DNS lookup failed for SMTP server", "error")
     except Exception as e:
-        print(f"Unexpected error occurred while sending email: {e}")
+        print(f"Unexpected error occurred while sending email: {str(e)}")
+        print(f"Error type: {type(e)}")
+        print(f"Error details: {traceback.format_exc()}")
         flash("An unexpected error occurred while sending the email", "error")
+    
+    print("=== Email Send Process Failed ===\n")
     return False
+
+
 
 
 def send_password_reset_email(user_email, token):
     reset_url = url_for('main.reset_password', token=token, _external=True)
-    msg = MailMessage(
-        'Avast Ye! Password Reset Request Arrr!',
-        sender=current_app.config['MAIL_DEFAULT_SENDER'], 
-        recipients=[user_email]
-    )
-    msg.body = '''Ahoy there!
-
-Ye be wantin' to reset yer password, aye? No worries, we got ye covered! Unfortunately, yer email client doesn't support HTML messages. For a plain sailing, please ensure ye can view HTML emails.
-
-Fair winds and followin' seas,
-
-Captain Blackbeard
-'''
-    msg.html = f'''<p>Ahoy there!</p>
+    html = f'''<p>Ahoy there!</p>
 
 <p>Ye be wantin' to reset yer password, aye? No worries, we got ye covered! Jus' click on the link below to set a new course for yer password:</p>
 
@@ -106,11 +223,10 @@ Captain Blackbeard
 
 <p>Fair winds and followin' seas,</p>
 
-<p>Captain Blackbeard</p>
+<p>Captain Blackbeard</p>'''
 
-<p>P.S. If ye be havin' any troubles, send a message to the crew at <a href="mailto:{current_app.config['MAIL_DEFAULT_SENDER']}">{current_app.config['MAIL_DEFAULT_SENDER']}</a>, and we'll help ye navigate yer way back into yer account! Arrr!</p>
-'''
-    mail.send(msg)
+    subject = "Avast Ye! Password Reset Request Arrr!"
+    send_email(user_email, subject, html)
 
 
 
@@ -544,12 +660,12 @@ def get_folder_size_in_bytes_updates(folder_path):
     total_size = 0
     for dirpath, dirnames, filenames in os.walk(folder_path):
         for f in filenames:
-            if settings.update_folder_name and settings.update_folder_name != "" and settings.extras_folder_name and settings.extras_folder_name != "":
+            if settings and settings.update_folder_name and settings.update_folder_name != "" and settings.extras_folder_name and settings.extras_folder_name != "":
                 if settings.update_folder_name.lower() not in dirpath.lower() and settings.extras_folder_name.lower() not in dirpath.lower():
                     fp = os.path.join(dirpath, f)
                     if os.path.exists(fp):
                         total_size += os.path.getsize(fp)
-            elif settings.update_folder_name and settings.update_folder_name != "":
+            elif settings and settings.update_folder_name and settings.update_folder_name != "":
                 if settings.update_folder_name.lower() not in dirpath.lower():
                     fp = os.path.join(dirpath, f)
                     if os.path.exists(fp):
@@ -566,6 +682,11 @@ def get_folder_size_in_bytes_updates(folder_path):
     return total_size
 
 def process_game_updates(game_name, full_disk_path, updates_folder, library_uuid):
+    settings = GlobalSettings.query.first()
+    if not settings or not settings.update_folder_name:
+        print("No update folder configuration found in database")
+        return
+
     print(f"Processing updates for game: {game_name}")
     print(f"Full disk path: {full_disk_path}")
     print(f"Updates folder: {updates_folder}")
@@ -684,16 +805,18 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
 
 
 def make_igdb_api_request(endpoint_url, query_params):
-    # print(f"make_igdb_api_request {endpoint_url} with query: {query_params}")
-    client_id = current_app.config['IGDB_CLIENT_ID']
-    client_secret = current_app.config['IGDB_CLIENT_SECRET']
-    access_token = get_access_token(client_id, client_secret) 
+    # Get IGDB settings from database
+    settings = GlobalSettings.query.first()
+    if not settings or not settings.igdb_client_id or not settings.igdb_client_secret:
+        return {"error": "IGDB settings not configured in database"}
+
+    access_token = get_access_token(settings.igdb_client_id, settings.igdb_client_secret) 
 
     if not access_token:
-        return {"error": "make_igdb_api_request Failed to retrieve access token"}
+        return {"error": "Failed to retrieve access token"}
 
     headers = {
-        'Client-ID': client_id,
+        'Client-ID': settings.igdb_client_id,
         'Authorization': f"Bearer {access_token}"
     }
 
@@ -1112,10 +1235,18 @@ def get_cover_url(igdb_id):
 
 def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remove_missing=False):
     settings = GlobalSettings.query.first()
+    update_folder_name = settings.update_folder_name if settings else 'updates'
+    
     # First, find the library and its platform
     library = Library.query.filter_by(uuid=library_uuid).first()
     if not library:
         print(f"Library with UUID {library_uuid} not found.")
+        return
+
+    # Get allowed file types from database
+    allowed_extensions = [ext.value.lower() for ext in AllowedFileType.query.all()]
+    if not allowed_extensions:
+        print("No allowed file types found in database. Please configure them in the admin panel.")
         return
 
     print(f"Starting auto scan for games in folder: {folder_path} with scan mode: {scan_mode} and library UUID: {library_uuid} for platform: {library.platform.name}")
@@ -1170,13 +1301,11 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
     insensitive_patterns, sensitive_patterns = load_release_group_patterns()
 
     try:
-        supported_extensions = current_app.config['ALLOWED_FILE_TYPES']
-
-        # Use patterns in function calls
+        # Use database-stored allowed extensions
         if scan_mode == 'folders':
             game_names_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
         elif scan_mode == 'files':
-            game_names_with_paths = get_game_names_from_files(folder_path, supported_extensions, insensitive_patterns, sensitive_patterns)
+            game_names_with_paths = get_game_names_from_files(folder_path, allowed_extensions, insensitive_patterns, sensitive_patterns)
 
         scan_job_entry.total_folders = len(game_names_with_paths)
         db.session.commit()
@@ -1208,9 +1337,12 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
             success = process_game_with_fallback(game_name, full_disk_path, scan_job_entry.id, library_uuid)
             if success:
                 scan_job_entry.folders_success += 1
+                # Get settings from database
+                settings = GlobalSettings.query.first()
+                update_folder_name = settings.update_folder_name if settings else 'updates'  # Default fallback
                 
-                # Check for updates folder
-                updates_folder = os.path.join(full_disk_path, current_app.config['UPDATE_FOLDER_NAME'])
+                # Check for updates folder using the database setting
+                updates_folder = os.path.join(full_disk_path, update_folder_name)
                 print(f"Checking for updates folder: {updates_folder}")
                 if os.path.exists(updates_folder) and os.path.isdir(updates_folder):
                     print(f"Updates folder found for game: {game_name}")
@@ -1233,6 +1365,10 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
         scan_job_entry.status = 'Completed'
     
     try:
+        # Truncate error message if it's too long
+        if scan_job_entry.error_message and len(scan_job_entry.error_message) > 500:
+            scan_job_entry.error_message = scan_job_entry.error_message[:497] + "..."
+        
         db.session.commit()
         print(f"Scan completed for folder: {folder_path} with ScanJob ID: {scan_job_entry.id}")
     except SQLAlchemyError as e:
@@ -1706,8 +1842,12 @@ def notifications_manager(path, event, game_uuid=None):
     global settings
     settings = GlobalSettings.query.first()
     
-    update_folder = settings.update_folder_name
-    extras_folder = settings.extras_folder_name
+    if not settings:
+        print("No settings found in database")
+        return
+        
+    update_folder = settings.update_folder_name or 'updates'  # Fallback to default if not set
+    extras_folder = settings.extras_folder_name or 'extras'
     
     #If fired by Watchdog
     print(f"Processing {event} event for game located at path {path}")

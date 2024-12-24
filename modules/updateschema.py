@@ -81,10 +81,43 @@ class DatabaseManager:
         ADD COLUMN IF NOT EXISTS discord_webhook_url VARCHAR(255);
             
         ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS smtp_server VARCHAR(255);
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS smtp_port INTEGER;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS smtp_username VARCHAR(255);
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS smtp_password VARCHAR(255);
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS smtp_use_tls BOOLEAN DEFAULT TRUE;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS smtp_default_sender VARCHAR(255);
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS smtp_last_tested TIMESTAMP;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS smtp_enabled BOOLEAN DEFAULT FALSE;
+
+        ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS discord_bot_name VARCHAR(255);
         
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS discord_bot_avatar_url VARCHAR(255);
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS igdb_client_id VARCHAR(255);
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS igdb_client_secret VARCHAR(255);
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS igdb_last_tested TIMESTAMP;
 
         ALTER TABLE libraries
         ADD COLUMN IF NOT EXISTS display_order INTEGER DEFAULT 0;
@@ -94,6 +127,18 @@ class DatabaseManager:
         
         ALTER TABLE games
         ADD COLUMN IF NOT EXISTS last_updated TIMESTAMP;
+
+        -- Create allowed_file_types table if it doesn't exist
+        CREATE TABLE IF NOT EXISTS allowed_file_types (
+            id SERIAL PRIMARY KEY,
+            value VARCHAR(10) UNIQUE NOT NULL
+        );
+
+        -- Create ignored_file_types table if it doesn't exist
+        CREATE TABLE IF NOT EXISTS ignored_file_types (
+            id SERIAL PRIMARY KEY,
+            value VARCHAR(10) UNIQUE NOT NULL
+        );
 
         -- Create user_favorites table if it doesn't exist
         CREATE TABLE IF NOT EXISTS user_favorites (
@@ -126,6 +171,35 @@ class DatabaseManager:
                 connection.execute(text(add_columns_sql))
                 connection.commit()
             print("Columns and tables successfully added to the database.")
+            
+            # Initialize default values for allowed and ignored file types
+            try:
+                with self.engine.connect() as connection:
+                    # Check if allowed_file_types table is empty
+                    result = connection.execute(text("SELECT COUNT(*) FROM allowed_file_types")).scalar()
+                    if result == 0:
+                        # Insert default allowed file types from Config
+                        for file_type in Config.ALLOWED_FILE_TYPES:
+                            connection.execute(
+                                text("INSERT INTO allowed_file_types (value) VALUES (:value) ON CONFLICT DO NOTHING"),
+                                {"value": file_type}
+                            )
+                    
+                    # Check if ignored_file_types table is empty
+                    result = connection.execute(text("SELECT COUNT(*) FROM ignored_file_types")).scalar()
+                    if result == 0:
+                        # Insert default ignored file types from Config
+                        for file_type in Config.MONITOR_IGNORE_EXT:
+                            connection.execute(
+                                text("INSERT INTO ignored_file_types (value) VALUES (:value) ON CONFLICT DO NOTHING"),
+                                {"value": file_type}
+                            )
+                    
+                    connection.commit()
+                print("Default file types initialized successfully.")
+            except Exception as e:
+                print(f"An error occurred while initializing default file types: {e}")
+                raise
         except Exception as e:
             print(f"An error occurred: {e}")
             raise  # Re-raise the exception to propagate it
