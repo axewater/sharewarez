@@ -22,3 +22,4 @@ modules/static/library/images
 *.zip
 /.git
 /.github
+config.py

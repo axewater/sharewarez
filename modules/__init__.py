@@ -9,10 +9,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import Config
-#from flask_migrate import Migrate
-#from flask_migrate import upgrade as _upgrade
 from modules.routes_site import site_bp
-# from modules.filters import setup_filters
 from urllib.parse import urlparse
 from flask_caching import Cache
 
@@ -21,9 +18,6 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 mail = Mail()
 cache = Cache(config={'CACHE_TYPE': 'simple'})
-
-# from flask_apscheduler import APScheduler
-
 
 def check_postgres_port_open(host, port, retries=5, delay=2):
     """

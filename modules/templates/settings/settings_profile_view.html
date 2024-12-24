@@ -12,14 +12,11 @@
     <div class="mb-3">
         {% with messages = get_flashed_messages() %}
         {% if messages %}
-        <div>
-            {% for message in messages %}
             <div class="alert alert-info" role="alert">
-                <i class="fas fa-info-circle me-2"></i>
-                {{ message }}
+                {% for message in messages %}
+                    {{ message }}<br>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
         {% endif %}
         {% endwith %}
     </div>

@@ -43,17 +43,15 @@
 
     
 
-    <div class="content-flash">
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="flashes">
-                    {% for message in messages %}
-                        <div class="flash">{{ message }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-    </div>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="alert alert-info" role="alert">
+            {% for message in messages %}
+                {{ message }}<br>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
     <div class="glass-panel">
         <select id="perPageSelect" class="dropdown-perpage">
             <option value="16" {% if user_per_page == 16 %}selected{% endif %}>16</option>

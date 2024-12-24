@@ -1,16 +1,35 @@
 # /app.py
 import time
-from modules import create_app
+from modules import create_app, db
+import argparse
 from modules.updateschema import DatabaseManager
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import threading
 from flask import current_app
+from modules.models import AllowedFileType, IgnoredFileType
 import os
 import zipfile
 import shutil
+from modules.models import User
 
+# Add argument parser
+parser = argparse.ArgumentParser(description='SharewareZ Application')
+parser.add_argument('--force-setup', '-fs', action='store_true', 
+                   help='Force the setup wizard to run')
+args = parser.parse_args()
+
+# Create the Flask app
 app = create_app()
+
+# If force-setup is enabled, drop and recreate all tables
+if args.force_setup:
+    with app.app_context():
+        print("Force setup enabled - dropping all tables...")
+        db.drop_all()
+        print("Recreating all tables...")
+        db.create_all()
+        print("Database reset complete.")
 
 def initialize_library_folders():
     """Initialize the required folders and theme files for the application."""
@@ -21,7 +40,7 @@ def initialize_library_folders():
     
     # Check if default theme exists
     if not os.path.exists(os.path.join(themes_path, 'default', 'theme.json')):
-        print("Default theme not found. Initializing from themes.zip...")
+        print(f"Default theme not found at {os.path.join(themes_path, 'default', 'theme.json')}")
         
         # Extract themes.zip
         themes_zip = os.path.join('modules', 'setup', 'themes.zip')
@@ -45,6 +64,15 @@ def initialize_library_folders():
 # Initialize library folders before creating the app
 initialize_library_folders()
 
+# Check if force-setup is enabled
+if args.force_setup:
+    with app.app_context():
+        # Get all users and delete them individually to handle cascade deletion
+        users = User.query.all()
+        for user in users:
+            db.session.delete(user)
+        db.session.commit()
+        print("Setup wizard will be forced on next startup")
 
 # Initialize and run the database schema update
 db_manager = DatabaseManager()
@@ -66,8 +94,9 @@ class MyHandler(FileSystemEventHandler):
         last_modified = event.src_path
         if event.src_path.find('~') == -1:
             with app.app_context():
-                allowed_ext = current_app.config['ALLOWED_FILE_TYPES'] # List of allowed extensions.
-                ignore_ext = current_app.config['MONITOR_IGNORE_EXT']  # List of extensions to ignore.
+                # Get allowed and ignored extensions from database
+                allowed_ext = [ext.value for ext in AllowedFileType.query.all()]
+                ignore_ext = [ext.value for ext in IgnoredFileType.query.all()]
                 if os.name == "nt":
                     file_name = event.src_path.split('\\')[-1]
                 else:
@@ -93,8 +122,9 @@ class MyHandler(FileSystemEventHandler):
                 last_modified = event.src_path
                 last_trigger_time = current_time
                 with app.app_context():
-                    allowed_ext = current_app.config['ALLOWED_FILE_TYPES'] # List of allowed extensions.
-                    ignore_ext = current_app.config['MONITOR_IGNORE_EXT']  # List of extensions to ignore.
+                    # Get allowed and ignored extensions from database
+                    allowed_ext = [ext.value for ext in AllowedFileType.query.all()]
+                    ignore_ext = [ext.value for ext in IgnoredFileType.query.all()]
                     file_name = event.src_path.split('/')[-1]
                     file_ext = file_name.split('.')[-1]
                     if file_ext not in ignore_ext and file_ext in allowed_ext:
@@ -132,7 +162,3 @@ if __name__ == "__main__":
                 shutdown_event.set()
 
     app.run(host="0.0.0.0", debug=False, use_reloader=False, port=5001)
-    
-
-
-    

@@ -541,10 +541,23 @@ class GlobalSettings(db.Model):
     settings = db.Column(JSONEncodedDict)  # Store all settings in a single JSON-encoded column
     last_updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     discord_webhook_url = db.Column(db.String(255), nullable=True)
+    # SMTP Settings
+    smtp_server = db.Column(db.String(255), nullable=True)
+    smtp_port = db.Column(db.Integer, nullable=True)
+    smtp_username = db.Column(db.String(255), nullable=True)
+    smtp_password = db.Column(db.String(255), nullable=True)
+    smtp_use_tls = db.Column(db.Boolean, default=True)
+    smtp_default_sender = db.Column(db.String(255), nullable=True)
+    smtp_last_tested = db.Column(db.DateTime, nullable=True)
+    smtp_enabled = db.Column(db.Boolean, default=False)
     discord_bot_name = db.Column(db.String(100), nullable=True)
     discord_bot_avatar_url = db.Column(db.String(255), nullable=True)
     enable_delete_game_on_disk = db.Column(db.Boolean, default=True)
     enable_main_game_updates = db.Column(db.Boolean, default=False)
+    # IGDB Settings
+    igdb_client_id = db.Column(db.String(255), nullable=True)
+    igdb_client_secret = db.Column(db.String(255), nullable=True)
+    igdb_last_tested = db.Column(db.DateTime, nullable=True)
     enable_game_updates = db.Column(db.Boolean, default=False)
     update_folder_name = db.Column(db.String(255), default='updates')
     enable_game_extras = db.Column(db.Boolean, default=False)
@@ -576,3 +589,22 @@ class InviteToken(db.Model):
 
     def __repr__(self):
         return f'<InviteToken {self.token}, Creator: {self.creator_user_id}, Expires: {self.expires_at}, Used: {self.used}>'
+    
+    
+class AllowedFileType(db.Model):
+    __tablename__ = 'allowed_file_types'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(db.String(10), unique=True, nullable=False)
+
+    def __repr__(self):
+        return f'<AllowedFileType {self.value}>'
+
+class IgnoredFileType(db.Model):
+    __tablename__ = 'ignored_file_types'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(db.String(10), unique=True, nullable=False)
+
+    def __repr__(self):
+        return f'<IgnoredFileType {self.value}>'

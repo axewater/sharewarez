@@ -1,19 +1,17 @@
 # modules/routes.py
-import sys,ast, uuid, json, random, requests, html, os, re, shutil, traceback, time, schedule, os, platform, tempfile, socket
+import sys, uuid, json, requests, os, shutil, os, platform, socket
 from threading import Thread
 from config import Config
 from flask import (
     Flask, render_template, flash, redirect, url_for, request, Blueprint, 
     jsonify, session, abort, current_app, send_from_directory, 
-    copy_current_request_context, g, make_response
+    copy_current_request_context, g
 )
 from flask_login import current_user, login_user, logout_user, login_required
-from flask_wtf import FlaskForm
 from flask_mail import Message as MailMessage
-from wtforms.validators import DataRequired, Email, Length
-from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import joinedload
-from sqlalchemy import func, Integer, Text, case
+from sqlalchemy import func, case
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from glob import glob
@@ -24,25 +22,21 @@ from functools import wraps
 from uuid import uuid4
 from datetime import datetime, timedelta
 from PIL import Image as PILImage
-from PIL import ImageOps
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
-from authlib.jose import jwt
-
-from urllib.parse import unquote
-
 from .utilities import get_game_name_by_uuid
 
 
 from modules.forms import (
-    UserPasswordForm, UserDetailForm, EditProfileForm, NewsletterForm, WhitelistForm, EditUserForm, 
-    UserManagementForm, ScanFolderForm, IGDBApiForm, ClearDownloadRequestsForm, CsrfProtectForm, 
+    UserPasswordForm, EditProfileForm, NewsletterForm, WhitelistForm, 
+    ScanFolderForm, IGDBApiForm, ClearDownloadRequestsForm, CsrfProtectForm, 
     AddGameForm, LoginForm, ResetPasswordRequestForm, AutoScanForm, UpdateUnmatchedFolderForm, 
-    ReleaseGroupForm, RegistrationForm, CreateUserForm, UserPreferencesForm, InviteForm, LibraryForm, CsrfForm,
-    ThemeUploadForm
+    ReleaseGroupForm, RegistrationForm, UserPreferencesForm, InviteForm, LibraryForm, CsrfForm,
+    ThemeUploadForm, SetupForm, IGDBSetupForm
 )
 from modules.models import (
-    User, User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder, Publisher, Developer, user_favorites,
-    Genre, Theme, GameMode, PlayerPerspective, Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, LibraryPlatform
+    User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder,
+    Publisher, Developer, user_favorites, Genre, Theme, GameMode, PlayerPerspective,
+    Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, LibraryPlatform, AllowedFileType, IgnoredFileType
 )
 from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
@@ -54,37 +48,71 @@ from modules.theme_manager import ThemeManager
 
 
 bp = Blueprint('main', __name__)
-s = URLSafeTimedSerializer('YMecr3tK?IzzsSa@e!Zithpze') 
+s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '1.7.2'
+app_version = '2.0.1'
 
 
 @bp.before_app_request
-def initial_setup():
+def check_setup_required():
+    # Skip setup check for static files and setup-related routes
+    if request.endpoint and (request.endpoint.startswith('static') or 
+        request.endpoint == 'main.setup' or
+        request.endpoint == 'main.setup_smtp' or
+        request.endpoint == 'main.setup_igdb' or
+        request.endpoint.startswith('main.setup_')
+    ):
+        return
+
+    # Ensure default settings exist
+    settings_record = GlobalSettings.query.first()
+    if not settings_record:
+        try:
+            default_settings = {
+                'showSystemLogo': True,
+                'showHelpButton': True,
+                'allowUsersToInviteOthers': True,
+                'enableMainGameUpdates': True,
+                'enableGameUpdates': True,
+                'updateFolderName': 'updates',
+                'enableGameExtras': True,
+                'extrasFolderName': 'extras',
+                'discordNotifyNewGames': False,
+                'discordNotifyGameUpdates': False,
+                'discordNotifyGameExtras': False,
+                'discordNotifyDownloads': False,
+                'siteUrl': 'http://127.0.0.1',
+                'enableWebLinksOnDetailsPage': True,
+                'enableServerStatusFeature': True,
+                'enableNewsletterFeature': True,
+                'showVersion': True,
+                'enableDeleteGameOnDisk': True,
+                'enableGameUpdates': True,
+                'enableGameExtras': True,
+                'siteUrl': 'http://127.0.0.1'
+            }
+            settings_record = GlobalSettings(settings=default_settings)
+            db.session.add(settings_record)
+            db.session.commit()
+            print("Created default global settings")
+        except Exception as e:
+            print(f"Error creating default settings: {e}")
+            db.session.rollback()
+
+    # Check if we need to do initial setup
+    if not User.query.first() and request.endpoint != 'main.setup':
+        return redirect(url_for('main.setup'))
+
+    # Normal initialization continues only if setup is complete
     global has_initialized_setup
     if has_initialized_setup:
         return
     has_initialized_setup = True
-    app_start_time = datetime.now()  # Record the startup time
-
-    # Initialize whitelist
-    try:
-        if not Whitelist.query.first():
-            default_email = Config.INITIAL_WHITELIST
-            default_whitelist = Whitelist(email=default_email)
-            db.session.add(default_whitelist)
-            db.session.commit()
-            print("Default email added to Whitelist.")
-    except IntegrityError:
-        db.session.rollback()
-        print('Default email already exists in Whitelist.')
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        print(f'error adding default email to Whitelist: {e}')
+    app_start_time = datetime.now()
 
     # Upgrade first user to admin
     try:
@@ -109,11 +137,43 @@ def initial_setup():
 @cache.cached(timeout=500, key_prefix='global_settings')
 def inject_settings():
     settings_record = GlobalSettings.query.first()
-    if settings_record:
-        # Fetch existing settings
-        show_logo = settings_record.settings.get('showSystemLogo', False)
-        show_help_button = settings_record.settings.get('showHelpButton', False)
-        enable_web_links = settings_record.settings.get('enableWebLinksOnDetailsPage', False)
+    
+    # Default settings if no record exists
+    default_settings = {
+        'showSystemLogo': True,
+        'showHelpButton': True,
+        'allowUsersToInviteOthers': False,
+        'enableMainGameUpdates': True,
+        'enableGameUpdates': True,
+        'updateFolderName': 'updates',
+        'enableGameExtras': True,
+        'extrasFolderName': 'extras',
+        'discordNotifyNewGames': False,
+        'discordNotifyGameUpdates': False,
+        'discordNotifyGameExtras': False,
+        'discordNotifyDownloads': False,
+        'siteUrl': 'http://127.0.0.1',
+        'showSystemLogo': True,
+        'showHelpButton': True,
+        'enableWebLinksOnDetailsPage': True,
+        'enableServerStatusFeature': True,
+        'enableNewsletterFeature': True,
+        'showVersion': True,
+        'enableDeleteGameOnDisk': True,
+        'enableGameUpdates': True,
+        'enableGameExtras': True,
+        'siteUrl': 'http://127.0.0.1'
+    }
+    
+    # Initialize settings with defaults
+    settings = default_settings.copy()
+    
+    # Only update with database settings if they exist and are not None
+    if settings_record and settings_record.settings:
+        settings.update(settings_record.settings)
+        show_logo = settings.get('showSystemLogo')
+        show_help_button = settings.get('showHelpButton')
+        enable_web_links = settings.get('enableWebLinksOnDetailsPage')
         enable_server_status = settings_record.settings.get('enableServerStatusFeature', False)
         enable_newsletter = settings_record.settings.get('enableNewsletterFeature', False)
         show_version = settings_record.settings.get('showVersion', False)  # settings fix
@@ -149,6 +209,124 @@ def inject_settings():
 @bp.context_processor
 def utility_processor():
     return dict(datetime=datetime)
+
+@bp.route('/setup', methods=['GET', 'POST'])
+def setup():
+    # Clear any existing session data when starting setup
+    if request.method == 'GET':
+        session.clear()
+        session['setup_step'] = 1
+
+    if User.query.first():
+        flash('Setup has already been completed.', 'warning')
+        return redirect(url_for('main.login'))
+
+    setup_step = session.get('setup_step', 1)
+    
+    if setup_step == 1:
+        form = SetupForm()
+        if form.validate_on_submit():
+            user = User(
+                name=form.username.data,
+                email=form.email.data.lower(),
+                role='admin',
+                is_email_verified=True,
+                user_id=str(uuid4()),
+                created=datetime.utcnow()
+            )
+            user.set_password(form.password.data)
+            
+            try:
+                db.session.add(user)
+                db.session.commit()
+                session['setup_step'] = 2  # Move to SMTP setup
+                flash('Admin account created successfully! Please configure your SMTP settings.', 'success')
+                return redirect(url_for('main.setup_smtp'))
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error during setup: {str(e)}', 'error')
+                return redirect(url_for('main.setup'))
+
+        return render_template('setup/setup.html', form=form)
+    
+    return redirect(url_for('main.setup_smtp'))
+
+@bp.route('/setup/smtp', methods=['GET', 'POST'])
+def setup_smtp():
+    # Ensure we're in the correct setup step
+    setup_step = session.get('setup_step')
+    
+    if setup_step is None:
+        flash('Setup already completed.', 'warning')
+        return redirect(url_for('main.login'))
+    
+    if setup_step != 2:
+        flash('Please complete the admin account setup first.', 'warning')
+        return redirect(url_for('main.setup'))
+
+    if request.method == 'POST':
+        # Check if skip button was clicked
+        if 'skip_smtp' in request.form:
+            session['setup_step'] = 3  # Move to IGDB setup even when skipping
+            flash('SMTP setup skipped. Please configure your IGDB settings.', 'info')
+            return redirect(url_for('main.setup_igdb'))
+        if 'skip_smtp' in request.form:
+            session['setup_step'] = 3  # Move to IGDB setup even when skipping
+            flash('SMTP setup skipped. Please configure your IGDB settings.', 'info')
+            return redirect(url_for('main.setup_igdb'))
+
+        settings = GlobalSettings.query.first()
+        if not settings:
+            settings = GlobalSettings()
+            db.session.add(settings)
+
+        settings.smtp_server = request.form.get('smtp_server')
+        settings.smtp_port = int(request.form.get('smtp_port', 587))
+        settings.smtp_username = request.form.get('smtp_username')
+        settings.smtp_password = request.form.get('smtp_password')
+        settings.smtp_use_tls = request.form.get('smtp_use_tls') == 'true'
+        settings.smtp_default_sender = request.form.get('smtp_default_sender')
+        settings.smtp_enabled = request.form.get('smtp_enabled') == 'true'
+
+        try:
+            db.session.commit()
+            session['setup_step'] = 3  # Move to IGDB setup
+            flash('SMTP settings saved successfully! Please configure your IGDB settings.', 'success')
+            return redirect(url_for('main.setup_igdb'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error saving SMTP settings: {str(e)}', 'error')
+
+    return render_template('setup/setup_smtp.html')
+
+
+@bp.route('/setup/igdb', methods=['GET', 'POST'])
+def setup_igdb():
+    if not session.get('setup_step') == 3:
+        flash('Please complete the SMTP setup first.', 'warning')
+        return redirect(url_for('main.setup'))
+
+    form = IGDBSetupForm()
+    if form.validate_on_submit():
+        settings = GlobalSettings.query.first()
+        if not settings:
+            settings = GlobalSettings()
+            db.session.add(settings)
+        
+        settings.igdb_client_id = form.igdb_client_id.data
+        settings.igdb_client_secret = form.igdb_client_secret.data
+        
+        try:
+            db.session.commit()
+            session.pop('setup_step', None)  # Clear setup progress
+            flash('Setup completed successfully! You can now log in.', 'success')
+            return redirect(url_for('main.login'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error saving IGDB settings: {str(e)}', 'error')
+
+    return render_template('setup/setup_igdb.html', form=form)
+
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -289,28 +467,35 @@ def confirm_email(token):
         return render_template('login/confirmation_success.html')
 
 
+
 @bp.route('/reset_password_request', methods=['GET', 'POST'])
 def reset_password_request():
     if current_user.is_authenticated:
         return redirect(url_for('main.login'))
+    print(f'pwr Reset Password Request')
     form = ResetPasswordRequestForm()
-    
     if form.validate_on_submit():
-        email = form.email.data
-        user = User.query.filter_by(email=email).first()
+        print(f'pwr form data: {form.data}')
+        user = User.query.filter_by(email=form.email.data.lower()).first()
+        print(f'pwr user: {user}')
         if user:
-            if user.token_creation_time and (datetime.utcnow() - user.token_creation_time).total_seconds() < 120:
-                flash('Please wait a bit before requesting another password reset.')
-                return redirect(url_for('main.login'))
-            password_reset_token = str(uuid.uuid4())
-            user.password_reset_token = password_reset_token
+            # Generate a unique token
+            token = s.dumps(user.email, salt='password-reset-salt')
+            user.password_reset_token = token
             user.token_creation_time = datetime.utcnow()
+            print(f'pwr token: {token}')
             db.session.commit()
-            send_password_reset_email(user.email, password_reset_token)
-        flash('Check your email for the instructions to reset your password')
-        return redirect(url_for('main.login'))
 
-    return render_template('login/reset_password_request.html', form=form)
+            # Send reset email
+            print('Calling send password reset email function...')
+            send_password_reset_email(user.email, token)
+            flash('Check your email for instructions to reset your password.')
+            return redirect(url_for('main.login'))
+        else:
+            flash('Email address not found.')
+            return redirect(url_for('main.reset_password_request'))
+
+    return render_template('login/reset_password_request.html', title='Reset Password', form=form)
 
 @bp.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
@@ -736,67 +921,6 @@ def manage_user_api(user_id):
         except Exception as e:
             db.session.rollback()
             return jsonify({'success': False, 'message': str(e)}), 500
-
-@bp.route('/admin/user_manager', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def usermanager():
-    # check if this is redundant
-    return redirect(url_for('main.manage_users'))
-    form = UserManagementForm()
-    users_query = User.query.order_by(User.name).all()
-    form.user_id.choices = [(user.id, user.name) for user in users_query]
-    print(f"ADMIN USRMGR: User list : {users_query}")
-    # Pre-populate the form when the page loads or re-populate upon validation failure
-    if request.method == 'GET' or not form.validate_on_submit():
-        # You could also use a default user here or based on some criteria
-        default_user_id = request.args.get('user_id', 3)  # Example of getting a user_id from query parameters
-        default_user = User.query.get(default_user_id)
-        if default_user:
-            form.user_id.data = default_user.id
-            form.name.data = default_user.name
-            form.email.data = default_user.email
-            form.role.data = default_user.role
-            form.state.data = default_user.state
-            form.is_email_verified.data = default_user.is_email_verified
-            form.about.data = default_user.about  # Pre-populate the 'about' field
-
-    else:
-        # This block handles the form submission for both updating and deleting users
-        print(f"ADMIN USRMGR: Form data: {form.data}")
-        user_id = form.user_id.data
-        user = User.query.get(user_id)
-        if not user:
-            flash(f'User not found with ID: {user_id}', 'danger')
-            return redirect(url_for('.usermanager'))  # Make sure the redirect is correct
-
-        if form.submit.data:
-            # Update user logic
-            try:
-                user.name = form.name.data or user.name
-                user.email = form.email.data or user.email
-                user.role = form.role.data or user.role
-                user.state = form.state.data if form.state.data is not None else user.state
-                user.is_email_verified = form.is_email_verified.data
-                user.about = form.about.data
-                print(f"ADMIN USRMGR: User updated: {user} about field : {user.about}")
-                db.session.commit()
-                flash('User updated successfully!', 'success')
-            except Exception as e:
-                db.session.rollback()
-                flash(f'Database error on update: {e}', 'danger')
-
-        elif form.delete.data:
-            # Delete user logic
-            try:
-                db.session.delete(user)
-                db.session.commit()
-                flash('User deleted successfully!', 'success')
-            except Exception as e:
-                db.session.rollback()
-                flash(f'Database error on delete: {e}', 'danger')
-
-    return render_template('admin/admin_manage_users.html', form=form, users=users_query)
 
 
 @bp.route('/get_user/<int:user_id>', methods=['GET'])
@@ -1289,7 +1413,13 @@ def handle_manual_scan(manual_form):
             if scan_mode == 'folders':
                 games_with_paths = get_game_names_from_folder(full_path, insensitive_patterns, sensitive_patterns)
             else:  # files mode
-                supported_extensions = current_app.config['ALLOWED_FILE_TYPES']
+                # Load allowed file types from database
+                allowed_file_types = AllowedFileType.query.all()
+                supported_extensions = [file_type.value for file_type in allowed_file_types]
+                if not supported_extensions:
+                    flash("No allowed file types defined in the database.", "error")
+                    return redirect(url_for('main.scan_management', active_tab='manual'))
+                
                 games_with_paths = get_game_names_from_files(full_path, supported_extensions, insensitive_patterns, sensitive_patterns)
             session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
             print(f"Found {len(session['game_paths'])} games in the folder.")
@@ -1302,6 +1432,7 @@ def handle_manual_scan(manual_form):
         
     print("Game paths: ", session.get('game_paths', {}))
     return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='manual'))
+
 
 
 
@@ -1714,11 +1845,30 @@ def delete_image():
 def manage_settings():
     if request.method == 'POST':
         new_settings = request.json
-
+        
         settings_record = GlobalSettings.query.first()
         if not settings_record:
             settings_record = GlobalSettings(settings={})
             db.session.add(settings_record)
+        
+        # Merge new settings with existing ones instead of replacing
+        current_settings = settings_record.settings or {}
+        current_settings.update(new_settings)
+        settings_record.settings = current_settings
+        
+        # Update specific boolean fields
+        settings_record.enable_delete_game_on_disk = new_settings.get('enableDeleteGameOnDisk', True)
+        settings_record.discord_notify_new_games = new_settings.get('discordNotifyNewGames', False)
+        settings_record.discord_notify_game_updates = new_settings.get('discordNotifyGameUpdates', False)
+        settings_record.discord_notify_game_extras = new_settings.get('discordNotifyGameExtras', False)
+        settings_record.discord_notify_downloads = new_settings.get('discordNotifyDownloads', False)
+        settings_record.enable_main_game_updates = new_settings.get('enableMainGameUpdates', False)
+        settings_record.enable_game_updates = new_settings.get('enableGameUpdates', False)
+        settings_record.update_folder_name = new_settings.get('updateFolderName', 'updates')
+        settings_record.enable_game_extras = new_settings.get('enableGameExtras', False)
+        settings_record.extras_folder_name = new_settings.get('extrasFolderName', 'extras')
+        settings_record.site_url = new_settings.get('siteUrl', 'http://127.0.0.1')
+        settings_record.last_updated = datetime.utcnow()
         
         settings_record.settings = new_settings
         settings_record.enable_delete_game_on_disk = new_settings.get('enableDeleteGameOnDisk', True)
@@ -1726,10 +1876,10 @@ def manage_settings():
         settings_record.discord_notify_game_updates = new_settings.get('discordNotifyGameUpdates', False)
         settings_record.discord_notify_game_extras = new_settings.get('discordNotifyGameExtras', False)
         settings_record.discord_notify_downloads = new_settings.get('discordNotifyDownloads', False)
-        settings_record.enable_main_game_updates = new_settings.get('enableMainGameUpdates', True)
-        settings_record.enable_game_updates = new_settings.get('enableGameUpdates', True)
+        settings_record.enable_main_game_updates = new_settings.get('enableMainGameUpdates', False)
+        settings_record.enable_game_updates = new_settings.get('enableGameUpdates', False)
         settings_record.update_folder_name = new_settings.get('updateFolderName', 'updates')
-        settings_record.enable_game_extras = new_settings.get('enableGameExtras', True)
+        settings_record.enable_game_extras = new_settings.get('enableGameExtras', False)
         settings_record.extras_folder_name = new_settings.get('extrasFolderName', 'extras')
         settings_record.site_url = new_settings.get('siteUrl', 'http://127.0.0.1')
         settings_record.last_updated = datetime.utcnow()
@@ -1739,8 +1889,30 @@ def manage_settings():
 
     else:  # GET request
         settings_record = GlobalSettings.query.first()
-        current_settings = settings_record.settings if settings_record else {}
-        current_settings['enableDeleteGameOnDisk'] = settings_record.enable_delete_game_on_disk if settings_record else True
+        if not settings_record:
+            # Initialize default settings if no record exists
+            current_settings = {
+                'showSystemLogo': True,
+                'showHelpButton': True,
+                'enableWebLinksOnDetailsPage': True,
+                'enableServerStatusFeature': True,
+                'enableNewsletterFeature': True,
+                'showVersion': True,
+                'enableDeleteGameOnDisk': True,
+                'enableGameUpdates': True,
+                'enableGameExtras': True,
+                'siteUrl': 'http://127.0.0.1',
+                'discordNotifyNewGames': False,
+                'discordNotifyGameUpdates': False,
+                'discordNotifyGameExtras': False,
+                'discordNotifyDownloads': False,
+                'enableMainGameUpdates': True,
+                'updateFolderName': 'updates',
+                'extrasFolderName': 'extras'
+            }
+        else:
+            current_settings = settings_record.settings or {}
+            current_settings['enableDeleteGameOnDisk'] = settings_record.enable_delete_game_on_disk
         current_settings['discordNotifyNewGames'] = settings_record.discord_notify_new_games if settings_record else False
         current_settings['discordNotifyGameUpdates'] = settings_record.discord_notify_game_updates if settings_record else False
         current_settings['discordNotifyGameExtras'] = settings_record.discord_notify_game_extras if settings_record else False
@@ -1753,26 +1925,90 @@ def manage_settings():
         return render_template('admin/admin_server_settings.html', current_settings=current_settings)
 
 
+
+@bp.route('/admin/igdb_settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def igdb_settings():
+    settings = GlobalSettings.query.first()
+    if request.method == 'POST':
+        data = request.json
+        if not settings:
+            settings = GlobalSettings()
+            db.session.add(settings)
+        
+        settings.igdb_client_id = data.get('igdb_client_id')
+        settings.igdb_client_secret = data.get('igdb_client_secret')
+        
+        try:
+            db.session.commit()
+            return jsonify({'status': 'success', 'message': 'IGDB settings updated successfully'})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'status': 'error', 'message': str(e)}), 500
+    
+    return render_template('admin/admin_igdb_settings.html', settings=settings)
+
+@bp.route('/admin/test_igdb', methods=['POST'])
+@login_required
+@admin_required
+def test_igdb():
+    print("Testing IGDB connection...")
+    settings = GlobalSettings.query.first()
+    if not settings or not settings.igdb_client_id or not settings.igdb_client_secret:
+        return jsonify({'status': 'error', 'message': 'IGDB settings not configured'}), 400
+
+    try:
+        # Test the IGDB API with a simple query
+        response = make_igdb_api_request('https://api.igdb.com/v4/games', 'fields name; limit 1;')
+        if isinstance(response, list):
+            print("IGDB API test successful")
+            settings.igdb_last_tested = datetime.utcnow()
+            db.session.commit()
+            return jsonify({'status': 'success', 'message': 'IGDB API test successful'})
+        else:
+            print("IGDB API test failed")
+            return jsonify({'status': 'error', 'message': 'Invalid API response'}), 500
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+    
 @bp.route('/admin/server_status_page')
 @login_required
 @admin_required
 def admin_server_status():
-    
-    settings_record = GlobalSettings.query.first()
-    enable_server_status = settings_record.settings.get('enableServerStatusFeature', False) if settings_record else False
-
-    if not enable_server_status:
-        flash('Server Status feature is disabled.', 'warning')
+    try:
+        settings_record = GlobalSettings.query.first()
+        if not settings_record or not settings_record.settings:
+            flash('Server settings not configured.', 'warning')
+            return redirect(url_for('main.admin_dashboard'))
+            
+        enable_server_status = settings_record.settings.get('enableServerStatusFeature', False)
+        if not enable_server_status:
+            flash('Server Status feature is disabled.', 'warning')
+            return redirect(url_for('main.admin_dashboard'))
+            
+    except Exception as e:
+        flash(f'Error accessing server settings: {str(e)}', 'error')
         return redirect(url_for('main.admin_dashboard'))
-    
-    uptime = datetime.now() - app_start_time
-    config_values = {item: getattr(Config, item) for item in dir(Config) if not item.startswith("__")}
-    
+
+    try:
+        uptime = datetime.now() - app_start_time
+    except Exception as e:
+        uptime = 'Unavailable'
+        print(f"Error calculating uptime: {e}")
+
+    # Filter sensitive config values
+    safe_config_values = {}
+    sensitive_keys = {'SECRET_KEY', 'DATABASE_URL', 'API_KEYS'}  # Add other sensitive keys
+    for item in dir(Config):
+        if not item.startswith("__") and item not in sensitive_keys:
+            safe_config_values[item] = getattr(Config, item)
     
     try:
         hostname = socket.gethostname()
         ip_address = socket.gethostbyname(hostname)
     except Exception as e:
+        hostname = 'Unavailable'
         ip_address = 'Unavailable'
         print(f"Error retrieving IP address: {e}")
     
@@ -1780,13 +2016,19 @@ def admin_server_status():
         'OS': platform.system(),
         'OS Version': platform.version(),
         'Python Version': platform.python_version(),
-        'Hostname': socket.gethostname(),
-        'IP Address': socket.gethostbyname(socket.gethostname()),
+        'Hostname': hostname,
+        'IP Address': ip_address,
         'Flask Port': request.environ.get('SERVER_PORT'),
         'Uptime': str(uptime),
         'Current Time': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
-    return render_template('admin/admin_server_info.html', config_values=config_values, system_info=system_info, app_version=app_version)
+
+    return render_template(
+        'admin/admin_server_info.html', 
+        config_values=safe_config_values, 
+        system_info=system_info, 
+        app_version=app_version
+    )
 
 @bp.route('/api/reorder_libraries', methods=['POST'])
 @login_required
@@ -2132,11 +2374,11 @@ def game_details(game_uuid):
         # Only process updates and extras if settings exist and features are enabled
         if settings:
             if settings.enable_game_updates:
-                update_folder = settings.update_folder_name or current_app.config['UPDATE_FOLDER_NAME']
+                update_folder = settings.update_folder_name or 'updates'
                 update_files = list_files(game.full_disk_path, update_folder)
             
             if settings.enable_game_extras:
-                extras_folder = settings.extras_folder_name or current_app.config['EXTRAS_FOLDER_NAME']
+                extras_folder = settings.extras_folder_name or 'extras'
                 extras_files = list_files(game.full_disk_path, extras_folder)
         
         library_uuid = game.library_uuid
@@ -2179,6 +2421,169 @@ def refresh_game_images(game_uuid):
 def admin_dashboard():
     print(f"Route: /admin/dashboard - {current_user.name} - {current_user.role} method: {request.method}")
     return render_template('admin/admin_dashboard.html')
+
+@bp.route('/admin/extensions')
+@login_required
+@admin_required
+def extensions():
+    allowed_types = AllowedFileType.query.order_by(AllowedFileType.value.asc()).all()
+    return render_template('admin/admin_extensions.html', 
+                         allowed_types=allowed_types)
+
+# File type management routes
+@bp.route('/api/file_types/<string:type_category>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
+@admin_required
+def manage_file_types(type_category):
+    if type_category not in ['allowed', 'ignored']:
+        return jsonify({'error': 'Invalid type category'}), 400
+
+    ModelClass = AllowedFileType if type_category == 'allowed' else IgnoredFileType
+
+    if request.method == 'GET':
+        types = ModelClass.query.order_by(ModelClass.value.asc()).all()
+        return jsonify([{'id': t.id, 'value': t.value} for t in types])
+
+    elif request.method == 'POST':
+        data = request.get_json()
+        new_type = ModelClass(value=data['value'].lower())
+        try:
+            db.session.add(new_type)
+            db.session.commit()
+            return jsonify({'id': new_type.id, 'value': new_type.value})
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify({'error': 'Type already exists'}), 400
+
+    elif request.method == 'PUT':
+        data = request.get_json()
+        file_type = ModelClass.query.get_or_404(data['id'])
+        file_type.value = data['value'].lower()
+        try:
+            db.session.commit()
+            return jsonify({'id': file_type.id, 'value': file_type.value})
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify({'error': 'Type already exists'}), 400
+
+    elif request.method == 'DELETE':
+        file_type = ModelClass.query.get_or_404(request.get_json()['id'])
+        db.session.delete(file_type)
+        db.session.commit()
+        return jsonify({'success': True})
+
+
+
+@bp.route('/admin/smtp_settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def smtp_settings():
+    settings = GlobalSettings.query.first()
+    if request.method == 'POST':
+        data = request.json
+        if not settings:
+            settings = GlobalSettings()
+            db.session.add(settings)
+        
+        # Validate required fields when SMTP is enabled
+        if data.get('smtp_enabled'):
+            if not data.get('smtp_server'):
+                return jsonify({'status': 'error', 'message': 'SMTP server is required when SMTP is enabled'}), 400
+            if not data.get('smtp_port'):
+                return jsonify({'status': 'error', 'message': 'SMTP port is required when SMTP is enabled'}), 400
+            if not data.get('smtp_username'):
+                return jsonify({'status': 'error', 'message': 'SMTP username is required when SMTP is enabled'}), 400
+            if not data.get('smtp_password'):
+                return jsonify({'status': 'error', 'message': 'SMTP password is required when SMTP is enabled'}), 400
+            if not data.get('smtp_default_sender'):
+                return jsonify({'status': 'error', 'message': 'Default sender email is required when SMTP is enabled'}), 400
+            
+            # Validate port number
+            try:
+                port = int(data.get('smtp_port', 587))
+                if port <= 0 or port > 65535:
+                    return jsonify({'status': 'error', 'message': 'Invalid port number. Must be between 1 and 65535'}), 400
+                settings.smtp_port = port
+            except ValueError:
+                return jsonify({'status': 'error', 'message': 'SMTP port must be a valid number'}), 400
+        
+        settings.smtp_enabled = data.get('smtp_enabled', False)
+        settings.smtp_server = data.get('smtp_server')
+        settings.smtp_username = data.get('smtp_username')
+        settings.smtp_password = data.get('smtp_password')
+        settings.smtp_use_tls = data.get('smtp_use_tls', True)
+        settings.smtp_default_sender = data.get('smtp_default_sender')
+        settings.smtp_enabled = data.get('smtp_enabled', False)
+        
+        try:
+            db.session.commit()
+            return jsonify({'status': 'success', 'message': 'SMTP settings updated successfully'})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'status': 'error', 'message': str(e)}), 500
+    
+    return render_template('admin/admin_smtp_settings.html', settings=settings)
+
+@bp.route('/admin/test_smtp', methods=['POST'])
+@login_required
+@admin_required
+def test_smtp():
+    import socket
+    import smtplib
+    from email.mime.text import MIMEText
+    
+    print("Testing SMTP connection")
+    settings = GlobalSettings.query.first()
+    if not settings:
+        return jsonify({'status': 'error', 'message': 'No SMTP settings found'}), 404
+
+    try:
+        # Test server connection first with a shorter timeout
+        print(f"Testing connection to {settings.smtp_server}:{settings.smtp_port}")
+        with socket.create_connection((settings.smtp_server, int(settings.smtp_port)), timeout=5) as sock:
+            if settings.smtp_use_tls:
+                import ssl
+                context = ssl.create_default_context()
+                with context.wrap_socket(sock, server_hostname=settings.smtp_server) as ssock:
+                    print("TLS connection established successfully")
+
+        # Now test SMTP authentication with a longer timeout
+        print("Testing SMTP authentication")
+        with smtplib.SMTP(settings.smtp_server, int(settings.smtp_port), timeout=10) as server:
+            server.set_debuglevel(1)  # Enable debugging output
+            if settings.smtp_use_tls:
+                server.starttls()
+            server.login(settings.smtp_username, settings.smtp_password)
+            print("SMTP authentication successful")
+
+            # Send test email
+            msg = MIMEText('This is a test email from your SharewareZ instance.')
+            msg['Subject'] = 'SharewareZ SMTP Test'
+            msg['From'] = settings.smtp_default_sender
+            msg['To'] = settings.smtp_default_sender
+            
+            server.send_message(msg)
+            print("Test email sent successfully")
+
+        return jsonify({'status': 'success', 'message': 'SMTP test completed successfully'})
+
+    except socket.timeout:
+        error_msg = "Connection timed out. Please check the server address and port."
+        print(f"SMTP test failed: {error_msg}")
+        return jsonify({'status': 'error', 'message': error_msg}), 500
+    except socket.gaierror:
+        error_msg = "Could not resolve SMTP server hostname."
+        print(f"SMTP test failed: {error_msg}")
+        return jsonify({'status': 'error', 'message': error_msg}), 500
+    except smtplib.SMTPAuthenticationError:
+        error_msg = "Authentication failed. Please check your username and password."
+        print(f"SMTP test failed: {error_msg}")
+        return jsonify({'status': 'error', 'message': error_msg}), 500
+    except Exception as e:
+        error_msg = f"An unexpected error occurred: {str(e)}"
+        print(f"SMTP test failed: {error_msg}")
+        return jsonify({'status': 'error', 'message': error_msg}), 500
+
 
 @bp.route('/admin/discord_settings', methods=['GET', 'POST'])
 @login_required
@@ -3338,10 +3743,10 @@ def get_loc(page):
 @bp.add_app_template_global  
 def verify_file(full_path):
     if os.path.exists(full_path) or os.access(full_path, os.R_OK):
-        print(f"File Exists: {full_path}.")
+        # print(f"File Exists: {full_path}.")
         return True
     else:
-        print(f"Cannot find theme specific file: {full_path}. Using default theme file.", 'warning')
+        # print(f"Cannot find theme specific file: {full_path}. Using default theme file.", 'warning')
         return False
      
 def list_files(path, folder):
