@@ -12,6 +12,40 @@
     margin-bottom: 2rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.smtp-settings-container h2 .btn-info {
+    font-size: 0.8em;
+    padding: 0.3em 0.6em;
+    margin-left: 1em;
+    background-color: rgba(23, 162, 184, 0.5);
+    border: 1px solid rgba(23, 162, 184, 0.8);
+}
+
+.smtp-settings-container h2 .btn-info:hover {
+    background-color: rgba(23, 162, 184, 0.8);
+}
+
+#smtpHelpModal .modal-content {
+    background: rgba(30, 30, 30, 0.95);
+    color: #fff;
+}
+
+#smtpHelpModal .modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#smtpHelpModal .modal-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#smtpHelpModal .alert-info {
+    background-color: rgba(23, 162, 184, 0.2);
+    border-color: rgba(23, 162, 184, 0.3);
+    color: #fff;
 }
 
 .settings-form {
