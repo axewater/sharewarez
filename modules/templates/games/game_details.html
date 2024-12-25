@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
 
+{# Display Update and Extra Counts #}
+{% if game and (game.updates or game.extras) %}
+<div style="text-align: right; font-size: 0.8em; color: #888; margin-right: 20px; margin-top: 10px;">
+    {% if game.updates %}Updates: {{ game.updates|length }}{% endif %}
+    {% if game.updates and game.extras %} | {% endif %}
+    {% if game.extras %}Extras: {{ game.extras|length }}{% endif %}
+</div>
+{% endif %}
+
 {# Helper Macros #}
 {% macro theme_resource(resource_path) %}
     {% if verify_file('./modules/static/library/themes/' + current_theme + resource_path) %}
@@ -161,43 +170,59 @@
 {% endwith %}
 
 {# Updates & Extras Modal #}
-{% if (enable_game_updates and game.updates) or (enable_game_extras and game.extras) %}
+{% if game.updates or game.extras %}
 <div class="modal fade" id="extrasModal" tabindex="-1" aria-labelledby="extrasModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="extrasModalLabel">Updates & Extras for {{ game.name }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <ul class="nav nav-tabs" role="tablist">
-                    {% if enable_game_updates and game.updates %}
-                        <li class="nav-item">
-                            <a class="nav-link active" data-bs-toggle="tab" href="#updates-tab">Updates</a>
-                        </li>
-                    {% endif %}
-                    {% if enable_game_extras and game.extras %}
-                        <li class="nav-item">
-                            <a class="nav-link {% if not game.updates %}active{% endif %}" 
-                               data-bs-toggle="tab" href="#extras-tab">Extras</a>
-                        </li>
-                    {% endif %}
-                </ul>
-                <div class="tab-content mt-3">
-                    {% if enable_game_updates and game.updates %}
-                    <div id="updates-tab" class="tab-pane fade show active">
-                        <table class="table table-hover">
-                            {% for update in game.updates %}{{ render_file_row(update, game.uuid, 'update') }}{% endfor %}
-                        </table>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="extrasModalLabel">Updates & Extras for {{ game.name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs" id="extrasModalTabs" role="tablist">
+                        {% if game.updates %}
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="updates-tab" data-bs-toggle="tab" 
+                                        data-bs-target="#updates" type="button" role="tab" 
+                                        aria-controls="updates" aria-selected="true">Updates</button>
+                            </li>
+                        {% endif %}
+                        {% if game.extras %}
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link {% if not game.updates %}active{% endif %}"
+                                        id="extras-tab" data-bs-toggle="tab" data-bs-target="#extras" 
+                                        type="button" role="tab" aria-controls="extras" 
+                                        aria-selected="{% if not game.updates %}true{% else %}false{% endif %}">
+                                    Extras
+                                </button>
+                            </li>
+                        {% endif %}
+                    </ul>
+                    <div class="tab-content" id="extrasModalTabContent">
+                        {% if game.updates %}
+                        <div class="tab-pane fade show active" id="updates" role="tabpanel" aria-labelledby="updates-tab">
+                            <table class="table table-hover">
+                                <tbody>
+                                    {% for update in game.updates %}
+                                        {{ render_file_row(update, game.uuid, 'update') }}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                        {% if game.extras %}
+                        <div class="tab-pane fade {% if not game.updates %}show active{% endif %}" 
+                             id="extras" role="tabpanel" aria-labelledby="extras-tab">
+                            <table class="table table-hover">
+                                <tbody>
+                                    {% for extra in game.extras %}
+                                        {{ render_file_row(extra, game.uuid, 'extra') }}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
                     </div>
-                {% endif %}
-                {% if enable_game_extras and game.extras %}
-                    <div id="extras-tab" class="tab-pane fade {% if not game.updates %}show active{% endif %}">
-                        <table class="table table-hover">
-                            {% for extra in game.extras %}{{ render_file_row(extra, game.uuid, 'extra') }}{% endfor %}
-                        </table>
-                    </div>
-                {% endif %}
                 </div>
             </div>
         </div>
