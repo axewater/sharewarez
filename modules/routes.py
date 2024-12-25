@@ -35,13 +35,13 @@ from modules.forms import (
 )
 from modules.models import (
     User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder,
-    Publisher, Developer, user_favorites, Genre, Theme, GameMode, PlayerPerspective,
+    Publisher, Developer, user_favorites, Genre, Theme, GameMode, PlayerPerspective, GameUpdate, GameExtra,
     Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, LibraryPlatform, AllowedFileType, IgnoredFileType
 )
 from modules.utilities import (
     admin_required, _authenticate_and_redirect, square_image, refresh_images_in_background, send_email, send_password_reset_email,
     get_game_by_uuid, make_igdb_api_request, load_release_group_patterns, check_existing_game_by_igdb_id,
-    get_game_names_from_folder, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_files,
+    get_game_names_from_folder, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_files, update_download_request,
     zip_game, zip_folder, format_size, delete_game_images, read_first_nfo_content, get_folder_size_in_bytes, get_folder_size_in_bytes_updates, PLATFORM_IDS
 )
 from modules.theme_manager import ThemeManager
@@ -2287,6 +2287,12 @@ def game_details(game_uuid):
     game = get_game_by_uuid(str(valid_uuid))
 
     if game:
+        # Explicitly load updates and extras
+        updates = GameUpdate.query.filter_by(game_uuid=game.uuid).all()
+        extras = GameExtra.query.filter_by(game_uuid=game.uuid).all()
+        
+        print(f"Found {len(updates)} updates and {len(extras)} extras for game {game.name}")
+        
         game_data = {
             "id": game.id,
             "uuid": game.uuid,
@@ -2955,21 +2961,119 @@ def download_game(game_uuid):
     flash("Your download request is being processed. You will be notified when the download is ready.", "info")
     return redirect(url_for('main.downloads'))
 
+@bp.route('/download_other/<file_type>/<game_uuid>/<file_id>', methods=['GET'])
+@login_required
+def download_other(file_type, game_uuid, file_id):
+   """Handle downloads for update and extra files"""
+   
+   game = get_game_by_uuid(game_uuid)
+   if not game:
+       flash("Game not found", "error")
+       return redirect(url_for('main.discover'))
+
+   # Determine which model to use based on file_type
+   if file_type not in ['update', 'extra']:
+       flash("Invalid file type", "error")
+       return redirect(url_for('main.game_details', game_uuid=game_uuid))
+
+   FileModel = GameUpdate if file_type == 'update' else GameExtra
+   file_record = FileModel.query.filter_by(id=file_id, game_uuid=game_uuid).first()
+   
+   if not file_record:
+       flash(f"{file_type.capitalize()} file not found", "error")
+       return redirect(url_for('main.game_details', game_uuid=game_uuid))
+
+   # Check if path exists and is valid
+   if not os.path.exists(file_record.file_path):
+       flash("File not found on disk", "error")
+       return redirect(url_for('main.game_details', game_uuid=game_uuid))
+
+   # Check for existing download request
+   existing_request = DownloadRequest.query.filter_by(
+       user_id=current_user.id,
+       file_location=file_record.file_path
+   ).first()
+
+   if existing_request:
+       flash("You already have a download request for this file", "info")
+       return redirect(url_for('main.downloads'))
+
+   # Create new download request
+   try:
+       try:
+           file_size = os.path.getsize(file_record.file_path) if os.path.isfile(file_record.file_path) else get_folder_size_in_bytes(file_record.file_path)
+       except OSError:
+           flash("Error accessing file", "error")
+           return redirect(url_for('main.game_details', game_uuid=game_uuid))
+       
+       # For zip files, use direct file path; for folders, create zip path
+       if os.path.isfile(file_record.file_path) and file_record.file_path.lower().endswith('.zip'):
+           zip_file_path = file_record.file_path
+           status = 'available'  # Direct download for existing zip files
+       else:
+           zip_file_path = os.path.join(current_app.config['ZIP_SAVE_PATH'], f"{os.path.basename(file_record.file_path)}.zip")
+           status = 'processing'  # Need to create zip file
+
+       new_request = DownloadRequest(
+           user_id=current_user.id,
+           game_uuid=game_uuid,
+           status=status,
+           download_size=file_size,
+           file_location=file_record.file_path,
+           zip_file_path=zip_file_path
+       )
+       
+       db.session.add(new_request)
+       file_record.times_downloaded += 1
+       db.session.commit()
+
+   except SQLAlchemyError:
+       db.session.rollback()
+       flash("Database error occurred", "error")
+       return redirect(url_for('main.game_details', game_uuid=game_uuid))
+
+   # Start download process in background
+   @copy_current_request_context
+   def process_download():
+       try:
+           if os.path.isfile(file_record.file_path):
+               update_download_request(new_request, 'available', file_record.file_path)
+           else:
+               zip_folder(new_request.id, current_app._get_current_object(), file_record.file_path, os.path.basename(file_record.file_path))
+       except Exception as e:
+           with current_app.app_context():
+               update_download_request(new_request, 'failed', str(e))
+
+   thread = Thread(target=process_download)
+   thread.start()
+
+   flash("Your download request is being processed", "info")
+   return redirect(url_for('main.downloads'))
+
 @bp.route('/download_file/<file_location>/<file_size>/<game_uuid>/<file_name>', methods=['GET'])
 @login_required
 def download_file(file_location, file_size, game_uuid, file_name):
     settings = GlobalSettings.query.first()
     game = get_game_by_uuid(game_uuid)
+    
     if file_location == "updates":
-        if os.name == "nt":
-            file_location = game.full_disk_path + "\\" + settings.update_folder_name + "\\" + file_name
+        # Query the update record directly
+        update = GameUpdate.query.filter_by(game_uuid=game_uuid, file_path=file_name).first()
+        if update:
+            file_location = update.file_path
         else:
-            file_location = game.full_disk_path + "/" + settings.update_folder_name + "/" + file_name
+            print(f"Update file not found for game {game_uuid}")
+            flash("Update file not found", "error")
+            return redirect(url_for('main.game_details', game_uuid=game_uuid))
     elif file_location == "extras":
-        if os.name == "nt":
-            file_location = game.full_disk_path + "\\" + settings.extras_folder_name + "\\" + file_name
+        # Query the extra record directly
+        extra = GameExtra.query.filter_by(game_uuid=game_uuid, file_path=file_name).first()
+        if extra:
+            file_location = extra.file_path
         else:
-            file_location = game.full_disk_path + "/" + settings.extras_folder_name + "/" + file_name
+            print(f"Extra file not found for game {game_uuid}")
+            flash("Extra file not found", "error")
+            return redirect(url_for('main.game_details', game_uuid=game_uuid))
     else:
         print(f"Error - No location: {file_location}")
         return

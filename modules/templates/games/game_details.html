@@ -31,13 +31,15 @@
     <i class="bi bi-{{ icon_mapping.get(file_extension, 'file') }}"></i>
 {% endmacro %}
 
-{% macro render_file_row(file, game_uuid, file_location) %}
+{% macro render_file_row(file, game_uuid, file_type) %}
     <tr>
         <th>
             {% set file_name = file.file_path.split('/')[-1] %}
             {{ get_file_icon(file_name) }}
-            <a href="{{ url_for('main.download_file', file_location=file_location, game_uuid=game_uuid, 
-                               file_size=file.file_size|default('0'), file_name=file_name) }}" 
+            <a href="{{ url_for('main.download_other', 
+                               file_type=file_type,
+                               game_uuid=game_uuid,
+                               file_id=file.id) }}" 
                method="get" class="download-form" onclick="return doFormSubmit();">
                 <span class="file-name">{{ file_name }}</span>
             </a>
@@ -99,11 +101,10 @@
                             <th>
                                 {% set file_name = update.file_path.split('/')[-1] %}
                                 {{ get_file_icon(file_name) }}
-                                <a href="{{ url_for('main.download_file', 
-                                                   file_location='updates', 
-                                                   game_uuid=game_uuid, 
-                                                   file_size=update.file_size|default('0'), 
-                                                   file_name=file_name) }}" 
+                                <a href="{{ url_for('main.download_other',
+                                                   file_type='update',
+                                                   game_uuid=game_uuid,
+                                                   file_id=update.id) }}"
                                    method="get" class="download-form" onclick="return doFormSubmit();">
                                     <span class="file-name">{{ file_name }}</span>
                                 </a>
@@ -127,11 +128,10 @@
                             <th>
                                 {% set file_name = extra.file_path.split('/')[-1] %}
                                 {{ get_file_icon(file_name) }}
-                                <a href="{{ url_for('main.download_file', 
-                                                   file_location='extras', 
-                                                   game_uuid=game_uuid, 
-                                                   file_size=extra.file_size|default('0'), 
-                                                   file_name=file_name) }}" 
+                                <a href="{{ url_for('main.download_other',
+                                                   file_type='extra',
+                                                   game_uuid=game_uuid,
+                                                   file_id=extra.id) }}"
                                    method="get" class="download-form" onclick="return doFormSubmit();">
                                     <span class="file-name">{{ file_name }}</span>
                                 </a>
@@ -185,19 +185,19 @@
                 </ul>
                 <div class="tab-content mt-3">
                     {% if enable_game_updates and game.updates %}
-                        <div id="updates-tab" class="tab-pane fade show active">
-                            <table class="table table-hover">
-                                {% for update in game.updates %}{{ render_file_row(update, game.uuid, 'updates') }}{% endfor %}
-                            </table>
-                        </div>
-                    {% endif %}
-                    {% if enable_game_extras and game.extras %}
-                        <div id="extras-tab" class="tab-pane fade {% if not game.updates %}show active{% endif %}">
-                            <table class="table table-hover">
-                                {% for extra in game.extras %}{{ render_file_row(extra, game.uuid, 'extras') }}{% endfor %}
-                            </table>
-                        </div>
-                    {% endif %}
+                    <div id="updates-tab" class="tab-pane fade show active">
+                        <table class="table table-hover">
+                            {% for update in game.updates %}{{ render_file_row(update, game.uuid, 'update') }}{% endfor %}
+                        </table>
+                    </div>
+                {% endif %}
+                {% if enable_game_extras and game.extras %}
+                    <div id="extras-tab" class="tab-pane fade {% if not game.updates %}show active{% endif %}">
+                        <table class="table table-hover">
+                            {% for extra in game.extras %}{{ render_file_row(extra, game.uuid, 'extra') }}{% endfor %}
+                        </table>
+                    </div>
+                {% endif %}
                 </div>
             </div>
         </div>
