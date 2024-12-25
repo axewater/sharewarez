@@ -6,10 +6,13 @@
 {% else %}
     <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_igdb_settings.css') }}">
 {% endif %}
-
-<div class="igdb-settings-container">
+<div class="container">
     <div class="glass-panel">
         <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+<div class="igdb-settings-container">
+    <div class="glass-panel">
 
         <h2>IGDB API Settings</h2>
 
