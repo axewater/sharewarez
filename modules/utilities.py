@@ -22,7 +22,7 @@ from wtforms.validators import ValidationError
 from discord_webhook import DiscordWebhook, DiscordEmbed
 
 def get_smtp_settings():
-    """Get SMTP settings from database, falling back to config values."""
+    """Get SMTP settings from database."""
     settings = GlobalSettings.query.first()
     
     if settings and settings.smtp_enabled:
@@ -34,19 +34,10 @@ def get_smtp_settings():
             'MAIL_USE_TLS': settings.smtp_use_tls,
             'MAIL_DEFAULT_SENDER': settings.smtp_default_sender,
             'SMTP_ENABLED': settings.smtp_enabled,
-            'SERVER_HOSTNAME': settings.smtp_server  # Add server hostname for SSL validation
+            'SERVER_HOSTNAME': settings.smtp_server
         }
     
-    # Fallback to config values
-    return {
-        'MAIL_SERVER': current_app.config['MAIL_SERVER'],
-        'MAIL_PORT': current_app.config['MAIL_PORT'],
-        'MAIL_USERNAME': current_app.config['MAIL_USERNAME'],
-        'MAIL_PASSWORD': current_app.config['MAIL_PASSWORD'],
-        'MAIL_USE_TLS': current_app.config['MAIL_USE_TLS'],
-        'MAIL_DEFAULT_SENDER': current_app.config['MAIL_DEFAULT_SENDER'],
-        'SMTP_ENABLED': True
-    }
+    return None
 
 def is_smtp_config_valid():
     """
@@ -125,12 +116,17 @@ def send_email(to, subject, template):
     """
     Send an email with robust error logging and pre-send checks.
     """
-    from email.message import EmailMessage  # Add this import at the top of utilities.py
+    from email.message import EmailMessage
     
     print("\n=== Starting Email Send Process ===")
     smtp_settings = get_smtp_settings()
     
-    if not smtp_settings['SMTP_ENABLED']:
+    if not smtp_settings:
+        print("SMTP settings not configured. Email not sent.")
+        flash("SMTP settings not configured. Email not sent.", "error")
+        return False
+
+    if not smtp_settings.get('SMTP_ENABLED'):
         print("SMTP is not enabled. Email not sent.")
         flash("SMTP is not enabled. Email not sent.", "error")
         return False
@@ -1236,6 +1232,7 @@ def get_cover_url(igdb_id):
 def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remove_missing=False):
     settings = GlobalSettings.query.first()
     update_folder_name = settings.update_folder_name if settings else 'updates'
+    extras_folder_name = settings.extras_folder_name if settings else 'extras'
     
     # First, find the library and its platform
     library = Library.query.filter_by(uuid=library_uuid).first()
@@ -1340,6 +1337,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                 # Get settings from database
                 settings = GlobalSettings.query.first()
                 update_folder_name = settings.update_folder_name if settings else 'updates'  # Default fallback
+                extras_folder_name = settings.extras_folder_name if settings else 'extras'  # Default fallback
                 
                 # Check for updates folder using the database setting
                 updates_folder = os.path.join(full_disk_path, update_folder_name)
@@ -1349,6 +1347,15 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                     process_game_updates(game_name, full_disk_path, updates_folder, library_uuid)
                 else:
                     print(f"No updates folder found for game: {game_name}")
+                    
+                # Check for extras folder
+                extras_folder = os.path.join(full_disk_path, extras_folder_name)
+                print(f"Checking for extras folder: {extras_folder}")
+                if os.path.exists(extras_folder) and os.path.isdir(extras_folder):
+                    print(f"Extras folder found for game: {game_name}")
+                    process_game_extras(game_name, full_disk_path, extras_folder, library_uuid)
+                else:
+                    print(f"No extras folder found for game: {game_name}")
             else:
                 scan_job_entry.folders_failed += 1
                 print(f"Failed to process game {game_name} after fallback attempts.")   
@@ -1847,6 +1854,7 @@ def notifications_manager(path, event, game_uuid=None):
         return
         
     update_folder = settings.update_folder_name or 'updates'  # Fallback to default if not set
+    extras_folder = settings.extras_folder_name or 'extras'  # Add extras folder name
     extras_folder = settings.extras_folder_name or 'extras'
     
     #If fired by Watchdog
