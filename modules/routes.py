@@ -1230,22 +1230,6 @@ def scan_folder():
     return render_template('admin/admin_manage_scanjobs.html', form=form, game_names_with_ids=game_names_with_ids)
 
 
-  
-@bp.route('/admin/api_debug', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def api_debug():
-    form = IGDBApiForm()
-    api_response = None
-
-    if form.validate_on_submit():
-        selected_endpoint = form.endpoint.data
-        query_params = form.query.data
-        print(f"Selected endpoint: {selected_endpoint} with query params: {query_params}")
-        api_response = make_igdb_api_request(selected_endpoint, query_params)
-        
-    return render_template('admin/admin_debug_api.html', form=form, api_response=api_response)
-
 
 @bp.route('/scan_management', methods=['GET', 'POST'])
 @login_required
@@ -2437,7 +2421,7 @@ def admin_dashboard():
 @admin_required
 def extensions():
     allowed_types = AllowedFileType.query.order_by(AllowedFileType.value.asc()).all()
-    return render_template('admin/admin_extensions.html', 
+    return render_template('admin/admin_manage_extensions.html', 
                          allowed_types=allowed_types)
 
 # File type management routes
