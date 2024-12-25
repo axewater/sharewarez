@@ -1,22 +1,50 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize any required UI elements
+    // Initialize UI elements
     const smtpEnabledCheckbox = document.getElementById('smtp_enabled');
     const csrfToken = document.querySelector('meta[name="csrf-token"]');
     const formFields = document.querySelectorAll('.form-control');
     const saveButton = document.querySelector('.btn-primary');
     const testButton = document.querySelector('.btn-secondary');
+    const testResultsDiv = document.getElementById('testResults');
 
-    if (saveButton) saveButton.addEventListener('click', saveSettings);
-    if (testButton) testButton.addEventListener('click', testSettings);
-    
-    // Check if CSRF token is present
-    if (!csrfToken) {
-        console.error('CSRF token meta tag not found');
-        return;
+    // Define test settings function
+    window.testSettings = function() {
+        testResultsDiv.innerHTML = '<div class="alert alert-info">Testing SMTP connection...</div>';
+        testButton.disabled = true;
+
+        fetch('/admin/smtp_test', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken.content
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            testButton.disabled = false;
+            if (data.success) {
+                testResultsDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> ${data.message || 'SMTP connection successful'}
+                    </div>`;
+            } else {
+                testResultsDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i> ${data.message || 'SMTP connection failed'}
+                    </div>`;
+            }
+        })
+        .catch(error => {
+            testButton.disabled = false;
+            testResultsDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> Error testing SMTP connection: ${error.message || 'Unknown error'}
+                </div>`;
+        });
     }
 
-    // Function to save SMTP settings
-    function saveSettings() {
+    // Define functions in global scope
+    window.saveSettings = function() {
         const data = {
             smtp_enabled: document.getElementById('smtp_enabled').checked,
             smtp_server: document.getElementById('smtp_server').value,
@@ -46,86 +74,5 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             $.notify("Error saving SMTP settings: " + error, "error");
         });
-    }
-
-    // Function to test SMTP settings
-    function testSettings() {
-        // Show loading indicator
-        const testButton = document.querySelector('button.btn-secondary');
-        const originalText = testButton.textContent;
-        testButton.disabled = true;
-        testButton.textContent = 'Testing...';
-        
-        fetch('/admin/test_smtp', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken.content
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => {
-                    throw new Error(err.message || 'Network response was not ok');
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.status === 'success') {
-                $.notify({
-                    message: "SMTP test successful",
-                    type: 'success',
-                    delay: 2000,
-                    placement: {
-                        from: 'top',
-                        align: 'center'
-                    }
-                });
-                setTimeout(() => location.reload(), 2000);
-            } else {
-                $.notify({
-                    message: "SMTP test failed: " + data.message,
-                    type: 'error',
-                    delay: 5000,
-                    placement: {
-                        from: 'top',
-                        align: 'center'
-                    }
-                });
-            }
-        })
-        .catch(error => {
-            $.notify({
-                message: "Error testing SMTP: " + error.message,
-                type: 'error',
-                delay: 5000,
-                placement: {
-                    from: 'top',
-                    align: 'center'
-                }
-            });
-        })
-        .finally(() => {
-            // Reset button state
-            testButton.disabled = false;
-            testButton.textContent = originalText;
-        });
-    }
-
-    // Add event listeners
-    const saveSettingsButton = document.querySelector('button[onclick="saveSettings()"]');
-    const testSettingsButton = document.querySelector('button[onclick="testSettings()"]');
-
-    if (saveSettingsButton) {
-        saveSettingsButton.addEventListener('click', saveSettings);
-    } else {
-        console.error('Save settings button not found');
-    }
-
-    if (testSettingsButton) {
-        testSettingsButton.addEventListener('click', testSettings);
-    } else {
-        console.error('Test settings button not found');
     }
 });
