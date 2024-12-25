@@ -1,9 +1,19 @@
 .image-whitelist img {
-    width: 150px;
+    width: 100%;
+    max-width: 300px;
     border-radius: 15px;
-
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: rotate(-3deg);
 }
+
+.image-whitelist img:hover {
+    transform: rotate(0deg) scale(1.05);
+}
+
 .image-whitelist {
     display: flex;
-    align-items: flex-end;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
 }

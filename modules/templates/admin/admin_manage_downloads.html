@@ -19,12 +19,13 @@
 	{% endif %}
 	{% endwith %}
 </div>
-
+<div class="container">
+    <div class="glass-panel">
+        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
 <div class="admin_manage_downloads-panel glass-panel">
-			<!-- Back to Dashboard Button -->
-			<div class="admin_manage_downloads-container container">
-				<a href="{{ url_for('main.admin_dashboard') }}" class="admin_manage_downloads-dashboard-btn btn btn-lg btn-primary">Back to Dashboard</a>
-			</div>
+
 	<div class="admin_manage_downloads-requests-header">
 		<h2>Download Requests</h2>
 	</div>

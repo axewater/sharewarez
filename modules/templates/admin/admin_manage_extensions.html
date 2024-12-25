@@ -1,18 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
-
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_manage_extensions.css') == True %}
     <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_manage_extensions.css') }}">
 {% else %}
     <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_extensions.css') }}">
 {% endif %}
 
-<div class="alert alert-info" role="alert">
-    <h4 class="alert-heading">File Extensions</h4>
-    <p>The extensions listed below are used to identify game files during the scanning process. Only files with these extensions will be recognized as games when scanning folders. This helps ensure that only valid game files are added to your library.</p>
-    <hr>
-    <p class="mb-0">Add or remove extensions as needed to match the types of game files in your collection.</p>
-</div>
+
 
 {% with messages = get_flashed_messages() %}
 {% if messages %}
@@ -24,51 +18,56 @@
 {% endif %}
 {% endwith %}
 
-<div class="glass-panel">
-    <div class="container mt-3">
-         <!-- Back to Dashboard Button -->
-         <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
-     </div>
-     
-    <div class="content-panel">
-        <div class="row">
-            <!-- Allowed File Types -->
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Allowed File Types</h3>
-                        <button class="btn btn-primary btn-sm" onclick="addFileType('allowed')">
-                            <i class="fas fa-plus"></i> Add New
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-hover" id="allowedTypesTable">
-                            <thead>
-                                <tr>
-                                    <th>Extension</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for type in allowed_types %}
-                                <tr data-id="{{ type.id }}" data-category="allowed">
-                                    <td class="type-value">{{ type.value }}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-warning" onclick="editFileType(this)">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteFileType('allowed', {{ type.id }})">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
 
+<div class="container">
+    <div class="glass-panel">
+        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+
+<div class="extensions-container">
+    <div class="extensions-table">
+        <div class="card">
+            <div class="card-header">
+                <h3>Allowed File Types</h3>
+                <button class="btn btn-primary btn-sm" onclick="addFileType('allowed')">
+                    <i class="fas fa-plus"></i> Add New
+                </button>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover" id="allowedTypesTable">
+                    <thead>
+                        <tr>
+                            <th>Extension</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for type in allowed_types %}
+                        <tr data-id="{{ type.id }}" data-category="allowed">
+                            <td class="type-value">{{ type.value }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-warning" onclick="editFileType(this)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteFileType('allowed', {{ type.id }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="extensions-info">
+        <div class="info-panel">
+            <h4>File Extensions</h4>
+            <p>The extensions listed here are used to identify game files during the scanning process. Only files with these extensions will be recognized as games when scanning folders.</p>
+            <hr>
+            <p>This helps ensure that only valid game files are added to your library.</p>
+            <p class="mb-0">Add or remove extensions as needed to match the types of game files in your collection.</p>
         </div>
     </div>
 </div>

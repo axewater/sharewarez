@@ -1,9 +1,35 @@
+.extensions-container {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
+
+.extensions-table {
+    flex: 2;
+    min-width: 0;
+}
+
+.extensions-info {
+    flex: 1;
+    min-width: 300px;
+}
+
+.info-panel {
+    background: rgba(40, 40, 40, 0.8);
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    top: 20px;
+}
+
 .content-panel {
     background: rgba(40, 40, 40, 0.5);
     border-radius: 10px;
     padding: 20px;
     margin: 20px;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    flex: 1;
 }
 
 .card {
@@ -68,3 +94,12 @@
     box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1);
 }
 
+@media (max-width: 768px) {
+    .extensions-container {
+        flex-direction: column;
+    }
+    
+    .extensions-info {
+        order: -1;
+    }
+}
