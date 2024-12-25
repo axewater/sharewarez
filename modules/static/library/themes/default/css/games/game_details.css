@@ -159,6 +159,59 @@
     width: 100%;
 }
 
+.button-glass-extras {
+    padding: 10px 20px;
+    background: rgba(64, 64, 64, 0.8);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    font-size: 1rem;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 5px;
+}
+
+.button-glass-extras:hover {
+    background: rgba(84, 84, 84, 0.9);
+    transform: scale(1.05);
+}
+
+.download-buttons {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    flex-grow: 1;
+}
+
+#extrasModal .modal-content {
+    background-color: #2a2a2a;
+    color: white;
+}
+
+#extrasModal .nav-tabs {
+    border-bottom: 1px solid #444;
+}
+
+#extrasModal .nav-link {
+    color: #fff;
+    border: none;
+}
+
+#extrasModal .nav-link.active {
+    background-color: #444;
+    border-color: #444;
+}
+
+#extrasModal .modal-header {
+    border-bottom: 1px solid #444;
+}
+
+#extrasModal .modal-header .btn-close {
+    background-color: white;
+}
+
 
 .game-card-links {
     position: absolute;
