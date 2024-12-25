@@ -18,6 +18,10 @@
 {% endwith %}
     <div class="smtp-settings-container">
 
+        <div class="container mt-3">
+            <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
+        </div>
+
         <h2>SMTP Settings <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#smtpHelpModal">
             <i class="fas fa-question-circle"></i> Help
         </button></h2>
