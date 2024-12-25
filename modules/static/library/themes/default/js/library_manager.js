@@ -1,4 +1,37 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Sortable on the libraries table
+    const tbody = document.querySelector('#librariesTable tbody');
+    new Sortable(tbody, {
+        handle: '.drag-handle',
+        animation: 150,
+        onEnd: function(evt) {
+            const newOrder = Array.from(tbody.querySelectorAll('tr')).map(row => row.dataset.libraryUuid);
+            
+            // Send the new order to the server
+            fetch('/api/reorder_libraries', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ order: newOrder })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    $.notify('Library order updated successfully', 'success');
+                } else {
+                    $.notify('Error updating library order', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                $.notify('Error updating library order', 'error');
+            });
+        }
+    });
+
+    // Existing delete functionality
     var confirmDeleteButton = document.getElementById('confirmDeleteButton');
     var deleteForm = document.createElement('form');
     deleteForm.method = 'post';
