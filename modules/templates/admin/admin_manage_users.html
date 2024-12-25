@@ -6,7 +6,11 @@
 {% else %}
     <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_users.css') }}">
 {% endif %}
-
+<div class="container">
+    <div class="glass-panel">
+        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
 <div class="container mt-4">
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
