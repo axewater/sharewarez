@@ -7,12 +7,12 @@
 {% else %}
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_invites.css') }}">
 {% endif %}
+<div class="glass-panel">
+  <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
 
 <div class="admin_manage_invites-panel glass-panel container mt-5">
-    <div class="container mt-3">
-        <!-- Back to Dashboard Button -->
-        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
-    </div>
+
 
 {% with messages = get_flashed_messages() %}
 {% if messages %}

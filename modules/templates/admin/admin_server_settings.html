@@ -15,12 +15,13 @@
 {% else %}
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_server_settings.css') }}">
 {% endif %}
-
 <div class="glass-panel">
-    <div class="container mt-3">
-        <!-- Back to Dashboard Button -->
-        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
-    </div>
+    <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+</div>
+<div class="glass-panel">
+    <div class="container">
+
     <h2>Manage SharewareZ Settings</h2>
 
     <div id="settingsSavedNotification" class="alert alert-success" role="alert" style="display: none;">
