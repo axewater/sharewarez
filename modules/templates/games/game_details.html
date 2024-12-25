@@ -212,10 +212,17 @@
                         {% if game.size %}
                             <div class="chip-size">{{ game.size }}</div>
                         {% endif %}
-                        <form action="{{ url_for('main.download_game', game_uuid=game.uuid) }}" method="get" class="download-form">
-                            <input type="submit" value="Download Now!" class="button-glass-download" data-game-uuid="{{ game.uuid }}">
-                            {{ form.csrf_token }}
-                        </form>
+                        <div class="download-buttons">
+                            <form action="{{ url_for('main.download_game', game_uuid=game.uuid) }}" method="get" class="download-form">
+                                <input type="submit" value="Download Now!" class="button-glass-download" data-game-uuid="{{ game.uuid }}">
+                                {{ form.csrf_token }}
+                            </form>
+                            {% if (enable_game_updates and update_files.files) or (enable_game_extras and extras_files.files) %}
+                                <button type="button" class="button-glass-extras" data-bs-toggle="modal" data-bs-target="#extrasModal">
+                                    <i class="fas fa-puzzle-piece"></i> Updates & Extras
+                                </button>
+                            {% endif %}
+                        </div>
                         {% if game.nfo_content and game.nfo_content.lower() != 'none' %}
                             <div class="nfo-icon-container">
                                 <i class="fa fa-file-alt nfo-icon" data-bs-toggle="modal" data-bs-target="#nfoModal" title="View NFO"></i>
@@ -223,21 +230,50 @@
                             </div>
                         {% endif %}
                     </div>
+
+                    {# Updates & Extras Modal #}
+                    {% if (enable_game_updates and update_files.files) or (enable_game_extras and extras_files.files) %}
+                        <div class="modal fade" id="extrasModal" tabindex="-1" aria-labelledby="extrasModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="extrasModalLabel">Updates & Extras for {{ game.name }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <ul class="nav nav-tabs" role="tablist">
+                                            {% if enable_game_updates and update_files.files %}
+                                                <li class="nav-item">
+                                                    <a class="nav-link active" data-bs-toggle="tab" href="#updates">Updates</a>
+                                                </li>
+                                            {% endif %}
+                                            {% if enable_game_extras and extras_files.files %}
+                                                <li class="nav-item">
+                                                    <a class="nav-link {% if not update_files.files %}active{% endif %}" 
+                                                       data-bs-toggle="tab" href="#extras">Extras</a>
+                                                </li>
+                                            {% endif %}
+                                        </ul>
+                                        <div class="tab-content mt-3">
+                                            {% if enable_game_updates and update_files.files %}
+                                                <div id="updates" class="tab-pane fade show active">
+                                                    {{ render_file_section(update_files.files, "Updates", "updates", game.uuid) }}
+                                                </div>
+                                            {% endif %}
+                                            {% if enable_game_extras and extras_files.files %}
+                                                <div id="extras" class="tab-pane fade {% if not update_files.files %}show active{% endif %}">
+                                                    {{ render_file_section(extras_files.files, "Extra Files", "extras", game.uuid) }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
 
-                {# Updates and Extras Sections #}
-                {% if (enable_game_updates or enable_game_extras) and (update_files.files or extras_files.files) %}
-                    <div class="game-card-q3">
-                        <div class="game-files">
-                            {% if enable_game_updates and update_files.files %}
-                                {{ render_file_section(update_files.files, "Updates", "updates", game.uuid) }}
-                            {% endif %}
-                            {% if enable_game_extras and extras_files.files %}
-                                {{ render_file_section(extras_files.files, "Extra Files", "extras", game.uuid) }}
-                            {% endif %}
-                        </div>
-                    </div>
-                {% endif %}
+
             </div>
 
             {# Screenshots Gallery #}
