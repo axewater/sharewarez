@@ -76,24 +76,10 @@ def check_setup_required():
                 'showSystemLogo': True,
                 'showHelpButton': True,
                 'allowUsersToInviteOthers': True,
-                'enableMainGameUpdates': True,
-                'enableGameUpdates': True,
-                'updateFolderName': 'updates',
-                'enableGameExtras': True,
-                'extrasFolderName': 'extras',
-                'discordNotifyNewGames': False,
-                'discordNotifyGameUpdates': False,
-                'discordNotifyGameExtras': False,
-                'discordNotifyDownloads': False,
-                'siteUrl': 'http://127.0.0.1',
                 'enableWebLinksOnDetailsPage': True,
                 'enableServerStatusFeature': True,
                 'enableNewsletterFeature': True,
-                'showVersion': True,
-                'enableDeleteGameOnDisk': True,
-                'enableGameUpdates': True,
-                'enableGameExtras': True,
-                'siteUrl': 'http://127.0.0.1'
+                'showVersion': True
             }
             settings_record = GlobalSettings(settings=default_settings)
             db.session.add(settings_record)
@@ -1829,16 +1815,29 @@ def delete_image():
 def manage_settings():
     if request.method == 'POST':
         new_settings = request.json
+        print(f"Received settings update: {new_settings}")
         
         settings_record = GlobalSettings.query.first()
         if not settings_record:
             settings_record = GlobalSettings(settings={})
             db.session.add(settings_record)
+
+        # Update specific boolean fields
+        settings_record.enable_delete_game_on_disk = new_settings.get('enableDeleteGameOnDisk', True)
+        settings_record.discord_notify_new_games = new_settings.get('discordNotifyNewGames', False)
+        settings_record.discord_notify_game_updates = new_settings.get('discordNotifyGameUpdates', False)
+        settings_record.discord_notify_game_extras = new_settings.get('discordNotifyGameExtras', False)
+        settings_record.discord_notify_downloads = new_settings.get('discordNotifyDownloads', False)
+        settings_record.enable_main_game_updates = new_settings.get('enableMainGameUpdates', False)
+        settings_record.enable_game_updates = new_settings.get('enableGameUpdates', False)
+        settings_record.update_folder_name = new_settings.get('updateFolderName', 'updates')
+        settings_record.enable_game_extras = new_settings.get('enableGameExtras', False)
+        settings_record.extras_folder_name = new_settings.get('extrasFolderName', 'extras')
+        settings_record.site_url = new_settings.get('siteUrl', 'http://127.0.0.1')
         
-        # Merge new settings with existing ones instead of replacing
-        current_settings = settings_record.settings or {}
-        current_settings.update(new_settings)
-        settings_record.settings = current_settings
+        # Update the settings JSON field
+        settings_record.settings = new_settings
+        settings_record.last_updated = datetime.utcnow()
         
         # Update specific boolean fields
         settings_record.enable_delete_game_on_disk = new_settings.get('enableDeleteGameOnDisk', True)
