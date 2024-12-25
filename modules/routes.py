@@ -2276,10 +2276,6 @@ def check_igdb_id():
 @bp.route('/game_details/<string:game_uuid>')
 @login_required
 def game_details(game_uuid):
-    # Initialize default values for update_files and extras_files
-    update_files = {'path': '', 'folder': '', 'files': []}
-    extras_files = {'path': '', 'folder': '', 'files': []}
-
     print(f"Fetching game details for UUID: {game_uuid}")
     csrf_form = CsrfForm()
     try:
@@ -2300,6 +2296,20 @@ def game_details(game_uuid):
             "storyline": game.storyline,
             "aggregated_rating": game.aggregated_rating,
             "aggregated_rating_count": game.aggregated_rating_count,
+            "updates": [{
+                "id": update.id,
+                "file_path": update.file_path,
+                "times_downloaded": update.times_downloaded,
+                "created_at": update.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                "nfo_content": update.nfo_content
+            } for update in game.updates],
+            "extras": [{
+                "id": extra.id,
+                "file_path": extra.file_path,
+                "times_downloaded": extra.times_downloaded,
+                "created_at": extra.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                "nfo_content": extra.nfo_content
+            } for extra in game.extras],
             "cover": game.cover,
             "first_release_date": game.first_release_date.strftime('%Y-%m-%d') if game.first_release_date else 'Not available',
             "rating": game.rating,
@@ -2363,20 +2373,9 @@ def game_details(game_uuid):
             "icon": url_icons.get(url.url_type, "fa-link")
         } for url in game.urls]
         
-        settings = GlobalSettings.query.first()
-        # Only process updates and extras if settings exist and features are enabled
-        if settings:
-            if settings.enable_game_updates:
-                update_folder = settings.update_folder_name or 'updates'
-                update_files = list_files(game.full_disk_path, update_folder)
-            
-            if settings.enable_game_extras:
-                extras_folder = settings.extras_folder_name or 'extras'
-                extras_files = list_files(game.full_disk_path, extras_folder)
-        
         library_uuid = game.library_uuid
         
-        return render_template('games/game_details.html', game=game_data, form=csrf_form, library_uuid=library_uuid, update_files=update_files, extras_files=extras_files)
+        return render_template('games/game_details.html', game=game_data, form=csrf_form, library_uuid=library_uuid)
     else:
         return jsonify({"error": "Game not found"}), 404
 
@@ -3716,24 +3715,3 @@ def verify_file(full_path):
     else:
         # print(f"Cannot find theme specific file: {full_path}. Using default theme file.", 'warning')
         return False
-     
-def list_files(path, folder):
-    if os.name == "nt":
-        content = glob(path + "\\" + folder + '/*');
-    else:
-        content = glob(path + "/" + folder + '/*');
-    print(f"Listing content of directory {path} and folder {folder}.")
-         
-    files = {
-        "path": path,
-        "folder": folder,
-        "files": [{
-            'name': os.path.basename(f),
-            'size': format_size(os.path.getsize(f)) if os.path.isfile(f) else format_size(get_folder_size_in_bytes(f)),
-            'isfile': os.path.isfile(f),
-        } for f in content]
-    }
-      
-    print(f"File updates content {files}.")
-    
-    return files

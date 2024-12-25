@@ -34,12 +34,14 @@
 {% macro render_file_row(file, game_uuid, file_location) %}
     <tr>
         <th>
-            {{ get_file_icon(file.name) }}
-            <a href="{{ url_for('main.download_file', file_location=file_location, game_uuid=game_uuid, file_size=file.size, file_name=file.name) }}" 
+            {% set file_name = file.file_path.split('/')[-1] %}
+            {{ get_file_icon(file_name) }}
+            <a href="{{ url_for('main.download_file', file_location=file_location, game_uuid=game_uuid, 
+                               file_size=file.file_size|default('0'), file_name=file_name) }}" 
                method="get" class="download-form" onclick="return doFormSubmit();">
-                <span class="file-name">{{ file.name }}</span>
+                <span class="file-name">{{ file_name }}</span>
             </a>
-            <span class="file-size">({{ file.size }})</span>
+            <span class="file-size">({{ file.file_size|default('0') }})</span>
         </th>
     </tr>
 {% endmacro %}
@@ -83,6 +85,62 @@
         <div class="rating-bar" style="width: {{ rating_value }}%;"></div>
     {% else %}
         <div class="emptyrating">Not rated</div>
+    {% endif %}
+{% endmacro %}
+
+{% macro render_update_section(updates, game_uuid) %}
+    {% if updates %}
+        <div class="game-files-updates">
+            <div class="updates-header">Updates</div>
+            <div class="updates-content">
+                <table class="table table-hover">
+                    {% for update in updates %}
+                        <tr>
+                            <th>
+                                {% set file_name = update.file_path.split('/')[-1] %}
+                                {{ get_file_icon(file_name) }}
+                                <a href="{{ url_for('main.download_file', 
+                                                   file_location='updates', 
+                                                   game_uuid=game_uuid, 
+                                                   file_size=update.file_size|default('0'), 
+                                                   file_name=file_name) }}" 
+                                   method="get" class="download-form" onclick="return doFormSubmit();">
+                                    <span class="file-name">{{ file_name }}</span>
+                                </a>
+                            </th>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    {% endif %}
+{% endmacro %}
+
+{% macro render_extra_section(extras, game_uuid) %}
+    {% if extras %}
+        <div class="game-files-extras">
+            <div class="extras-header">Extra Content</div>
+            <div class="extras-content">
+                <table class="table table-hover">
+                    {% for extra in extras %}
+                        <tr>
+                            <th>
+                                {% set file_name = extra.file_path.split('/')[-1] %}
+                                {{ get_file_icon(file_name) }}
+                                <a href="{{ url_for('main.download_file', 
+                                                   file_location='extras', 
+                                                   game_uuid=game_uuid, 
+                                                   file_size=extra.file_size|default('0'), 
+                                                   file_name=file_name) }}" 
+                                   method="get" class="download-form" onclick="return doFormSubmit();">
+                                    <span class="file-name">{{ file_name }}</span>
+                                </a>
+                            </th>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
     {% endif %}
 {% endmacro %}
 
@@ -217,7 +275,7 @@
                                 <input type="submit" value="Download Now!" class="button-glass-download" data-game-uuid="{{ game.uuid }}">
                                 {{ form.csrf_token }}
                             </form>
-                            {% if (enable_game_updates and update_files.files) or (enable_game_extras and extras_files.files) %}
+                            {% if (enable_game_updates and game.updates) or (enable_game_extras and game.extras) %}
                                 <button type="button" class="button-glass-extras" data-bs-toggle="modal" data-bs-target="#extrasModal">
                                     <i class="fas fa-puzzle-piece"></i> Updates & Extras
                                 </button>
@@ -232,7 +290,7 @@
                     </div>
 
                     {# Updates & Extras Modal #}
-                    {% if (enable_game_updates and update_files.files) or (enable_game_extras and extras_files.files) %}
+                    {% if (enable_game_updates and game.updates) or (enable_game_extras and game.extras) %}
                         <div class="modal fade" id="extrasModal" tabindex="-1" aria-labelledby="extrasModalLabel" aria-hidden="true">
                             <div class="modal-dialog modal-lg">
                                 <div class="modal-content">
@@ -242,27 +300,31 @@
                                     </div>
                                     <div class="modal-body">
                                         <ul class="nav nav-tabs" role="tablist">
-                                            {% if enable_game_updates and update_files.files %}
+                                            {% if enable_game_updates and game.updates %}
                                                 <li class="nav-item">
-                                                    <a class="nav-link active" data-bs-toggle="tab" href="#updates">Updates</a>
+                                                    <a class="nav-link active" data-bs-toggle="tab" href="#updates-tab">Updates</a>
                                                 </li>
                                             {% endif %}
-                                            {% if enable_game_extras and extras_files.files %}
+                                            {% if enable_game_extras and game.extras %}
                                                 <li class="nav-item">
-                                                    <a class="nav-link {% if not update_files.files %}active{% endif %}" 
-                                                       data-bs-toggle="tab" href="#extras">Extras</a>
+                                                    <a class="nav-link {% if not game.updates %}active{% endif %}" 
+                                                       data-bs-toggle="tab" href="#extras-tab">Extras</a>
                                                 </li>
                                             {% endif %}
                                         </ul>
                                         <div class="tab-content mt-3">
-                                            {% if enable_game_updates and update_files.files %}
-                                                <div id="updates" class="tab-pane fade show active">
-                                                    {{ render_file_section(update_files.files, "Updates", "updates", game.uuid) }}
+                                            {% if enable_game_updates and game.updates %}
+                                                <div id="updates-tab" class="tab-pane fade show active">
+                                                    <table class="table table-hover">
+                                                        {% for update in game.updates %}{{ render_file_row(update, game.uuid, 'updates') }}{% endfor %}
+                                                    </table>
                                                 </div>
                                             {% endif %}
-                                            {% if enable_game_extras and extras_files.files %}
-                                                <div id="extras" class="tab-pane fade {% if not update_files.files %}show active{% endif %}">
-                                                    {{ render_file_section(extras_files.files, "Extra Files", "extras", game.uuid) }}
+                                            {% if enable_game_extras and game.extras %}
+                                                <div id="extras-tab" class="tab-pane fade {% if not game.updates %}show active{% endif %}">
+                                                    <table class="table table-hover">
+                                                        {% for extra in game.extras %}{{ render_file_row(extra, game.uuid, 'extras') }}{% endfor %}
+                                                    </table>
                                                 </div>
                                             {% endif %}
                                         </div>
