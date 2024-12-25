@@ -40,6 +40,12 @@
                     </a>
                     <span class="button-label">Scan Manager</span>
                 </div>
+                <div class="admin-button-item" data-toggle="tooltip" title="Manage scan filters and release groups">
+                    <a href="{{ url_for('main.edit_filters') }}" class="btn btn-circle">
+                        <i class="fas fa-filter"></i>
+                    </a>
+                    <span class="button-label">Scan Filters</span>
+                </div>
                 <div class="admin-button-item" data-toggle="tooltip" title="Manage allowed and ignored file extensions">
                     <a href="{{ url_for('main.extensions') }}" class="btn btn-circle">
                         <i class="fas fa-puzzle-piece"></i>
