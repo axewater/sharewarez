@@ -7,6 +7,11 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_themes.css') }}">
 {% endif %}
 
+<div class="container">
+    <div class="glass-panel">
+        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
 {% with messages = get_flashed_messages(with_categories=true) %}
 {% if messages %}
     <div class="flash-messages">
@@ -18,6 +23,7 @@
     </div>
 {% endif %}
 {% endwith %}
+
 <div class="container">
     <div class="glass-panel">
         <h1 class="page-title">Manage Themes</h1>
