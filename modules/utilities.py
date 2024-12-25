@@ -736,6 +736,55 @@ def process_game_updates(game_name, full_disk_path, updates_folder, library_uuid
 
     print(f"Finished processing updates for game: {game_name}")
 
+
+def process_game_extras(game_name, full_disk_path, extras_folder, library_uuid):
+    settings = GlobalSettings.query.first()
+    if not settings or not settings.extras_folder_name:
+        print("No extras folder configuration found in database")
+        return
+
+    print(f"Processing extras for game: {game_name}")
+    print(f"Full disk path: {full_disk_path}")
+    print(f"Extras folder: {extras_folder}")
+    print(f"Library UUID: {library_uuid}")
+
+    game = Game.query.filter_by(full_disk_path=full_disk_path, library_uuid=library_uuid).first()
+    if not game:
+        print(f"Game not found in database: {game_name}")
+        return
+
+    print(f"Game found in database: {game.name} (UUID: {game.uuid})")
+
+    # Get all items in the extras folder
+    extra_items = [f for f in os.listdir(extras_folder) if os.path.isfile(os.path.join(extras_folder, f)) or 
+                  os.path.isdir(os.path.join(extras_folder, f))]
+    print(f"Extra items found: {extra_items}")
+
+    for extra_item in extra_items:
+        extra_path = os.path.join(extras_folder, extra_item)
+        print(f"Processing extra: {extra_item}")
+        
+        # Skip .nfo and .sfv files as they are typically just information files
+        if extra_item.lower().endswith(('.nfo', '.sfv')):
+            continue
+
+        if os.path.isfile(extra_path):
+            print(f"Single file extra: {extra_path}")
+        else:
+            print(f"Directory extra: {extra_path}")
+
+    try:
+        db.session.commit()
+        print(f"Successfully processed extras for game: {game_name}")
+    except SQLAlchemyError as e:
+        print(f"Error processing extras for game: {str(e)}")
+        db.session.rollback()
+
+    print(f"Finished processing extras for game: {game_name}")
+
+
+
+
 def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
     print(f"Enumerating companies for game {game_instance.name} with IGDB ID {igdb_game_id}.")
     if not involved_company_ids:
