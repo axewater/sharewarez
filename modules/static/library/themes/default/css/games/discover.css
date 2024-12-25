@@ -1,46 +1,15 @@
-.discovery-library-label {
+.discovery-library-label, .discovery-latest-games-label, .discovery-last-updated-label, .discovery-most-downloaded-label, .discovery-highest-rated-label  {
     font-size: 20px;
     font-weight: bold;
     margin-top: 10px;
     margin-bottom: 10px;
     text-align: center;
-}
-
-.discovery-latest-games-label {
-    font-size: 20px;
-    font-weight: bold;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-.discovery-most-downloaded-label {
-    font-size: 20px;
-    font-weight: bold;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-.discovery-highest-rated-label {
-    font-size: 20px;
-    font-weight: bold;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-
-.discovery-libraries-container {
-    
 }
 
 .discovery-latest-games-container {
 	display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 	justify-items:center;
-
-    
 }
 
 .discovery-most-downloaded-container {
