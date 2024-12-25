@@ -16,11 +16,13 @@
         {% endif %}
     {% endwith %}
 </div>
+<div class="glass-panel">
+    <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
 
 <div class="container">
 
     <div class="glass-panel">
-        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
         <h1>Whitelist Management</h1>
         <div class="row mt-4">
             <div class="col-md-4">
