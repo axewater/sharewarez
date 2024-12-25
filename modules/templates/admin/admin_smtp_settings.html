@@ -64,11 +64,16 @@
             Last tested: {{ settings.smtp_last_tested.strftime('%Y-%m-%d %H:%M:%S') }}
         </div>
         {% endif %}
-        
-        <div class="button-group">
-            <button type="button" class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
-            <button type="button" class="btn btn-secondary" onclick="testSettings()">Test Connection</button>
+        <div class="message">
+            You must save your settings before testing.
         </div>
+        <div class="button-group">
+            <button type="button" class="btn btn-primary me-2" onclick="saveSettings()">Save Settings</button>
+            <button type="button" class="btn btn-secondary" onclick="testSettings()">Test Settings</button>
+        </div>
+        
+        <!-- Test results container with improved styling -->
+        <div id="testResults" class="mt-4"></div>
     </div>
 </div>
 
@@ -81,7 +86,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <h6>Option 1: Use Your ISP's SMTP Server (Recommended)</h6>
+                <h6>Option 1: Use Your Internet Service Provider's SMTP Server (Recommended)</h6>
                 <p>Most Internet Service Providers (ISPs) provide SMTP server access. This is typically the most reliable option for most users.</p>
                 <ul>
                     <li>Check your ISP's support website or documentation</li>
@@ -102,7 +107,7 @@
                 <p>These services offer reliable email delivery with higher limits:</p>
                 <ul>
                     <li>SendGrid</li>
-                    <li>Amazon SES</li>
+                    <li>Amazon Simple Email Service</li>
                     <li>Mailgun</li>
                     <li>SMTP2GO</li>
                 </ul>
