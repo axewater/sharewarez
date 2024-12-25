@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 from modules.models import (
     User, User, ReleaseGroup, Game, Image, DownloadRequest, Platform, Genre, 
     Publisher, Developer, GameURL, Library, GameUpdate, AllowedFileType, 
-    Theme, GameMode, PlayerPerspective, ScanJob, UnmatchedFolder,
+    Theme, GameMode, PlayerPerspective, ScanJob, UnmatchedFolder, GameExtra,
     category_mapping, status_mapping, player_perspective_mapping, GlobalSettings
 )
 from modules import db, mail

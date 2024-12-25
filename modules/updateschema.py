@@ -159,6 +159,17 @@ class DatabaseManager:
             FOREIGN KEY (game_uuid) REFERENCES games(uuid) ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS game_extras (
+            id SERIAL PRIMARY KEY,
+            uuid VARCHAR(36) UNIQUE NOT NULL,
+            game_uuid VARCHAR(36) NOT NULL,
+            times_downloaded INTEGER DEFAULT 0,
+            nfo_content TEXT,
+            file_path VARCHAR(255) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (game_uuid) REFERENCES games(uuid) ON DELETE CASCADE
+        );
+
         -- Add uuid column to game_updates table if it doesn't exist
         ALTER TABLE game_updates
         ADD COLUMN IF NOT EXISTS uuid VARCHAR(36) UNIQUE NOT NULL DEFAULT 1111-1111-1111-1111;
