@@ -1,8 +1,20 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize any required UI elements
     const smtpEnabledCheckbox = document.getElementById('smtp_enabled');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]');
     const formFields = document.querySelectorAll('.form-control');
+    const saveButton = document.querySelector('.btn-primary');
+    const testButton = document.querySelector('.btn-secondary');
+
+    if (saveButton) saveButton.addEventListener('click', saveSettings);
+    if (testButton) testButton.addEventListener('click', testSettings);
     
+    // Check if CSRF token is present
+    if (!csrfToken) {
+        console.error('CSRF token meta tag not found');
+        return;
+    }
+
     // Function to save SMTP settings
     function saveSettings() {
         const data = {
@@ -19,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                'X-CSRFToken': csrfToken.content
             },
             body: JSON.stringify(data)
         })
@@ -48,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                'X-CSRFToken': csrfToken.content
             }
         })
         .then(response => {
@@ -102,8 +114,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Add event listeners
-    document.querySelector('button[onclick="saveSettings()"]')
-        .addEventListener('click', saveSettings);
-    document.querySelector('button[onclick="testSettings()"]')
-        .addEventListener('click', testSettings);
+    const saveSettingsButton = document.querySelector('button[onclick="saveSettings()"]');
+    const testSettingsButton = document.querySelector('button[onclick="testSettings()"]');
+
+    if (saveSettingsButton) {
+        saveSettingsButton.addEventListener('click', saveSettings);
+    } else {
+        console.error('Save settings button not found');
+    }
+
+    if (testSettingsButton) {
+        testSettingsButton.addEventListener('click', testSettings);
+    } else {
+        console.error('Test settings button not found');
+    }
 });
