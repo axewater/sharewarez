@@ -16,11 +16,15 @@
     </div>
 {% endif %}
 {% endwith %}
-    <div class="smtp-settings-container">
 
-        <div class="container mt-3">
-            <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-lg btn-primary">Back to Dashboard</a>
-        </div>
+<div class="glass-panel">
+    <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+</div>
+
+<div class="smtp-settings-container">
+
+
 
         <h2>SMTP Settings <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#smtpHelpModal">
             <i class="fas fa-question-circle"></i> Help
