@@ -15,20 +15,40 @@
     <div class="admin_manage_filters-header" style="background-color: rgba(40, 40, 40, 0.8); padding: 15px; border-radius: 8px;">
         <h2><i class="fas fa-filter"></i> Release Group Filters</h2>
         <p>Manage release group patterns to improve scanning speed.</p>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFilterModal">
+            <i class="fas fa-plus"></i> Add New Filter
+        </button>
     </div>
 
-    <form action="" method="post" class="row">
-        {{ form.hidden_tag() }}
-        <div class="admin_manage_filters-form-group form-group col-md-8">
-            {{ form.rlsgroup.label }} {{ form.rlsgroup(class="form-control") }}
+    <!-- Add Filter Modal -->
+    <div class="modal fade" id="addFilterModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Release Group Filter</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addFilterForm">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            <label for="rlsgroup" class="form-label">Release Group Pattern</label>
+                            {{ form.rlsgroup(class="form-control") }}
+                        </div>
+                        <div class="mb-3 form-check">
+                            {{ form.rlsgroupcs(class="form-check-input") }}
+                            <label class="form-check-label" for="rlsgroupcs">Case Sensitive</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveFilter">Save Filter</button>
+                </div>
+            </div>
         </div>
-        <div class="admin_manage_filters-form-group-case form-group col-md-4">
-            {{ form.rlsgroupcs.label }} {{ form.rlsgroupcs(class="form-check-input") }}
-        </div>
-        <div class="admin_manage_filters-form-submit form-group">
-            {{ form.submit(class="btn btn-primary") }}
-        </div>
-    </form>
+    </div>
+
     <hr>
     <h3>Existing Filters</h3>
     <table class="admin_manage_filters-table table table-striped table-hover">
