@@ -243,43 +243,7 @@
 	border-radius: 0px;
 }
 
-.admin_manage_scanjobs-unmatched-table {
-	
-}
 
-.admin_manage_scanjobs-unmatched-table-folderpath {
-	
-}
-
-.admin_manage_scanjobs-unmatched-table-status {
-	
-}
-
-.admin_manage_scanjobs-unmatched-table-library {
-	
-}
-
-.admin_manage_scanjobs-unmatched-table-platform {
-	
-}
-
-.admin_manage_scanjobs-unmatched-table-id {
-	
-}
-
-.admin_manage_scanjobs-unmatched-table-actions {
-	
-}
-
-.content-textblock-usermanager {
-    flex: 1;
-    background-color: #000000;
-    padding: 15px;
-    border-radius: 15px;
-    color: #ddd;
-    margin-top: 15px;
-    overflow-x: auto; /* Add horizontal scrolling */
-}
 
 table {
     width: 100%;

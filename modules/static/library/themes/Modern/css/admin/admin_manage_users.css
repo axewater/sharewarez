@@ -81,10 +81,6 @@
 	
 }
 
-.content-textblock {
-	border-radius: 0px;
-	margin-bottom: 10px;
-}
 
 .input-class {
 	border-radius: 0px;
@@ -109,11 +105,6 @@
     text-decoration: none;
 	margin-left: 20px;
 	
-}
-
-.content-textblock-usermanager h3 {
-	margin-bottom: 15px;
-	margin-top: 30px;
 }
 
 .table td {

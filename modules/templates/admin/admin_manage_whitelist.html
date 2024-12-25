@@ -18,17 +18,24 @@
 </div>
 
 <div class="container">
+
     <div class="glass-panel">
         <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
-    </div>
-</div>
+
+
     
     <h1>Whitelist Management
         <div class="image-whitelist">
             <img src="/static/newstyle/whitelist.jpg" alt="Pirates allowed on board">
         </div>
     </h1>
-
+    <div class="whitelist-explanation">
+        <h2>What is the Whitelist?</h2>
+        <p>
+            The whitelist allows you to grant special access to select users, enabling them to self-register on the login screen.<br>
+            Add an email address to the whitelist below to give that person the ability to create an account on our site.
+        </p>
+    </div>
     <div class="whitelist-controls">
         <form method="post" class="add-whitelist-form">
             {{ form.hidden_tag() }}

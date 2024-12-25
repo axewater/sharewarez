@@ -151,18 +151,6 @@ font-size: large;
 }
 
 
-
-.content-textblock {
-    flex: 1;
-    background-color: #000000;
-    padding: 15px 30px;
-    border-radius: 15px;
-    color: #ddd;
-    margin-top: 15px;
-    text-align: justify;
-    padding-right: 20px;
-}
-
 .login-logo {
     width: 400px;
     border-radius: 15px;

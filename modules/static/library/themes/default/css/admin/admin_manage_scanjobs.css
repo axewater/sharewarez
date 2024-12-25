@@ -1,13 +1,3 @@
-.content-textblock-usermanager {
-    flex: 1;
-    background-color: #000000;
-    padding: 15px;
-    border-radius: 15px;
-    color: #ddd;
-    margin-top: 15px;
-    overflow-x: auto; /* Add horizontal scrolling */
-}
-
 table {
     width: 100%;
     table-layout: fixed; /* Use a fixed table layout */
