@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_extensions.css') == True %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_extensions.css') }}">
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_manage_extensions.css') == True %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_manage_extensions.css') }}">
 {% else %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_extensions.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_extensions.css') }}">
 {% endif %}
 
 <div class="alert alert-info" role="alert">

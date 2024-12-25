@@ -2,9 +2,9 @@
 {% block content %}
 
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_dashboard.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_dashboard.css') }}">
 {% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_dashboard.css') }}">
 {% endif %}
 
 {% with messages = get_flashed_messages() %}
@@ -18,6 +18,7 @@
 {% endwith %}
 
 <div class="admin-panel">
+
     <div class="hackplanet_titles">
         <h1>SharewareZ Admin Panel</h1>
     </div>
@@ -27,19 +28,19 @@
         <div class="admin-section">
             <h3><i class="fas fa-book"></i> Library Management</h3>
             <div class="admin-buttons">
-                <div class="admin-button-item">
+                <div class="admin-button-item" data-toggle="tooltip" title="Manage your game libraries">
                     <a href="{{ url_for('main.libraries') }}" class="btn btn-circle">
                         <i class="fas fa-book"></i>
                     </a>
                     <span class="button-label">Libraries</span>
                 </div>
-                <div class="admin-button-item">
+                <div class="admin-button-item" data-toggle="tooltip" title="Manage your file scanning process">
                     <a href="{{ url_for('main.scan_management') }}" class="btn btn-circle">
                         <i class="fas fa-search"></i>
                     </a>
                     <span class="button-label">Scan Manager</span>
                 </div>
-                <div class="admin-button-item">
+                <div class="admin-button-item" data-toggle="tooltip" title="Manage allowed and ignored file extensions">
                     <a href="{{ url_for('main.extensions') }}" class="btn btn-circle">
                         <i class="fas fa-puzzle-piece"></i>
                     </a>
@@ -52,7 +53,7 @@
         <div class="admin-section">
             <h3><i class="fas fa-server"></i> Server Management</h3>
             <div class="admin-buttons">
-                <div class="admin-button-item">
+                <div class="admin-button-item" data-toggle="tooltip" title="Manage server settings">
                     <a href="{{ url_for('main.manage_settings') }}" class="btn btn-circle">
                         <i class="fas fa-cogs"></i>
                     </a>
@@ -60,26 +61,26 @@
                 </div>
 
 
-                <div class="admin-button-item">
+                <div class="admin-button-item" data-toggle="tooltip" title="Manage email settings">
                     <a href="{{ url_for('main.smtp_settings') }}" class="btn btn-circle">
                         <i class="fas fa-envelope"></i>
                     </a>
                     <span class="button-label">Email Settings</span>
                 </div>
-                <div class="admin-button-item">
+                <div class="admin-button-item" data-toggle="tooltip" title="Manage IGDB settings">
                     <a href="{{ url_for('main.igdb_settings') }}" class="btn btn-circle">
                         <i class="fas fa-gamepad"></i>
                     </a>
                     <span class="button-label">IGDB Settings</span>
                 </div>
-                <div class="admin-button-item">
+                <div class="admin-button-item" data-toggle="tooltip" title="Discord bot setup">
                     <a href="{{ url_for('main.discord_settings') }}" class="btn btn-circle">
                         <i class="fab fa-discord"></i>
                     </a>
                     <span class="button-label">Discord</span>
                 </div>
                 {% if enable_server_status %}
-                <div class="admin-button-item">
+                <div class="admin-button-item" data-toggle="tooltip" title="View server information">
                     <a href="{{ url_for('main.admin_server_status') }}" class="btn btn-circle">
                         <i class="fas fa-info"></i>
                     </a>
@@ -93,19 +94,19 @@
         <div class="admin-section">
             <h3><i class="fas fa-users"></i> User Management</h3>
             <div class="admin-buttons">
-                <div class="admin-button-item">
+                <div class="admin-button-item" data-toggle="tooltip" title="Manage user accounts">
                     <a href="{{ url_for('main.manage_users') }}" class="btn btn-circle">
                         <i class="fas fa-users-cog"></i>
                     </a>
                     <span class="button-label">Users</span>
                 </div>
-                <div class="admin-button-item">
+                <div class="admin-button-item" data-toggle="tooltip" title="Manage email whitelist">
                     <a href="{{ url_for('main.whitelist') }}" class="btn btn-circle">
                         <i class="fas fa-user-shield"></i>
                     </a>
                     <span class="button-label">Whitelist</span>
                 </div>
-                <div class="admin-button-item">
+                <div class="admin-button-item" data-toggle="tooltip" title="Manage user invites">
                     <a href="{{ url_for('main.manage_invites') }}" class="btn btn-circle">
                         <i class="fas fa-envelope-open-text"></i>
                     </a>
@@ -118,14 +119,14 @@
         <div class="admin-section">
             <h3><i class="fas fa-tools"></i> Other Tools</h3>
             <div class="admin-buttons">
-                <div class="admin-button-item">
+                <div class="admin-button-item" data-toggle="tooltip" title="Manage user downloads">
                     <a href="{{ url_for('main.manage_downloads') }}" class="btn btn-circle">
                         <i class="fas fa-download"></i>
                     </a>
                     <span class="button-label">Downloads</span>
                 </div>
 
-                <div class="admin-button-item">
+                <div class="admin-button-item" data-toggle="tooltip" title="Manage themes">
                     <a href="{{ url_for('main.manage_themes') }}" class="btn btn-circle">
                         <i class="fas fa-palette"></i>
                     </a>
@@ -133,7 +134,7 @@
                 </div>
 
                 {% if enable_newsletter %}
-                <div class="admin-button-item">
+                <div class="admin-button-item" data-toggle="tooltip" title="Send newsletters">
                     <a href="{{ url_for('main.newsletter') }}" class="btn btn-circle">
                         <i class="fas fa-newspaper"></i>
                     </a>
@@ -146,5 +147,11 @@
 
     </div>
 </div>
+
+<script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
 
 {% endblock %}
