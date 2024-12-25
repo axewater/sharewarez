@@ -1,14 +1,29 @@
 // Modal functionality
+let originalScrollPosition = 0;
+let modalOpen = false;
+
 function openModal() {
-    document.getElementById("myModal").style.display = "block";
+    // Store original scroll position
+    originalScrollPosition = window.scrollY;
+
+    // Reset scroll position before showing modal
+    window.scrollTo(0, 0);
+    modalOpen = true;
+
+    // Show modal
+    const modal = document.getElementById("myModal");
+    modal.style.display = "block";
+
+    // Prevent body scrolling
+    document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
     document.getElementById("myModal").style.display = "none";
-}
-
-function currentSlide(n) {
-    showSlides(slideIndex = n);
+    document.body.style.overflow = 'auto';
+    modalOpen = false;
+    // Restore original scroll position
+    window.scrollTo(0, originalScrollPosition);
 }
 
 var slideIndex = 1;
@@ -73,5 +88,39 @@ document.addEventListener("DOMContentLoaded", function() {
                 summaryModal.style.display = "none";
             }
         }
+    }
+});
+
+// Handle modal cleanup for Updates & Extras modal
+document.addEventListener('DOMContentLoaded', function() {
+    const extrasModal = document.getElementById('extrasModal');
+    let modalScrollPos = 0;
+
+    if (extrasModal) {
+        extrasModal.addEventListener('show.bs.modal', function () {
+            // Store current scroll position
+            modalScrollPos = window.scrollY;
+            
+            // Reset scroll position and prevent body scrolling
+            window.scrollTo(0, 0);
+            document.body.style.overflow = 'hidden';
+        });
+
+        extrasModal.addEventListener('hidden.bs.modal', function () {
+            // Clean up modal
+            const modalBackdrops = document.querySelectorAll('.modal-backdrop');
+            modalBackdrops.forEach(backdrop => backdrop.remove());
+            
+            // Remove modal-open class from body
+            document.body.classList.remove('modal-open');
+            
+            // Reset body styles
+            document.body.style.paddingRight = '';
+            
+            // Restore scrolling and position
+            document.body.style.overflow = 'auto';
+            window.scrollTo(0, modalScrollPos);
+            modalScrollPos = 0;
+        });
     }
 });
