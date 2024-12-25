@@ -55,9 +55,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Define test settings function
     window.testSettings = function() {
         const testButton = document.querySelector('button.btn-secondary');
+        const spinner = document.getElementById('loadingSpinner');
         const originalText = testButton.textContent;
         testButton.disabled = true;
-        testButton.textContent = 'Testing...';
+        spinner.style.display = 'block';
         
         fetch('/admin/test_igdb', {
             method: 'POST',
