@@ -1178,7 +1178,7 @@ def downloads():
         download_request.formatted_size = format_size(download_request.download_size)
 
     form = CsrfProtectForm()
-    return render_template('games/downloads.html', download_requests=download_requests, form=form)
+    return render_template('games/manage_downloads.html', download_requests=download_requests, form=form)
 
 
 @bp.route('/scan_manual_folder', methods=['GET', 'POST'])
@@ -2964,91 +2964,109 @@ def download_game(game_uuid):
 @bp.route('/download_other/<file_type>/<game_uuid>/<file_id>', methods=['GET'])
 @login_required
 def download_other(file_type, game_uuid, file_id):
-   """Handle downloads for update and extra files"""
-   
-   game = get_game_by_uuid(game_uuid)
-   if not game:
-       flash("Game not found", "error")
-       return redirect(url_for('main.discover'))
+    """Handle downloads for update and extra files"""
+    
+    # Validate file_type
+    if file_type not in ['update', 'extra']:
+        flash("Invalid file type", "error")
+        return redirect(url_for('main.game_details', game_uuid=game_uuid))
 
-   # Determine which model to use based on file_type
-   if file_type not in ['update', 'extra']:
-       flash("Invalid file type", "error")
-       return redirect(url_for('main.game_details', game_uuid=game_uuid))
+    # Select the appropriate model based on file_type
+    FileModel = GameUpdate if file_type == 'update' else GameExtra
 
-   FileModel = GameUpdate if file_type == 'update' else GameExtra
-   file_record = FileModel.query.filter_by(id=file_id, game_uuid=game_uuid).first()
-   
-   if not file_record:
-       flash(f"{file_type.capitalize()} file not found", "error")
-       return redirect(url_for('main.game_details', game_uuid=game_uuid))
+    # Fetch the file record
+    file_record = FileModel.query.filter_by(id=file_id, game_uuid=game_uuid).first()
+    
+    if not file_record:
+        flash(f"{file_type.capitalize()} file not found", "error")
+        return redirect(url_for('main.game_details', game_uuid=game_uuid))
 
-   # Check if path exists and is valid
-   if not os.path.exists(file_record.file_path):
-       flash("File not found on disk", "error")
-       return redirect(url_for('main.game_details', game_uuid=game_uuid))
+    # Check if the file or folder exists
+    if not os.path.exists(file_record.file_path):
+        flash("File not found on disk", "error")
+        return redirect(url_for('main.game_details', game_uuid=game_uuid))
 
-   # Check for existing download request
-   existing_request = DownloadRequest.query.filter_by(
-       user_id=current_user.id,
-       file_location=file_record.file_path
-   ).first()
+    # Check for an existing download request
+    existing_request = DownloadRequest.query.filter_by(
+        user_id=current_user.id,
+        file_location=file_record.file_path
+    ).first()
 
-   if existing_request:
-       flash("You already have a download request for this file", "info")
-       return redirect(url_for('main.downloads'))
+    if existing_request:
+        flash("You already have a download request for this file", "info")
+        return redirect(url_for('main.downloads'))
 
-   # Create new download request
-   try:
-       try:
-           file_size = os.path.getsize(file_record.file_path) if os.path.isfile(file_record.file_path) else get_folder_size_in_bytes(file_record.file_path)
-       except OSError:
-           flash("Error accessing file", "error")
-           return redirect(url_for('main.game_details', game_uuid=game_uuid))
-       
-       # For zip files, use direct file path; for folders, create zip path
-       if os.path.isfile(file_record.file_path) and file_record.file_path.lower().endswith('.zip'):
-           zip_file_path = file_record.file_path
-           status = 'available'  # Direct download for existing zip files
-       else:
-           zip_file_path = os.path.join(current_app.config['ZIP_SAVE_PATH'], f"{os.path.basename(file_record.file_path)}.zip")
-           status = 'processing'  # Need to create zip file
+    try:
+        # Determine if the path is a file or a directory
+        if os.path.isfile(file_record.file_path):
+            # If it's already a zip file, set it as available
+            if file_record.file_path.lower().endswith('.zip'):
+                zip_file_path = file_record.file_path
+                status = 'available'
+            else:
+                # For single files that aren't zips, create a zip
+                zip_file_path = os.path.join(current_app.config['ZIP_SAVE_PATH'], f"{uuid4()}_{os.path.basename(file_record.file_path)}.zip")
+                status = 'processing'
+        else:
+            # It's a directory; create a zip
+            zip_file_path = os.path.join(current_app.config['ZIP_SAVE_PATH'], f"{uuid4()}_{os.path.basename(file_record.file_path)}.zip")
+            status = 'processing'
 
-       new_request = DownloadRequest(
-           user_id=current_user.id,
-           game_uuid=game_uuid,
-           status=status,
-           download_size=file_size,
-           file_location=file_record.file_path,
-           zip_file_path=zip_file_path
-       )
-       
-       db.session.add(new_request)
-       file_record.times_downloaded += 1
-       db.session.commit()
+        # Create a new download request
+        new_request = DownloadRequest(
+            user_id=current_user.id,
+            game_uuid=game_uuid,
+            status=status,
+            download_size=0,  # Will be set after zipping
+            file_location=file_record.file_path,
+            zip_file_path=zip_file_path
+        )
+        
+        db.session.add(new_request)
+        file_record.times_downloaded += 1
+        db.session.commit()
 
-   except SQLAlchemyError:
-       db.session.rollback()
-       flash("Database error occurred", "error")
-       return redirect(url_for('main.game_details', game_uuid=game_uuid))
+    except SQLAlchemyError:
+        db.session.rollback()
+        flash("Database error occurred", "error")
+        return redirect(url_for('main.game_details', game_uuid=game_uuid))
 
-   # Start download process in background
-   @copy_current_request_context
-   def process_download():
-       try:
-           if os.path.isfile(file_record.file_path):
-               update_download_request(new_request, 'available', file_record.file_path)
-           else:
-               zip_folder(new_request.id, current_app._get_current_object(), file_record.file_path, os.path.basename(file_record.file_path))
-       except Exception as e:
-           with current_app.app_context():
-               update_download_request(new_request, 'failed', str(e))
+    # Start the download process in a background thread
+    @copy_current_request_context
+    def process_download():
+        try:
+            import zipfile
+            if os.path.isfile(file_record.file_path):
+                if file_record.file_path.lower().endswith('.zip'):
+                    # Directly mark as available
+                    update_download_request(new_request, 'available', file_record.file_path)
+                else:
+                    # Zip the single file
+                    with zipfile.ZipFile(zip_file_path, 'w') as zipf:
+                        zipf.write(file_record.file_path, arcname=os.path.basename(file_record.file_path))
+                    new_request.download_size = os.path.getsize(zip_file_path)
+                    update_download_request(new_request, 'available', zip_file_path)
+            else:
+                # Zip the entire directory
+                with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                    for root, dirs, files in os.walk(file_record.file_path):
+                        for file in files:
+                            abs_file_path = os.path.join(root, file)
+                            relative_path = os.path.relpath(abs_file_path, os.path.dirname(file_record.file_path))
+                            zipf.write(abs_file_path, arcname=relative_path)
+                new_request.download_size = os.path.getsize(zip_file_path)
+                update_download_request(new_request, 'available', zip_file_path)
+        except Exception as e:
+            with current_app.app_context():
+                update_download_request(new_request, 'failed', str(e))
+            print(f"Error during download processing: {e}")
 
-   thread = Thread(target=process_download)
-   thread.start()
+    thread = Thread(target=process_download)
+    thread.start()
 
-   flash("Your download request is being processed", "info")
-   return redirect(url_for('main.downloads'))
+    flash("Your download request is being processed. You will be notified when it's ready.", "info")
+    return redirect(url_for('main.downloads'))
+
 
 @bp.route('/download_file/<file_location>/<file_size>/<game_uuid>/<file_name>', methods=['GET'])
 @login_required
