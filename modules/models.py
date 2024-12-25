@@ -227,6 +227,7 @@ class Game(db.Model):
     summary = db.Column(db.Text, nullable=True)
     storyline = db.Column(db.Text, nullable=True)
     updates = db.relationship('GameUpdate', back_populates='game', cascade='all, delete-orphan')
+    extras = db.relationship('GameExtra', back_populates='game', cascade='all, delete-orphan')
     aggregated_rating = db.Column(db.Float)
     aggregated_rating_count = db.Column(db.Integer)
     cover = db.Column(db.String)
@@ -285,7 +286,21 @@ class GameUpdate(db.Model):
     def __repr__(self):
         return f"<GameUpdate id={self.id}, uuid={self.uuid}, game_uuid={self.game_uuid}>"
     
+class GameExtra(db.Model):
+    __tablename__ = 'game_extras'
 
+    id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(36), default=lambda: str(uuid4()), unique=True, nullable=False)
+    game_uuid = db.Column(db.String(36), db.ForeignKey('games.uuid'), nullable=False)
+    times_downloaded = db.Column(db.Integer, default=0)
+    nfo_content = db.Column(db.Text, nullable=True)
+    file_path = db.Column(db.String, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    game = db.relationship('Game', back_populates='extras')
+
+    def __repr__(self):
+        return f"<GameExtra id={self.id}, uuid={self.uuid}, game_uuid={self.game_uuid}>"
 
 
 class GameURL(db.Model):

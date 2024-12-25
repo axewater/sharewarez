@@ -768,10 +768,20 @@ def process_game_extras(game_name, full_disk_path, extras_folder, library_uuid):
         if extra_item.lower().endswith(('.nfo', '.sfv')):
             continue
 
-        if os.path.isfile(extra_path):
-            print(f"Single file extra: {extra_path}")
+        # Create or update GameExtra record
+        game_extra = GameExtra.query.filter_by(game_uuid=game.uuid, file_path=extra_path).first()
+        if not game_extra:
+            print(f"Creating new GameExtra record for {extra_path}")
+            game_extra = GameExtra(
+                game_uuid=game.uuid,
+                file_path=extra_path,
+                nfo_content=read_first_nfo_content(os.path.dirname(extra_path))
+            )
+            db.session.add(game_extra)
         else:
-            print(f"Directory extra: {extra_path}")
+            print(f"Updating existing GameExtra record for {extra_path}")
+            game_extra.file_path = extra_path
+            game_extra.nfo_content = read_first_nfo_content(os.path.dirname(extra_path))
 
     try:
         db.session.commit()
@@ -781,8 +791,6 @@ def process_game_extras(game_name, full_disk_path, extras_folder, library_uuid):
         db.session.rollback()
 
     print(f"Finished processing extras for game: {game_name}")
-
-
 
 
 def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
