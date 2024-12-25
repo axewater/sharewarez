@@ -3,39 +3,30 @@
 
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_manage_filters.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_manage_filters.css') }}">
-{% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_filters.css') }}">
-{% endif %}
-
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-    <div class="alert alert-info" role="alert">
-        {% for message in messages %}
-            {{ message }}<br>
-        {% endfor %}
+<div class="container">
+    <div class="glass-panel">
+        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary mb-3">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
     </div>
-{% endif %}
-{% endwith %}
-<div class="glass-panel">
-    <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
 </div>
-<div class="admin_manage_filters-panel glass-panel">
 
-    <div class="admin_manage_filters-header">
-		<h2>Edit Release Group Filters</h2>
-	</div>
-    <form action="" method="post">
+<div class="admin_manage_filters-panel glass-panel" style="background-color: rgba(0, 0, 0, 0.6);">
+    <div class="admin_manage_filters-header" style="background-color: rgba(40, 40, 40, 0.8); padding: 15px; border-radius: 8px;">
+        <h2><i class="fas fa-filter"></i> Release Group Filters</h2>
+        <p>Manage release group patterns to improve scanning speed.</p>
+    </div>
+
+    <form action="" method="post" class="row">
         {{ form.hidden_tag() }}
-        <div class="admin_manage_filters-form-group form-group">
-            {{ form.rlsgroup.label }} {{ form.rlsgroup() }}
+        <div class="admin_manage_filters-form-group form-group col-md-8">
+            {{ form.rlsgroup.label }} {{ form.rlsgroup(class="form-control") }}
         </div>
-        <div class="admin_manage_filters-form-group-case form-group">
-            {{ form.rlsgroupcs.label }} {{ form.rlsgroupcs() }}
+        <div class="admin_manage_filters-form-group-case form-group col-md-4">
+            {{ form.rlsgroupcs.label }} {{ form.rlsgroupcs(class="form-check-input") }}
         </div>
         <div class="admin_manage_filters-form-submit form-group">
-            {{ form.submit() }}
+            {{ form.submit(class="btn btn-primary") }}
         </div>
     </form>
     <hr>
@@ -43,20 +34,33 @@
     <table class="admin_manage_filters-table table table-striped table-hover">
         <thead>
             <tr>
-                <th>Release Group</th>
-                <th>CS</th>
-                <th>Actions</th>
+                <th width="60%">Release Group Pattern</th>
+                <th width="20%">Case Sensitive</th>
+                <th width="20%">Actions</th>
             </tr>
         </thead>
         <tbody>
         {% for group in groups %}
             <tr>
                 <td>{{ group.rlsgroup }}</td>
-                <td>CS: {{ group.rlsgroupcs }}</td>
-                <td><a href="{{ url_for('main.delete_filter', id=group.id) }}" class="admin_manage_filters-remove-btn btn btn-danger btn-sm">Remove</a></td>
+                <td>
+                    <span class="badge {% if group.rlsgroupcs %}bg-success{% else %}bg-secondary{% endif %}">
+                        {{ 'Yes' if group.rlsgroupcs else 'No' }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{{ url_for('main.delete_filter', id=group.id) }}" class="admin_manage_filters-remove-btn btn btn-danger btn-sm"><i class="fas fa-trash"></i> Remove</a>
+                </td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 </div>
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin_manage_filters.js') %}
+    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin_manage_filters.js') }}"></script>
+{% else %}
+    <script src="{{ url_for('static', filename='library/themes/default/js/admin_manage_filters.js') }}"></script>
+{% endif %}
+
 {% endblock %}
