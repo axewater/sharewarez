@@ -1,22 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
 
+<meta name="csrf-token" content="{{ csrf_token() }}">
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_smtp_settings.css') == True %}
     <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_smtp_settings.css') }}">
 {% else %}
     <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_smtp_settings.css') }}">
 {% endif %}
-
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="alert alert-info" role="alert">
+        {% for message in messages %}
+            {{ message }}<br>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
     <div class="smtp-settings-container">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="alert alert-info" role="alert">
-                {% for message in messages %}
-                    {{ message }}<br>
-                {% endfor %}
-            </div>
-        {% endif %}
-        {% endwith %}
+
         <h2>SMTP Settings <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#smtpHelpModal">
             <i class="fas fa-question-circle"></i> Help
         </button></h2>
@@ -65,8 +66,8 @@
         {% endif %}
         
         <div class="button-group">
-            <button class="btn btn-primary">Save Settings</button>
-            <button class="btn btn-secondary">Test Connection</button>
+            <button type="button" class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+            <button type="button" class="btn btn-secondary" onclick="testSettings()">Test Connection</button>
         </div>
     </div>
 </div>
