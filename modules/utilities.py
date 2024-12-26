@@ -17,7 +17,7 @@ from modules.models import (
     category_mapping, status_mapping, player_perspective_mapping, GlobalSettings
 )
 from modules import db, mail
-from modules.functions import website_category_to_string, PLATFORM_IDS
+from modules.functions import website_category_to_string, PLATFORM_IDS, load_release_group_patterns
 from modules.igdb_api import make_igdb_api_request, get_cover_url
 from sqlalchemy import func, String
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError

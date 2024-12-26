@@ -41,6 +41,24 @@ th {
     margin-bottom: 20px; /* Adjust spacing as needed */
 }
 
+/* Selection container for horizontal layout */
+.selection-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+/* Adjust form groups within selection container */
+.selection-container .form-group {
+    flex: 1;
+    min-width: 200px;
+    margin-bottom: 0;
+}
+
 /* Control width of the library dropdown */
 #libraryUuid {
     width: auto; /* Adjust to make it fit content or set a max-width */
@@ -91,7 +109,8 @@ th {
 .scanandbrowse {
     
     padding: 5px;
-    
+    background: #495057;
+    border-radius: 15px;
 }
 
 
