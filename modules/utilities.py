@@ -18,7 +18,7 @@ from modules.models import (
 )
 from modules import db, mail
 from modules.functions import website_category_to_string, PLATFORM_IDS
-from modules.igdb_api import make_igdb_api_request
+from modules.igdb_api import make_igdb_api_request, get_cover_url
 from sqlalchemy import func, String
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from flask import current_app
@@ -810,59 +810,6 @@ def get_game_by_full_disk_path(path, file_path):
 
 
 
-def get_cover_thumbnail_url(igdb_id):
-    """
-    Takes an IGDB ID number and returns the URL to the cover thumbnail.
-
-    Parameters:
-    igdb_id (int): The IGDB ID of the game.
-
-    Returns:
-    str: The URL of the cover thumbnail, or None if not found.
-    """
-    cover_query = f'fields url; where game={igdb_id};'
-    response = make_igdb_api_request('https://api.igdb.com/v4/covers', cover_query)
-
-    if response and 'error' not in response and len(response) > 0:
-        cover_url = response[0].get('url')
-        if cover_url:
-
-            return 'https:' + cover_url
-        else:
-            print(f"No cover URL found for IGDB ID {igdb_id}.")
-    else:
-        print(f"Failed to retrieve cover for IGDB ID {igdb_id}. Response: {response}")
-
-    return None
-    
-def get_cover_url(igdb_id):
-    """
-    Takes an IGDB ID number and returns the cover URL to the cover.
-
-    Parameters:
-    igdb_id (int): The IGDB ID of the game.
-
-    Returns:
-    str: The cover URL of the cover image, or None if not found.
-    """
-    cover_query = f'fields image_id; where game={igdb_id};'
-    response = make_igdb_api_request('https://api.igdb.com/v4/covers', cover_query)
-
-    if response and 'error' not in response and len(response) > 0:
-        cover_image_id = response[0].get('image_id')
-        if cover_image_id:
-
-            return 'https://images.igdb.com/igdb/image/upload/t_cover_big_2x/' + cover_image_id + '.jpg'
-        else:
-            print(f"No cover image ID found for IGDB ID {igdb_id}.")
-    else:
-        print(f"Failed to retrieve cover image ID for IGDB ID {igdb_id}. Response: {response}")
-
-    return None
-
-
-
-
 def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remove_missing=False):
     settings = GlobalSettings.query.first()
     update_folder_name = settings.update_folder_name if settings else 'updates'
@@ -1531,32 +1478,6 @@ def notifications_manager(path, event, game_uuid=None):
             # add embed object to webhook
             webhook.add_embed(embed)
             response = webhook.execute()
-    
-def get_library_by_uuid(uuid):
-    print(f"Searching for Library UUID: {uuid}")
-    library = Library.query.filter_by(uuid=uuid).first()
-    if library:
-        print(f"Library with name {library.name} and UUID {library.uuid} found")
-        return library
-    else:
-        print("Library not found")
-        return None
-        
-def get_game_name_by_uuid(uuid):
-    print(f"Searching for game UUID: {uuid}")
-    game = Game.query.filter_by(uuid=uuid).first()
-    if game:
-        print(f"Game with name {game.name} and UUID {game.uuid} found")
-        return game.name
-    else:
-        print("Game not found")
-        return None
-        
-def update_game_size(game_uuid, size):
-    game = get_game_by_uuid(game_uuid)
-    game.size = size
-    db.session.commit()
-    return None
 
 def remove_from_lib(game_uuid):
     """
