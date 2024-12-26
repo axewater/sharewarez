@@ -1,18 +1,16 @@
-# /app.py
-import time
-import threading
-from modules import create_app, db
-from config import Config
-import argparse
+from modules import create_app
 from modules.updateschema import DatabaseManager
 from modules.file_monitor import FileMonitor
-import os
+import argparse
+import threading
+import os, time
 import zipfile
 import shutil
 from modules.models import User, AllowedFileType, IgnoredFileType
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from flask import current_app
+from modules.extensions import db
 
 # Add argument parser
 parser = argparse.ArgumentParser(description='SharewareZ Application')
