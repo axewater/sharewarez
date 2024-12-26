@@ -1,6 +1,6 @@
 import smtplib, socket, traceback
 from email.message import EmailMessage
-from flask import flash, current_app
+from flask import flash, current_app, url_for
 from modules.models import GlobalSettings
 
 def get_smtp_settings():
@@ -183,3 +183,21 @@ def send_email(to, subject, template):
     
     print("=== Email Send Process Failed ===\n")
     return False
+
+
+def send_password_reset_email(user_email, token):
+    reset_url = url_for('main.reset_password', token=token, _external=True)
+    html = f'''<p>Ahoy there!</p>
+
+<p>Ye be wantin' to reset yer password, aye? No worries, we got ye covered! Jus' click on the link below to set a new course for yer password:</p>
+
+<p><a href="{reset_url}">Password Reset Link</a></p>
+
+<p>If ye didn't request this, ye can just ignore this message and continue sailin' the digital seas.</p>
+
+<p>Fair winds and followin' seas,</p>
+
+<p>Captain Blackbeard</p>'''
+
+    subject = "Ye Password Reset Request Arrr!"
+    send_email(user_email, subject, html)

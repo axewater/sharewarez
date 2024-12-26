@@ -11,12 +11,14 @@ from modules.functions import (
     download_image
 )
 from modules.models import (
-    User, User, ReleaseGroup, Game, Image, DownloadRequest, Platform, Genre, 
+    User, Game, Image, DownloadRequest, Platform, Genre, 
     Publisher, Developer, GameURL, Library, GameUpdate, AllowedFileType, 
     Theme, GameMode, PlayerPerspective, ScanJob, UnmatchedFolder, GameExtra,
     category_mapping, status_mapping, player_perspective_mapping, GlobalSettings
 )
 from modules import db, mail
+from modules.functions import website_category_to_string, PLATFORM_IDS
+from modules.igdb_api import make_igdb_api_request
 from sqlalchemy import func, String
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from flask import current_app
@@ -24,26 +26,6 @@ from PIL import Image as PILImage
 from datetime import datetime
 from wtforms.validators import ValidationError
 from discord_webhook import DiscordWebhook, DiscordEmbed
-from modules.smtp_utils import send_email
-
-def send_password_reset_email(user_email, token):
-    reset_url = url_for('main.reset_password', token=token, _external=True)
-    html = f'''<p>Ahoy there!</p>
-
-<p>Ye be wantin' to reset yer password, aye? No worries, we got ye covered! Jus' click on the link below to set a new course for yer password:</p>
-
-<p><a href="{reset_url}">Password Reset Link</a></p>
-
-<p>If ye didn't request this, ye can just ignore this message and continue sailin' the digital seas.</p>
-
-<p>Fair winds and followin' seas,</p>
-
-<p>Captain Blackbeard</p>'''
-
-    subject = "Ye Password Reset Request Arrr!"
-    send_email(user_email, subject, html)
-
-
 
 def _authenticate_and_redirect(username, password):
     user = User.query.filter(func.lower(User.name) == func.lower(username)).first()
@@ -95,13 +77,10 @@ def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_u
         status_enum = status_mapping.get(status_id, None)
         player_perspective_id = game_data.get('player_perspective')
         player_perspective_enum = player_perspective_mapping.get(player_perspective_id, None)
-        # print(f"create_game_instance Player perspective ID: {player_perspective_id}, Enum: {player_perspective_enum}")
         if 'videos' in game_data:
-            # print(f"create_game_instance Videos found for '{game_data.get('name')}'.")
             video_urls = [f"https://www.youtube.com/watch?v={video['video_id']}" for video in game_data['videos']]
             videos_comma_separated = ','.join(video_urls)
         else:
-            # print(f"create_game_instance No videos found for '{game_data.get('name')}'.")
             videos_comma_separated = ""
             
         print(f"create_game_instance Creating game instance for '{game_data.get('name')}' with UUID: {game_data.get('id')} in library '{library.name}' on platform '{library.platform.name}'.")
@@ -132,12 +111,8 @@ def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_u
         )
         
         db.session.add(new_game)
-        db.session.flush()
-        
-        # print(f"create_game_instance Game instance created for '{new_game.name}' with UUID: {new_game.uuid}. Proceeding to fetch URLs.")
-        
+        db.session.flush()        
         fetch_and_store_game_urls(new_game.uuid, game_data['id'])
-        
         print(f"create_game_instance Finished processing game '{new_game.name}'. URLs (if any) have been fetched and stored.")
         if settings.discord_webhook_url and settings.discord_notify_new_games:
             notifications_manager(None, "newgame", new_game.uuid)
@@ -151,15 +126,11 @@ def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_u
 
 def fetch_and_store_game_urls(game_uuid, igdb_id):
     try:
-        website_query = f'fields url, category; where game={igdb_id};'
-        # print(f"Fetching URLs for game IGDB ID {igdb_id} with query: {website_query}.")
-        
+        website_query = f'fields url, category; where game={igdb_id};'        
         websites_response = make_igdb_api_request('https://api.igdb.com/v4/websites', website_query)
         
         if websites_response and 'error' not in websites_response:
-            # print(f"Retrieved URLs for game IGDB ID {igdb_id} : {websites_response}.")
             for website in websites_response:
-                # print(f"Storing URL: {website.get('url')}, Category: {website.get('category')}.")
                 
                 new_url = GameURL(
                     game_uuid=game_uuid,
@@ -224,73 +195,6 @@ def process_and_save_image(game_uuid, image_data, image_type='cover'):
         )
         db.session.add(image)
     
-
-def website_category_to_string(category_id):
-    # Mapping based on IGDB API documentation for website categories
-    category_mapping = {
-        1: "official",
-        2: "wikia",
-        3: "wikipedia",
-        4: "facebook",
-        5: "twitter",
-        6: "twitch",
-        8: "instagram",
-        9: "youtube",
-        10: "iphone",
-        11: "ipad",
-        12: "android",
-        13: "steam",
-        14: "reddit",
-        15: "itch",
-        16: "epicgames",
-        17: "gog",
-        18: "discord"
-    }
-    return category_mapping.get(category_id, "unknown")
-
-PLATFORM_IDS = {
-    "PCWIN": 6,
-    "PCDOS": 13,
-    "N64": 4,
-    "GB": 33,
-    "GBA": 24,
-    "NDS": 20,
-    "NES": 18,
-    "SNES": 19,
-    "NGC" : 21,
-    "XBOX": 11,
-    "X360": 12,
-    "XONE": 49,
-    "XSX": 169,
-    "PSX": 7,
-    "PS2": 8,
-    "PS3": 9,
-    "PS4": 48,
-    "PS5": 167,
-    "PSP": 38,
-    "VB": 87,
-    "SEGA_MD": 29,
-    "SEGA_MS": 86,
-    "SEGA_CD": 78,
-    "LYNX": 61,
-    "SEGA_32X": 30,
-    "JAGUAR": 62,
-    "SEGA_GG": 35,
-    "SEGA_SATURN": 32,
-    "ATARI_7800": 60,
-    "ATARI_2600": 59,
-    "PCE": 128,
-    "PCFX": 274,
-    "NGP": 119,
-    "WS": 57,
-    "COLECO": 68,
-    "VICE_X64SC": 15,
-    "VICE_X128": 15,
-    "VICE_XVIC": 71,
-    "VICE_XPLUS4": 94,
-    "VICE_XPET": 90,
-    "OTHER": None,  # Assuming "Other/Mixed" has no specific ID
-}
 
     
 def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_uuid=None):
@@ -409,28 +313,20 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
                 videos_comma_separated = ','.join(video_urls)
                 new_game.video_urls = videos_comma_separated
             
-            # print(f"DEBUG Committing changes to database (1).")
             db.session.commit()
             print(f"Processing images for game: {new_game.name}.")
             if 'cover' in response_json[0]:
                 process_and_save_image(new_game.uuid, response_json[0]['cover'], 'cover')
-            # print(f"DEBUG Committing changes to database (2).")
             db.session.commit()
             for screenshot_id in response_json[0].get('screenshots', []):
                 process_and_save_image(new_game.uuid, screenshot_id, 'screenshot')
-            # print(f"DEBUG Committing changes to database (3).")
             db.session.commit()
             try:
                 new_game.nfo_content = nfo_content
                 for column in new_game.__table__.columns:
                     attr = getattr(new_game, column.name)
-
-
-
-                # print(f"DEBUG Committing changes to database (4).")
                 db.session.commit()
                 print(f"Game and its images saved successfully : {new_game.name}.")
-                # flash("Game and its images saved successfully.")
             except IntegrityError as e:
                 db.session.rollback()
                 print(f"Failed to save game due to a database error: {e}")
@@ -441,7 +337,6 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
             pass
         print(f"IGDB match failed: {game_name} in library {library.name} on platform {library.platform.name}.")
         error_message = "No game data found for the given name or failed to retrieve data from IGDB API."
-        # print(error_message)
         flash(error_message)
         return None
  
@@ -667,39 +562,6 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
         print(f"Failed to enumerate companies due to a database error: {e}")
 
 
-
-def make_igdb_api_request(endpoint_url, query_params):
-    # Get IGDB settings from database
-    settings = GlobalSettings.query.first()
-    if not settings or not settings.igdb_client_id or not settings.igdb_client_secret:
-        return {"error": "IGDB settings not configured in database"}
-
-    access_token = get_access_token(settings.igdb_client_id, settings.igdb_client_secret) 
-
-    if not access_token:
-        return {"error": "Failed to retrieve access token"}
-
-    headers = {
-        'Client-ID': settings.igdb_client_id,
-        'Authorization': f"Bearer {access_token}"
-    }
-
-    try:
-        # print(f"make_igdb_api_request Attempting to make a request to {endpoint_url} with headers: {headers} and query: {query_params}")
-        response = requests.post(endpoint_url, headers=headers, data=query_params)
-        response.raise_for_status()
-        data = response.json()
-        # print(f"make_igdb_api_request Response from IGDB API: {data}")
-        return response.json()
-
-    except requests.RequestException as e:
-        return {"error": f"make_igdb_api_request API Request failed: {e}"}
-
-    except ValueError:
-        return {"error": "make_igdb_api_request Invalid JSON in response"}
-
-    except Exception as e:
-        return {"error": f"make_igdb_api_request An unexpected error occurred: {e}"}
     
 def zip_game(download_request_id, app, zip_file_path):
     settings = GlobalSettings.query.first()
@@ -947,20 +809,6 @@ def get_game_by_full_disk_path(path, file_path):
 
 
 
-def get_access_token(client_id, client_secret):
-    url = "https://id.twitch.tv/oauth2/token"
-    params = {
-        'client_id': client_id,
-        'client_secret': client_secret,
-        'grant_type': 'client_credentials'
-    }
-    response = requests.post(url, params=params)
-    if response.status_code == 200:
-        return response.json()['access_token']
-        # print("Access token obtained successfully")
-    else:
-        print("Failed to obtain access token")
-        return None
 
 def get_cover_thumbnail_url(igdb_id):
     """
@@ -1321,36 +1169,7 @@ def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
 
 
 
-def load_release_group_patterns():
-    try:
-        # Fetching insensitive patterns (not case-sensitive)
-        insensitive_patterns = [
-            "-" + rg.rlsgroup for rg in ReleaseGroup.query.filter(ReleaseGroup.rlsgroup != None).all()
-        ] + [
-            "." + rg.rlsgroup for rg in ReleaseGroup.query.filter(ReleaseGroup.rlsgroup != None).all()
-        ]
-        
-        # Initializing list for sensitive patterns (case-sensitive)
-        sensitive_patterns = []
-        for rg in ReleaseGroup.query.filter(ReleaseGroup.rlsgroupcs != None).all():
-            pattern = rg.rlsgroupcs
-            is_case_sensitive = False
-            if pattern.lower() == 'yes':
-                is_case_sensitive = True
-                pattern = "-" + rg.rlsgroup
-                sensitive_patterns.append((pattern, is_case_sensitive))
-                pattern = "." + rg.rlsgroup
-                sensitive_patterns.append((pattern, is_case_sensitive))
-            elif pattern.lower() == 'no':
-                pattern = "-" + rg.rlsgroup
-                sensitive_patterns.append((pattern, is_case_sensitive))
-                pattern = "." + rg.rlsgroup
-                sensitive_patterns.append((pattern, is_case_sensitive))
 
-        return insensitive_patterns, sensitive_patterns
-    except SQLAlchemyError as e:
-        print(f"An error occurred while fetching release group patterns: {e}")
-        return [], []
 
 
 def discord_webhook(game_uuid): #Used for notifying of new games.
