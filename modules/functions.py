@@ -1,0 +1,123 @@
+import os
+from PIL import Image as PILImage
+import requests
+import re
+from wtforms.validators import ValidationError
+
+def format_size(size_in_bytes):
+    """Format file size from bytes to human-readable format."""
+    try:
+        if size_in_bytes is None:
+            return '0 MB'
+        units = ['KB', 'MB', 'GB', 'TB', 'PB', 'EB']
+        size = size_in_bytes / 1024  # Start with KB
+        unit_index = 0
+        while size >= 1024 and unit_index < len(units) - 1:
+            size /= 1024
+            unit_index += 1
+        return f"{size:.2f} {units[unit_index]}"
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return '0 MB'
+
+def escape_special_characters(pattern):
+    """Escape special characters in the pattern to prevent regex errors."""
+    if not isinstance(pattern, str):
+        pattern = str(pattern)
+    return re.escape(pattern)
+
+def square_image(image, size):
+    """Create a square image with the given size."""
+    image.thumbnail((size, size))
+    if image.size[0] != size or image.size[1] != size:
+        new_image = PILImage.new('RGB', (size, size), color='black')
+        offset = ((size - image.size[0]) // 2, (size - image.size[1]) // 2)
+        new_image.paste(image, offset)
+        image = new_image
+    return image
+
+def get_folder_size_in_bytes(folder_path):
+    """Calculate the total size of a folder in bytes."""
+    if os.path.isfile(folder_path):
+        return os.path.getsize(folder_path)
+    
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(folder_path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            if os.path.exists(fp):
+                total_size += os.path.getsize(fp)
+    return max(total_size, 1)
+
+def read_first_nfo_content(full_disk_path):
+    """Read the content of the first NFO file found in the given path."""
+    print(f"Searching for NFO file in: {full_disk_path}")
+    
+    if os.path.isfile(full_disk_path):
+        print("Path is a file, not a directory. Skipping NFO scan.")
+        return None
+        
+    try:
+        for file in os.listdir(full_disk_path):
+            if file.lower().endswith('.nfo'):
+                nfo_path = os.path.join(full_disk_path, file)
+                print(f"Found NFO file: {nfo_path}")
+                
+                try:
+                    with open(nfo_path, 'r', encoding='utf-8', errors='ignore') as nfo_file:
+                        content = nfo_file.read()
+                        sanitized_content = content.replace('\x00', '')
+                        print(f"Successfully read NFO content (length: {len(sanitized_content)})")
+                        return sanitized_content
+                except Exception as e:
+                    print(f"Error reading NFO file {nfo_path}: {str(e)}")
+                    continue
+                    
+    except Exception as e:
+        print(f"Error accessing directory {full_disk_path}: {str(e)}")
+    
+    print("No NFO file found")
+    return None
+
+def download_image(url, save_path):
+    """Download an image from a URL and save it to the specified path."""
+    if not url.startswith(('http://', 'https://')):
+        url = 'https:' + url
+
+    url = url.replace('/t_thumb/', '/t_original/')
+
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            directory = os.path.dirname(save_path)
+
+            if not os.path.exists(directory):
+                print(f"'{directory}' does not exist. Attempting to create it.")
+                try:
+                    os.makedirs(directory, exist_ok=True)
+                    print(f"Successfully created the directory '{directory}'.")
+                except Exception as e:
+                    print(f"Failed to create the directory '{directory}': {e}")
+                    return
+
+            if os.access(directory, os.W_OK):
+                with open(save_path, 'wb') as f:
+                    f.write(response.content)
+            else:
+                print(f"Error: The directory '{directory}' is not writable.")
+        else:
+            print(f"Failed to download the image. Status Code: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print(f"Error downloading image from {url}: {e}")
+    except Exception as e:
+        print(f"An error occurred while saving the image to {save_path}: {e}")
+
+def comma_separated_urls(form, field):
+    """Validate comma-separated YouTube embed URLs."""
+    urls = field.data.split(',')
+    url_pattern = re.compile(
+        r'^(https?:\/\/)?(www\.)?youtube\.com\/embed\/[\w-]+$'
+    )
+    for url in urls:
+        if not url_pattern.match(url.strip()):
+            raise ValidationError('One or more URLs are invalid. Please provide valid YouTube embed URLs.')
