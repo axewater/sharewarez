@@ -7,9 +7,8 @@ from datetime import datetime
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from modules.functions import (
-    format_size, escape_special_characters, square_image,
-    get_folder_size_in_bytes, read_first_nfo_content,
-    download_image, comma_separated_urls
+    format_size, get_folder_size_in_bytes, read_first_nfo_content,
+    download_image
 )
 from modules.models import (
     User, User, ReleaseGroup, Game, Image, DownloadRequest, Platform, Genre, 
@@ -1140,8 +1139,6 @@ def get_game_by_full_disk_path(path, file_path):
             return None
 
 
-def escape_special_characters(pattern):
-    return re.escape(pattern)
 
 def get_access_token(client_id, client_secret):
     url = "https://id.twitch.tv/oauth2/token"
@@ -1487,7 +1484,7 @@ def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
 
     # Remove known release group patterns
     for pattern in insensitive_patterns:
-        escaped_pattern = re.escape(pattern)  # Assume escape_special_characters is similar to re.escape
+        escaped_pattern = re.escape(pattern)
         filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename, flags=re.IGNORECASE)
 
     for pattern, is_case_sensitive in sensitive_patterns:
