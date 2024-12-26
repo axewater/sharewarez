@@ -3,6 +3,9 @@ from PIL import Image as PILImage
 import requests
 import re
 from wtforms.validators import ValidationError
+from modules import db
+from modules.models import ReleaseGroup
+from sqlalchemy.exc import SQLAlchemyError
 
 def format_size(size_in_bytes):
     """Format file size from bytes to human-readable format."""
@@ -116,3 +119,103 @@ def comma_separated_urls(form, field):
     for url in urls:
         if not url_pattern.match(url.strip()):
             raise ValidationError('One or more URLs are invalid. Please provide valid YouTube embed URLs.')
+
+
+def website_category_to_string(category_id):
+    # Mapping based on IGDB API documentation for website categories
+    category_mapping = {
+        1: "official",
+        2: "wikia",
+        3: "wikipedia",
+        4: "facebook",
+        5: "twitter",
+        6: "twitch",
+        8: "instagram",
+        9: "youtube",
+        10: "iphone",
+        11: "ipad",
+        12: "android",
+        13: "steam",
+        14: "reddit",
+        15: "itch",
+        16: "epicgames",
+        17: "gog",
+        18: "discord"
+    }
+    return category_mapping.get(category_id, "unknown")
+
+PLATFORM_IDS = {
+    "PCWIN": 6,
+    "PCDOS": 13,
+    "N64": 4,
+    "GB": 33,
+    "GBA": 24,
+    "NDS": 20,
+    "NES": 18,
+    "SNES": 19,
+    "NGC" : 21,
+    "XBOX": 11,
+    "X360": 12,
+    "XONE": 49,
+    "XSX": 169,
+    "PSX": 7,
+    "PS2": 8,
+    "PS3": 9,
+    "PS4": 48,
+    "PS5": 167,
+    "PSP": 38,
+    "VB": 87,
+    "SEGA_MD": 29,
+    "SEGA_MS": 86,
+    "SEGA_CD": 78,
+    "LYNX": 61,
+    "SEGA_32X": 30,
+    "JAGUAR": 62,
+    "SEGA_GG": 35,
+    "SEGA_SATURN": 32,
+    "ATARI_7800": 60,
+    "ATARI_2600": 59,
+    "PCE": 128,
+    "PCFX": 274,
+    "NGP": 119,
+    "WS": 57,
+    "COLECO": 68,
+    "VICE_X64SC": 15,
+    "VICE_X128": 15,
+    "VICE_XVIC": 71,
+    "VICE_XPLUS4": 94,
+    "VICE_XPET": 90,
+    "OTHER": None,  # Assuming "Other/Mixed" has no specific ID
+}
+
+
+def load_release_group_patterns():
+    try:
+        # Fetching insensitive patterns (not case-sensitive)
+        insensitive_patterns = [
+            "-" + rg.rlsgroup for rg in ReleaseGroup.query.filter(ReleaseGroup.rlsgroup != None).all()
+        ] + [
+            "." + rg.rlsgroup for rg in ReleaseGroup.query.filter(ReleaseGroup.rlsgroup != None).all()
+        ]
+        
+        # Initializing list for sensitive patterns (case-sensitive)
+        sensitive_patterns = []
+        for rg in ReleaseGroup.query.filter(ReleaseGroup.rlsgroupcs != None).all():
+            pattern = rg.rlsgroupcs
+            is_case_sensitive = False
+            if pattern.lower() == 'yes':
+                is_case_sensitive = True
+                pattern = "-" + rg.rlsgroup
+                sensitive_patterns.append((pattern, is_case_sensitive))
+                pattern = "." + rg.rlsgroup
+                sensitive_patterns.append((pattern, is_case_sensitive))
+            elif pattern.lower() == 'no':
+                pattern = "-" + rg.rlsgroup
+                sensitive_patterns.append((pattern, is_case_sensitive))
+                pattern = "." + rg.rlsgroup
+                sensitive_patterns.append((pattern, is_case_sensitive))
+
+        return insensitive_patterns, sensitive_patterns
+    except SQLAlchemyError as e:
+        print(f"An error occurred while fetching release group patterns: {e}")
+        return [], []

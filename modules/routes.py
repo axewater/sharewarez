@@ -28,7 +28,7 @@ from .utilities import get_game_name_by_uuid
 
 from modules.forms import (
     UserPasswordForm, EditProfileForm, NewsletterForm, WhitelistForm, 
-    ScanFolderForm, IGDBApiForm, ClearDownloadRequestsForm, CsrfProtectForm, 
+    ScanFolderForm, ClearDownloadRequestsForm, CsrfProtectForm, 
     AddGameForm, LoginForm, ResetPasswordRequestForm, AutoScanForm, UpdateUnmatchedFolderForm, 
     ReleaseGroupForm, RegistrationForm, UserPreferencesForm, InviteForm, LibraryForm, CsrfForm,
     ThemeUploadForm, SetupForm, IGDBSetupForm
@@ -39,12 +39,12 @@ from modules.models import (
     Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, LibraryPlatform, AllowedFileType, IgnoredFileType
 )
 from modules.utilities import (
-    admin_required, _authenticate_and_redirect, refresh_images_in_background, send_password_reset_email,
-    get_game_by_uuid, make_igdb_api_request, load_release_group_patterns, check_existing_game_by_igdb_id,
+    admin_required, _authenticate_and_redirect, refresh_images_in_background, 
+    get_game_by_uuid, make_igdb_api_request, check_existing_game_by_igdb_id,
     get_game_names_from_folder, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_files, update_download_request,
     zip_game, zip_folder, format_size, delete_game_images, read_first_nfo_content, get_folder_size_in_bytes, get_folder_size_in_bytes_updates, PLATFORM_IDS
 )
-from modules.smtp_utils import send_email
+from modules.smtp_utils import send_email, send_password_reset_email
 from modules.theme_manager import ThemeManager
 from modules.smtp_test import SMTPTester
 from modules.functions import square_image
