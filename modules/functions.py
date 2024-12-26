@@ -20,11 +20,6 @@ def format_size(size_in_bytes):
         print(f"An error occurred: {e}")
         return '0 MB'
 
-def escape_special_characters(pattern):
-    """Escape special characters in the pattern to prevent regex errors."""
-    if not isinstance(pattern, str):
-        pattern = str(pattern)
-    return re.escape(pattern)
 
 def square_image(image, size):
     """Create a square image with the given size."""
