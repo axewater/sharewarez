@@ -6,6 +6,11 @@ from flask_login import current_user, login_user
 from datetime import datetime
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
+from modules.functions import (
+    format_size, escape_special_characters, square_image,
+    get_folder_size_in_bytes, read_first_nfo_content,
+    download_image, comma_separated_urls
+)
 from modules.models import (
     User, User, ReleaseGroup, Game, Image, DownloadRequest, Platform, Genre, 
     Publisher, Developer, GameURL, Library, GameUpdate, AllowedFileType, 
@@ -890,47 +895,6 @@ def make_igdb_api_request(endpoint_url, query_params):
     except Exception as e:
         return {"error": f"make_igdb_api_request An unexpected error occurred: {e}"}
     
-
-def download_image(url, save_path):
-    # Ensure the URL starts with http:// or https://
-    if not url.startswith(('http://', 'https://')):
-        url = 'https:' + url
-
-    # Replace thumbnail image path with original image path
-    url = url.replace('/t_thumb/', '/t_original/')
-
-    # Attempt to download the image
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            # Extract the directory path from the save_path
-            directory = os.path.dirname(save_path)
-
-            # Ensure the 'library/images' directory exists
-            if not os.path.exists(directory):
-                print(f"'{directory}' does not exist. Attempting to create it.")
-                try:
-                    os.makedirs(directory, exist_ok=True)
-                    print(f"Successfully created the directory '{directory}'.")
-                except Exception as e:
-                    print(f"Failed to create the directory '{directory}': {e}")
-                    return  # Stop execution if we can't create the directory
-
-            if os.access(directory, os.W_OK):
-                with open(save_path, 'wb') as f:
-                    f.write(response.content)
-                # print(f"Image successfully saved to {save_path}")
-            else:
-                print(f"Error: The directory '{directory}' is not writable. Please check permissions.")
-        else:
-            print(f"Failed to download the image. Status Code: {response.status_code}")
-    except requests.exceptions.RequestException as e:
-        print(f"Error downloading image from {url}: {e}")
-    except Exception as e:
-        # Catch any other exceptions, such as permissions issues, and print a user-friendly message
-        print(f"An error occurred while saving the image to {save_path}: {e}")        
-        
-
 def zip_game(download_request_id, app, zip_file_path):
     settings = GlobalSettings.query.first()
     with app.app_context():
@@ -1055,37 +1019,6 @@ def zip_folder(download_request_id, app, file_location, file_name):
             print(f"An error occurred: {error_message}")
             update_download_request(download_request, 'failed', "Error: " + error_message)                
 
-def read_first_nfo_content(full_disk_path):
-    print(f"Searching for NFO file in: {full_disk_path}")
-    
-    # If the path is a file, skip NFO scanning
-    if os.path.isfile(full_disk_path):
-        print("Path is a file, not a directory. Skipping NFO scan.")
-        return None
-        
-    try:
-        for file in os.listdir(full_disk_path):
-            if file.lower().endswith('.nfo'):
-                nfo_path = os.path.join(full_disk_path, file)
-                print(f"Found NFO file: {nfo_path}")
-                
-                try:
-                    with open(nfo_path, 'r', encoding='utf-8', errors='ignore') as nfo_file:
-                        content = nfo_file.read()
-                        sanitized_content = content.replace('\x00', '')
-                        print(f"Successfully read NFO content (length: {len(sanitized_content)})")
-                        return sanitized_content
-                except Exception as e:
-                    print(f"Error reading NFO file {nfo_path}: {str(e)}")
-                    continue
-                    
-    except Exception as e:
-        print(f"Error accessing directory {full_disk_path}: {str(e)}")
-    
-    print("No NFO file found")
-    return None
-
-
         
 def check_existing_game_by_igdb_id(igdb_id):
     return Game.query.filter_by(igdb_id=igdb_id).first()
@@ -1179,14 +1112,6 @@ def delete_game_images(game_uuid):
             print(f"Error committing image deletion changes to the database: {e}")
 
 
-def square_image(image, size):
-    image.thumbnail((size, size))
-    if image.size[0] != size or image.size[1] != size:
-        new_image = PILImage.new('RGB', (size, size), color='black')
-        offset = ((size - image.size[0]) // 2, (size - image.size[1]) // 2)
-        new_image.paste(image, offset)
-        image = new_image
-    return image
 
 
 def get_game_by_uuid(game_uuid):
@@ -1497,32 +1422,23 @@ def try_add_game(game_name, full_disk_path, scan_job_id, library_uuid, check_exi
     return game is not None
 
 def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns):
-    
     if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
         print(f"Error: The folder '{folder_path}' does not exist or is not readable.")
         flash(f"Error: The folder '{folder_path}' does not exist or is not readable.")
         return []
-    
     folder_contents = os.listdir(folder_path)
-    # print("Folder contents before filtering:", folder_contents)
-
     game_names_with_paths = []
     for item in folder_contents:
         full_path = os.path.join(folder_path, item)
         if os.path.isdir(full_path):
             game_name = clean_game_name(item, insensitive_patterns, sensitive_patterns)
             game_names_with_paths.append({'name': game_name, 'full_path': full_path})
-
-    # print("Extracted game names with paths:", game_names_with_paths)
     return game_names_with_paths
 
 def get_game_names_from_files(folder_path, extensions, insensitive_patterns, sensitive_patterns):
-    
     if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
         print(f"Error: The path '{folder_path}' does not exist or is not readable.")
         return []
-
-    # print(f"Scanning files in folder: {folder_path}")
     file_contents = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
     print(f"Files found in folder: {file_contents}")
     game_names_with_paths = []
@@ -1544,11 +1460,6 @@ def get_game_names_from_files(folder_path, extensions, insensitive_patterns, sen
     print(f"Game names with paths extracted from files: {game_names_with_paths}")
     return game_names_with_paths
 
-def escape_special_characters(pattern):
-    """Escape special characters in the pattern to prevent regex errors."""
-    if not isinstance(pattern, str):
-        pattern = str(pattern)  # Convert to string if not already
-    return re.escape(pattern)
 
 def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
     print(f"Original filename: {filename}")
@@ -1567,20 +1478,17 @@ def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
     
     # Replace remaining dots and underscores with spaces, but preserve dots in known patterns
     filename = re.sub(r'(?<!^)(?<![\d])\.|_', ' ', filename)
-    # print(f"After normalizing separators: {filename}")
 
     # Define a regex pattern for version numbers
     version_pattern = r'\bv?\d+(\.\d+){1,3}'
 
     # Remove version numbers
     filename = re.sub(version_pattern, '', filename)
-    # print(f"After removing version numbers: {filename}")
 
     # Remove known release group patterns
     for pattern in insensitive_patterns:
         escaped_pattern = re.escape(pattern)  # Assume escape_special_characters is similar to re.escape
         filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename, flags=re.IGNORECASE)
-    # print(f"After removing insensitive patterns: {filename}")
 
     for pattern, is_case_sensitive in sensitive_patterns:
         escaped_pattern = re.escape(pattern)
@@ -1588,21 +1496,17 @@ def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
             filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename)
         else:
             filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename, flags=re.IGNORECASE)
-    # print(f"After removing sensitive patterns: {filename}")
 
     # Handle cases with numerals and versions
     filename = re.sub(r'\b([IVXLCDM]+|[0-9]+)(?:[^\w]|$)', r' \1 ', filename)
-    # print(f"After spacing out numerals and versions: {filename}")
 
     # Cleanup for versions, DLCs, etc.
     filename = re.sub(r'Build\.\d+', '', filename)
     filename = re.sub(r'(\+|\-)\d+DLCs?', '', filename, flags=re.IGNORECASE)
     filename = re.sub(r'Repack|Edition|Remastered|Remake|Proper|Dodi', '', filename, flags=re.IGNORECASE)
-    # print(f"After additional cleanups: {filename}")
 
     # Remove trailing numbers enclosed in brackets
     filename = re.sub(r'\(\d+\)$', '', filename).strip()
-    # print(f"After removing trailing numbers in brackets: {filename}")
 
     # Normalize whitespace and re-title
     filename = re.sub(r'\s+', ' ', filename).strip()
@@ -1638,57 +1542,12 @@ def load_release_group_patterns():
                 sensitive_patterns.append((pattern, is_case_sensitive))
                 pattern = "." + rg.rlsgroup
                 sensitive_patterns.append((pattern, is_case_sensitive))
-        
-        
 
         return insensitive_patterns, sensitive_patterns
     except SQLAlchemyError as e:
         print(f"An error occurred while fetching release group patterns: {e}")
         return [], []
 
-
-def format_size(size_in_bytes):
-    try:
-        if size_in_bytes is None:
-            return '0 MB'  # Fallback value if size_in_bytes is None
-        else:
-            # Define size units
-            units = ['KB', 'MB', 'GB', 'TB', 'PB', 'EB']
-            size = size_in_bytes / 1024  # Start with KB
-            unit_index = 0
-            while size >= 1024 and unit_index < len(units) - 1:
-                size /= 1024
-                unit_index += 1
-            return f"{size:.2f} {units[unit_index]}"
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return '0 MB'  # Fallback value for any other errors
-
-
-
-def get_folder_size_in_bytes(folder_path):
-    if os.path.isfile(folder_path):
-        return os.path.getsize(folder_path)
-    
-    total_size = 0
-    for dirpath, dirnames, filenames in os.walk(folder_path):
-        for f in filenames:
-            fp = os.path.join(dirpath, f)
-            if os.path.exists(fp):
-                total_size += os.path.getsize(fp)
-    return max(total_size, 1)  # Ensure the size is at least 1 byte
-
-
-
-def comma_separated_urls(form, field):
-    
-    urls = field.data.split(',')
-    url_pattern = re.compile(
-        r'^(https?:\/\/)?(www\.)?youtube\.com\/embed\/[\w-]+$'
-    )
-    for url in urls:
-        if not url_pattern.match(url.strip()):
-            raise ValidationError('One or more URLs are invalid. Please provide valid YouTube embed URLs.')
 
 def discord_webhook(game_uuid): #Used for notifying of new games.
     # Check if Discord webhook URL is configured

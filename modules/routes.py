@@ -633,28 +633,22 @@ def settings_profile_edit():
                     return redirect(url_for('main.settings_profile_edit'))
 
             old_avatarpath = current_user.avatarpath
-            # Define old_thumbnailpath based on old_avatarpath
             if old_avatarpath and old_avatarpath != 'newstyle/avatar_default.jpg':
                 old_thumbnailpath = os.path.splitext(old_avatarpath)[0] + '_thumbnail' + os.path.splitext(old_avatarpath)[1]
             else:
-                old_thumbnailpath = None  # No old thumbnail to worry about
-
+                old_thumbnailpath = None
             filename = secure_filename(file.filename)
             uuid_filename = str(uuid4()) + '.' + filename.rsplit('.', 1)[1].lower()
             image_path = os.path.join(upload_folder, uuid_filename)
             file.save(image_path)
-
             # Image processing
             img = PILImage.open(image_path)
-            img = square_image(img, 500)  # Assume square_image is correctly defined elsewhere
+            img = square_image(img, 500)
             img.save(image_path)
-
             img = PILImage.open(image_path)
             img = square_image(img, 50)
             thumbnail_path = os.path.splitext(image_path)[0] + '_thumbnail' + os.path.splitext(image_path)[1]
             img.save(thumbnail_path)
-
-            # Delete old avatar and thumbnail if they exist
             if old_avatarpath and old_avatarpath != 'newstyle/avatar_default.jpg':
                 try:
                     os.remove(os.path.join(upload_folder, os.path.basename(old_avatarpath)))
@@ -707,12 +701,10 @@ def settings_profile_view():
 @login_required
 def account_pw():
     form = UserPasswordForm()
-    # print("Request method:", request.method)  # Debug line
     user = User.query.get(current_user.id)
 
     if form.validate_on_submit():
         try:
-            # print("Form data:", form.data)  # Debug line
             user.set_password(form.password.data)
             db.session.commit()
             flash('Password changed successfully!', 'success')
