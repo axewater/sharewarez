@@ -43,8 +43,6 @@
         <li class="admin_manage_scanjobs-nav-item nav-item">
             <a class="admin_manage_scanjobs-nav-link nav-link" id="unmatchedFolders-tab" data-bs-toggle="tab" href="#unmatchedFolders">Unmatched Folders</a>
         </li>
-
-    
     </ul>
 
     <!-- Tab panes -->
@@ -58,7 +56,7 @@
             <form action="" method="post">
                 {{ auto_form.hidden_tag() }}
                 
-                <div class="selection-container">
+                <div class="selection-container glass-panel">
                     <!-- Library Dropdown -->
                     <div class="admin_manage_scanjobs-library form-group">
                         {{ auto_form.library_uuid.label }}
@@ -94,33 +92,32 @@
                         </div>
                     </div>
                 </div>
-                    <!-- Folder Path -->
-                    <div class="admin_manage_scanjobs-folderpath form-group">
-                        {{ auto_form.folder_path.label }}
-                        {{ auto_form.folder_path(class="form-control") }}
-                        {% if auto_form.folder_path.errors %}
-                            {% for error in auto_form.folder_path.errors %}
-                                <div class="alert alert-danger">{{ error }}</div>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
+                    
+                <!-- Folder Path -->
+                <div class="admin_manage_scanjobs-folderpath form-group">
+                    {{ auto_form.folder_path.label }}
+                    {{ auto_form.folder_path(class="form-control") }}
+                    {% if auto_form.folder_path.errors %}
+                        {% for error in auto_form.folder_path.errors %}
+                            <div class="alert alert-danger">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
                 
                 <!-- Scan and Browse Buttons -->
-
-         
-            <div class="form-group">
-                <button id="browseFoldersBtn" type="button" class="admin_manage_scanjobs-browsefolders-btn btn btn-info" data-browse-url="{{ url_for('main.browse_folders_ss') }}">Browse Folders</button>
-                <button type="submit" name="submit" value="AutoScan" class="admin_manage_scanjobs-startscan-btn btn btn-primary">Start On-Demand Scan</button>
-                <div id="loadingSpinner" class="loading-spinner" style="display: none;">
-                    <img src="/static/newstyle/searching_small.gif" alt="Loading...">
+                <div class="form-group">
+                    <button id="browseFoldersBtn" type="button" class="admin_manage_scanjobs-browsefolders-btn btn btn-info" data-browse-url="{{ url_for('main.browse_folders_ss') }}">Browse Folders</button>
+                    <button type="submit" name="submit" value="AutoScan" class="admin_manage_scanjobs-startscan-btn btn btn-primary">Start On-Demand Scan</button>
+                    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                        <img src="/static/newstyle/searching_small.gif" alt="Loading...">
+                    </div>
+                    <button id="upFolderBtn" type="button" class="admin_manage_scanjobs-up-btn btn btn-secondary" style="display: none;">Up</button>
+                    <div id="folderContents" class="scanandbrowse"></div>
                 </div>
-                <button id="upFolderBtn" type="button" class="admin_manage_scanjobs-up-btn btn btn-secondary" style="display: none;">Up</button>
-                <div id="folderContents" class="scanandbrowse"></div>
-            </div>
-        </form>
-        {% else %}
-        <p>You have no Libraries!, go to <a href="{{ url_for('main.libraries') }}">Library Manager</a> and create one.</p>
-        {% endif %}
+            </form>
+            {% else %}
+            <p>You have no Libraries!, go to <a href="{{ url_for('main.libraries') }}">Library Manager</a> and create one.</p>
+            {% endif %}
             <div class="admin_manage_scanjobs-scanjobs-panel mt-4">
                 <div class="scanjobs-header-text">
                     <h2>Scan Jobs Management</h2>
@@ -193,7 +190,6 @@
                     <button id="browseFoldersBtnManual" type="button" class="admin_manage_scanjobs-browsefolders-btn btn btn-info">Browse Folders</button>
                     <button type="submit" name="submit" value="ManualScan" class="admin_manage_scanjobs-browsefolders-listgames-btn btn btn-primary">List Games</button>
                     <button id="upFolderBtnManual" type="button" class="admin_manage_scanjobs-browsefolders-up-btn btn btn-secondary" style="display: none;">Up</button>
-
                 </div>
             </form>
             <div id="loadingSpinnerManual" class="loading-spinner">
@@ -201,7 +197,6 @@
             </div>
             <div id="folderContentsManual"></div>
         
-
             {% if game_names_with_ids %}
             <br>
 			<div class="admin_manage_scanjobs-foundgames-header">
