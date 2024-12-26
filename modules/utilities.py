@@ -339,6 +339,51 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
         error_message = "No game data found for the given name or failed to retrieve data from IGDB API."
         flash(error_message)
         return None
+
+
+
+def remove_from_lib(game_uuid):
+    """
+    Remove a game and its associated data from the database.
+    
+    Args:
+        game_uuid (str): The UUID of the game to remove
+        
+    Returns:
+        str: 'OK' if successful, 'FAIL' if an error occurs
+    """
+    try:
+        # Find the game
+        game = Game.query.filter_by(uuid=game_uuid).first()
+        if not game:
+            print(f"Game with UUID {game_uuid} not found")
+            return 'FAIL'
+
+        # Delete associated URLs
+        GameURL.query.filter_by(game_uuid=game_uuid).delete()
+
+        # Clear all many-to-many relationships
+        game.genres.clear()
+        game.platforms.clear()
+        game.game_modes.clear()
+        game.themes.clear()
+        game.player_perspectives.clear()
+        game.multiplayer_modes.clear()
+
+        # Delete associated images from filesystem and database
+        delete_game_images(game_uuid)
+
+        # Delete the game record
+        db.session.delete(game)
+        db.session.commit()
+        
+        print(f"Successfully removed game {game_uuid} from library")
+        return 'OK'
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error removing game {game_uuid} from library: {e}")
+        return 'FAIL'
  
 def check_existing_game_by_path(full_disk_path):
     """
@@ -1478,3 +1523,5 @@ def notifications_manager(path, event, game_uuid=None):
             # add embed object to webhook
             webhook.add_embed(embed)
             response = webhook.execute()
+
+
