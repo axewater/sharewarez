@@ -1,17 +1,18 @@
 # /app.py
 import time
+import threading
 from modules import create_app, db
+from config import Config
 import argparse
 from modules.updateschema import DatabaseManager
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-import threading
-from flask import current_app
-from modules.models import AllowedFileType, IgnoredFileType
+from modules.file_monitor import FileMonitor
 import os
 import zipfile
 import shutil
-from modules.models import User
+from modules.models import User, AllowedFileType, IgnoredFileType
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+from flask import current_app
 
 # Add argument parser
 parser = argparse.ArgumentParser(description='SharewareZ Application')
@@ -149,16 +150,11 @@ def watch_directory(path):
 
 if __name__ == "__main__":
     with app.app_context():
-        config_path = current_app.config['MONITOR_PATHS']  # Replace with the directory you want to watch
-        paths = config_path
-        for p in paths:
-            targetPath = str(p)
-            # configure a watchdog thread
-            thread = threading.Thread(target=watch_directory, name="Watchdog", daemon=True, args=(targetPath,))
-            # start the watchdog thread
-            try:
-                thread.start()
-            except KeyboardInterrupt:
-                shutdown_event.set()
+        # Initialize file monitoring
+        file_monitor = FileMonitor()
+        file_monitor.start_monitoring(current_app.config['MONITOR_PATHS'])
 
-    app.run(host="0.0.0.0", debug=False, use_reloader=False, port=5001)
+    try:
+        app.run(host="0.0.0.0", debug=False, use_reloader=False, port=5001)
+    finally:
+        file_monitor.stop_monitoring()
