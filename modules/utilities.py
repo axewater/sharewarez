@@ -8,7 +8,7 @@ from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from modules.functions import (
     format_size, get_folder_size_in_bytes, read_first_nfo_content,
-    download_image
+    download_image, load_release_group_patterns
 )
 from modules.models import (
     User, Game, Image, DownloadRequest, Platform, Genre, 
@@ -16,7 +16,7 @@ from modules.models import (
     Theme, GameMode, PlayerPerspective, ScanJob, UnmatchedFolder, GameExtra,
     category_mapping, status_mapping, player_perspective_mapping, GlobalSettings
 )
-from modules import db, mail
+from modules.extensions import db, mail
 from modules.functions import website_category_to_string, PLATFORM_IDS
 from modules.igdb_api import make_igdb_api_request, get_cover_url
 from sqlalchemy import func, String

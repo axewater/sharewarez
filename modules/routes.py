@@ -48,7 +48,7 @@ from modules.utilities import (
 from modules.smtp_utils import send_email, send_password_reset_email, send_invite_email
 from modules.theme_manager import ThemeManager
 from modules.smtp_test import SMTPTester
-from modules.functions import square_image
+from modules.functions import square_image, load_release_group_patterns
 from modules.igdb_api import make_igdb_api_request, get_cover_thumbnail_url
 
 bp = Blueprint('main', __name__)
