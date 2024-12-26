@@ -1,5 +1,5 @@
 #/modules/__init__.py
-import sys, os, re, datetime, socket, time
+import sys, os, re, datetime
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -12,35 +12,12 @@ from config import Config
 from modules.routes_site import site_bp
 from urllib.parse import urlparse
 from flask_caching import Cache
-
+from modules.db_utils import check_postgres_port_open
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 mail = Mail()
 cache = Cache(config={'CACHE_TYPE': 'simple'})
-
-def check_postgres_port_open(host, port, retries=5, delay=2):
-    """
-    Checks if the PostgreSQL port is open by attempting to create a socket connection.
-    If the connection attempt fails, it waits for 'delay' seconds and retries.
-    
-    :param host: The hostname or IP address of the PostgreSQL server.
-    :param port: The port number of the PostgreSQL server.
-    :param retries: Maximum number of retries.
-    :param delay: Delay in seconds between retries.
-    :return: True if the port is open, False otherwise.
-    """
-    for attempt in range(retries):
-        try:
-            with socket.create_connection((host, port), timeout=10):
-                print(f"Connection to PostgreSQL on port {port} successful.")
-                return True
-        except (socket.timeout, ConnectionRefusedError):
-            print(f"Connection to PostgreSQL on port {port} failed. Attempt {attempt + 1} of {retries}.")
-            time.sleep(delay)
-    return False
-
-
 
 def create_app():
     global s    
@@ -51,7 +28,7 @@ def create_app():
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/library')
 
     parsed_url = urlparse(app.config['SQLALCHEMY_DATABASE_URI'])
-    check_postgres_port_open(parsed_url.hostname, 5432, 60, 2);
+    check_postgres_port_open(parsed_url.hostname, 5432, 60, 2)
     
     db.init_app(app)
 
@@ -68,8 +45,6 @@ def create_app():
     app.register_blueprint(site_bp)
     # setup_filters(app)
     return app
-
-
 
 def insert_default_release_groups():
     from modules.models import ReleaseGroup
@@ -117,11 +92,7 @@ def insert_default_release_groups():
             db.session.add(new_group)
     db.session.commit()
 
-
 @login_manager.user_loader
 def load_user(user_id):
     from modules.models import User
     return User.query.get(int(user_id))
-
-
-
