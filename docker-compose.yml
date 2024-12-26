@@ -12,7 +12,7 @@ services:
     environment:
       - APP_USERNAME=${SHAREWAREZ_USERNAME}
       - APP_PASSWORD=${SHAREWAREZ_PASSWORD}
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}
+      - DATABASE_URL=${DATABASE_URL}
       - WAIT_HOSTS="db:5432"
     volumes:
       - "${DATA_FOLDER_WAREZ}:/storage"
