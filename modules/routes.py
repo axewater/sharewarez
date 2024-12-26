@@ -44,7 +44,7 @@ from modules.utilities import (
     get_game_names_from_folder, get_cover_thumbnail_url, scan_and_add_games, get_game_names_from_files, update_download_request,
     zip_game, zip_folder, format_size, delete_game_images, read_first_nfo_content, get_folder_size_in_bytes, get_folder_size_in_bytes_updates, PLATFORM_IDS
 )
-from modules.smtp_utils import send_email, send_password_reset_email
+from modules.smtp_utils import send_email, send_password_reset_email, send_invite_email
 from modules.theme_manager import ThemeManager
 from modules.smtp_test import SMTPTester
 from modules.functions import square_image
@@ -569,10 +569,7 @@ def delete_invite(token):
         print(f"Error deleting invite: {str(e)}")
         return jsonify({'success': False, 'message': 'An error occurred while deleting the invite.'}), 500
 
-def send_invite_email(email, invite_url):
-    subject = "You're Invited!"
-    html_content = render_template('login/invite_email.html', invite_url=invite_url)
-    send_email(email, subject, html_content)
+
 
 
 
@@ -580,16 +577,14 @@ def send_invite_email(email, invite_url):
 @bp.route('/api/current_user_role', methods=['GET'])
 @login_required
 def get_current_user_role():
-    # print(f"Route: /api/current_user_role - {current_user.role}")
     return jsonify({'role': current_user.role}), 200
 
 @bp.route('/api/check_username', methods=['POST'])
 @login_required
 def check_username():
-    print(F"Route: /api/check_username - {current_user.name} - {current_user.role}")
+    print(F"Route: /api/check_username - {current_user.name} - {current_user.role}")    
     data = request.get_json()
     username = data.get('username')
-
     if not username:
         print(f"Check username: Missing username")
         return jsonify({"error": "Missing username parameter"}), 400
@@ -932,7 +927,6 @@ def get_genres():
 
 @bp.route('/api/themes')
 @login_required
-
 def get_themes():
     themes = Theme.query.all()
     themes_list = [{'id': theme.id, 'name': theme.name} for theme in themes]

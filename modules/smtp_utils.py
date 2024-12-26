@@ -1,6 +1,6 @@
 import smtplib, socket, traceback
 from email.message import EmailMessage
-from flask import flash, current_app, url_for
+from flask import flash, current_app, url_for, render_template
 from modules.models import GlobalSettings
 
 def get_smtp_settings():
@@ -201,3 +201,9 @@ def send_password_reset_email(user_email, token):
 
     subject = "Ye Password Reset Request Arrr!"
     send_email(user_email, subject, html)
+    
+    
+def send_invite_email(email, invite_url):
+    subject = "You're Invited!"
+    html_content = render_template('login/invite_email.html', invite_url=invite_url)
+    send_email(email, subject, html_content)
