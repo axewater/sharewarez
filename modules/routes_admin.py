@@ -8,12 +8,14 @@ from modules.utils_themes import ThemeManager
 from modules import app_version
 from config import Config
 from modules.utils_igdb_api import make_igdb_api_request
-from modules.models import Whitelist, User, GlobalSettings, InviteToken, ReleaseGroup, AllowedFileType, IgnoredFileType
+from modules.models import Whitelist, User, GlobalSettings, InviteToken, ReleaseGroup, AllowedFileType, IgnoredFileType, LibraryPlatform, Library
 from modules import db, mail, cache
-from modules.forms import WhitelistForm, NewsletterForm, ReleaseGroupForm, ThemeUploadForm
+from modules.forms import WhitelistForm, NewsletterForm, ReleaseGroupForm, ThemeUploadForm, LibraryForm
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func
 from datetime import datetime
+from PIL import Image as PILImage
+from werkzeug.utils import secure_filename
 from flask import flash
 from uuid import uuid4
 import socket, os, platform
@@ -696,3 +698,91 @@ def delete_theme(theme_name):
     except Exception as e:
         flash(f"An unexpected error occurred: {str(e)}", 'error')
     return redirect(url_for('admin.manage_themes'))
+
+
+@admin_bp.route('/admin/library/add', methods=['GET', 'POST'])
+@admin_bp.route('/admin/library/edit/<library_uuid>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def add_edit_library(library_uuid=None):
+    if library_uuid:
+        library = Library.query.filter_by(uuid=library_uuid).first_or_404()
+        form = LibraryForm(obj=library)
+        page_title = "Edit Library"
+        print(f"Editing library: {library.name}, Platform: {library.platform.name}")
+    else:
+        library = None
+        form = LibraryForm()
+        page_title = "Add Library"
+        print("Adding new library")
+
+    form.platform.choices = [(platform.name, platform.value) for platform in LibraryPlatform]
+    print(f"Platform choices: {form.platform.choices}")
+    
+    if library:
+        form.platform.data = library.platform.name  # Set the initial value for existing library
+        print(f"Setting initial platform value: {form.platform.data}")
+
+    if form.validate_on_submit():
+        if library is None:
+            library = Library(uuid=str(uuid4()))  # Generate a new UUID for new libraries
+
+        library.name = form.name.data
+        try:
+            library.platform = LibraryPlatform[form.platform.data]
+        except KeyError:
+            flash(f'Invalid platform selected: {form.platform.data}', 'error')
+            return render_template('admin/admin_manage_library_create.html', form=form, library=library, page_title=page_title)
+
+        file = form.image.data
+        if file:
+            # Validate file size (< 5 MB)
+            file.seek(0, os.SEEK_END)
+            file_length = file.tell()
+            if file_length > 5 * 1024 * 1024:  # 5MB limit
+                flash('File size is too large. Maximum allowed is 5 MB.', 'error')
+                return render_template('admin/admin_manage_library_create.html', form=form, library=library, page_title=page_title)
+
+            # Reset file pointer after checking size
+            file.seek(0)
+
+            upload_folder = current_app.config['UPLOAD_FOLDER']
+            print(f"Upload folder now: {upload_folder}")
+            if not os.path.exists(upload_folder):
+                os.makedirs(upload_folder, exist_ok=True)
+
+            filename = secure_filename(file.filename)
+            uuid_filename = str(uuid4()) + '.png'  # Always save as PNG
+            image_folder = os.path.join(upload_folder, 'images')
+            print(f"Image folder: {image_folder}")
+            if not os.path.exists(image_folder):
+                os.makedirs(image_folder, exist_ok=True)
+            image_path = os.path.join(image_folder, uuid_filename)
+            print(f"Image path: {image_path}")
+
+            # Open, convert to PNG, and resize if necessary
+            with PILImage.open(file) as img:
+                img = img.convert('RGBA')
+                if img.width > 1024 or img.height > 1024:
+                    img.thumbnail((1024, 1024), PILImage.LANCZOS)
+                img.save(image_path, 'PNG')
+
+            image_url = url_for('static', filename=os.path.join('library/images/', uuid_filename))
+            print(f"Image URL: {image_url}")
+            library.image_url = image_url
+        elif not library.image_url:
+            library.image_url = url_for('static', filename='newstyle/default_library.jpg')
+
+        if library not in db.session:
+            db.session.add(library)
+        try:
+            db.session.commit()
+            flash('Library saved successfully!', 'success')
+            return redirect(url_for('library.libraries'))
+        except Exception as e:
+            db.session.rollback()
+            flash('Failed to save library. Please try again.', 'error')
+            print(f"Error saving library: {e}")
+
+    return render_template('admin/admin_manage_library_create.html', form=form, library=library, page_title=page_title)
+
