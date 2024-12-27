@@ -11,15 +11,35 @@ class ThemeManager:
     def __init__(self, app):
         self.app = app
         self.theme_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'modules/static/library/themes')
-        self.default_theme = {
-            'name': 'Default',
-            'author': 'SharewareZ Team',
-            'release_date': '2024-03-15',
-            'description': 'this has to go'
-        }
 
     def get_default_theme(self):
-        return self.default_theme
+        default_theme_path = os.path.join(self.theme_folder, 'default', 'theme.json')
+        try:
+            with open(default_theme_path, 'r') as json_file:
+                return json.load(json_file)
+        except Exception as e:
+            print(f"Error reading default theme: {str(e)}")
+            return None
+
+    def get_installed_themes(self):
+        themes = []
+        for theme_name in os.listdir(self.theme_folder):
+            theme_path = os.path.join(self.theme_folder, theme_name)
+            if os.path.isdir(theme_path):
+                json_path = os.path.join(theme_path, 'theme.json')
+                if os.path.exists(json_path):
+                    try:
+                        with open(json_path, 'r') as json_file:
+                            theme_data = json.load(json_file)
+                            themes.append({
+                                'name': theme_data.get('name', theme_name),
+                                'author': theme_data.get('author', 'Unknown'),
+                                'release_date': theme_data.get('release_date', 'Unknown'),
+                                'description': theme_data.get('description', 'No description available')
+                            })
+                    except Exception as e:
+                        print(f"Error reading theme {theme_name}: {str(e)}")
+        return themes
 
     def upload_theme(self, theme_zip):
         if not os.path.exists(self.app.config['UPLOAD_FOLDER']):
@@ -68,23 +88,6 @@ class ThemeManager:
         finally:
             if os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
-
-    def get_installed_themes(self):
-        themes = [self.default_theme]
-        for theme_name in os.listdir(self.theme_folder):
-            theme_path = os.path.join(self.theme_folder, theme_name)
-            if os.path.isdir(theme_path):
-                json_path = os.path.join(theme_path, 'theme.json')
-                if os.path.exists(json_path):
-                    with open(json_path, 'r') as json_file:
-                        theme_data = json.load(json_file)
-                        themes.append({
-                            'name': theme_data['name'],
-                            'author': theme_data['author'],
-                            'release_date': theme_data['release_date'],
-                            'description': theme_data['description'][:32] + '...' if len(theme_data['description']) > 32 else theme_data['description']
-                        })
-        return themes
 
     def validate_theme_structure(self, theme_path):
         required_folders = ['css']
