@@ -3,19 +3,20 @@ from flask import Blueprint, render_template, redirect, url_for, current_app, js
 from flask_login import login_required, current_user
 from flask_mail import Message as MailMessage
 from modules.utils_auth import admin_required
+from modules.utils_smtp_test import SMTPTester
+from modules.utils_themes import ThemeManager
 from modules import app_version
 from config import Config
 from modules.utils_igdb_api import make_igdb_api_request
-from modules.models import Whitelist, User, GlobalSettings
+from modules.models import Whitelist, User, GlobalSettings, InviteToken, ReleaseGroup, AllowedFileType, IgnoredFileType
 from modules import db, mail, cache
-from modules.forms import WhitelistForm, NewsletterForm
+from modules.forms import WhitelistForm, NewsletterForm, ReleaseGroupForm, ThemeUploadForm
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func
 from datetime import datetime
 from flask import flash
 from uuid import uuid4
-import socket
-import platform
+import socket, os, platform
 from modules import app_start_time
 
 admin_bp = Blueprint('admin', __name__)
@@ -407,3 +408,291 @@ def admin_server_status():
         system_info=system_info, 
         app_version=app_version
     )
+    
+    
+
+@admin_bp.route('/admin/manage_invites', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def manage_invites():
+
+    if request.method == 'POST':
+        user_id = request.form.get('user_id')
+        invites_number = int(request.form.get('invites_number'))
+
+        user = User.query.filter_by(user_id=user_id).first()
+        if user:
+            user.invite_quota += invites_number
+            db.session.commit()
+            flash('Invites updated successfully.', 'success')
+        else:
+            flash('User not found.', 'error')
+
+    users = User.query.all()
+    # Calculate unused invites for each user
+    user_unused_invites = {}
+    for user in users:
+        unused_count = InviteToken.query.filter_by(
+            creator_user_id=user.user_id,
+            used=False
+        ).count()
+        user_unused_invites[user.user_id] = unused_count
+
+    return render_template('admin/admin_manage_invites.html', 
+                         users=users, 
+                         user_unused_invites=user_unused_invites)
+
+
+
+
+@admin_bp.route('/admin/edit_filters', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_filters():
+    form = ReleaseGroupForm()
+    if form.validate_on_submit():
+        new_group = ReleaseGroup(rlsgroup=form.rlsgroup.data, rlsgroupcs=form.rlsgroupcs.data)
+        db.session.add(new_group)
+        db.session.commit()
+        flash('New release group filter added.')
+        return redirect(url_for('main.edit_filters'))
+    groups = ReleaseGroup.query.order_by(ReleaseGroup.rlsgroup.asc()).all()
+    return render_template('admin/admin_manage_filters.html', form=form, groups=groups)
+
+@admin_bp.route('/delete_filter/<int:id>', methods=['GET'])
+@login_required
+@admin_required
+def delete_filter(id):
+    group_to_delete = ReleaseGroup.query.get_or_404(id)
+    db.session.delete(group_to_delete)
+    db.session.commit()
+    flash('Release group filter removed.')
+    return redirect(url_for('main.edit_filters'))
+
+
+
+@admin_bp.route('/admin/extensions')
+@login_required
+@admin_required
+def extensions():
+    allowed_types = AllowedFileType.query.order_by(AllowedFileType.value.asc()).all()
+    return render_template('admin/admin_manage_extensions.html', 
+                         allowed_types=allowed_types)
+
+# File type management routes
+@admin_bp.route('/api/file_types/<string:type_category>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
+@admin_required
+def manage_file_types(type_category):
+    if type_category not in ['allowed', 'ignored']:
+        return jsonify({'error': 'Invalid type category'}), 400
+
+    ModelClass = AllowedFileType if type_category == 'allowed' else IgnoredFileType
+
+    if request.method == 'GET':
+        types = ModelClass.query.order_by(ModelClass.value.asc()).all()
+        return jsonify([{'id': t.id, 'value': t.value} for t in types])
+
+    elif request.method == 'POST':
+        data = request.get_json()
+        new_type = ModelClass(value=data['value'].lower())
+        try:
+            db.session.add(new_type)
+            db.session.commit()
+            return jsonify({'id': new_type.id, 'value': new_type.value})
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify({'error': 'Type already exists'}), 400
+
+    elif request.method == 'PUT':
+        data = request.get_json()
+        file_type = ModelClass.query.get_or_404(data['id'])
+        file_type.value = data['value'].lower()
+        try:
+            db.session.commit()
+            return jsonify({'id': file_type.id, 'value': file_type.value})
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify({'error': 'Type already exists'}), 400
+
+    elif request.method == 'DELETE':
+        file_type = ModelClass.query.get_or_404(request.get_json()['id'])
+        db.session.delete(file_type)
+        db.session.commit()
+        return jsonify({'success': True})
+
+
+
+@admin_bp.route('/admin/smtp_settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def smtp_settings():
+    settings = GlobalSettings.query.first()
+    if request.method == 'POST':
+        data = request.json
+        if not settings:
+            settings = GlobalSettings()
+            db.session.add(settings)
+        
+        # Validate required fields when SMTP is enabled
+        if data.get('smtp_enabled'):
+            if not data.get('smtp_server'):
+                return jsonify({'status': 'error', 'message': 'SMTP server is required when SMTP is enabled'}), 400
+            if not data.get('smtp_port'):
+                return jsonify({'status': 'error', 'message': 'SMTP port is required when SMTP is enabled'}), 400
+            if not data.get('smtp_username'):
+                return jsonify({'status': 'error', 'message': 'SMTP username is required when SMTP is enabled'}), 400
+            if not data.get('smtp_password'):
+                return jsonify({'status': 'error', 'message': 'SMTP password is required when SMTP is enabled'}), 400
+            if not data.get('smtp_default_sender'):
+                return jsonify({'status': 'error', 'message': 'Default sender email is required when SMTP is enabled'}), 400
+            
+            # Validate port number
+            try:
+                port = int(data.get('smtp_port', 587))
+                if port <= 0 or port > 65535:
+                    return jsonify({'status': 'error', 'message': 'Invalid port number. Must be between 1 and 65535'}), 400
+                settings.smtp_port = port
+            except ValueError:
+                return jsonify({'status': 'error', 'message': 'SMTP port must be a valid number'}), 400
+        
+        settings.smtp_enabled = data.get('smtp_enabled', False)
+        settings.smtp_server = data.get('smtp_server')
+        settings.smtp_username = data.get('smtp_username')
+        settings.smtp_password = data.get('smtp_password')
+        settings.smtp_use_tls = data.get('smtp_use_tls', True)
+        settings.smtp_default_sender = data.get('smtp_default_sender')
+        settings.smtp_enabled = data.get('smtp_enabled', False)
+        
+        try:
+            db.session.commit()
+            return jsonify({'status': 'success', 'message': 'SMTP settings updated successfully'})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'status': 'error', 'message': str(e)}), 500
+    
+    return render_template('admin/admin_smtp_settings.html', settings=settings)
+
+@admin_bp.route('/admin/smtp_test', methods=['POST'])
+@login_required
+@admin_required
+def smtp_test():
+    settings = GlobalSettings.query.first()
+    if not settings:
+        return jsonify({
+            'success': False,
+            'message': 'SMTP settings not configured'
+        }), 400
+
+    # Create SMTPTester instance
+    tester = SMTPTester(debug=False)
+    print(f"Testing SMTP connection using settings: {settings.smtp_server}:{settings.smtp_port}")
+    # Test the connection using settings from database
+    success, result = tester.test_connection(
+        host=settings.smtp_server,
+        port=settings.smtp_port,
+        username=settings.smtp_username,
+        password=settings.smtp_password,
+        use_tls=settings.smtp_use_tls,
+        timeout=10
+    )
+
+    if success:
+        return jsonify({
+            'success': True,
+            'result': result
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'message': result
+        })
+
+
+@admin_bp.route('/admin/discord_settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def discord_settings():
+    settings = GlobalSettings.query.first()
+    
+    if request.method == 'POST':
+        if not settings:
+            settings = GlobalSettings()
+            db.session.add(settings)
+        
+        settings.discord_webhook_url = request.form.get('discord_webhook_url', '')
+        settings.discord_bot_name = request.form.get('discord_bot_name', '')
+        settings.discord_bot_avatar_url = request.form.get('discord_bot_avatar_url', '')
+        
+        try:
+            db.session.commit()
+            flash('Discord settings updated successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating Discord settings: {str(e)}', 'error')
+        
+        return redirect(url_for('main.discord_settings'))
+
+    # Get default values from config if no settings exist
+    webhook_url = settings.discord_webhook_url if settings else Config.DISCORD_WEBHOOK_URL
+    bot_name = settings.discord_bot_name if settings else Config.DISCORD_BOT_NAME
+    bot_avatar_url = settings.discord_bot_avatar_url if settings else Config.DISCORD_BOT_AVATAR_URL
+
+    return render_template('admin/admin_discord_settings.html',
+                         webhook_url=webhook_url,
+                         bot_name=bot_name,
+                         bot_avatar_url=bot_avatar_url)
+
+@admin_bp.route('/admin/themes', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def manage_themes():
+    form = ThemeUploadForm()
+    theme_manager = ThemeManager(current_app)
+    upload_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'themes')
+    if not os.path.exists(upload_folder):
+        try:
+            # Safe check to avoid creating 'static' directly
+            os.makedirs(upload_folder, exist_ok=True)
+        except Exception as e:
+            print(f"Error creating upload directory: {e}")
+            flash("Error processing request. Please try again.", 'error')
+            return redirect(url_for('main.manage_themes'))
+
+    if form.validate_on_submit():
+        theme_zip = form.theme_zip.data
+        try:
+            theme_data = theme_manager.upload_theme(theme_zip)
+            if theme_data:
+                flash(f"Theme '{theme_data['name']}' uploaded successfully!", 'success')
+            else:
+                flash("Theme upload failed. Please check the error messages.", 'error')
+        except ValueError as e:
+            flash(str(e), 'error')
+        except Exception as e:
+            flash(f"An unexpected error occurred: {str(e)}", 'error')
+        return redirect(url_for('main.manage_themes'))
+
+    installed_themes = theme_manager.get_installed_themes()
+    default_theme = theme_manager.get_default_theme()
+    return render_template('admin/admin_manage_themes.html', form=form, themes=installed_themes, default_theme=default_theme)
+
+@admin_bp.route('/admin/themes/readme')
+@login_required
+@admin_required
+def theme_readme():
+    return render_template('admin/readme_theme.html')
+
+@admin_bp.route('/admin/themes/delete/<theme_name>', methods=['POST'])
+@login_required
+@admin_required
+def delete_theme(theme_name):
+    theme_manager = ThemeManager(current_app)
+    try:
+        theme_manager.delete_themefile(theme_name)
+        flash(f"Theme '{theme_name}' deleted successfully!", 'success')
+    except ValueError as e:
+        flash(str(e), 'error')
+    except Exception as e:
+        flash(f"An unexpected error occurred: {str(e)}", 'error')
+    return redirect(url_for('admin.manage_themes'))

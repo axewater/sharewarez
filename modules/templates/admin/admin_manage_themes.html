@@ -28,7 +28,7 @@
 <div class="container">
     <div class="glass-panel">
         <h1 class="page-title">Manage Themes</h1>
-        <a href="{{ url_for('main.theme_readme') }}" class="btn btn-info mt-3">How to Create a Theme</a>
+        <a href="{{ url_for('admin.theme_readme') }}" class="btn btn-info mt-3">How to Create a Theme</a>
         <div class="theme-upload-section">
             <h2>Upload New Theme</h2>
             <form method="POST" enctype="multipart/form-data" class="theme-upload-form">
@@ -58,7 +58,7 @@
                     <p><strong>Author:</strong> {{ theme.author }}</p>
                     <p><strong>Release Date:</strong> {{ theme.release_date }}</p>
                     <p><strong>Description:</strong> {{ theme.description }}</p>
-                    <form action="{{ url_for('main.delete_theme', theme_name=theme.name) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this theme?');">
+                    <form action="{{ url_for('admin.delete_theme', theme_name=theme.name) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this theme?');">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                     </form>

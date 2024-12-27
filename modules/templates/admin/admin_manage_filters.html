@@ -89,7 +89,7 @@
                     </span>
                 </td>
                 <td>
-                    <a href="{{ url_for('main.delete_filter', id=group.id) }}" class="admin_manage_filters-remove-btn btn btn-danger btn-sm"><i class="fas fa-trash"></i> Remove</a>
+                    <a href="{{ url_for('admin.delete_filter', id=group.id) }}" class="admin_manage_filters-remove-btn btn btn-danger btn-sm"><i class="fas fa-trash"></i> Remove</a>
                 </td>
             </tr>
         {% endfor %}

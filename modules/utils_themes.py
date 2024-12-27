@@ -15,7 +15,7 @@ class ThemeManager:
             'name': 'Default',
             'author': 'SharewareZ Team',
             'release_date': '2024-03-15',
-            'description': 'The default theme for SharewareZ'
+            'description': 'this has to go'
         }
 
     def get_default_theme(self):
@@ -90,7 +90,7 @@ class ThemeManager:
         required_folders = ['css']
         return all(os.path.exists(os.path.join(theme_path, folder)) for folder in required_folders)
 
-    def delete_theme(self, theme_name):
+    def delete_themefile(self, theme_name):
         if theme_name == 'Default':
             raise ValueError("Cannot delete the default theme.")
 
