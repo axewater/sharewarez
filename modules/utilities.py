@@ -7,7 +7,7 @@ from datetime import datetime
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from modules.functions import (
-    format_size, get_folder_size_in_bytes, read_first_nfo_content,
+    format_size, read_first_nfo_content,
     download_image
 )
 from modules.models import (
@@ -17,7 +17,9 @@ from modules.models import (
     category_mapping, status_mapping, player_perspective_mapping, GlobalSettings
 )
 from modules import db, mail
-from modules.functions import website_category_to_string, PLATFORM_IDS, load_release_group_patterns
+from modules.functions import website_category_to_string, PLATFORM_IDS, load_release_group_patterns, get_folder_size_in_bytes_updates
+from modules.utils_discord import discord_webhook, discord_update
+from modules.utils_games import get_game_names_from_folder, get_game_names_from_files
 from modules.igdb_api import make_igdb_api_request, get_cover_url
 from sqlalchemy import func, String
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -25,7 +27,7 @@ from flask import current_app
 from PIL import Image as PILImage
 from datetime import datetime
 from wtforms.validators import ValidationError
-from discord_webhook import DiscordWebhook, DiscordEmbed
+
 
 def _authenticate_and_redirect(username, password):
     user = User.query.filter(func.lower(User.name) == func.lower(username)).first()
@@ -114,8 +116,10 @@ def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_u
         db.session.flush()        
         fetch_and_store_game_urls(new_game.uuid, game_data['id'])
         print(f"create_game_instance Finished processing game '{new_game.name}'. URLs (if any) have been fetched and stored.")
-        if settings.discord_webhook_url and settings.discord_notify_new_games:
-            notifications_manager(None, "newgame", new_game.uuid)
+        
+        # Send Discord notification if enabled
+        if settings and settings.discord_webhook_url and settings.discord_notify_new_games:
+            discord_webhook(new_game.uuid)
         
     except Exception as e:
         print(f"create_game_instance Error during the game instance creation or URL fetching for game '{game_data.get('name')}'. Error: {e}")
@@ -357,31 +361,6 @@ def check_existing_game_by_path(full_disk_path):
     return None
 
     
-def get_folder_size_in_bytes_updates(folder_path):
-    settings = GlobalSettings.query.first()
-    total_size = 0
-    for dirpath, dirnames, filenames in os.walk(folder_path):
-        for f in filenames:
-            if settings and settings.update_folder_name and settings.update_folder_name != "" and settings.extras_folder_name and settings.extras_folder_name != "":
-                if settings.update_folder_name.lower() not in dirpath.lower() and settings.extras_folder_name.lower() not in dirpath.lower():
-                    fp = os.path.join(dirpath, f)
-                    if os.path.exists(fp):
-                        total_size += os.path.getsize(fp)
-            elif settings and settings.update_folder_name and settings.update_folder_name != "":
-                if settings.update_folder_name.lower() not in dirpath.lower():
-                    fp = os.path.join(dirpath, f)
-                    if os.path.exists(fp):
-                        total_size += os.path.getsize(fp)
-            elif settings.extras_folder_name and settings.extras_folder_name != "":
-                if settings.extras_folder_name.lower() not in dirpath.lower():
-                    fp = os.path.join(dirpath, f)
-                    if os.path.exists(fp):
-                        total_size += os.path.getsize(fp)
-            else:
-                fp = os.path.join(dirpath, f)
-                if os.path.exists(fp):
-                    total_size += os.path.getsize(fp)
-    return total_size
 
 def process_game_updates(game_name, full_disk_path, updates_folder, library_uuid):
     settings = GlobalSettings.query.first()
@@ -460,8 +439,6 @@ def process_game_extras(game_name, full_disk_path, extras_folder, library_uuid):
         return
 
     print(f"Game found in database: {game.name} (UUID: {game.uuid})")
-
-    # Get all items in the extras folder
     extra_items = [f for f in os.listdir(extras_folder) if os.path.isfile(os.path.join(extras_folder, f)) or 
                   os.path.isdir(os.path.join(extras_folder, f))]
     print(f"Extra items found: {extra_items}")
@@ -470,7 +447,7 @@ def process_game_extras(game_name, full_disk_path, extras_folder, library_uuid):
         extra_path = os.path.join(extras_folder, extra_item)
         print(f"Processing extra: {extra_item}")
         
-        # Skip .nfo and .sfv files as they are typically just information files
+        # Skip .nfo and .sfv files
         if extra_item.lower().endswith(('.nfo', '.sfv')):
             continue
 
@@ -546,10 +523,8 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
                 print(f"Company {company_name} is a publisher.")
                 publisher = Publisher.query.filter_by(name=company_name).first()
                 if not publisher:
-                    # print(f"Creating new publisher: {company_name}")
                     publisher = Publisher(name=company_name)
                     db.session.add(publisher)
-                # print(f"Assigning publisher {publisher.name} to game {game_instance.name}.")
                 game_instance.publisher = publisher
     except Exception as e:
         print(f"Failed to enumerate companies due to an error: {e}")
@@ -759,7 +734,7 @@ def delete_game_images(game_uuid):
 
                 if os.path.exists(image_file_path):
                     os.remove(image_file_path)
-                    if not os.path.exists(image_file_path):  # Verify file deletion
+                    if not os.path.exists(image_file_path):
                         print(f"Deleted image file: {image_file_path}")
                     else:
                         print(f"Failed to delete image file: {image_file_path}")
@@ -769,8 +744,8 @@ def delete_game_images(game_uuid):
                 db.session.delete(image)
             except Exception as e:
                 print(f"Error deleting image or database operation failed: {e}")
-                db.session.rollback()  # Ensure the session is clean for the next operation
-                continue  # Proceed with the next image
+                db.session.rollback()
+                continue  # next image
 
         try:
             db.session.commit()
@@ -792,20 +767,39 @@ def get_game_by_uuid(game_uuid):
         print("Game not found")
         return None
 
-def get_game_by_full_disk_path(path, file_path):
-    print(f"Searching for game Path: {path} and file {file_path}")
-    game = Game.query.filter_by(full_disk_path=path).first()
-    if game:
-        print(f"Game ID {game.id} with name {game.name} and UUID {game.uuid} relating to IGDB ID {game.igdb_id} found at path {path}")
-        return game
-    else:
-        game = Game.query.filter_by(full_disk_path=file_path).first()
-        if game:
-            print(f"Game ID {game.id} with name {game.name} and UUID {game.uuid} relating to IGDB ID {game.igdb_id} found at path {file_path}")
-            return game
-        else:
-            print(f"Game not found with path of {file_path} or {path}")
-            return None
+def remove_from_lib(game_uuid):
+    """
+    Remove a game from the library and clean up associated files.
+    
+    Args:
+        game_uuid (str): UUID of the game to remove
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        # Get the game
+        game = Game.query.filter_by(uuid=game_uuid).first()
+        if not game:
+            print(f"Game with UUID {game_uuid} not found")
+            return False
+            
+        # Delete associated images from disk
+        delete_game_images(game_uuid)
+        
+        # Delete the game (cascade will handle related records)
+        db.session.delete(game)
+        db.session.commit()
+        
+        print(f"Successfully removed game {game.name} (UUID: {game_uuid}) from library")
+        return True
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error removing game from library: {str(e)}")
+        return False
+
+
 
 
 
@@ -1019,462 +1013,3 @@ def try_add_game(game_name, full_disk_path, scan_job_id, library_uuid, check_exi
 
     game = retrieve_and_save_game(game_name, full_disk_path, scan_job_id, library_uuid)
     return game is not None
-
-def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns):
-    if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
-        print(f"Error: The folder '{folder_path}' does not exist or is not readable.")
-        flash(f"Error: The folder '{folder_path}' does not exist or is not readable.")
-        return []
-    folder_contents = os.listdir(folder_path)
-    game_names_with_paths = []
-    for item in folder_contents:
-        full_path = os.path.join(folder_path, item)
-        if os.path.isdir(full_path):
-            game_name = clean_game_name(item, insensitive_patterns, sensitive_patterns)
-            game_names_with_paths.append({'name': game_name, 'full_path': full_path})
-    return game_names_with_paths
-
-def get_game_names_from_files(folder_path, extensions, insensitive_patterns, sensitive_patterns):
-    if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
-        print(f"Error: The path '{folder_path}' does not exist or is not readable.")
-        return []
-    file_contents = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
-    print(f"Files found in folder: {file_contents}")
-    game_names_with_paths = []
-    for file_name in file_contents:
-        print(f"Checking file: {file_name}")
-        extension = file_name.split('.')[-1].lower()
-        if extension in extensions:
-            print(f"Found supported file: {file_name}")
-            # Extract the game name without the extension
-            game_name_without_extension = '.'.join(file_name.split('.')[:-1])
-            # Clean the game name
-            cleaned_game_name = clean_game_name(game_name_without_extension, insensitive_patterns, sensitive_patterns)
-            print(f"Extracted and cleaned game name: {cleaned_game_name}")
-            full_path = os.path.join(folder_path, file_name)
-            
-            game_names_with_paths.append({'name': cleaned_game_name, 'full_path': full_path, 'file_type': extension})
-            print(f"Added cleaned game name with path: {cleaned_game_name} at {full_path}")
-
-    print(f"Game names with paths extracted from files: {game_names_with_paths}")
-    return game_names_with_paths
-
-
-def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
-    print(f"Original filename: {filename}")
-    
-    # Check and remove 'setup' at the start, case-insensitive
-    if filename.lower().startswith('setup'):
-        filename = filename[len('setup'):].lstrip("_").lstrip("-").lstrip()
-        print(f"After removing 'setup': {filename}")
-
-    # First handle version numbers and known patterns that should be removed
-    filename = re.sub(r'v\d+(\.\d+)*', '', filename)  # Remove version numbers like v1.0.3
-    filename = re.sub(r'\b\d+(\.\d+)+\b', '', filename)  # Remove standalone version numbers like 1.0.3
-    
-    # Handle dots between single letters (like A.Tale -> A Tale)
-    filename = re.sub(r'(?<=\b[A-Z])\.(?=[A-Z]\b|\s|$)', ' ', filename)
-    
-    # Replace remaining dots and underscores with spaces, but preserve dots in known patterns
-    filename = re.sub(r'(?<!^)(?<![\d])\.|_', ' ', filename)
-
-    # Define a regex pattern for version numbers
-    version_pattern = r'\bv?\d+(\.\d+){1,3}'
-
-    # Remove version numbers
-    filename = re.sub(version_pattern, '', filename)
-
-    # Remove known release group patterns
-    for pattern in insensitive_patterns:
-        escaped_pattern = re.escape(pattern)
-        filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename, flags=re.IGNORECASE)
-
-    for pattern, is_case_sensitive in sensitive_patterns:
-        escaped_pattern = re.escape(pattern)
-        if is_case_sensitive:
-            filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename)
-        else:
-            filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename, flags=re.IGNORECASE)
-
-    # Handle cases with numerals and versions
-    filename = re.sub(r'\b([IVXLCDM]+|[0-9]+)(?:[^\w]|$)', r' \1 ', filename)
-
-    # Cleanup for versions, DLCs, etc.
-    filename = re.sub(r'Build\.\d+', '', filename)
-    filename = re.sub(r'(\+|\-)\d+DLCs?', '', filename, flags=re.IGNORECASE)
-    filename = re.sub(r'Repack|Edition|Remastered|Remake|Proper|Dodi', '', filename, flags=re.IGNORECASE)
-
-    # Remove trailing numbers enclosed in brackets
-    filename = re.sub(r'\(\d+\)$', '', filename).strip()
-
-    # Normalize whitespace and re-title
-    filename = re.sub(r'\s+', ' ', filename).strip()
-    cleaned_name = ' '.join(filename.split()).title()
-    print(f"Final cleaned name: {cleaned_name}")
-
-    return cleaned_name
-
-
-
-
-
-
-def discord_webhook(game_uuid): #Used for notifying of new games.
-    # Check if Discord webhook URL is configured
-    settings = GlobalSettings.query.first()
-    if not settings or not settings.discord_webhook_url:
-        print("Discord webhook URL not configured")
-        return
-        
-    # Check if Discord notifications are enabled for new games
-    if not settings.discord_notify_new_games:
-        print("Discord notifications for new games are disabled")
-        return
-
-    newgame = get_game_by_uuid(game_uuid)
-    newgame_size = format_size(newgame.size)
-    newgame_library = get_library_by_uuid(newgame.library_uuid)
-    
-    # Get Discord settings from database first, fallback to config
-    discord_webhook = settings.discord_webhook_url
-    discord_bot_name = settings.discord_bot_name
-    discord_bot_avatar_url = settings.discord_bot_avatar_url
-    
-    site_url = settings.site_url
-    cover_url = get_cover_url(newgame.igdb_id)
-    # if rate_limit_retry is True then in the event that you are being rate 
-    # limited by Discord your webhook will automatically be sent once the 
-    # rate limit has been lifted
-    webhook = DiscordWebhook(url=f"{discord_webhook}", rate_limit_retry=True)
-    # create embed object for webhook
-    embed = DiscordEmbed(title=f"{newgame.name}", description=f"{newgame.summary}", url=f"{site_url}/game_details/{newgame.uuid}", color="03b2f8")
-    # set author
-    embed.set_author(name=f"{discord_bot_name}", url=f"{site_url}", icon_url=f"{discord_bot_avatar_url}")
-    # set cover image
-    embed.set_image(url=f"{cover_url}")
-    # set footer
-    embed.set_footer(text="This game is now available for download")
-    # set timestamp (default is now) accepted types are int, float and datetime
-    embed.set_timestamp()
-    # add fields to embed
-    # Set `inline=False` for the embed field to occupy the whole line
-    embed.add_embed_field(name="Library", value=f"{newgame_library.name}")
-    embed.add_embed_field(name="Size", value=f"{newgame_size}")
-    # add embed object to webhook
-    webhook.add_embed(embed)
-    response = webhook.execute()
-        
-def discord_update(path,event, folder_name, game_path, file_name, file_size, game, game_library): #Used for notifying of game and file updates.
-    global settings
-    settings = GlobalSettings.query.first()
-    
-    #Get custom folder names and Settings
-    update_folder = settings.update_folder_name
-    extras_folder = settings.extras_folder_name
-
-    # Check if Discord webhook URL is configured   
-    if not settings or not settings.discord_webhook_url:
-        print("Discord webhook URL not configured")
-        return
-
-    #Check if event is an update file.
-    if event == "created_update":           
-        # Check if Discord notifications are enabled for game updates
-        if not settings.discord_notify_game_updates:
-            print("Discord notifications for game updates are disabled")
-            return
-        
-        print("Processing Discord notification for game file update.")
-        
-        # Get Discord settings from database first, fallback to config
-        discord_webhook = settings.discord_webhook_url
-        discord_bot_name = settings.discord_bot_name
-        discord_bot_avatar_url = settings.discord_bot_avatar_url
-        
-        site_url = settings.site_url
-        cover_url = get_cover_url(game.igdb_id)
-        # if rate_limit_retry is True then in the event that you are being rate 
-        # limited by Discord your webhook will automatically be sent once the 
-        # rate limit has been lifted
-        webhook = DiscordWebhook(url=f"{discord_webhook}", rate_limit_retry=True)
-        # create embed object for webhook
-        embed = DiscordEmbed(title=f"Update File Available for {game.name}", url=f"{site_url}/game_details/{game.uuid}", color="21f704")
-        # set author
-        embed.set_author(name=f"{discord_bot_name}", url=f"{site_url}", icon_url=f"{discord_bot_avatar_url}")
-        # set cover image
-        embed.set_image(url=f"{cover_url}")
-        # set footer
-        embed.set_footer(text="This game has an update available for download")
-        # set timestamp (default is now) accepted types are int, float and datetime
-        embed.set_timestamp()
-        # add fields to embed
-        # Set `inline=False` for the embed field to occupy the whole line
-        embed.add_embed_field(name="Library", value=f"{game_library.name}")
-        embed.add_embed_field(name="File", value=f"{file_name}")
-        embed.add_embed_field(name="Size", value=f"{file_size}")
-        # add embed object to webhook
-        webhook.add_embed(embed)
-        response = webhook.execute()
-        
-    #Check if event is an extra file.
-    elif event == "created_extra":   
-        # Check if Discord notifications are enabled for game extras
-        if not settings.discord_notify_game_extras:
-            print("Discord notifications for game extras are disabled")
-            return
-        
-        print("Processing new extra file.")
-        
-        # Get Discord settings from database first, fallback to config
-        discord_webhook = settings.discord_webhook_url if settings and settings.discord_webhook_url else current_app.config['DISCORD_WEBHOOK_URL']
-        discord_bot_name = settings.discord_bot_name if settings and settings.discord_bot_name else current_app.config['DISCORD_BOT_NAME']
-        discord_bot_avatar_url = settings.discord_bot_avatar_url
-        
-        site_url = settings.site_url
-        cover_url = get_cover_url(game.igdb_id)
-        # if rate_limit_retry is True then in the event that you are being rate 
-        # limited by Discord your webhook will automatically be sent once the 
-        # rate limit has been lifted
-        webhook = DiscordWebhook(url=f"{discord_webhook}", rate_limit_retry=True)
-        # create embed object for webhook
-        embed = DiscordEmbed(title=f"Extra File Available for {game.name}", url=f"{site_url}/game_details/{game.uuid}", color="f304f7")
-        # set author
-        embed.set_author(name=f"{discord_bot_name}", url=f"{site_url}", icon_url=f"{discord_bot_avatar_url}")
-        # set cover image
-        embed.set_image(url=f"{cover_url}")
-        # set footer
-        embed.set_footer(text="This game has an extra file available for download")
-        # set timestamp (default is now) accepted types are int, float and datetime
-        embed.set_timestamp()
-        # add fields to embed
-        # Set `inline=False` for the embed field to occupy the whole line
-        embed.add_embed_field(name="Library", value=f"{game_library.name}")
-        embed.add_embed_field(name="File", value=f"{file_name}")
-        embed.add_embed_field(name="Size", value=f"{file_size}")
-        # add embed object to webhook
-        webhook.add_embed(embed)
-        response = webhook.execute()
-
-    elif event == "modified":
-        # Check if Discord notifications are enabled for game updates
-        if not settings.discord_notify_game_updates:
-            print("Discord notifications for game updates are disabled.")
-            return
-            
-        # Get Discord settings from database first, fallback to config
-        discord_webhook = settings.discord_webhook_url
-        discord_bot_name = settings.discord_bot_name
-        discord_bot_avatar_url = settings.discord_bot_avatar_url
-        
-        site_url = settings.site_url
-        cover_url = get_cover_url(game.igdb_id)
-        # if rate_limit_retry is True then in the event that you are being rate 
-        # limited by Discord your webhook will automatically be sent once the 
-        # rate limit has been lifted
-        webhook = DiscordWebhook(url=f"{discord_webhook}", rate_limit_retry=True)
-        # create embed object for webhook
-        embed = DiscordEmbed(title=f"Main Game Update Available for {game.name}", url=f"{site_url}/game_details/{game.uuid}", color="f71604")
-        # set author
-        embed.set_author(name=f"{discord_bot_name}", url=f"{site_url}", icon_url=f"{discord_bot_avatar_url}")
-        # set cover image
-        embed.set_image(url=f"{cover_url}")
-        # set footer
-        embed.set_footer(text=f"The main file for this game has been updated and is available for download.")
-        # set timestamp (default is now) accepted types are int, float and datetime
-        embed.set_timestamp()
-        # add fields to embed
-        # Set `inline=False` for the embed field to occupy the whole line
-        embed.add_embed_field(name="Library", value=f"{game_library.name}")
-        embed.add_embed_field(name="File", value=f"{file_name}")
-        embed.add_embed_field(name="Size", value=f"{file_size}")
-        # add embed object to webhook
-        webhook.add_embed(embed)
-        response = webhook.execute()
-    
-def get_library_by_uuid(uuid):
-    print(f"Searching for Library UUID: {uuid}")
-    library = Library.query.filter_by(uuid=uuid).first()
-    if library:
-        print(f"Library with name {library.name} and UUID {library.uuid} found")
-        return library
-    else:
-        print("Library not found")
-        return None
-        
-def get_game_name_by_uuid(uuid):
-    print(f"Searching for game UUID: {uuid}")
-    game = Game.query.filter_by(uuid=uuid).first()
-    if game:
-        print(f"Game with name {game.name} and UUID {game.uuid} found")
-        return game.name
-    else:
-        print("Game not found")
-        return None
-        
-def update_game_size(game_uuid, size):
-    game = get_game_by_uuid(game_uuid)
-    game.size = size
-    db.session.commit()
-    return None
-    
-def update_game_last_updated(game_uuid, updated_time):
-    game = get_game_by_uuid(game_uuid)
-    game.last_updated = updated_time
-    db.session.commit()
-    return None
-
-global last_game_path
-last_game_path = ''
-global last_update_time
-last_update_time = time.time()
-global first_run
-first_run = 1
-
-def notifications_manager(path, event, game_uuid=None):
-    global last_game_path
-    global settings
-    settings = GlobalSettings.query.first()
-    
-    if not settings:
-        print("No settings found in database")
-        return
-        
-    update_folder = settings.update_folder_name or 'updates'  # Fallback to default if not set
-    extras_folder = settings.extras_folder_name or 'extras'  # Add extras folder name
-    extras_folder = settings.extras_folder_name or 'extras'
-    
-    #If fired by Watchdog
-    print(f"Processing {event} event for game located at path {path}")
-    #Process the created event and fire notifications.
-    if event == "created":
-        if os.name == "nt":
-            folder_name = path.split('\\')[-2]
-            game_path = path.rpartition('\\')[0]
-            game_path = game_path.rpartition('\\')[0]
-            file_name = path.split('\\')[-1]
-        else:
-            folder_name = path.split('/')[-2]
-            game_path = path.rpartition('/')[0]
-            game_path = game_path.rpartition('/')[0]
-            file_name = path.split('/')[-1]
-        print(f"Getting game located at path {game_path}")
-        
-        #Process the folder
-        if update_folder.lower() == folder_name.lower():
-            event = "created_update"
-        elif extras_folder.lower() == folder_name.lower():
-            event = "created_extra"
-        
-        if os.path.isfile(path):
-            file_size = os.path.getsize(path)
-        else:
-            file_size = get_folder_size_in_bytes(path)
-        file_size = format_size(file_size)
-        game = get_game_by_full_disk_path(game_path, path)
-        
-        if game:
-            updated_time = datetime.utcnow()
-            game_library = get_library_by_uuid(game.library_uuid)
-            if event == "created_update":
-                update_game_last_updated(game.uuid, updated_time)
-        
-        else:
-            print("No matching update notifications for this file.")
-            return
-         
-        #Send Discord notification if enabled.
-        if settings.discord_notify_game_updates or settings.discord_notify_game_extras:
-            discord_update(path,event, folder_name, game_path, file_name, file_size, game, game_library)     
-    
-    #Process modified event and fire notifications.
-    elif event == "modified":
-        if os.name == "nt":
-            game_path = path.rpartition('\\')[0]
-            file_name = path.split('\\')[-1]
-            folder_name = path.split('\\')[-2]
-            file_ext = path.split('.')[-1]
-        else:
-            game_path = path.rpartition('/')[0]
-            file_name = path.split('/')[-1]
-        print(f"Getting game located at path {game_path} with file path {path}")
-        
-        if folder_name.lower() == update_folder.lower() or folder_name.lower() == extras_folder.lower():
-            print("This is an update or extra folder. Not processing.")
-            return
-        
-        game = get_game_by_full_disk_path(game_path, path)
-        
-        number_of_files = len([f for f in os.listdir(game_path) if os.path.isfile(os.path.join(game_path, f)) and f.split('.')[-1] != 'txt' and f.split('.')[-1] != 'nfo'])
-        
-        if number_of_files > 1:
-            elapsed_seconds = time.time() - last_update_time
-            elapsed_minutes = elapsed_seconds / 60
-            if last_game_path == game_path and elapsed_minutes < 60:
-                print(f"This game folder contains {number_of_files} game files and this file will not be included in the update notifications. Last updated {int(elapsed_minutes)} minutes ago.")
-                return
-
-            file_size = get_folder_size_in_bytes_updates(game_path)
-            last_game_path = game_path
-            if os.name == "nt":
-                file_name = path.split('\\')[-2]
-            else:
-                file_name = path.split('/')[-2]
-        else:
-            file_size = os.path.getsize(path)
-            last_game_path = game_path
-
-        #If OS is Windows and the exe file detected is a not a main game file change, ignore it. If main game file change, check to see if size actually changed.
-        if os.name == "nt":
-            if game:
-                if update_folder.lower() in path.lower() or extras_folder.lower() in path.lower() and file_ext == "exe":
-                    print(f"The extension {file_ext} will not used for {folder_name}")
-                    return
-                else:
-                    if file_size == game.size:
-                        print(f"There is no change in {file_name}. File size is {file_size} and original size is {game.size}.")
-                        return
-                    else:
-                        print(f"There is a change in {file_name} at path {game_path}. New file size is {file_size} and original size is {game.size}.")
-            else:
-                print(f"No found game.")
-                return
-                
-        if game.full_disk_path == game_path:
-            print(f"Updating new game size as {file_size} and original size is {game.size}. Path is {path}")
-            update_game_size(game.uuid, file_size)
-                    
-        file_size = format_size(file_size)
-            
-        if game:
-            updated_time = datetime.utcnow()
-            game_library = get_library_by_uuid(game.library_uuid)
-            
-            # Get Discord settings from database first, fallback to config
-            discord_webhook = settings.discord_webhook_url if settings and settings.discord_webhook_url else current_app.config['DISCORD_WEBHOOK_URL']
-            discord_bot_name = settings.discord_bot_name if settings and settings.discord_bot_name else current_app.config['DISCORD_BOT_NAME']
-            discord_bot_avatar_url = settings.discord_bot_avatar_url if settings and settings.discord_bot_avatar_url else current_app.config['DISCORD_BOT_AVATAR_URL']
-            
-            site_url = current_app.config['SITE_URL']
-            cover_url = get_cover_url(game.igdb_id)
-            # if rate_limit_retry is True then in the event that you are being rate 
-            # limited by Discord your webhook will automatically be sent once the 
-            # rate limit has been lifted
-            webhook = DiscordWebhook(url=f"{discord_webhook}", rate_limit_retry=True)
-            # create embed object for webhook
-            embed = DiscordEmbed(title=f"Main Game Update Available for {game.name}", url=f"{site_url}/game_details/{game.uuid}", color="f71604")
-            # set author
-            embed.set_author(name=f"{discord_bot_name}", url=f"{site_url}", icon_url=f"{discord_bot_avatar_url}")
-            # set cover image
-            embed.set_image(url=f"{cover_url}")
-            # set footer
-            embed.set_footer(text=f"The main file for this game has been updated and is available for download.")
-            # set timestamp (default is now) accepted types are int, float and datetime
-            embed.set_timestamp()
-            # add fields to embed
-            # Set `inline=False` for the embed field to occupy the whole line
-            embed.add_embed_field(name="Library", value=f"{game_library.name}")
-            embed.add_embed_field(name="File", value=f"{file_name}")
-            embed.add_embed_field(name="Size", value=f"{file_size}")
-            # add embed object to webhook
-            webhook.add_embed(embed)
-            response = webhook.execute()

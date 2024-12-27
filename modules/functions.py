@@ -6,6 +6,7 @@ from wtforms.validators import ValidationError
 from modules import db
 from modules.models import ReleaseGroup
 from sqlalchemy.exc import SQLAlchemyError
+from modules.models import GlobalSettings
 
 def format_size(size_in_bytes):
     """Format file size from bytes to human-readable format."""
@@ -46,6 +47,34 @@ def get_folder_size_in_bytes(folder_path):
             if os.path.exists(fp):
                 total_size += os.path.getsize(fp)
     return max(total_size, 1)
+
+def get_folder_size_in_bytes_updates(folder_path):
+    settings = GlobalSettings.query.first()
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(folder_path):
+        for f in filenames:
+            if settings and settings.update_folder_name and settings.update_folder_name != "" and settings.extras_folder_name and settings.extras_folder_name != "":
+                if settings.update_folder_name.lower() not in dirpath.lower() and settings.extras_folder_name.lower() not in dirpath.lower():
+                    fp = os.path.join(dirpath, f)
+                    if os.path.exists(fp):
+                        total_size += os.path.getsize(fp)
+            elif settings and settings.update_folder_name and settings.update_folder_name != "":
+                if settings.update_folder_name.lower() not in dirpath.lower():
+                    fp = os.path.join(dirpath, f)
+                    if os.path.exists(fp):
+                        total_size += os.path.getsize(fp)
+            elif settings.extras_folder_name and settings.extras_folder_name != "":
+                if settings.extras_folder_name.lower() not in dirpath.lower():
+                    fp = os.path.join(dirpath, f)
+                    if os.path.exists(fp):
+                        total_size += os.path.getsize(fp)
+            else:
+                fp = os.path.join(dirpath, f)
+                if os.path.exists(fp):
+                    total_size += os.path.getsize(fp)
+    return total_size
+
+
 
 def read_first_nfo_content(full_disk_path):
     """Read the content of the first NFO file found in the given path."""
@@ -219,3 +248,4 @@ def load_release_group_patterns():
     except SQLAlchemyError as e:
         print(f"An error occurred while fetching release group patterns: {e}")
         return [], []
+
