@@ -41,12 +41,12 @@ from modules.utilities import (
     zip_game, zip_folder, format_size, delete_game_images, read_first_nfo_content,
     PLATFORM_IDS
 )
-from modules.smtp_utils import send_email, send_password_reset_email, send_invite_email
+from modules.utils_smtp import send_email, send_password_reset_email, send_invite_email
 from modules.utils_games import get_game_names_from_folder, get_game_names_from_files
 from modules.theme_manager import ThemeManager
-from modules.smtp_test import SMTPTester
-from modules.functions import square_image, load_release_group_patterns, get_folder_size_in_bytes, get_folder_size_in_bytes_updates
-from modules.igdb_api import make_igdb_api_request, get_cover_thumbnail_url
+from modules.utils_smtp_test import SMTPTester
+from modules.utils_functions import square_image, load_release_group_patterns, get_folder_size_in_bytes, get_folder_size_in_bytes_updates
+from modules.utils_igdb_api import make_igdb_api_request, get_cover_thumbnail_url
 
 bp = Blueprint('main', __name__)
 s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])

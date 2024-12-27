@@ -6,7 +6,7 @@ from flask_login import current_user, login_user
 from datetime import datetime
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
-from modules.functions import (
+from modules.utils_functions import (
     format_size, read_first_nfo_content,
     download_image
 )
@@ -17,10 +17,10 @@ from modules.models import (
     category_mapping, status_mapping, player_perspective_mapping, GlobalSettings
 )
 from modules import db, mail
-from modules.functions import website_category_to_string, PLATFORM_IDS, load_release_group_patterns, get_folder_size_in_bytes_updates
+from modules.utils_functions import website_category_to_string, PLATFORM_IDS, load_release_group_patterns, get_folder_size_in_bytes_updates
 from modules.utils_discord import discord_webhook, discord_update
 from modules.utils_games import get_game_names_from_folder, get_game_names_from_files
-from modules.igdb_api import make_igdb_api_request, get_cover_url
+from modules.utils_igdb_api import make_igdb_api_request, get_cover_url
 from sqlalchemy import func, String
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from flask import current_app

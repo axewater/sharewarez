@@ -12,7 +12,7 @@ from config import Config
 from modules.routes_site import site_bp
 from urllib.parse import urlparse
 from flask_caching import Cache
-from modules.db_utils import check_postgres_port_open
+from modules.utils_db import check_postgres_port_open
 
 db = SQLAlchemy()
 login_manager = LoginManager()
