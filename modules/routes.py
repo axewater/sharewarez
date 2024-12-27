@@ -33,11 +33,12 @@ from modules.models import (
     Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, LibraryPlatform, AllowedFileType, IgnoredFileType
 )
 from modules.utilities import (
-    admin_required, _authenticate_and_redirect, refresh_images_in_background, 
+    refresh_images_in_background, get_game_by_uuid,
     check_existing_game_by_igdb_id, scan_and_add_games, update_download_request,
     zip_game, zip_folder, format_size, delete_game_images, read_first_nfo_content,
     PLATFORM_IDS
 )
+from modules.utils_auth import _authenticate_and_redirect, admin_required
 from modules.utils_smtp import send_email, send_password_reset_email, send_invite_email
 from modules.utils_gamenames import get_game_names_from_folder, get_game_names_from_files
 from modules.utils_themes import ThemeManager
