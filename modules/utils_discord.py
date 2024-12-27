@@ -16,7 +16,7 @@ def discord_webhook(game_uuid):
         print("Discord notifications for new games are disabled")
         return
 
-    game = get_game_by_uuid(game_uuid)
+    game = discord_game_by_uuid(game_uuid)
     game_size = format_size(game.size)
     game_library = get_library_by_uuid(game.library_uuid)
     
@@ -127,7 +127,7 @@ def add_common_embed_fields(embed, game_library, file_name, file_size):
     embed.add_embed_field(name="File", value=f"{file_name}")
     embed.add_embed_field(name="Size", value=f"{file_size}")
 
-def get_game_by_uuid(game_uuid):
+def discord_game_by_uuid(game_uuid):
     """Get game by UUID."""
     game = Game.query.filter_by(uuid=game_uuid).first()
     if game:
