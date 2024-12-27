@@ -1,11 +1,8 @@
 # modules/routes_site.py
-from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_from_directory
+from flask import Blueprint, render_template, redirect, url_for, current_app, send_from_directory
 from flask_login import login_required, logout_user
 import os
 site_bp = Blueprint('site', __name__)
-
-
-
 
 @site_bp.route('/restricted')
 @login_required
@@ -24,7 +21,6 @@ def logout():
 @site_bp.route('/index', methods=['GET', 'POST'])
 def index():
     return redirect(url_for('main.login'))
-
 
 
 @site_bp.route('/favicon.ico')

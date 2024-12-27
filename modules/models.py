@@ -1,6 +1,6 @@
 # modules/models.py
 from modules import db
-from sqlalchemy import Table, Column, Integer, String, ForeignKey, Float, DateTime, Enum
+from sqlalchemy import ForeignKey
 from sqlalchemy.dialects.sqlite import TEXT as SQLite_TEXT
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import TypeDecorator, TEXT

@@ -1,11 +1,9 @@
 # /app.py
-import time
 from modules import create_app, db
 import argparse
 from modules.updateschema import DatabaseManager
 import os
 import zipfile
-import shutil
 from modules.models import User
 
 # Add argument parser

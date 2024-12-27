@@ -1,5 +1,5 @@
 # modules/routes.py
-import sys, uuid, json, requests, os, shutil, os, platform, socket
+import sys, uuid, json, os, shutil, os, platform, socket
 from threading import Thread
 from config import Config
 from flask import (
@@ -12,10 +12,7 @@ from flask_mail import Message as MailMessage
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import joinedload
 from sqlalchemy import func, case
-from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
-from glob import glob
-from werkzeug.security import generate_password_hash, check_password_hash
 from modules import db, mail, cache
 from functools import wraps
 from uuid import uuid4
@@ -55,7 +52,7 @@ has_upgraded_admin = False
 has_initialized_setup = False
 app_start_time = datetime.now()
 
-app_version = '2.0.4'
+app_version = '2.0.5'
 
 
 @bp.before_app_request
