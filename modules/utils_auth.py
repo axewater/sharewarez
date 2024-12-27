@@ -5,6 +5,11 @@ from urllib.parse import urlparse as url_parse
 from flask_login import current_user, login_user
 from sqlalchemy import func
 from modules.models import User, db
+from modules import login_manager
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 def _authenticate_and_redirect(username, password):
     user = User.query.filter(func.lower(User.name) == func.lower(username)).first()
