@@ -1,5 +1,4 @@
 __pycache__
-config.py
 config.portainer
 config.backup
 config.py.backup
@@ -22,4 +21,4 @@ modules/static/library/images
 *.zip
 /.git
 /.github
-config.py
+
