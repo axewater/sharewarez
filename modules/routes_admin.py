@@ -1,15 +1,22 @@
 # modules/routes_site.py
-from flask import Blueprint, render_template, redirect, url_for, current_app, jsonify, request
+from flask import Blueprint, render_template, redirect, url_for, current_app, jsonify, request, flash
 from flask_login import login_required, current_user
 from flask_mail import Message as MailMessage
 from modules.utils_auth import admin_required
+from modules import app_version
+from config import Config
+from modules.utils_igdb_api import make_igdb_api_request
 from modules.models import Whitelist, User, GlobalSettings
-from modules import db, mail
+from modules import db, mail, cache
 from modules.forms import WhitelistForm, NewsletterForm
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func
+from datetime import datetime
 from flask import flash
 from uuid import uuid4
+import socket
+import platform
+from modules import app_start_time
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -183,3 +190,220 @@ def manage_user_api(user_id):
         except Exception as e:
             db.session.rollback()
             return jsonify({'success': False, 'message': str(e)}), 500
+        
+        
+
+
+@admin_bp.route('/admin/settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def manage_settings():
+    if request.method == 'POST':
+        new_settings = request.json
+        print(f"Received settings update: {new_settings}")
+        
+        settings_record = GlobalSettings.query.first()
+        if not settings_record:
+            settings_record = GlobalSettings(settings={})
+            db.session.add(settings_record)
+
+        # Update specific boolean fields
+        settings_record.enable_delete_game_on_disk = new_settings.get('enableDeleteGameOnDisk', True)
+        settings_record.discord_notify_new_games = new_settings.get('discordNotifyNewGames', False)
+        settings_record.discord_notify_game_updates = new_settings.get('discordNotifyGameUpdates', False)
+        settings_record.discord_notify_game_extras = new_settings.get('discordNotifyGameExtras', False)
+        settings_record.discord_notify_downloads = new_settings.get('discordNotifyDownloads', False)
+        settings_record.enable_main_game_updates = new_settings.get('enableMainGameUpdates', False)
+        settings_record.enable_game_updates = new_settings.get('enableGameUpdates', False)
+        settings_record.update_folder_name = new_settings.get('updateFolderName', 'updates')
+        settings_record.enable_game_extras = new_settings.get('enableGameExtras', False)
+        settings_record.extras_folder_name = new_settings.get('extrasFolderName', 'extras')
+        settings_record.site_url = new_settings.get('siteUrl', 'http://127.0.0.1')
+        
+        # Update the settings JSON field
+        settings_record.settings = new_settings
+        settings_record.last_updated = datetime.utcnow()
+        
+        # Update specific boolean fields
+        settings_record.enable_delete_game_on_disk = new_settings.get('enableDeleteGameOnDisk', True)
+        settings_record.discord_notify_new_games = new_settings.get('discordNotifyNewGames', False)
+        settings_record.discord_notify_game_updates = new_settings.get('discordNotifyGameUpdates', False)
+        settings_record.discord_notify_game_extras = new_settings.get('discordNotifyGameExtras', False)
+        settings_record.discord_notify_downloads = new_settings.get('discordNotifyDownloads', False)
+        settings_record.enable_main_game_updates = new_settings.get('enableMainGameUpdates', False)
+        settings_record.enable_game_updates = new_settings.get('enableGameUpdates', False)
+        settings_record.update_folder_name = new_settings.get('updateFolderName', 'updates')
+        settings_record.enable_game_extras = new_settings.get('enableGameExtras', False)
+        settings_record.extras_folder_name = new_settings.get('extrasFolderName', 'extras')
+        settings_record.site_url = new_settings.get('siteUrl', 'http://127.0.0.1')
+        settings_record.last_updated = datetime.utcnow()
+        
+        settings_record.settings = new_settings
+        settings_record.enable_delete_game_on_disk = new_settings.get('enableDeleteGameOnDisk', True)
+        settings_record.discord_notify_new_games = new_settings.get('discordNotifyNewGames', False)
+        settings_record.discord_notify_game_updates = new_settings.get('discordNotifyGameUpdates', False)
+        settings_record.discord_notify_game_extras = new_settings.get('discordNotifyGameExtras', False)
+        settings_record.discord_notify_downloads = new_settings.get('discordNotifyDownloads', False)
+        settings_record.enable_main_game_updates = new_settings.get('enableMainGameUpdates', False)
+        settings_record.enable_game_updates = new_settings.get('enableGameUpdates', False)
+        settings_record.update_folder_name = new_settings.get('updateFolderName', 'updates')
+        settings_record.enable_game_extras = new_settings.get('enableGameExtras', False)
+        settings_record.extras_folder_name = new_settings.get('extrasFolderName', 'extras')
+        settings_record.site_url = new_settings.get('siteUrl', 'http://127.0.0.1')
+        settings_record.last_updated = datetime.utcnow()
+        db.session.commit()
+        cache.delete('global_settings')
+        return jsonify({'message': 'Settings updated successfully'}), 200
+
+    else:  # GET request
+        settings_record = GlobalSettings.query.first()
+        if not settings_record:
+            # Initialize default settings if no record exists
+            current_settings = {
+                'showSystemLogo': True,
+                'showHelpButton': True,
+                'enableWebLinksOnDetailsPage': True,
+                'enableServerStatusFeature': True,
+                'enableNewsletterFeature': True,
+                'showVersion': True,
+                'enableDeleteGameOnDisk': True,
+                'enableGameUpdates': True,
+                'enableGameExtras': True,
+                'siteUrl': 'http://127.0.0.1',
+                'discordNotifyNewGames': False,
+                'discordNotifyGameUpdates': False,
+                'discordNotifyGameExtras': False,
+                'discordNotifyDownloads': False,
+                'enableMainGameUpdates': True,
+                'updateFolderName': 'updates',
+                'extrasFolderName': 'extras'
+            }
+        else:
+            current_settings = settings_record.settings or {}
+            current_settings['enableDeleteGameOnDisk'] = settings_record.enable_delete_game_on_disk
+        current_settings['discordNotifyNewGames'] = settings_record.discord_notify_new_games if settings_record else False
+        current_settings['discordNotifyGameUpdates'] = settings_record.discord_notify_game_updates if settings_record else False
+        current_settings['discordNotifyGameExtras'] = settings_record.discord_notify_game_extras if settings_record else False
+        current_settings['discordNotifyDownloads'] = settings_record.discord_notify_downloads if settings_record else False
+        current_settings['enableMainGameUpdates'] = settings_record.enable_main_game_updates if settings_record else True
+        current_settings['enableGameUpdates'] = settings_record.enable_game_updates if settings_record else True
+        current_settings['updateFolderName'] = settings_record.update_folder_name if settings_record else 'updates'
+        current_settings['enableGameExtras'] = settings_record.enable_game_extras if settings_record else True
+        current_settings['extrasFolderName'] = settings_record.extras_folder_name if settings_record else 'extras'
+        return render_template('admin/admin_server_settings.html', current_settings=current_settings)
+
+
+
+@admin_bp.route('/admin/igdb_settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def igdb_settings():
+    settings = GlobalSettings.query.first()
+    if request.method == 'POST':
+        data = request.json
+        if not settings:
+            settings = GlobalSettings()
+            db.session.add(settings)
+        
+        settings.igdb_client_id = data.get('igdb_client_id')
+        settings.igdb_client_secret = data.get('igdb_client_secret')
+        
+        try:
+            db.session.commit()
+            return jsonify({'status': 'success', 'message': 'IGDB settings updated successfully'})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'status': 'error', 'message': str(e)}), 500
+    
+    return render_template('admin/admin_igdb_settings.html', settings=settings)
+
+@admin_bp.route('/admin/test_igdb', methods=['POST'])
+@login_required
+@admin_required
+def test_igdb():
+    print("Testing IGDB connection...")
+    settings = GlobalSettings.query.first()
+    if not settings or not settings.igdb_client_id or not settings.igdb_client_secret:
+        return jsonify({'status': 'error', 'message': 'IGDB settings not configured'}), 400
+
+    try:
+        # Test the IGDB API with a simple query
+        response = make_igdb_api_request('https://api.igdb.com/v4/games', 'fields name; limit 1;')
+        if isinstance(response, list):
+            print("IGDB API test successful")
+            settings.igdb_last_tested = datetime.utcnow()
+            db.session.commit()
+            return jsonify({'status': 'success', 'message': 'IGDB API test successful'})
+        else:
+            print("IGDB API test failed")
+            return jsonify({'status': 'error', 'message': 'Invalid API response'}), 500
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+    
+@admin_bp.route('/admin/server_status_page')
+@login_required
+@admin_required
+def admin_server_status():
+    try:
+        settings_record = GlobalSettings.query.first()
+        if not settings_record or not settings_record.settings:
+            flash('Server settings not configured.', 'warning')
+            return redirect(url_for('main.admin_dashboard'))
+            
+        enable_server_status = settings_record.settings.get('enableServerStatusFeature', False)
+        if not enable_server_status:
+            flash('Server Status feature is disabled.', 'warning')
+            return redirect(url_for('main.admin_dashboard'))
+            
+    except Exception as e:
+        flash(f'Error accessing server settings: {str(e)}', 'error')
+        return redirect(url_for('main.admin_dashboard'))
+
+    try:
+        uptime = datetime.now() - app_start_time
+    except Exception as e:
+        uptime = 'Unavailable'
+        print(f"Error calculating uptime: {e}")
+
+    # Define whitelist of configuration keys to display
+    whitelist = {
+        'BASE_FOLDER_WINDOWS',
+        'BASE_FOLDER_POSIX',
+        'DATA_FOLDER_WAREZ',
+        'IMAGE_SAVE_PATH',
+        'SQLALCHEMY_DATABASE_URI',
+        'SQLALCHEMY_TRACK_MODIFICATIONS',
+        'UPLOAD_FOLDER'
+    }
+
+    # Filter config values based on whitelist
+    safe_config_values = {}
+    for item in dir(Config):
+        if not item.startswith("__") and item in whitelist:
+            safe_config_values[item] = getattr(Config, item)
+    
+    try:
+        hostname = socket.gethostname()
+        ip_address = socket.gethostbyname(hostname)
+    except Exception as e:
+        hostname = 'Unavailable'
+        ip_address = 'Unavailable'
+        print(f"Error retrieving IP address: {e}")
+    
+    system_info = {
+        'OS': platform.system(),
+        'OS Version': platform.version(),
+        'Python Version': platform.python_version(),
+        'Hostname': hostname,
+        'IP Address': ip_address,
+        'Flask Port': request.environ.get('SERVER_PORT'),
+        'Uptime': str(uptime),
+        'Current Time': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+    return render_template(
+        'admin/admin_server_info.html', 
+        config_values=safe_config_values, 
+        system_info=system_info, 
+        app_version=app_version
+    )
