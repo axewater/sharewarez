@@ -15,6 +15,5 @@ wait_for_postgres() {
 # Wait for PostgreSQL to come online
 wait_for_postgres
 
-# Execute your Python scripts
-# python /app/docker_adduser.py
+echo "Running the Sharewarez Docker container\n"
 python /app/app.py

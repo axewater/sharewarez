@@ -10,8 +10,6 @@ services:
     ports:
       - "5001:5001"
     environment:
-      - APP_USERNAME=${SHAREWAREZ_USERNAME}
-      - APP_PASSWORD=${SHAREWAREZ_PASSWORD}
       - DATABASE_URL=${DATABASE_URL}
       - WAIT_HOSTS="db:5432"
     volumes:
