@@ -16,15 +16,12 @@ from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from glob import glob
 from werkzeug.security import generate_password_hash, check_password_hash
-
 from modules import db, mail, cache
 from functools import wraps
 from uuid import uuid4
 from datetime import datetime, timedelta
 from PIL import Image as PILImage
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
-from .utilities import get_game_name_by_uuid
-
 
 from modules.forms import (
     UserPasswordForm, EditProfileForm, NewsletterForm, WhitelistForm, 
@@ -40,15 +37,15 @@ from modules.models import (
 )
 from modules.utilities import (
     admin_required, _authenticate_and_redirect, refresh_images_in_background, 
-    get_game_by_uuid, check_existing_game_by_igdb_id, get_game_names_from_folder,
-    scan_and_add_games, get_game_names_from_files, update_download_request,
+    check_existing_game_by_igdb_id, scan_and_add_games, update_download_request,
     zip_game, zip_folder, format_size, delete_game_images, read_first_nfo_content,
-    get_folder_size_in_bytes, get_folder_size_in_bytes_updates, PLATFORM_IDS
+    PLATFORM_IDS
 )
 from modules.smtp_utils import send_email, send_password_reset_email, send_invite_email
+from modules.utils_games import get_game_names_from_folder, get_game_names_from_files
 from modules.theme_manager import ThemeManager
 from modules.smtp_test import SMTPTester
-from modules.functions import square_image, load_release_group_patterns
+from modules.functions import square_image, load_release_group_patterns, get_folder_size_in_bytes, get_folder_size_in_bytes_updates
 from modules.igdb_api import make_igdb_api_request, get_cover_thumbnail_url
 
 bp = Blueprint('main', __name__)
@@ -2375,7 +2372,15 @@ def game_details(game_uuid):
     else:
         return jsonify({"error": "Game not found"}), 404
 
-
+def get_game_name_by_uuid(uuid):
+    print(f"Searching for game UUID: {uuid}")
+    game = Game.query.filter_by(uuid=uuid).first()
+    if game:
+        print(f"Game with name {game.name} and UUID {game.uuid} found")
+        return game.name
+    else:
+        print("Game not found")
+        return None
 
 @bp.route('/refresh_game_images/<game_uuid>', methods=['POST'])
 @login_required

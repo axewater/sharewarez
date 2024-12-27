@@ -6,7 +6,7 @@ import sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from modules.models import Game
-from modules.utilities import get_folder_size_in_bytes
+from modules.functions import get_folder_size_in_bytes
 from config import Config
 
 def update_game_sizes():
