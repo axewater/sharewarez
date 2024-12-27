@@ -183,7 +183,7 @@ class DatabaseManager:
                 connection.commit()
             print("Columns and tables successfully added to the database.")
             
-            # Initialize default values for allowed and ignored file types
+            # Initialize default values for allowed file types
             try:
                 with self.engine.connect() as connection:
                     # Check if allowed_file_types table is empty
@@ -193,16 +193,6 @@ class DatabaseManager:
                         for file_type in Config.ALLOWED_FILE_TYPES:
                             connection.execute(
                                 text("INSERT INTO allowed_file_types (value) VALUES (:value) ON CONFLICT DO NOTHING"),
-                                {"value": file_type}
-                            )
-                    
-                    # Check if ignored_file_types table is empty
-                    result = connection.execute(text("SELECT COUNT(*) FROM ignored_file_types")).scalar()
-                    if result == 0:
-                        # Insert default ignored file types from Config
-                        for file_type in Config.MONITOR_IGNORE_EXT:
-                            connection.execute(
-                                text("INSERT INTO ignored_file_types (value) VALUES (:value) ON CONFLICT DO NOTHING"),
                                 {"value": file_type}
                             )
                     
