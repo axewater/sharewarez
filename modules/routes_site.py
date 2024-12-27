@@ -1,8 +1,20 @@
 # modules/routes_site.py
-from flask import Blueprint, render_template, redirect, url_for, current_app, send_from_directory
-from flask_login import login_required, logout_user
+from flask import Blueprint, render_template, redirect, url_for, current_app, send_from_directory, jsonify, request
+from flask_login import login_required, logout_user, current_user
+from sqlalchemy import func
+from flask import flash
 import os
+
 site_bp = Blueprint('site', __name__)
+
+
+@site_bp.context_processor
+def inject_current_theme():
+    if current_user.is_authenticated and current_user.preferences:
+        current_theme = current_user.preferences.theme or 'default'
+    else:
+        current_theme = 'default'
+    return dict(current_theme=current_theme)
 
 @site_bp.route('/restricted')
 @login_required
@@ -27,9 +39,6 @@ def index():
 def favicon():
     favidir = "icons"
     full_dir = os.path.join(current_app.static_folder, favidir)
-    print(f"Full dir: {full_dir}" if os.path.isdir(full_dir) else f"Dir not found: {full_dir}")
+    # print(f"Full dir: {full_dir}" if os.path.isdir(full_dir) else f"Dir not found: {full_dir}")
     return send_from_directory(full_dir, 'favicon.ico', mimetype='image/vnd.microsoft.icon')
-
-
-
 

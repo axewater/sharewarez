@@ -9,7 +9,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import Config
-from modules.routes_site import site_bp
+
 from urllib.parse import urlparse
 from flask_caching import Cache
 from modules.utils_db import check_postgres_port_open
@@ -41,9 +41,12 @@ def create_app():
         from . import routes, models
         from modules.utils_auth import load_user
         from modules.init_data import insert_default_filters
+        from modules.routes_site import site_bp
+        from modules.routes_admin import admin_bp
         db.create_all()
         insert_default_filters()
     app.register_blueprint(routes.bp)
     app.register_blueprint(site_bp)
+    app.register_blueprint(admin_bp)
 
     return app
