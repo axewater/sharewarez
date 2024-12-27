@@ -14,7 +14,6 @@ from urllib.parse import urlparse
 from flask_caching import Cache
 from modules.utils_db import check_postgres_port_open
 
-
 db = SQLAlchemy()
 login_manager = LoginManager()
 mail = Mail()
@@ -30,7 +29,7 @@ def create_app():
 
     parsed_url = urlparse(app.config['SQLALCHEMY_DATABASE_URI'])
     check_postgres_port_open(parsed_url.hostname, 5432, 60, 2)
-    
+
     db.init_app(app)
 
     login_manager.init_app(app)
@@ -40,6 +39,7 @@ def create_app():
 
     with app.app_context():
         from . import routes, models
+        from modules.utils_auth import load_user
         from modules.init_data import insert_default_filters
         db.create_all()
         insert_default_filters()
@@ -47,9 +47,3 @@ def create_app():
     app.register_blueprint(site_bp)
 
     return app
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    from modules.models import User
-    return User.query.get(int(user_id))
