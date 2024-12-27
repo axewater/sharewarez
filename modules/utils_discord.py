@@ -1,7 +1,7 @@
 from discord_webhook import DiscordWebhook, DiscordEmbed
 from modules.models import Game, Library, GlobalSettings
-from modules.igdb_api import get_cover_url
-from modules.functions import format_size
+from modules.utils_igdb_api import get_cover_url
+from modules.utils_functions import format_size
 import os, time
 from datetime import datetime
 
