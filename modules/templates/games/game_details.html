@@ -75,7 +75,7 @@
     <div class="game-card-chips-list">
         {% if items %}
             {% for item in items %}
-                <a href="{{ url_for('main.library', **{filter_type: item}) }}" class="chip-detailspage">{{ item }}</a>
+                <a href="{{ url_for('library.library', **{filter_type: item}) }}" class="chip-detailspage">{{ item }}</a>
             {% endfor %}
         {% else %}
             <p class="chip-detailspage">N/A</p>

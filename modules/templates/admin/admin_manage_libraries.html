@@ -96,10 +96,10 @@
 </div>
 
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/library_manager.js') %}
-<script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/library_manager.js') }}"></script>
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin_manage_libs.js') %}
+<script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin_manage_libs.js') }}"></script>
 {% else %}
-<script src="{{ url_for('static', filename='library/themes/default/js/library_manager.js') }}"></script>
+<script src="{{ url_for('static', filename='library/themes/default/js/admin_manage_libs.js') }}"></script>
 {% endif %}
 
 

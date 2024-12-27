@@ -1,5 +1,5 @@
 # modules/routes.py
-import sys, uuid, json, os, shutil, os, platform, socket
+import sys, uuid, json, os, shutil, os
 from threading import Thread
 from config import Config
 from flask import (
@@ -7,7 +7,7 @@ from flask import (
     jsonify, session, abort, current_app, send_from_directory, 
     copy_current_request_context, g
 )
-from flask_login import current_user, login_user, logout_user, login_required
+from flask_login import current_user, login_required
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import joinedload
 from sqlalchemy import func, case
@@ -20,16 +20,16 @@ from PIL import Image as PILImage
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
 from modules.forms import (
-    UserPasswordForm, EditProfileForm, NewsletterForm, WhitelistForm, 
+    UserPasswordForm, EditProfileForm, SetupForm, IGDBSetupForm,
     ScanFolderForm, ClearDownloadRequestsForm, CsrfProtectForm, 
-    AddGameForm, LoginForm, ResetPasswordRequestForm, AutoScanForm, UpdateUnmatchedFolderForm, 
-    ReleaseGroupForm, RegistrationForm, UserPreferencesForm, InviteForm, LibraryForm, CsrfForm,
-    ThemeUploadForm, SetupForm, IGDBSetupForm
+    AddGameForm, LoginForm, ResetPasswordRequestForm, AutoScanForm,
+    UpdateUnmatchedFolderForm, RegistrationForm, UserPreferencesForm, 
+    InviteForm, LibraryForm, CsrfForm
 )
 from modules.models import (
-    User, Whitelist, ReleaseGroup, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder,
+    User, Whitelist, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder,
     Publisher, Developer, user_favorites, Genre, Theme, GameMode, PlayerPerspective, GameUpdate, GameExtra,
-    Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, LibraryPlatform, AllowedFileType, IgnoredFileType
+    Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, LibraryPlatform, AllowedFileType
 )
 from modules.utilities import (
     refresh_images_in_background, get_game_by_uuid,
@@ -40,9 +40,7 @@ from modules.utilities import (
 from modules.utils_auth import _authenticate_and_redirect, admin_required
 from modules.utils_smtp import send_email, send_password_reset_email, send_invite_email
 from modules.utils_gamenames import get_game_names_from_folder, get_game_names_from_files
-from modules.utils_themes import ThemeManager
-from modules.utils_smtp_test import SMTPTester
-from modules.utils_functions import square_image, load_release_group_patterns, get_folder_size_in_bytes, get_folder_size_in_bytes_updates
+from modules.utils_functions import square_image, load_release_group_patterns, get_folder_size_in_bytes, get_folder_size_in_bytes_updates, get_games_count, get_library_count
 from modules.utils_igdb_api import make_igdb_api_request, get_cover_thumbnail_url
 from modules import app_start_time, app_version
 
@@ -1111,7 +1109,7 @@ def handle_auto_scan(auto_form):
             flash(f"Cannot access folder: {full_path}. Please check the path and permissions.", 'error')
             print(f"Cannot access folder: {full_path}. Please check the path and permissions.", 'error')
             session['active_tab'] = 'auto'
-            return redirect(url_for('main.library'))
+            return redirect(url_for('library.library'))
 
         @copy_current_request_context
         def start_scan():
@@ -1215,7 +1213,7 @@ def add_game_manual():
         if from_unmatched:
             return redirect(url_for('main.scan_management', active_tab='unmatched'))
         else:
-            return redirect(url_for('main.library'))
+            return redirect(url_for('library.library'))
     
     full_disk_path = request.args.get('full_disk_path', None)
     library_uuid = request.args.get('library_uuid') or session.get('selected_library_uuid')
@@ -1314,7 +1312,7 @@ def add_game_manual():
             if from_unmatched:
                 return redirect(url_for('main.scan_management', active_tab='unmatched'))
             else:
-                return redirect(url_for('main.library'))
+                return redirect(url_for('library.library'))
         except SQLAlchemyError as e:
             db.session.rollback()
             print(f"Error saving the game to the database: {e}")
@@ -1439,7 +1437,7 @@ def game_edit(game_uuid):
             else:
                 print(f"IGDB ID unchanged. Skipping image refresh for game UUID: {game_uuid}")
                     
-            return redirect(url_for('main.library'))
+            return redirect(url_for('library.library'))
         except SQLAlchemyError as e:
             db.session.rollback()
             flash('An error occurred while updating the game. Please try again.', 'error')
@@ -1942,7 +1940,7 @@ def refresh_game_images(game_uuid):
     else:
         # For non-AJAX requests, perform the usual redirec
         flash(f"Game images refresh process started for {game_name}.", "info")
-        return redirect(url_for('main.library'))
+        return redirect(url_for('library.library'))
 
 
 
@@ -1972,9 +1970,9 @@ def delete_game_route(game_uuid):
     if is_scan_job_running():
         print(f"Error: Attempt to delete game UUID: {game_uuid} while scan job is running")
         flash('Cannot delete the game while a scan job is running. Please try again later.', 'error')
-        return redirect(url_for('main.library'))
+        return redirect(url_for('library.library'))
     delete_game(game_uuid)
-    return redirect(url_for('main.library'))
+    return redirect(url_for('library.library'))
 
 def is_scan_job_running():
     """
@@ -2115,49 +2113,6 @@ def delete_full_game():
         return jsonify({'status': 'error', 'message': f'Error deleting game and folder: {e}'}), 500
 
 
-
-@bp.route('/admin/delete_library')
-@login_required
-@admin_required
-def delete_library():
-    try:
-        game_count = Game.query.count()
-        form = CsrfForm()
-    except Exception as e:
-        print(f"Error fetching game count: {e}")
-        flash("Failed to fetch game count.", "error")
-        return redirect(url_for('main.login'))
-
-    return render_template('admin/delete_library.html', game_count=game_count, form=form)
-
-
-@bp.route('/delete_all_games', methods=['POST'])
-@login_required
-@admin_required
-def delete_all_games():
-    games_to_delete = Game.query.all()
-    for game in games_to_delete:
-        try:
-            delete_game(game.uuid)  # Assuming delete_game is adapted to work with UUIDs
-        except FileNotFoundError as fnfe:
-            # Handling "file not found" errors specifically
-            print(f'File not found for game with UUID {game.uuid}: {fnfe}')
-            flash(f'File not found for game with UUID {game.uuid}. Skipping...', 'info')
-            continue  # Explicitly continue with the next game
-        except Exception as e:
-            # Specific handling for "access denied" or similar permission-related errors
-            if "access denied" in str(e).lower():
-                print(f'Access denied for game with UUID {game.uuid}: {e}')
-                flash(f'Access denied for game with UUID {game.uuid}. Skipping...', 'warning')
-            else:
-                print(f'Error deleting game with UUID {game.uuid}: {e}')
-                flash(f'Error deleting game with UUID {game.uuid}: {e}', 'error')
-            continue  # Explicitly continue with the next game
-
-    flash('All accessible games and their images have been deleted successfully.', 'success')
-    return redirect(url_for('main.scan_management'))
-
-
 @bp.route('/delete_full_library/<library_uuid>', methods=['POST'])
 @bp.route('/delete_full_library/KILL_ALL_LIBRARIES', methods=['POST'])
 @login_required
@@ -2207,7 +2162,7 @@ def delete_full_library(library_uuid=None):
         db.session.rollback()
         flash(f"Error during deletion: {str(e)}", 'error')
 
-    return redirect(url_for('main.libraries'))
+    return redirect(url_for('library.libraries'))
 
 
 
@@ -2275,9 +2230,7 @@ def download_other(file_type, game_uuid, file_id):
         flash("Invalid file type", "error")
         return redirect(url_for('main.game_details', game_uuid=game_uuid))
 
-    # Select the appropriate model based on file_type
     FileModel = GameUpdate if file_type == 'update' else GameExtra
-
     # Fetch the file record
     file_record = FileModel.query.filter_by(id=file_id, game_uuid=game_uuid).first()
     
@@ -2295,11 +2248,9 @@ def download_other(file_type, game_uuid, file_id):
         user_id=current_user.id,
         file_location=file_record.file_path
     ).first()
-
     if existing_request:
         flash("You already have a download request for this file", "info")
         return redirect(url_for('main.downloads'))
-
     try:
         # Determine if the path is a file or a directory
         if os.path.isfile(file_record.file_path):
@@ -2315,7 +2266,6 @@ def download_other(file_type, game_uuid, file_id):
             # It's a directory; create a zip
             zip_file_path = os.path.join(current_app.config['ZIP_SAVE_PATH'], f"{uuid4()}_{os.path.basename(file_record.file_path)}.zip")
             status = 'processing'
-
         # Create a new download request
         new_request = DownloadRequest(
             user_id=current_user.id,
@@ -2522,14 +2472,14 @@ def download_zip(download_id):
     
     if download_request.status != 'available':
         flash("The requested download is not ready yet.")
-        return redirect(url_for('main.library'))
+        return redirect(url_for('library.library'))
 
     relative_path = download_request.zip_file_path
     absolute_path = os.path.join(current_app.static_folder, relative_path)
     
     if not os.path.exists(absolute_path):
         flash("Error: File does not exist.")
-        return redirect(url_for('main.library'))
+        return redirect(url_for('library.library'))
 
     print(f"Found download request available: {download_request}")
 
@@ -2543,7 +2493,7 @@ def download_zip(download_id):
     except Exception as e:
         flash("An error occurred while trying to serve the file.")
         print(f"Error: {e}") 
-        return redirect(url_for('main.library'))
+        return redirect(url_for('library.library'))
 
 @bp.route('/check_download_status/<download_id>')
 @login_required
@@ -2659,35 +2609,6 @@ def get_libraries():
     print(f"Returning {len(libraries)} libraries.")
     return jsonify(libraries)
     
-def get_library_count():
-    # Direct query to the Library model
-    libraries_query = Library.query.all()
-    libraries = [
-        {
-            'uuid': lib.uuid,
-            'name': lib.name,
-            'image_url': lib.image_url if lib.image_url else url_for('static', filename='newstyle/default_library.jpg')
-        } for lib in libraries_query
-    ]
-
-    # Logging the count of libraries returned
-    print(f"Returning {len(libraries)} libraries.")
-    return len(libraries)
-
-def get_games_count():
-    # Direct query to the Games model
-    games_query = Game.query.all()
-    games = [
-        {
-            'uuid': game.uuid,
-            'name': game.name,
-        } for game in games_query
-    ]
-
-    # Logging the count of games returned
-    print(f"Returning {len(games)} games.")
-    return len(games)
-
 @bp.route('/api/game_screenshots/<game_uuid>')
 @login_required
 def game_screenshots(game_uuid):
@@ -2845,280 +2766,6 @@ def helpfaq():
     return render_template('site/site_help.html')
 
 
-
-@bp.route('/libraries')
-@login_required
-@admin_required
-def libraries():
-    libraries = Library.query.order_by(Library.display_order.asc()).all()
-    csrf_form = CsrfProtectForm()
-    game_count = Game.query.count()  # Fetch the game count here
-    return render_template('admin/admin_manage_libraries.html', libraries=libraries, csrf_form=csrf_form, game_count=game_count)
-
-@bp.route('/library/add', methods=['GET', 'POST'])
-@bp.route('/library/edit/<library_uuid>', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def add_edit_library(library_uuid=None):
-    if library_uuid:
-        library = Library.query.filter_by(uuid=library_uuid).first_or_404()
-        form = LibraryForm(obj=library)
-        page_title = "Edit Library"
-        print(f"Editing library: {library.name}, Platform: {library.platform.name}")
-    else:
-        library = None
-        form = LibraryForm()
-        page_title = "Add Library"
-        print("Adding new library")
-
-    form.platform.choices = [(platform.name, platform.value) for platform in LibraryPlatform]
-    print(f"Platform choices: {form.platform.choices}")
-    
-    if library:
-        form.platform.data = library.platform.name  # Set the initial value for existing library
-        print(f"Setting initial platform value: {form.platform.data}")
-
-    if form.validate_on_submit():
-        if library is None:
-            library = Library(uuid=str(uuid4()))  # Generate a new UUID for new libraries
-
-        library.name = form.name.data
-        try:
-            library.platform = LibraryPlatform[form.platform.data]
-        except KeyError:
-            flash(f'Invalid platform selected: {form.platform.data}', 'error')
-            return render_template('admin/admin_manage_library_create.html', form=form, library=library, page_title=page_title)
-
-        file = form.image.data
-        if file:
-            # Validate file size (< 5 MB)
-            file.seek(0, os.SEEK_END)
-            file_length = file.tell()
-            if file_length > 5 * 1024 * 1024:  # 5MB limit
-                flash('File size is too large. Maximum allowed is 5 MB.', 'error')
-                return render_template('admin/admin_manage_library_create.html', form=form, library=library, page_title=page_title)
-
-            # Reset file pointer after checking size
-            file.seek(0)
-
-            upload_folder = current_app.config['UPLOAD_FOLDER']
-            print(f"Upload folder now: {upload_folder}")
-            if not os.path.exists(upload_folder):
-                os.makedirs(upload_folder, exist_ok=True)
-
-            filename = secure_filename(file.filename)
-            uuid_filename = str(uuid4()) + '.png'  # Always save as PNG
-            image_folder = os.path.join(upload_folder, 'images')
-            print(f"Image folder: {image_folder}")
-            if not os.path.exists(image_folder):
-                os.makedirs(image_folder, exist_ok=True)
-            image_path = os.path.join(image_folder, uuid_filename)
-            print(f"Image path: {image_path}")
-
-            # Open, convert to PNG, and resize if necessary
-            with PILImage.open(file) as img:
-                img = img.convert('RGBA')
-                if img.width > 1024 or img.height > 1024:
-                    img.thumbnail((1024, 1024), PILImage.LANCZOS)
-                img.save(image_path, 'PNG')
-
-            image_url = url_for('static', filename=os.path.join('library/images/', uuid_filename))
-            print(f"Image URL: {image_url}")
-            library.image_url = image_url
-        elif not library.image_url:
-            library.image_url = url_for('static', filename='newstyle/default_library.jpg')
-
-        if library not in db.session:
-            db.session.add(library)
-        try:
-            db.session.commit()
-            flash('Library saved successfully!', 'success')
-            return redirect(url_for('main.libraries'))
-        except Exception as e:
-            db.session.rollback()
-            flash('Failed to save library. Please try again.', 'error')
-            print(f"Error saving library: {e}")
-
-    return render_template('admin/admin_manage_library_create.html', form=form, library=library, page_title=page_title)
-
-
-@bp.route('/library')
-@login_required
-def library():
-    print(f"LIBRARY: current_user: {current_user} req :", request.method)
-    # Ensure user preferences are loaded or default ones are created
-    if not current_user.preferences:
-        print("LIBRARY: User preferences not found, creating default...")
-        current_user.preferences = UserPreference(user_id=current_user.id)
-        db.session.add(current_user.preferences)
-        db.session.commit()
-
-    # Start with user prefs or default
-    per_page = current_user.preferences.items_per_page if current_user.preferences else 20
-    sort_by = current_user.preferences.default_sort if current_user.preferences else 'name'
-    sort_order = current_user.preferences.default_sort_order if current_user.preferences else 'asc'
-
-    # Extract filters from request arguments
-    page = request.args.get('page', 1, type=int)
-    library_uuid = request.args.get('library_uuid')
-    library_name = request.args.get('library_name')
-    # Only override per_page, sort_by, and sort_order if the URL parameters are provided
-    per_page = request.args.get('per_page', type=int) or per_page
-    genre = request.args.get('genre')
-    rating = request.args.get('rating', type=int)
-    game_mode = request.args.get('game_mode')
-    player_perspective = request.args.get('player_perspective')
-    theme = request.args.get('theme')
-    sort_by = request.args.get('sort_by') or sort_by
-    sort_order = request.args.get('sort_order') or sort_order
-
-    filters = {
-        'library_uuid': library_uuid,
-        'genre': genre,
-        'rating': rating,
-        'game_mode': game_mode,
-        'player_perspective': player_perspective,
-        'theme': theme
-    }
-    # Filter out None values
-    filters = {k: v for k, v in filters.items() if v is not None}
-
-    # Determine the appropriate library filter to use
-    if library_uuid:
-        print(f'filtering by library_uuid: {library_uuid}')
-        filters['library_uuid'] = library_uuid
-    elif library_name:
-        print(f'filtering by library_name: {library_name}')
-        library = Library.query.filter_by(name=library_name).first()
-        if library:
-            print(f'Library found: {library}')
-            filters['library_uuid'] = library.uuid
-        else:
-            flash('Library not found.', 'error')
-            return redirect(url_for('main.library'))
-
-
-    game_data, total, pages, current_page = get_games(page, per_page, sort_by=sort_by, sort_order=sort_order, **filters)
-    library_data = get_library_count()
-    games_count_data = get_games_count()
-    
-    context = {
-        'games': game_data,
-        'library_count': library_data,
-        'games_count': games_count_data,
-        'total': total,
-        'pages': pages,
-        'current_page': current_page,
-        'user_per_page': per_page,
-        'user_default_sort': sort_by,
-        'user_default_sort_order': sort_order,
-        'filters': filters,
-        'form': CsrfForm()
-    }
-    games = game_data
-    library_count = library_data
-    games_count = games_count_data
-    total = total
-    pages = pages
-    current_page = current_page
-    user_per_page = per_page
-    user_default_sort = sort_by
-    user_default_sort_order = sort_order
-    filters = filters
-    form = CsrfForm()
-
-    # print(f"LIBRARY: context: {locals()}")  # Updated for debugging purposes
-
-    return render_template(
-        'games/library_browser.html',
-        games=games,
-        library_count=library_count,
-        games_count=games_count,
-        total=total,
-        pages=pages,
-        current_page=current_page,
-        user_per_page=user_per_page,
-        user_default_sort=user_default_sort,
-        user_default_sort_order=user_default_sort_order,
-        filters=filters,
-        form=form,
-        library_uuid = library_uuid
-    )
-
-
-def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
-    query = Game.query.options(joinedload(Game.genres))
-
-    # Resolve library_name to library_uuid if necessary
-    if 'library_name' in filters and filters['library_name']:
-        library = Library.query.filter_by(name=filters['library_name']).first()
-        if library:
-            filters['library_uuid'] = library.uuid
-        else:
-            return [], 0, 0, page  # No such library exists, return empty
-
-
-    if 'library_uuid' in filters and filters['library_uuid']:
-        query = query.filter(Game.library.has(Library.uuid == filters['library_uuid']))
-
-    # Filtering logic
-    if filters.get('library_uuid'):
-        query = query.filter(Game.library_uuid == filters['library_uuid'])
-
-    if filters.get('genre'):
-        query = query.filter(Game.genres.any(Genre.name == filters['genre']))
-    if filters.get('rating') is not None:
-        query = query.filter(Game.rating >= filters['rating'])
-    if filters.get('game_mode'):
-        query = query.filter(Game.game_modes.any(GameMode.name == filters['game_mode']))
-    if filters.get('player_perspective'):
-        query = query.filter(Game.player_perspectives.any(PlayerPerspective.name == filters['player_perspective']))
-    if filters.get('theme'):
-        query = query.filter(Game.themes.any(Theme.name == filters['theme']))
-
-
-
-    # print(f"get_games: Filters: {filters}")
-    
-    # Sorting logic
-    if sort_by == 'name':
-        query = query.order_by(Game.name.asc() if sort_order == 'asc' else Game.name.desc())
-    elif sort_by == 'rating':
-        query = query.order_by(Game.rating.asc() if sort_order == 'asc' else Game.rating.desc())
-    elif sort_by == 'first_release_date':
-        query = query.order_by(Game.first_release_date.asc() if sort_order == 'asc' else Game.first_release_date.desc())
-    elif sort_by == 'size':
-        query = query.order_by(Game.size.asc() if sort_order == 'asc' else Game.size.desc())
-    elif sort_by == 'date_identified':
-        query = query.order_by(Game.date_identified.asc() if sort_order == 'asc' else Game.date_identified.desc())
-
-    # print(f"get_games: Sorting by {sort_by} {sort_order}")
-    # Pagination
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-    games = pagination.items
-
-    game_data = []
-    for game in games:
-        cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
-        cover_url = cover_image.url if cover_image else "newstyle/default_cover.jpg"
-        genres = [genre.name for genre in game.genres]
-        game_size_formatted = format_size(game.size)
-        first_release_date_formatted = game.first_release_date.strftime('%Y-%m-%d') if game.first_release_date else 'Not available'
-
-
-        game_data.append({
-            'id': game.id,
-            'uuid': game.uuid,
-            'name': game.name,
-            'cover_url': cover_url,
-            'summary': game.summary,
-            'url': game.url,
-            'size': game_size_formatted,
-            'genres': genres,
-            'first_release_date': first_release_date_formatted
-        })
-
-    return game_data, pagination.total, pagination.pages, page
 
 
 

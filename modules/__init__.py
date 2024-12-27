@@ -19,7 +19,7 @@ login_manager = LoginManager()
 mail = Mail()
 cache = Cache(config={'CACHE_TYPE': 'simple'})
 app_start_time = datetime.now()
-app_version = '2.0.5'
+app_version = '2.1.0'
     
 def create_app():
     global s    
@@ -45,10 +45,12 @@ def create_app():
         from modules.init_data import insert_default_filters
         from modules.routes_site import site_bp
         from modules.routes_admin import admin_bp
+        from modules.routes_library import library_bp
         db.create_all()
         insert_default_filters()
     app.register_blueprint(routes.bp)
     app.register_blueprint(site_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(library_bp)
 
     return app
