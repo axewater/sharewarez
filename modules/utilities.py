@@ -19,7 +19,7 @@ from modules.models import (
 from modules import db, mail
 from modules.utils_functions import website_category_to_string, PLATFORM_IDS, load_release_group_patterns, get_folder_size_in_bytes_updates
 from modules.utils_discord import discord_webhook, discord_update
-from modules.utils_games import get_game_names_from_folder, get_game_names_from_files
+from modules.utils_gamenames import get_game_names_from_folder, get_game_names_from_files
 from modules.utils_igdb_api import make_igdb_api_request, get_cover_url
 from sqlalchemy import func, String
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError

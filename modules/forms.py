@@ -11,7 +11,7 @@ from wtforms.fields import URLField, DateField
 from modules.models import Status, Category, genre_choices, game_mode_choices, theme_choices, platform_choices, player_perspective_choices, developer_choices, publisher_choices, LibraryPlatform
 from urllib.parse import urlparse
 from modules.utils_functions import comma_separated_urls
-from modules.theme_manager import ThemeManager
+from modules.utils_themes import ThemeManager
 from flask import current_app
 class UpdateUnmatchedFolderForm(FlaskForm):
     folder_id = HiddenField('Folder ID', validators=[DataRequired()])
