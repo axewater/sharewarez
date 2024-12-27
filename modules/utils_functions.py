@@ -4,9 +4,10 @@ import requests
 import re
 from wtforms.validators import ValidationError
 from modules import db
-from modules.models import ReleaseGroup
+from modules.models import ReleaseGroup, Library, Game
 from sqlalchemy.exc import SQLAlchemyError
 from modules.models import GlobalSettings
+from flask import url_for
 
 def format_size(size_in_bytes):
     """Format file size from bytes to human-readable format."""
@@ -249,3 +250,32 @@ def load_release_group_patterns():
         print(f"An error occurred while fetching release group patterns: {e}")
         return [], []
 
+
+def get_library_count():
+    # Direct query to the Library model
+    libraries_query = Library.query.all()
+    libraries = [
+        {
+            'uuid': lib.uuid,
+            'name': lib.name,
+            'image_url': lib.image_url if lib.image_url else url_for('static', filename='newstyle/default_library.jpg')
+        } for lib in libraries_query
+    ]
+
+    # Logging the count of libraries returned
+    print(f"Returning {len(libraries)} libraries.")
+    return len(libraries)
+
+def get_games_count():
+    # Direct query to the Games model
+    games_query = Game.query.all()
+    games = [
+        {
+            'uuid': game.uuid,
+            'name': game.name,
+        } for game in games_query
+    ]
+
+    # Logging the count of games returned
+    print(f"Returning {len(games)} games.")
+    return len(games)
