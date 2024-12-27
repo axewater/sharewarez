@@ -8,7 +8,6 @@ from flask import (
     copy_current_request_context, g
 )
 from flask_login import current_user, login_user, logout_user, login_required
-from flask_mail import Message as MailMessage
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import joinedload
 from sqlalchemy import func, case
@@ -589,22 +588,6 @@ def check_username():
     existing_user = User.query.filter(func.lower(User.name) == func.lower(username)).first()
     return jsonify({"exists": existing_user is not None})
 
-@bp.route('/delete_avatar/<path:avatar_path>', methods=['POST'])
-@login_required
-def delete_avatar(avatar_path):
-    
-    full_avatar_path = os.path.join(current_app.static_folder, avatar_path)
-    print(f"Route: /delete_avatar {full_avatar_path}")
-
-    if os.path.exists(full_avatar_path):
-        os.remove(full_avatar_path)
-        flash(f'Avatar image {full_avatar_path} deleted successfully!')
-        print(f"Avatar image {full_avatar_path} deleted successfully!")
-    else:
-        flash(f'Avatar image {full_avatar_path} not found.')
-
-    return redirect(url_for('main.bot_generator'))
-
 
 @bp.route('/settings_profile_edit', methods=['GET', 'POST'])
 @login_required
@@ -747,152 +730,6 @@ def settings_panel():
 
 
 
-
-@bp.route('/admin/newsletter', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def newsletter():
-    settings_record = GlobalSettings.query.first()
-    enable_newsletter = settings_record.settings.get('enableNewsletterFeature', False) if settings_record else False
-
-    if not enable_newsletter:
-        flash('Newsletter feature is disabled.', 'warning')
-        print("ADMIN NEWSLETTER: Newsletter feature is disabled.")
-        return redirect(url_for('main.admin_dashboard'))
-    print("ADMIN NEWSLETTER: Request method:", request.method)
-    form = NewsletterForm()
-    users = User.query.all()
-    if form.validate_on_submit():
-        recipients = form.recipients.data.split(',')
-        print(f"ADMIN NEWSLETTER: Recipient list : {recipients}")
-        
-        msg = MailMessage(form.subject.data, sender=current_app.config['MAIL_DEFAULT_SENDER'])
-        msg.body = form.content.data
-        
-        msg.recipients = recipients
-        try:
-            print(f"ADMIN NEWSLETTER: Newsletter sent")
-            mail.send(msg)
-            flash('Newsletter sent successfully!', 'success')
-        except Exception as e:
-            flash(str(e), 'error')
-        return redirect(url_for('main.newsletter'))
-    return render_template('admin/admin_newsletter.html', title='Newsletter', form=form, users=users)
-
-
-@bp.route('/admin/whitelist', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def whitelist():
-    form = WhitelistForm()
-    if form.validate_on_submit():
-        email = form.email.data.lower()
-        new_whitelist = Whitelist(email=email)
-        db.session.add(new_whitelist)
-        try:
-            db.session.commit()
-            flash('The email was successfully added to the whitelist!', 'success')
-        except IntegrityError:
-            db.session.rollback()
-            flash('The email is already in the whitelist!', 'danger')
-        return redirect(url_for('main.whitelist'))
-
-    # Get whitelist entries and check registration status
-    whitelist_entries = Whitelist.query.all()
-    for entry in whitelist_entries:
-        entry.is_registered = User.query.filter(func.lower(User.email) == entry.email.lower()).first() is not None
-
-    return render_template('admin/admin_manage_whitelist.html', 
-                         title='Whitelist', 
-                         whitelist=whitelist_entries, 
-                         form=form)
-
-@bp.route('/admin/whitelist/<int:whitelist_id>', methods=['DELETE'])
-@login_required
-@admin_required
-def delete_whitelist(whitelist_id):
-    try:
-        whitelist_entry = Whitelist.query.get_or_404(whitelist_id)
-        db.session.delete(whitelist_entry)
-        db.session.commit()
-        return jsonify({'success': True, 'message': 'Entry deleted successfully'})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-
-
-@bp.route('/admin/users', methods=['GET'])
-@login_required
-@admin_required
-def manage_users():
-    users = User.query.all()
-    return render_template('admin/admin_manage_users.html', users=users)
-
-@bp.route('/admin/api/user/<int:user_id>', methods=['GET', 'PUT', 'DELETE'])
-@login_required
-@admin_required
-def manage_user_api(user_id):
-    if request.method == 'PUT' and user_id == 0:  # Special case for new user creation
-        data = request.json
-        try:
-            new_user = User(
-                name=data['username'],
-                email=data['email'],
-                role=data.get('role', 'user'),
-                state=data.get('state', True),
-                is_email_verified=data.get('is_email_verified', True),
-                user_id=str(uuid4())
-            )
-            new_user.set_password(data['password'])
-            db.session.add(new_user)
-            db.session.commit()
-            return jsonify({'success': True})
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({'success': False, 'message': str(e)}), 500
-
-    user = User.query.get_or_404(user_id)
-    
-    if request.method == 'GET':
-        return jsonify({
-            'email': user.email,
-            'role': user.role,
-            'state': user.state,
-            'is_email_verified': user.is_email_verified
-        })
-    
-    elif request.method == 'PUT':
-        if user_id == 1 and current_user.id != 1:
-            return jsonify({'success': False, 'message': 'Cannot modify admin account'}), 403
-        
-        data = request.json
-        user.email = data.get('email', user.email)
-        user.role = data.get('role', user.role)
-        user.state = data.get('state', user.state)
-        user.is_email_verified = data.get('is_email_verified', user.is_email_verified)
-        
-        if data.get('password'):
-            user.set_password(data['password'])
-        
-        try:
-            db.session.commit()
-            return jsonify({'success': True})
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({'success': False, 'message': str(e)}), 500
-    
-    elif request.method == 'DELETE':
-        if user_id == 1:
-            return jsonify({'success': False, 'message': 'Cannot delete admin account'}), 403
-        
-        try:
-            db.session.delete(user)
-            db.session.commit()
-            return jsonify({'success': True})
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({'success': False, 'message': str(e)}), 500
 
 
 @bp.route('/get_user/<int:user_id>', methods=['GET'])
@@ -2650,7 +2487,6 @@ def inject_current_theme():
         current_theme = 'default'
     return dict(current_theme=current_theme)
 
-# Remove the get_current_theme function as it's no longer needed
 
 @bp.route('/delete_game/<string:game_uuid>', methods=['POST'])
 @login_required
@@ -3809,11 +3645,7 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
 
     return game_data, pagination.total, pagination.pages, page
 
-@bp.route('/admin/discord_help')
-@login_required
-@admin_required
-def discord_help():
-    return render_template('admin/discord_help.html')
+
 
 
 def get_loc(page):
