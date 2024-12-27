@@ -60,7 +60,7 @@
             <h3><i class="fas fa-server"></i> Server Management</h3>
             <div class="admin-buttons">
                 <div class="admin-button-item" data-toggle="tooltip" title="Manage server settings">
-                    <a href="{{ url_for('main.manage_settings') }}" class="btn btn-circle">
+                    <a href="{{ url_for('admin.manage_settings') }}" class="btn btn-circle">
                         <i class="fas fa-cogs"></i>
                     </a>
                     <span class="button-label">Server Settings</span>
@@ -74,7 +74,7 @@
                     <span class="button-label">Email Settings</span>
                 </div>
                 <div class="admin-button-item" data-toggle="tooltip" title="Manage IGDB settings">
-                    <a href="{{ url_for('main.igdb_settings') }}" class="btn btn-circle">
+                    <a href="{{ url_for('admin.igdb_settings') }}" class="btn btn-circle">
                         <i class="fas fa-gamepad"></i>
                     </a>
                     <span class="button-label">IGDB Settings</span>
@@ -87,7 +87,7 @@
                 </div>
                 {% if enable_server_status %}
                 <div class="admin-button-item" data-toggle="tooltip" title="View server information">
-                    <a href="{{ url_for('main.admin_server_status') }}" class="btn btn-circle">
+                    <a href="{{ url_for('admin.admin_server_status') }}" class="btn btn-circle">
                         <i class="fas fa-info"></i>
                     </a>
                     <span class="button-label">Server Info</span>

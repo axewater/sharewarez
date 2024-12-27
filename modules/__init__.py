@@ -9,7 +9,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import Config
-
+from datetime import datetime
 from urllib.parse import urlparse
 from flask_caching import Cache
 from modules.utils_db import check_postgres_port_open
@@ -18,7 +18,9 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 mail = Mail()
 cache = Cache(config={'CACHE_TYPE': 'simple'})
-
+app_start_time = datetime.now()
+app_version = '2.0.5'
+    
 def create_app():
     global s    
     app = Flask(__name__)
