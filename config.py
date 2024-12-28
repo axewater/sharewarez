@@ -15,7 +15,7 @@ class Config(object):
 
     # YOU CAN LEAVE ALL THESE SETTINGS AT DEFAULT:
     UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'modules/static/library')
-    SECRET_KEY = os.getenv('SECRET_KEY') or secrets.token_hex(32)
+    SECRET_KEY = os.getenv('SECRET_KEY') or 'you-will-never-guess-dsadadadad'
     IMAGE_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/library/images')
     ZIP_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/library/zips')
     IGDB_API_ENDPOINT = os.getenv('IGDB_API_ENDPOINT', 'https://api.igdb.com/v4/games')
