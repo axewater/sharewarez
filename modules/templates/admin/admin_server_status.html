@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_server_info.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_server_info.css') }}">
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_server_status.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_server_status.css') }}">
 {% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_server_info.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_server_status.css') }}">
 {% endif %}
 
 <div class="glass-panel">
@@ -43,6 +43,36 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <!-- System Resources Section -->
+                    <tr class="table-info">
+                        <td colspan="2"><strong>System Resources</strong></td>
+                    </tr>
+                    <tr>
+                        <td>CPU Usage</td>
+                        <td>{{ cpu_usage|default('N/A') }}%</td>
+                    </tr>
+                    {% if memory_usage %}
+                    <tr>
+                        <td>Memory Usage</td>
+                        <td>
+                            {{ memory_usage.used_formatted }} used of {{ memory_usage.total_formatted }} 
+                            ({{ memory_usage.percent }}%)
+                            <br>
+                            Available: {{ memory_usage.available_formatted }}
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% if disk_usage %}
+                    <tr>
+                        <td>Disk Usage (Base Folder)</td>
+                        <td>
+                            {{ disk_usage.used_formatted }} used of {{ disk_usage.total_formatted }}
+                            ({{ disk_usage.percent }}%)
+                            <br>
+                            Free: {{ disk_usage.free_formatted }}
+                        </td>
+                    </tr>
+                    {% endif %}
                     {% for key, value in config_values.items() %}
                     <tr>
                         <td>{{ key }}</td>
