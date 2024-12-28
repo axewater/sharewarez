@@ -233,6 +233,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             position: 'top center'
                         });
                     } else {
+                        // Show success notification when game is found
+                        $.notify("Game found successfully!", {
+                            className: 'success',
+                            position: 'top center'
+                        });
                         updateFormWithGameData(data);
                         nameInput.value = data.name;
                         document.querySelector('#summary').value = data.summary;
