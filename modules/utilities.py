@@ -4,7 +4,7 @@ from functools import wraps
 from flask import flash, redirect, url_for, request, current_app, flash
 from flask_login import current_user, login_user
 from datetime import datetime
-from werkzeug.urls import url_parse
+
 from werkzeug.utils import secure_filename
 from modules.utils_functions import (
     format_size, read_first_nfo_content,
