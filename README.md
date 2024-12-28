@@ -1,6 +1,6 @@
 # 🎮 SharewareZ v2.1.0 beta
 
-> **⚠️ SOME USERS ARE REPORTING CSRF ERRORS IN THE SETUP WIZARD, IM INVESTIGATING AND WILL UPDATE SOON**
+** ⚠️This is a BETA application⚠️ **
 
 SharewareZ transforms any game folder into a searchable library with IGDB integration, adding cover images, screenshots, and metadata for enhanced filtering.
 Invite your friends securely and share your favorite games!
@@ -43,12 +43,14 @@ Invite your friends securely and share your favorite games!
 - Python 3.11
 - pip
 - git
+- Postgresql server
 
 #### 🪟 Windows Requirements
 - Python 3.11
 - pip
 - git ([Download Git for Windows](https://github.com/git-for-windows))
 - Microsoft Visual C++ 14.0+ ([Download Visual Studio Tools](https://visualstudio.microsoft.com/downloads/))
+- Postgresql server  (https://www.postgresql.org/download/windows/)
 
 ### 💻 Setup Steps
 
