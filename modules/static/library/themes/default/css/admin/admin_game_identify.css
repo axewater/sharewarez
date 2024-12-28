@@ -13,3 +13,25 @@
     margin-left: 10px;
     margin-bottom: 10px;
 }
+
+/* Details section styling */
+.details-section .btn {
+    position: relative;
+    text-align: left;
+    padding: 10px 15px;
+    background-color: #343a40;
+    border: none;
+}
+
+.details-section .btn i {
+    position: absolute;
+    right: 15px;
+    transition: transform 0.3s ease;
+}
+
+.details-section .btn[aria-expanded="true"] i {
+    transform: rotate(180deg);
+}
+
+/* Add spacing between sections */
+.essential-info { margin-bottom: 20px; }

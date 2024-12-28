@@ -108,9 +108,6 @@ document.addEventListener('DOMContentLoaded', function() {
             checkbox.checked = isPerspectiveMatched;
         });
 
-
-
-
         // Assuming gameData.involved_companies is an array of company IDs
         if (gameData.involved_companies && gameData.involved_companies.length > 0) {
             // Map each companyId to a fetch promise
@@ -158,7 +155,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelector('#publisher').value = 'Not Found';
         }
 
-
         // Update for video URLs
         const videoURLsInput = document.querySelector('#video_urls');
         if (gameData.videos && gameData.videos.length > 0) {
@@ -179,9 +175,6 @@ document.addEventListener('DOMContentLoaded', function() {
             videoURLsInput.value = ''; // Clear the field if there are no videos
         }
     }
-
-
-
 
     function checkFieldsAndToggleSubmit() {
         const igdbIdIsValid = igdbIdInput.value.trim().length > 0 && /^\d+$/.test(igdbIdInput.value);
@@ -206,13 +199,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    
-    
     igdbIdInput.addEventListener('keypress', function(event) {
         triggerClickOnEnter(event, document.querySelector('#search-igdb-btn'));
     });
 
-    
     nameInput.addEventListener('keypress', function(event) {
         triggerClickOnEnter(event, document.querySelector('#search-igdb'));
     });
@@ -233,42 +223,30 @@ document.addEventListener('DOMContentLoaded', function() {
                             position: 'top center'
                         });
                     } else {
-                        // Show success notification when game is found
-                        $.notify("Game found successfully!", {
-                            className: 'success',
-                            position: 'top center'
-                        });
-                        updateFormWithGameData(data);
-                        nameInput.value = data.name;
-                        document.querySelector('#summary').value = data.summary;
-                        document.querySelector('#storyline').value = data.storyline || '';
-                        urlInput.value = data.url || '';
-    
-                        const statusSelect = document.querySelector('#status');
-                        if (statusSelect) {
-                            statusSelect.value = data.status || '';
+                        // Ensure the collapsible section is expanded when populating data
+                        const gameDetailsCollapse = document.querySelector('#gameDetails');
+                        if (gameDetailsCollapse) {
+                            const bootstrapCollapse = new bootstrap.Collapse(gameDetailsCollapse, {
+                                show: true
+                            });
                         }
-    
-                        const categorySelect = document.querySelector('#category');
-                        if (categorySelect) {
-                            categorySelect.value = data.category || '';
-                        }
-    
-                        const genresOptions = document.querySelectorAll('#genres option');
-                        genresOptions.forEach(option => {
-                            if (data.genres && data.genres.includes(option.text)) {
-                                option.selected = true;
-                            }
-                        });
-    
                         
-                        checkFieldsAndToggleSubmit();
+                        // Add a small delay to ensure the collapse animation is complete
+                        setTimeout(() => {
+                            // Update form fields
+                            nameInput.value = data.name;
+                            document.querySelector('#summary').value = data.summary || '';
+                            document.querySelector('#storyline').value = data.storyline || '';
+                            urlInput.value = data.url || '';
+                            document.querySelector('#video_urls').value = data.video_urls || '';
+                            
+                            checkFieldsAndToggleSubmit();
+                        }, 300);
                     }
                 })
                 .catch(error => console.error('Error:', error));
         }
     });
-    
 
     document.querySelector('#search-igdb').addEventListener('click', function() {
         const gameName = nameInput.value;
@@ -321,6 +299,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                 // Update form with game data upon selection
                                 updateFormWithGameData(game);
     
+                                // Ensure the collapsible section is expanded
+                                const gameDetailsCollapse = document.querySelector('#gameDetails');
+                                if (gameDetailsCollapse) {
+                                    const bootstrapCollapse = new bootstrap.Collapse(gameDetailsCollapse, {
+                                        show: true
+                                    });
+                                }
+                                
+                                // Update essential fields
                                 igdbIdInput.value = game.id;
                                 nameInput.value = game.name;
                                 document.querySelector('#summary').value = game.summary || '';
@@ -342,9 +329,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    
-    
-
     igdbIdInput.addEventListener('input', function() {
         this.value = this.value.replace(/\D/g, '');
         checkFieldsAndToggleSubmit();
@@ -394,10 +378,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
     });
-
-
-
-
 
     checkFieldsAndToggleSubmit();
     console.log("Ready to add a game!.");
