@@ -42,6 +42,7 @@ from modules.utils_smtp import send_email, send_password_reset_email, send_invit
 from modules.utils_gamenames import get_game_names_from_folder, get_game_names_from_files
 from modules.utils_functions import square_image, load_release_group_patterns, get_folder_size_in_bytes, get_folder_size_in_bytes_updates, get_games_count, get_library_count
 from modules.utils_igdb_api import make_igdb_api_request, get_cover_thumbnail_url
+from modules.utils_processors import get_global_settings
 
 from modules import app_start_time, app_version
 
@@ -94,82 +95,13 @@ def check_setup_required():
     has_initialized_setup = True
     app_start_time = datetime.now()
 
+
 @bp.context_processor
 @cache.cached(timeout=500, key_prefix='global_settings')
 def inject_settings():
-    settings_record = GlobalSettings.query.first()
-    
-    # Default settings if no record exists
-    default_settings = {
-        'showSystemLogo': True,
-        'showHelpButton': True,
-        'allowUsersToInviteOthers': False,
-        'enableMainGameUpdates': True,
-        'enableGameUpdates': True,
-        'updateFolderName': 'updates',
-        'enableGameExtras': True,
-        'extrasFolderName': 'extras',
-        'discordNotifyNewGames': False,
-        'discordNotifyGameUpdates': False,
-        'discordNotifyGameExtras': False,
-        'discordNotifyDownloads': False,
-        'siteUrl': 'http://127.0.0.1',
-        'showSystemLogo': True,
-        'showHelpButton': True,
-        'enableWebLinksOnDetailsPage': True,
-        'enableServerStatusFeature': True,
-        'enableNewsletterFeature': True,
-        'showVersion': True,
-        'enableDeleteGameOnDisk': True,
-        'enableGameUpdates': True,
-        'enableGameExtras': True,
-        'siteUrl': 'http://127.0.0.1'
-    }
-    
-    # Initialize settings with defaults
-    settings = default_settings.copy()
-    
-    # Only update with database settings if they exist and are not None
-    if settings_record and settings_record.settings:
-        settings.update(settings_record.settings)
-        show_logo = settings.get('showSystemLogo')
-        show_help_button = settings.get('showHelpButton')
-        enable_web_links = settings.get('enableWebLinksOnDetailsPage')
-        enable_server_status = settings_record.settings.get('enableServerStatusFeature', False)
-        enable_newsletter = settings_record.settings.get('enableNewsletterFeature', False)
-        show_version = settings_record.settings.get('showVersion', False)  # settings fix
-        enable_delete_game_on_disk = settings_record.settings.get('enableDeleteGameOnDisk', True)
-        enable_game_updates = settings_record.settings.get('enableGameUpdates', True)
-        enable_game_extras = settings_record.settings.get('enableGameExtras', True)
-        site_url = settings_record.site_url if settings_record else 'http://127.0.0.1'
-    else:
-        # Default values if no settings_record is found
-        show_logo = True
-        show_help_button = True
-        enable_web_links = True
-        enable_server_status = True
-        enable_newsletter = True
-        show_version = True  # Default to showing version
-        enable_delete_game_on_disk = True
-        enable_game_updates = True
-        enable_game_extras = True
+    """Context processor to inject global settings into templates"""
+    return get_global_settings()
 
-    return dict(
-        show_logo=show_logo, 
-        show_help_button=show_help_button, 
-        enable_web_links=enable_web_links,
-        enable_server_status=enable_server_status,
-        enable_newsletter=enable_newsletter,
-        show_version=show_version,
-        app_version=app_version,
-        enable_delete_game_on_disk=enable_delete_game_on_disk,
-        enable_game_updates=enable_game_updates,
-        enable_game_extras=enable_game_extras
-    )
-
-@bp.context_processor
-def utility_processor():
-    return dict(datetime=datetime)
 
 @bp.route('/setup', methods=['GET'])
 def setup():    
@@ -532,7 +464,7 @@ def invites():
     current_invites_count = len(invites)
     remaining_invites = max(0, current_user.invite_quota - current_invites_count)
 
-    return render_template('/login/user_invites.html', form=form, invites=invites, invite_quota=current_user.invite_quota, site_url=site_url, current_invites_count=current_invites_count, remaining_invites=remaining_invites)
+    return render_template('/login/user_invites.html', form=form, invites=invites, invite_quota=current_user.invite_quota, site_url=site_url, current_invites_count=current_invites_count, remaining_invites=remaining_invites, datetime=datetime.utcnow())
 
 @bp.route('/delete_invite/<token>', methods=['POST'])
 @login_required
