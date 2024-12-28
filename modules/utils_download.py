@@ -1,7 +1,7 @@
 import os
 import zipfile
 from datetime import datetime
-from models import DownloadRequest, GlobalSettings, db
+from modules.models import DownloadRequest, GlobalSettings, db
     
 def zip_game(download_request_id, app, zip_file_path):
     settings = GlobalSettings.query.first()

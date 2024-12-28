@@ -14,7 +14,6 @@ from modules.models import (
     GlobalSettings
 )
 from modules.utils_functions import read_first_nfo_content
-
 from modules.utils_igdb_api import make_igdb_api_request
 
 

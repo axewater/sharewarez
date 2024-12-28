@@ -24,6 +24,11 @@ def restricted():
     return render_template('site/restricted_area.html', title='Restricted Area')
 
 
+@site_bp.route('/help')
+def helpfaq():
+    print("Route: /help")
+    return render_template('site/site_help.html')
+
 @site_bp.route('/logout')
 def logout():
     logout_user()
