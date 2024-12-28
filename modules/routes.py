@@ -2433,7 +2433,7 @@ def get_cover_thumbnail():
         return jsonify({'error': 'Cover URL could not be retrieved.'}), 404
 
 
-@bp.route('/search_igdb_by_id')
+@bp.route('/api/search_igdb_by_id')
 @login_required
 def search_igdb_by_id():
     igdb_id = request.args.get('igdb_id')
@@ -2460,7 +2460,7 @@ def search_igdb_by_id():
         return jsonify({"error": "Game not found"}), 404
 
 
-@bp.route('/search_igdb_by_name')
+@bp.route('/api/search_igdb_by_name')
 @login_required
 def search_igdb_by_name():
     game_name = request.args.get('name')

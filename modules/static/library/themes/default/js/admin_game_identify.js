@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('#search-igdb-btn').addEventListener('click', function() {
         const igdbId = igdbIdInput.value;
         if (igdbId) {
-            fetch(`/search_igdb_by_id?igdb_id=${igdbId}`)
+            fetch(`/api/search_igdb_by_id?igdb_id=${igdbId}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log("API Response (IGDB id Search):", data);
@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log(`Initiating IGDB search for name: ${gameName}`);
         if (gameName) {
-            fetch(`/search_igdb_by_name?name=${encodeURIComponent(gameName)}&platform_id=${encodeURIComponent(platformId)}`)
+            fetch(`/api/search_igdb_by_name?name=${encodeURIComponent(gameName)}&platform_id=${encodeURIComponent(platformId)}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log("API Response (IGDB name Search):", data);
