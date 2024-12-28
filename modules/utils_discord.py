@@ -1,9 +1,8 @@
-from discord_webhook import DiscordWebhook, DiscordEmbed
 from modules.models import Game, Library, GlobalSettings
 from modules.utils_igdb_api import get_cover_url
 from modules.utils_functions import format_size
-import os, time
-from datetime import datetime
+from modules.discord_handler import DiscordWebhookHandler
+from discord_webhook import DiscordEmbed
 
 def discord_webhook(game_uuid):
     """Send Discord notification for new games."""
@@ -11,7 +10,7 @@ def discord_webhook(game_uuid):
     if not settings or not settings.discord_webhook_url:
         print("Discord webhook URL not configured")
         return
-        
+
     if not settings.discord_notify_new_games:
         print("Discord notifications for new games are disabled")
         return
@@ -20,34 +19,31 @@ def discord_webhook(game_uuid):
     game_size = format_size(game.size)
     game_library = get_library_by_uuid(game.library_uuid)
     
-    discord_webhook = settings.discord_webhook_url
-    discord_bot_name = settings.discord_bot_name
-    discord_bot_avatar_url = settings.discord_bot_avatar_url
-    
+    handler = DiscordWebhookHandler(
+        settings.discord_webhook_url,
+        settings.discord_bot_name,
+        settings.discord_bot_avatar_url
+    )
+
     site_url = settings.site_url
     cover_url = get_cover_url(game.igdb_id)
 
-    webhook = DiscordWebhook(url=f"{discord_webhook}", rate_limit_retry=True)
-    embed = DiscordEmbed(
-        title=f"{game.name}", 
-        description=f"{game.summary}", 
-        url=f"{site_url}/game_details/{game.uuid}", 
-        color="03b2f8"
-    )
-    
-    embed.set_author(
-        name=f"{discord_bot_name}", 
-        url=f"{site_url}", 
-        icon_url=f"{discord_bot_avatar_url}"
-    )
-    embed.set_image(url=f"{cover_url}")
-    embed.set_footer(text="This game is now available for download")
-    embed.set_timestamp()
-    embed.add_embed_field(name="Library", value=f"{game_library.name}")
-    embed.add_embed_field(name="Size", value=f"{game_size}")
-    
-    webhook.add_embed(embed)
-    webhook.execute()
+    try:
+        fields = {
+            "Library": game_library.name,
+            "Size": game_size
+        }
+        
+        embed = handler.create_embed(
+            title=game.name,
+            description=game.summary,
+            url=f"{site_url}/game_details/{game.uuid}",
+            fields=fields
+        )
+        
+        handler.send_webhook(embed)
+    except Exception as e:
+        print(f"Failed to send Discord webhook: {str(e)}")
 
 def discord_update(path, event, folder_name, game_path, file_name, file_size, game, game_library):
     """Send Discord notification for game updates and extras."""
@@ -59,14 +55,15 @@ def discord_update(path, event, folder_name, game_path, file_name, file_size, ga
         print("Discord webhook URL not configured")
         return
 
-    discord_webhook = settings.discord_webhook_url
-    discord_bot_name = settings.discord_bot_name
-    discord_bot_avatar_url = settings.discord_bot_avatar_url
+    handler = DiscordWebhookHandler(
+        settings.discord_webhook_url,
+        settings.discord_bot_name,
+        settings.discord_bot_avatar_url
+    )
+    
     site_url = settings.site_url
     cover_url = get_cover_url(game.igdb_id)
 
-    webhook = DiscordWebhook(url=f"{discord_webhook}", rate_limit_retry=True)
-    
     if event == "created_update" and settings.discord_notify_game_updates:
         embed = create_update_embed(game, site_url, cover_url, game_library, file_name, file_size)
     elif event == "created_extra" and settings.discord_notify_game_extras:
@@ -76,8 +73,10 @@ def discord_update(path, event, folder_name, game_path, file_name, file_size, ga
     else:
         return
 
-    webhook.add_embed(embed)
-    webhook.execute()
+    try:
+        handler.send_webhook(embed)
+    except Exception as e:
+        print(f"Failed to send Discord webhook: {str(e)}")
 
 def create_update_embed(game, site_url, cover_url, game_library, file_name, file_size):
     embed = DiscordEmbed(

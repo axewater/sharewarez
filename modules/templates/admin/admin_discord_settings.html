@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+ <script src="{{ url_for('static', filename='library/themes/default/js/discord_settings.js') }}"></script>
 
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_debug_api.css') == True %}
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_discord_settings.css') }}">

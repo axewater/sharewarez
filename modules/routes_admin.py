@@ -22,6 +22,7 @@ from flask import flash
 from uuid import uuid4
 import socket, os, platform
 from modules import app_start_time
+from modules.discord_handler import DiscordWebhookHandler
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -120,7 +121,6 @@ def delete_whitelist(whitelist_id):
 
     
 
-
 @admin_bp.route('/admin/users', methods=['GET'])
 @login_required
 @admin_required
@@ -197,7 +197,6 @@ def manage_user_api(user_id):
             return jsonify({'success': False, 'message': str(e)}), 500
         
         
-
 
 @admin_bp.route('/admin/settings', methods=['GET', 'POST'])
 @login_required
@@ -437,7 +436,6 @@ def admin_server_status():
         disk_usage=disk_usage
     )
     
-    
 
 @admin_bp.route('/admin/manage_invites', methods=['GET', 'POST'])
 @login_required
@@ -659,7 +657,7 @@ def discord_settings():
             db.session.rollback()
             flash(f'Error updating Discord settings: {str(e)}', 'error')
         
-        return redirect(url_for('main.discord_settings'))
+        return redirect(url_for('admin.discord_settings'))
 
     # Get default values from config if no settings exist
     webhook_url = settings.discord_webhook_url if settings else Config.DISCORD_WEBHOOK_URL
@@ -670,6 +668,31 @@ def discord_settings():
                          webhook_url=webhook_url,
                          bot_name=bot_name,
                          bot_avatar_url=bot_avatar_url)
+
+@admin_bp.route('/admin/test_discord_webhook', methods=['POST'])
+@login_required
+@admin_required
+def test_discord_webhook():
+    data = request.json
+    webhook_url = data.get('webhook_url')
+    bot_name = data.get('bot_name')
+    bot_avatar_url = data.get('bot_avatar_url')
+
+    if not webhook_url:
+        return jsonify({'success': False, 'message': 'Webhook URL is required'}), 400
+
+    handler = DiscordWebhookHandler(webhook_url, bot_name, bot_avatar_url)
+    
+    try:
+        embed = handler.create_embed(
+            title="Discord Webhook Test",
+            description="This is a test message from your SharewareZ instance.",
+            color="03b2f8"
+        )
+        success = handler.send_webhook(embed)
+        return jsonify({'success': success, 'message': 'Test message sent successfully'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @admin_bp.route('/admin/themes', methods=['GET', 'POST'])
 @login_required
@@ -811,4 +834,3 @@ def add_edit_library(library_uuid=None):
             print(f"Error saving library: {e}")
 
     return render_template('admin/admin_manage_library_create.html', form=form, library=library, page_title=page_title)
-
