@@ -227,6 +227,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     if (data.error) {
                         console.error('Error:', data.error);
+                        // Show flash message using notify.js
+                        $.notify("Game not found", {
+                            className: 'error',
+                            position: 'top center'
+                        });
                     } else {
                         updateFormWithGameData(data);
                         nameInput.value = data.name;
