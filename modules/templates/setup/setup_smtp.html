@@ -24,7 +24,7 @@
         {% endif %}
         {% endwith %}
 
-        <form method="POST" action="{{ url_for('main.setup_smtp') }}">
+        <form method="POST" action="{{ url_for('setup.setup_smtp') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             
             <div class="form-group">

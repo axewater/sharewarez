@@ -23,7 +23,7 @@
         {% endif %}
         {% endwith %}
 
-        <form method="POST" action="{{ url_for('main.setup_submit') }}">
+        <form method="POST" action="{{ url_for('setup.setup_submit') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <div class="form-group">

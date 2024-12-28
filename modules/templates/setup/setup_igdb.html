@@ -38,7 +38,7 @@
                     </div>
                 </div>
 
-                <form method="POST" action="{{ url_for('main.setup_igdb') }}">
+                <form method="POST" action="{{ url_for('setup.setup_igdb') }}">
                     {{ form.csrf_token }}
                     <div class="form-group">
                         <label for="igdb_client_id">{{ form.igdb_client_id.label }}</label>

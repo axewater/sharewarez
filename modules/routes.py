@@ -38,7 +38,7 @@ from modules.utilities import (
 from modules.utils_auth import _authenticate_and_redirect, admin_required
 from modules.utils_smtp import send_email, send_password_reset_email, send_invite_email
 from modules.utils_gamenames import get_game_names_from_folder, get_game_names_from_files
-from modules.utils_scanning import refresh_images_in_background
+from modules.utils_scanning import refresh_images_in_background, delete_game_images
 from modules.utils_game_core import get_game_by_uuid
 from modules.utils_download import update_download_request
 from modules.utils_functions import square_image, load_release_group_patterns, get_folder_size_in_bytes, get_folder_size_in_bytes_updates, format_size, PLATFORM_IDS
