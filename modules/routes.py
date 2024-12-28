@@ -172,11 +172,7 @@ def utility_processor():
     return dict(datetime=datetime)
 
 @bp.route('/setup', methods=['GET'])
-def setup():
-    # Print secret key and session info for debugging
-    print(f"Current secret key: {current_app.config['SECRET_KEY']}")
-    print(f"Session CSRF token: {session.get('csrf_token')}")
-    
+def setup():    
     # Clear any existing session data when starting setup
     session.clear()
     session['setup_step'] = 1

@@ -112,8 +112,6 @@ def library():
     filters = filters
     form = CsrfForm()
 
-    # print(f"LIBRARY: context: {locals()}")  # Updated for debugging purposes
-
     return render_template(
         'games/library_browser.html',
         games=games,
