@@ -4,6 +4,7 @@ from flask_login import login_required, logout_user, current_user
 from sqlalchemy import func
 from flask import flash
 import os
+from modules.models import User
 
 site_bp = Blueprint('site', __name__)
 
@@ -32,7 +33,16 @@ def logout():
 @site_bp.route('/', methods=['GET', 'POST'])
 @site_bp.route('/index', methods=['GET', 'POST'])
 def index():
-    return redirect(url_for('main.login'))
+    # Check if setup is required
+    if not User.query.first():
+        return redirect(url_for('main.setup'))
+        
+    # If not authenticated, redirect to login
+    if not current_user.is_authenticated:
+        return redirect(url_for('main.login'))
+        
+    # If authenticated, redirect to discover page
+    return redirect(url_for('main.discover'))
 
 
 @site_bp.route('/favicon.ico')

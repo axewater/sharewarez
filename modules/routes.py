@@ -53,26 +53,8 @@ has_upgraded_admin = False
 has_initialized_setup = False
 
 @bp.before_app_request
-def check_setup_required():
-    # Skip setup check for static files and setup-related routes
-    if request.endpoint and (request.endpoint.startswith('static') or 
-        request.endpoint == 'main.setup' or
-        request.endpoint == 'main.setup_smtp' or
-        request.endpoint == 'main.setup_igdb' or
-        request.endpoint.startswith('main.setup_')
-    ):
-        return
-
-    # Check if we need to do initial setup
-    if not User.query.first() and request.endpoint == 'site.index':
-        return redirect(url_for('main.setup'))
-
-    # Normal initialization continues only if setup is complete
-    global has_initialized_setup
-    if has_initialized_setup:
-        return
-    has_initialized_setup = True
-    app_start_time = datetime.now()
+def before_app_request():
+    pass  # Remove if not needed for other purposes
 
 
 @bp.context_processor
