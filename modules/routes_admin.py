@@ -5,6 +5,7 @@ from flask_mail import Message as MailMessage
 from modules.utils_auth import admin_required
 from modules.utils_smtp_test import SMTPTester
 from modules.utils_themes import ThemeManager
+from modules.utils_uptime import get_formatted_system_uptime, get_formatted_app_uptime
 from modules import app_version
 from config import Config
 from modules.utils_igdb_api import make_igdb_api_request
@@ -393,6 +394,8 @@ def admin_server_status():
         ip_address = 'Unavailable'
         print(f"Error retrieving IP address: {e}")
     
+    
+    
     system_info = {
         'OS': platform.system(),
         'OS Version': platform.version(),
@@ -400,12 +403,13 @@ def admin_server_status():
         'Hostname': hostname,
         'IP Address': ip_address,
         'Flask Port': request.environ.get('SERVER_PORT'),
-        'Uptime': str(uptime),
+        'System Uptime': get_formatted_system_uptime(),
+        'Application Uptime': get_formatted_app_uptime(app_start_time),
         'Current Time': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
 
     return render_template(
-        'admin/admin_server_info.html', 
+        'admin/admin_server_status.html', 
         config_values=safe_config_values, 
         system_info=system_info, 
         app_version=app_version

@@ -60,11 +60,23 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for key, value in system_info.items() %}
-                    <tr>
-                        <td>{{ key }}</td>
-                        <td>{{ value }}</td>
+                    <!-- Display uptime information first -->
+                    <tr class="table-primary">
+                        <td><strong>System Uptime</strong></td>
+                        <td>{{ system_info['System Uptime'] }}</td>
                     </tr>
+                    <tr class="table-primary">
+                        <td><strong>Application Uptime</strong></td>
+                        <td>{{ system_info['Application Uptime'] }}</td>
+                    </tr>
+                    <!-- Display rest of system information -->
+                    {% for key, value in system_info.items() %}
+                        {% if key not in ['System Uptime', 'Application Uptime'] %}
+                        <tr>
+                            <td>{{ key }}</td>
+                            <td>{{ value }}</td>
+                        </tr>
+                        {% endif %}
                     {% endfor %}
                 </tbody>
             </table>

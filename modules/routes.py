@@ -93,26 +93,6 @@ def check_setup_required():
     has_initialized_setup = True
     app_start_time = datetime.now()
 
-    # Upgrade first user to admin
-    try:
-        user = User.query.get(1)
-        if user and user.role != 'admin':
-            user.role = 'admin'
-            user.is_email_verified = True
-            db.session.commit()
-            print(f"User '{user.name}' (ID: 1) upgraded to admin.")
-        elif not user:
-            print("No user with ID 1 found in the database.")
-        else:
-            print("User with ID 1 already has admin role.")
-    except IntegrityError:
-        db.session.rollback()
-        print('error while trying to upgrade user to admin.')
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        print(f'error upgrading user to admin: {e}')
-
-
 @bp.context_processor
 @cache.cached(timeout=500, key_prefix='global_settings')
 def inject_settings():
