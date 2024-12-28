@@ -42,6 +42,7 @@ from modules.utils_smtp import send_email, send_password_reset_email, send_invit
 from modules.utils_gamenames import get_game_names_from_folder, get_game_names_from_files
 from modules.utils_functions import square_image, load_release_group_patterns, get_folder_size_in_bytes, get_folder_size_in_bytes_updates, get_games_count, get_library_count
 from modules.utils_igdb_api import make_igdb_api_request, get_cover_thumbnail_url
+
 from modules import app_start_time, app_version
 
 bp = Blueprint('main', __name__)

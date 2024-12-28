@@ -6,6 +6,7 @@ from modules.utils_auth import admin_required
 from modules.utils_smtp_test import SMTPTester
 from modules.utils_themes import ThemeManager
 from modules.utils_uptime import get_formatted_system_uptime, get_formatted_app_uptime
+from modules.utils_system_stats import get_cpu_usage, get_memory_usage, get_disk_usage, format_bytes
 from modules import app_version
 from config import Config
 from modules.utils_igdb_api import make_igdb_api_request
@@ -353,6 +354,24 @@ def admin_server_status():
         if not settings_record or not settings_record.settings:
             flash('Server settings not configured.', 'warning')
             return redirect(url_for('main.admin_dashboard'))
+
+        from modules.utils_system_stats import get_cpu_usage, get_memory_usage, get_disk_usage, format_bytes
+        
+        # Get system resource statistics
+        cpu_usage = get_cpu_usage()
+        memory_usage = get_memory_usage()
+        disk_usage = get_disk_usage()
+        
+        # Format memory and disk usage for display
+        if memory_usage:
+            memory_usage['total_formatted'] = format_bytes(memory_usage['total'])
+            memory_usage['used_formatted'] = format_bytes(memory_usage['used'])
+            memory_usage['available_formatted'] = format_bytes(memory_usage['available'])
+        
+        if disk_usage:
+            disk_usage['total_formatted'] = format_bytes(disk_usage['total'])
+            disk_usage['used_formatted'] = format_bytes(disk_usage['used'])
+            disk_usage['free_formatted'] = format_bytes(disk_usage['free'])
             
         enable_server_status = settings_record.settings.get('enableServerStatusFeature', False)
         if not enable_server_status:
@@ -412,7 +431,10 @@ def admin_server_status():
         'admin/admin_server_status.html', 
         config_values=safe_config_values, 
         system_info=system_info, 
-        app_version=app_version
+        app_version=app_version,
+        cpu_usage=cpu_usage,
+        memory_usage=memory_usage,
+        disk_usage=disk_usage
     )
     
     
