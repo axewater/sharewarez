@@ -5,9 +5,16 @@ from sqlalchemy import func
 from flask import flash
 import os
 from modules.models import User
+from modules.utils_processors import get_global_settings
+from modules import cache
 
 site_bp = Blueprint('site', __name__)
 
+@site_bp.context_processor
+@cache.cached(timeout=500, key_prefix='global_settings')
+def inject_settings():
+    """Context processor to inject global settings into templates"""
+    return get_global_settings()
 
 @site_bp.context_processor
 def inject_current_theme():
