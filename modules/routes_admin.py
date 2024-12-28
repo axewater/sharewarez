@@ -6,7 +6,8 @@ from modules.utils_auth import admin_required
 from modules.utils_smtp_test import SMTPTester
 from modules.utils_themes import ThemeManager
 from modules.utils_uptime import get_formatted_system_uptime, get_formatted_app_uptime
-from modules.utils_system_stats import get_cpu_usage, get_memory_usage, get_disk_usage, format_bytes
+from modules.discord_handler import DiscordWebhookHandler
+from modules.utils_processors import get_global_settings
 from modules import app_version
 from config import Config
 from modules.utils_igdb_api import make_igdb_api_request
@@ -22,10 +23,14 @@ from flask import flash
 from uuid import uuid4
 import socket, os, platform
 from modules import app_start_time
-from modules.discord_handler import DiscordWebhookHandler
 
 admin_bp = Blueprint('admin', __name__)
 
+@admin_bp.context_processor
+@cache.cached(timeout=500, key_prefix='global_settings')
+def inject_settings():
+    """Context processor to inject global settings into templates"""
+    return get_global_settings()
 
 @admin_bp.context_processor
 def inject_current_theme():
