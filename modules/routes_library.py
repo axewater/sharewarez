@@ -6,9 +6,17 @@ from modules.utils_functions import format_size, get_library_count, get_games_co
 from modules.utils_auth import admin_required
 from modules.forms import CsrfForm, CsrfProtectForm
 from sqlalchemy.orm import joinedload
-
+from modules.utils_processors import get_global_settings
+from modules import cache
 
 library_bp = Blueprint('library', __name__)
+
+@library_bp.context_processor
+@cache.cached(timeout=500, key_prefix='global_settings')
+def inject_settings():
+    """Context processor to inject global settings into templates"""
+    return get_global_settings()
+
 
 @library_bp.context_processor
 def inject_current_theme():

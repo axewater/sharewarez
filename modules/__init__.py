@@ -20,7 +20,7 @@ mail = Mail()
 cache = Cache(config={'CACHE_TYPE': 'simple'})
 app_start_time = datetime.now()
 app_version = '2.1.0'
-    
+
 def create_app():
     global s    
     app = Flask(__name__)
