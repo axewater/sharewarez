@@ -40,7 +40,7 @@ def logout():
 def index():
     # Check if setup is required
     if not User.query.first():
-        return redirect(url_for('main.setup'))
+        return redirect(url_for('setup.setup'))
         
     # If not authenticated, redirect to login
     if not current_user.is_authenticated:
