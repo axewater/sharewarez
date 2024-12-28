@@ -5,7 +5,7 @@ from config import Config
 from flask import (
     Flask, render_template, flash, redirect, url_for, request, Blueprint, 
     jsonify, session, abort, current_app, send_from_directory, 
-    copy_current_request_context, g
+    copy_current_request_context, g, current_app
 )
 from flask_login import current_user, login_required
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -20,7 +20,7 @@ from PIL import Image as PILImage
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
 from modules.forms import (
-    UserPasswordForm, EditProfileForm, SetupForm, IGDBSetupForm,
+    UserPasswordForm, EditProfileForm, 
     ScanFolderForm, ClearDownloadRequestsForm, CsrfProtectForm, 
     AddGameForm, LoginForm, ResetPasswordRequestForm, AutoScanForm,
     UpdateUnmatchedFolderForm, RegistrationForm, UserPreferencesForm, 
@@ -28,16 +28,20 @@ from modules.forms import (
 )
 from modules.models import (
     User, Whitelist, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder,
-    Publisher, Developer, user_favorites, Genre, Theme, GameMode, PlayerPerspective, GameUpdate, GameExtra,
-    Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, AllowedFileType
+    Publisher, Developer, Genre, Theme, GameMode, PlayerPerspective, GameUpdate, GameExtra,
+    Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, AllowedFileType,
+    user_favorites
 )
 from modules.utilities import (
-    scan_and_add_games, get_game_names_from_folder, get_game_names_from_files
+    scan_and_add_games
 )
 from modules.utils_auth import _authenticate_and_redirect, admin_required
 from modules.utils_smtp import send_email, send_password_reset_email, send_invite_email
 from modules.utils_gamenames import get_game_names_from_folder, get_game_names_from_files
-from modules.utils_functions import square_image, load_release_group_patterns, get_folder_size_in_bytes, get_folder_size_in_bytes_updates, get_games_count, get_library_count
+from modules.utils_scanning import refresh_images_in_background
+from modules.utils_game_core import get_game_by_uuid
+from modules.utils_download import update_download_request
+from modules.utils_functions import square_image, load_release_group_patterns, get_folder_size_in_bytes, get_folder_size_in_bytes_updates, format_size, PLATFORM_IDS
 from modules.utils_igdb_api import make_igdb_api_request, get_cover_thumbnail_url
 from modules.utils_processors import get_global_settings
 
@@ -54,132 +58,6 @@ has_initialized_setup = False
 def inject_settings():
     """Context processor to inject global settings into templates"""
     return get_global_settings()
-
-
-@bp.route('/setup', methods=['GET'])
-def setup():    
-    # Clear any existing session data when starting setup
-    session.clear()
-    session['setup_step'] = 1
-
-    if User.query.first():
-        flash('Setup has already been completed.', 'warning')
-        return redirect(url_for('main.login'))
-
-    form = SetupForm()
-    return render_template('setup/setup.html', form=form)
-
-@bp.route('/setup/submit', methods=['POST'])
-def setup_submit():
-    if User.query.first():
-        flash('Setup has already been completed.', 'warning')
-        return redirect(url_for('main.login'))
-
-    form = SetupForm()
-    if form.validate_on_submit():
-        print(f"Form CSRF token: {form.csrf_token.data}")
-        print(f"Form validation succeeded")
-        
-        user = User(
-            name=form.username.data,
-            email=form.email.data.lower(),
-            role='admin',
-            is_email_verified=True,
-            user_id=str(uuid4()),
-            created=datetime.utcnow()
-        )
-        user.set_password(form.password.data)
-        
-        try:
-            db.session.add(user)
-            db.session.commit()
-            session['setup_step'] = 2  # Move to SMTP setup
-            flash('Admin account created successfully! Please configure your SMTP settings.', 'success')
-            return redirect(url_for('main.setup_smtp'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error during setup: {str(e)}', 'error')
-            return redirect(url_for('main.setup'))
-    else:
-        print(f"Form contents: {form.data}")
-        print(f"Form validation failed: {form.errors}")
-        return render_template('setup/setup.html', form=form)
-
-@bp.route('/setup/smtp', methods=['GET', 'POST'])
-def setup_smtp():
-    # Ensure we're in the correct setup step
-    setup_step = session.get('setup_step')
-    
-    if setup_step is None:
-        flash('Setup already completed.', 'warning')
-        return redirect(url_for('main.login'))
-    
-    if setup_step != 2:
-        flash('Please complete the admin account setup first.', 'warning')
-        return redirect(url_for('main.setup'))
-
-    if request.method == 'POST':
-        # Check if skip button was clicked
-        if 'skip_smtp' in request.form:
-            session['setup_step'] = 3  # Move to IGDB setup even when skipping
-            flash('SMTP setup skipped. Please configure your IGDB settings.', 'info')
-            return redirect(url_for('main.setup_igdb'))
-        if 'skip_smtp' in request.form:
-            session['setup_step'] = 3  # Move to IGDB setup even when skipping
-            flash('SMTP setup skipped. Please configure your IGDB settings.', 'info')
-            return redirect(url_for('main.setup_igdb'))
-
-        settings = GlobalSettings.query.first()
-        if not settings:
-            settings = GlobalSettings()
-            db.session.add(settings)
-
-        settings.smtp_server = request.form.get('smtp_server')
-        settings.smtp_port = int(request.form.get('smtp_port', 587))
-        settings.smtp_username = request.form.get('smtp_username')
-        settings.smtp_password = request.form.get('smtp_password')
-        settings.smtp_use_tls = request.form.get('smtp_use_tls') == 'true'
-        settings.smtp_default_sender = request.form.get('smtp_default_sender')
-        settings.smtp_enabled = request.form.get('smtp_enabled') == 'true'
-
-        try:
-            db.session.commit()
-            session['setup_step'] = 3  # Move to IGDB setup
-            flash('SMTP settings saved successfully! Please configure your IGDB settings.', 'success')
-            return redirect(url_for('main.setup_igdb'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error saving SMTP settings: {str(e)}', 'error')
-
-    return render_template('setup/setup_smtp.html')
-
-
-@bp.route('/setup/igdb', methods=['GET', 'POST'])
-def setup_igdb():
-    if not session.get('setup_step') == 3:
-        flash('Please complete the SMTP setup first.', 'warning')
-        return redirect(url_for('main.setup'))
-
-    form = IGDBSetupForm()
-    if form.validate_on_submit():
-        settings = GlobalSettings.query.first()
-        if not settings:
-            settings = GlobalSettings()
-            db.session.add(settings)
-        
-        settings.igdb_client_id = form.igdb_client_id.data
-        settings.igdb_client_secret = form.igdb_client_secret.data
-        
-        try:
-            db.session.commit()
-            session.pop('setup_step', None)  # Clear setup progress
-            flash('Setup completed successfully! You can now log in.', 'success')
-            return redirect(url_for('main.login'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error saving IGDB settings: {str(e)}', 'error')
-
-    return render_template('setup/setup_igdb.html', form=form)
 
 
 @bp.route('/login', methods=['GET', 'POST'])
@@ -832,19 +710,14 @@ def check_favorite(game_uuid):
     return jsonify({'is_favorite': is_favorite})
 
 
-
-
 @bp.route('/downloads')
 @login_required
 def downloads():
     user_id = current_user.id
     print(f"Route: /downloads user_id: {user_id}")
     download_requests = DownloadRequest.query.filter_by(user_id=user_id).all()
-
-    # Format the size for each download request before passing to the template
     for download_request in download_requests:
         download_request.formatted_size = format_size(download_request.download_size)
-
     form = CsrfProtectForm()
     return render_template('games/manage_downloads.html', download_requests=download_requests, form=form)
 
@@ -879,8 +752,6 @@ def scan_folder():
             flash("Folder does not exist or cannot be accessed.", "error")
             print("Folder does not exist or cannot be accessed.")
             
-
-    # print("Game names with IDs:", game_names_with_ids)
     return render_template('admin/admin_manage_scanjobs.html', form=form, game_names_with_ids=game_names_with_ids)
 
 
@@ -2632,13 +2503,6 @@ def check_scan_status():
     
     is_active = active_job is not None
     return jsonify({"is_active": is_active})
-
-
-
-@bp.route('/help')
-def helpfaq():
-    print("Route: /help")
-    return render_template('site/site_help.html')
 
 
 
