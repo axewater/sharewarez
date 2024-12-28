@@ -52,11 +52,6 @@ has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False
 
-@bp.before_app_request
-def before_app_request():
-    pass  # Remove if not needed for other purposes
-
-
 @bp.context_processor
 @cache.cached(timeout=500, key_prefix='global_settings')
 def inject_settings():
