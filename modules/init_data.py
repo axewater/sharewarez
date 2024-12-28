@@ -1,7 +1,30 @@
 import os
 import zipfile
 from modules import db
-from modules.models import ReleaseGroup
+from modules.models import ReleaseGroup, GlobalSettings
+
+def initialize_default_settings():
+    """Initialize default global settings if they don't exist."""
+    print("Initializing default global settings...")
+    settings_record = GlobalSettings.query.first()
+    if not settings_record:
+        try:
+            default_settings = {
+                'showSystemLogo': True,
+                'showHelpButton': True,
+                'allowUsersToInviteOthers': True,
+                'enableWebLinksOnDetailsPage': True,
+                'enableServerStatusFeature': True,
+                'enableNewsletterFeature': True,
+                'showVersion': True
+            }
+            settings_record = GlobalSettings(settings=default_settings)
+            db.session.add(settings_record)
+            db.session.commit()
+            print("Created default global settings")
+        except Exception as e:
+            print(f"Error creating default settings: {e}")
+            db.session.rollback()
 
 def initialize_library_folders():
     """Initialize the required folders and theme files for the application."""
