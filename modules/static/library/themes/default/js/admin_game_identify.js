@@ -341,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function() {
         igdbIdInput.addEventListener('blur', function() {
             const igdbId = this.value.trim();
             if (igdbId.length > 0) {
-                fetch(`/check_igdb_id?igdb_id=${igdbId}`)
+                fetch(`/api/check_igdb_id?igdb_id=${igdbId}`)
                     .then(response => response.json())
                     .then(data => {
                         const isValid = data.available;

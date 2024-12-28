@@ -39,7 +39,7 @@ from modules.utils_auth import _authenticate_and_redirect, admin_required
 from modules.utils_smtp import send_email, send_password_reset_email, send_invite_email
 from modules.utils_gamenames import get_game_names_from_folder, get_game_names_from_files
 from modules.utils_scanning import refresh_images_in_background, delete_game_images
-from modules.utils_game_core import get_game_by_uuid
+from modules.utils_game_core import get_game_by_uuid, check_existing_game_by_igdb_id
 from modules.utils_download import update_download_request, zip_folder
 from modules.utils_functions import square_image, load_release_group_patterns, get_folder_size_in_bytes, get_folder_size_in_bytes_updates, format_size, read_first_nfo_content, PLATFORM_IDS
 from modules.utils_igdb_api import make_igdb_api_request, get_cover_thumbnail_url
@@ -1531,7 +1531,7 @@ def check_path_availability():
 
 
 
-@bp.route('/check_igdb_id')
+@bp.route('/api/check_igdb_id')
 @login_required
 def check_igdb_id():
     igdb_id = request.args.get('igdb_id', type=int)
@@ -1559,7 +1559,6 @@ def game_details(game_uuid):
         # Explicitly load updates and extras
         updates = GameUpdate.query.filter_by(game_uuid=game.uuid).all()
         extras = GameExtra.query.filter_by(game_uuid=game.uuid).all()
-        
         print(f"Found {len(updates)} updates and {len(extras)} extras for game {game.name}")
         
         game_data = {
@@ -1622,7 +1621,6 @@ def game_details(game_uuid):
         }
         
         # URL Icons Mapping
-        # Updated for FontAwesome v6
         url_icons = {
             "official": "fa-solid fa-globe",
             "wikia": "fa-brands fa-wikimedia",
@@ -1638,9 +1636,7 @@ def game_details(game_uuid):
             "epicgames": "fa-brands fa-epic-games",
             "gog": "fa-brands fa-gog",
             "discord": "fa-brands fa-discord",
-            # Add or update mappings as needed
         }
-
         # Augment game_data with URLs
         game_data['urls'] = [{
             "type": url.url_type,
