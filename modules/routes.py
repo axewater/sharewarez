@@ -41,7 +41,7 @@ from modules.utils_gamenames import get_game_names_from_folder, get_game_names_f
 from modules.utils_scanning import refresh_images_in_background, delete_game_images
 from modules.utils_game_core import get_game_by_uuid
 from modules.utils_download import update_download_request, zip_folder
-from modules.utils_functions import square_image, load_release_group_patterns, get_folder_size_in_bytes, get_folder_size_in_bytes_updates, format_size, PLATFORM_IDS
+from modules.utils_functions import square_image, load_release_group_patterns, get_folder_size_in_bytes, get_folder_size_in_bytes_updates, format_size, read_first_nfo_content, PLATFORM_IDS
 from modules.utils_igdb_api import make_igdb_api_request, get_cover_thumbnail_url
 from modules.utils_processors import get_global_settings
 

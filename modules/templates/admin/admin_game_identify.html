@@ -57,14 +57,14 @@
                     </div>
                 </div>
                 <div class="game-edit-savebutton">
-                    <button type="submit" class="game_edit-save-btn btn-primary">Save</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
                 </div>
             </div>
             {{ form.hidden_tag() }}
             <div class="game_edit-form-group-id">
                 <label for="name">IGDB ID#</label>
                 {{ form.igdb_id(class="form-control") }}
-                <button type="button" class="game_edit-search-igdb-btn btn-info" id="search-igdb-btn">Search IGDB</button>
+                <button type="button" class="btn btn-info mb-3" id="search-igdb-btn">Search IGDB</button>
                 {% if form.igdb_id.errors %}
                     <div class="alert alert-danger" role="alert">
                         {% for error in form.igdb_id.errors %}
@@ -86,7 +86,7 @@
                     </div>
                 {% endif %}
  
-                <button type="button" id="search-igdb" class="game_edit-search-igdb-btn btn-info">Search IGDB</button>
+                <button type="button" id="search-igdb" class="btn btn-info mb-3">Search IGDB</button>
                 
                 <div id="search-results" style="margin-top: 10px;">
                 <!-- Container for search results -->

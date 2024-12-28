@@ -1,20 +1,15 @@
-.table {
-	background-color: #333;
-	color: #fff;
-}
-.table th {
-	background-color: #444;
-}
-
-.game-edit-library-labels {
-    display: flex;
-    flex-direction: column;
-    width: 400px;
-    margin-bottom: 10px;
-}
+/* Remove custom button styling and let Bootstrap handle it */
 
 .game-edit-savebutton {
-	align-self: flex-end;
-	margin-top: 10px;
+    align-self: flex-end;
+    margin-top: 10px;
+}
 
+.game_edit-save-btn {
+    padding: 8px 20px;
+}
+
+.game_edit-search-igdb-btn {
+    margin-left: 10px;
+    margin-bottom: 10px;
 }
