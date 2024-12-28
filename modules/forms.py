@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 from modules.utils_functions import comma_separated_urls
 from modules.utils_themes import ThemeManager
 from flask import current_app
+
 class UpdateUnmatchedFolderForm(FlaskForm):
     folder_id = HiddenField('Folder ID', validators=[DataRequired()])
     new_status = HiddenField('New Status', default='Ignore')

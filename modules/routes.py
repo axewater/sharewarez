@@ -52,65 +52,68 @@ has_initialized_setup = False
 
 @bp.before_app_request
 def check_setup_required():
-    # Skip setup check for static files and setup-related routes
-    if request.endpoint and (request.endpoint.startswith('static') or 
-        request.endpoint == 'main.setup' or
-        request.endpoint == 'main.setup_smtp' or
-        request.endpoint == 'main.setup_igdb' or
-        request.endpoint.startswith('main.setup_')
-    ):
-        return
+    if request.endpoint == 'site.index':
+        # Skip setup check for static files and setup-related routes
+        if request.endpoint and (request.endpoint.startswith('static') or 
+            request.endpoint == 'main.setup' or
+            request.endpoint == 'main.setup_smtp' or
+            request.endpoint == 'main.setup_igdb' or
+            request.endpoint.startswith('main.setup_')
+        ):
+            return
 
-    # Ensure default settings exist
-    settings_record = GlobalSettings.query.first()
-    if not settings_record:
+        # Ensure default settings exist
+        settings_record = GlobalSettings.query.first()
+        if not settings_record:
+            try:
+                default_settings = {
+                    'showSystemLogo': True,
+                    'showHelpButton': True,
+                    'allowUsersToInviteOthers': True,
+                    'enableWebLinksOnDetailsPage': True,
+                    'enableServerStatusFeature': True,
+                    'enableNewsletterFeature': True,
+                    'showVersion': True
+                }
+                settings_record = GlobalSettings(settings=default_settings)
+                db.session.add(settings_record)
+                db.session.commit()
+                print("Created default global settings")
+            except Exception as e:
+                print(f"Error creating default settings: {e}")
+                db.session.rollback()
+
+        # Check if we need to do initial setup
+        if not User.query.first() and request.endpoint != 'main.setup':
+            return redirect(url_for('main.setup'))
+
+        # Normal initialization continues only if setup is complete
+        global has_initialized_setup
+        if has_initialized_setup:
+            return
+        has_initialized_setup = True
+        app_start_time = datetime.now()
+
+        # Upgrade first user to admin
         try:
-            default_settings = {
-                'showSystemLogo': True,
-                'showHelpButton': True,
-                'allowUsersToInviteOthers': True,
-                'enableWebLinksOnDetailsPage': True,
-                'enableServerStatusFeature': True,
-                'enableNewsletterFeature': True,
-                'showVersion': True
-            }
-            settings_record = GlobalSettings(settings=default_settings)
-            db.session.add(settings_record)
-            db.session.commit()
-            print("Created default global settings")
-        except Exception as e:
-            print(f"Error creating default settings: {e}")
+            user = User.query.get(1)
+            if user and user.role != 'admin':
+                user.role = 'admin'
+                user.is_email_verified = True
+                db.session.commit()
+                print(f"User '{user.name}' (ID: 1) upgraded to admin.")
+            elif not user:
+                print("No user with ID 1 found in the database.")
+            else:
+                print("User with ID 1 already has admin role.")
+        except IntegrityError:
             db.session.rollback()
-
-    # Check if we need to do initial setup
-    if not User.query.first() and request.endpoint != 'main.setup':
-        return redirect(url_for('main.setup'))
-
-    # Normal initialization continues only if setup is complete
-    global has_initialized_setup
-    if has_initialized_setup:
-        return
-    has_initialized_setup = True
-    app_start_time = datetime.now()
-
-    # Upgrade first user to admin
-    try:
-        user = User.query.get(1)
-        if user and user.role != 'admin':
-            user.role = 'admin'
-            user.is_email_verified = True
-            db.session.commit()
-            print(f"User '{user.name}' (ID: 1) upgraded to admin.")
-        elif not user:
-            print("No user with ID 1 found in the database.")
-        else:
-            print("User with ID 1 already has admin role.")
-    except IntegrityError:
-        db.session.rollback()
-        print('error while trying to upgrade user to admin.')
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        print(f'error upgrading user to admin: {e}')
+            print('error while trying to upgrade user to admin.')
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            print(f'error upgrading user to admin: {e}')
+    else:
+        pass
 
 @bp.context_processor
 @cache.cached(timeout=500, key_prefix='global_settings')
@@ -189,52 +192,58 @@ def inject_settings():
 def utility_processor():
     return dict(datetime=datetime)
 
-@bp.route('/setup', methods=['GET', 'POST'])
+@bp.route('/setup', methods=['GET'])
 def setup():
     # Print secret key and session info for debugging
     print(f"Current secret key: {current_app.config['SECRET_KEY']}")
     print(f"Session CSRF token: {session.get('csrf_token')}")
     
     # Clear any existing session data when starting setup
-    if request.method == 'GET':
-        session.clear()
-        session['setup_step'] = 1
+    session.clear()
+    session['setup_step'] = 1
 
     if User.query.first():
         flash('Setup has already been completed.', 'warning')
         return redirect(url_for('main.login'))
 
-    setup_step = session.get('setup_step', 1)
-    
-    if setup_step == 1:
-        form = SetupForm()
-        if form.validate_on_submit():
-            print(f"Form CSRF token: {form.csrf_token.data}")
-            print(f"Form validation succeeded")
-            user = User(
+    form = SetupForm()
+    return render_template('setup/setup.html', form=form)
+
+@bp.route('/setup/submit', methods=['POST'])
+def setup_submit():
+    if User.query.first():
+        flash('Setup has already been completed.', 'warning')
+        return redirect(url_for('main.login'))
+
+    form = SetupForm()
+    if form.validate_on_submit():
+        print(f"Form CSRF token: {form.csrf_token.data}")
+        print(f"Form validation succeeded")
+        
+        user = User(
             name=form.username.data,
             email=form.email.data.lower(),
             role='admin',
             is_email_verified=True,
-                user_id=str(uuid4()),
-                created=datetime.utcnow()
-            )
-            user.set_password(form.password.data)
-            
-            try:
-                db.session.add(user)
-                db.session.commit()
-                session['setup_step'] = 2  # Move to SMTP setup
-                flash('Admin account created successfully! Please configure your SMTP settings.', 'success')
-                return redirect(url_for('main.setup_smtp'))
-            except Exception as e:
-                db.session.rollback()
-                flash(f'Error during setup: {str(e)}', 'error')
-                return redirect(url_for('main.setup'))
-
+            user_id=str(uuid4()),
+            created=datetime.utcnow()
+        )
+        user.set_password(form.password.data)
+        
+        try:
+            db.session.add(user)
+            db.session.commit()
+            session['setup_step'] = 2  # Move to SMTP setup
+            flash('Admin account created successfully! Please configure your SMTP settings.', 'success')
+            return redirect(url_for('main.setup_smtp'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error during setup: {str(e)}', 'error')
+            return redirect(url_for('main.setup'))
+    else:
+        print(f"Form contents: {form.data}")
+        print(f"Form validation failed: {form.errors}")
         return render_template('setup/setup.html', form=form)
-    
-    return redirect(url_for('main.setup_smtp'))
 
 @bp.route('/setup/smtp', methods=['GET', 'POST'])
 def setup_smtp():
