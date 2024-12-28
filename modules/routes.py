@@ -191,6 +191,10 @@ def utility_processor():
 
 @bp.route('/setup', methods=['GET', 'POST'])
 def setup():
+    # Print secret key and session info for debugging
+    print(f"Current secret key: {current_app.config['SECRET_KEY']}")
+    print(f"Session CSRF token: {session.get('csrf_token')}")
+    
     # Clear any existing session data when starting setup
     if request.method == 'GET':
         session.clear()
@@ -205,11 +209,13 @@ def setup():
     if setup_step == 1:
         form = SetupForm()
         if form.validate_on_submit():
+            print(f"Form CSRF token: {form.csrf_token.data}")
+            print(f"Form validation succeeded")
             user = User(
-                name=form.username.data,
-                email=form.email.data.lower(),
-                role='admin',
-                is_email_verified=True,
+            name=form.username.data,
+            email=form.email.data.lower(),
+            role='admin',
+            is_email_verified=True,
                 user_id=str(uuid4()),
                 created=datetime.utcnow()
             )
