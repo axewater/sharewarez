@@ -24,12 +24,12 @@ from modules.forms import (
     ScanFolderForm, ClearDownloadRequestsForm, CsrfProtectForm, 
     AddGameForm, LoginForm, ResetPasswordRequestForm, AutoScanForm,
     UpdateUnmatchedFolderForm, RegistrationForm, UserPreferencesForm, 
-    InviteForm, LibraryForm, CsrfForm
+    InviteForm, CsrfForm
 )
 from modules.models import (
     User, Whitelist, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder,
     Publisher, Developer, user_favorites, Genre, Theme, GameMode, PlayerPerspective, GameUpdate, GameExtra,
-    Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, LibraryPlatform, AllowedFileType
+    Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, AllowedFileType
 )
 from modules.utilities import (
     refresh_images_in_background, get_game_by_uuid,
@@ -62,27 +62,6 @@ def check_setup_required():
         request.endpoint.startswith('main.setup_')
     ):
         return
-
-    # Ensure default settings exist
-    settings_record = GlobalSettings.query.first()
-    if not settings_record:
-        try:
-            default_settings = {
-                'showSystemLogo': True,
-                'showHelpButton': True,
-                'allowUsersToInviteOthers': True,
-                'enableWebLinksOnDetailsPage': True,
-                'enableServerStatusFeature': True,
-                'enableNewsletterFeature': True,
-                'showVersion': True
-            }
-            settings_record = GlobalSettings(settings=default_settings)
-            db.session.add(settings_record)
-            db.session.commit()
-            print("Created default global settings")
-        except Exception as e:
-            print(f"Error creating default settings: {e}")
-            db.session.rollback()
 
     # Check if we need to do initial setup
     if not User.query.first() and request.endpoint == 'site.index':

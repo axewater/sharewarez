@@ -38,12 +38,13 @@ def create_app():
     with app.app_context():
         from . import routes, models
         from modules.utils_auth import load_user
-        from modules.init_data import insert_default_filters
+        from modules.init_data import insert_default_filters, initialize_default_settings
         from modules.routes_site import site_bp
         from modules.routes_admin import admin_bp
         from modules.routes_library import library_bp
         db.create_all()
         insert_default_filters()
+        initialize_default_settings()
     app.register_blueprint(routes.bp)
     app.register_blueprint(site_bp)
     app.register_blueprint(admin_bp)
