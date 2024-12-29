@@ -1,13 +1,18 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from modules.utils_auth import admin_required
-from modules.utils_uptime import get_formatted_system_uptime, get_formatted_app_uptime
 from modules.utils_processors import get_global_settings
-from modules.models import GlobalSettings
-from datetime import datetime
-import socket, platform
-from modules import app_start_time, app_version, cache
+from modules.utils_system_stats import format_bytes
+from modules.utils_uptime import get_formatted_system_uptime, get_formatted_app_uptime
+from modules import app_version, app_start_time
 from config import Config
+from modules.utils_igdb_api import make_igdb_api_request
+from modules.models import GlobalSettings, SystemEvents
+from modules import db, cache
+from datetime import datetime
+from sqlalchemy import func
+from modules.utils_logging import log_system_event
+import platform, socket
 
 info_bp = Blueprint('info', __name__)
 
@@ -36,6 +41,7 @@ def admin_server_status():
             flash('Server settings not configured.', 'warning')
             return redirect(url_for('site.admin_dashboard'))
 
+        log_system_event("Admin accessed server status page", event_type='audit', event_level='information')
         from modules.utils_system_stats import get_cpu_usage, get_memory_usage, get_disk_usage, format_bytes
         
         # Get system resource statistics
@@ -53,6 +59,10 @@ def admin_server_status():
             disk_usage['total_formatted'] = format_bytes(disk_usage['total'])
             disk_usage['used_formatted'] = format_bytes(disk_usage['used'])
             disk_usage['free_formatted'] = format_bytes(disk_usage['free'])
+            
+        # Get log statistics
+        log_count = SystemEvents.query.count()
+        latest_log = SystemEvents.query.order_by(SystemEvents.timestamp.desc()).first()
             
         enable_server_status = settings_record.settings.get('enableServerStatusFeature', False)
         if not enable_server_status:
@@ -115,5 +125,7 @@ def admin_server_status():
         app_version=app_version,
         cpu_usage=cpu_usage,
         memory_usage=memory_usage,
-        disk_usage=disk_usage
+        disk_usage=disk_usage,
+        log_count=log_count,
+        latest_log=latest_log
     )

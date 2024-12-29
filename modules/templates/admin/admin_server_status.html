@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_server_status.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_server_status.css') }}">
-{% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_server_status.css') }}">
-{% endif %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    .info-block { background-color: #f8f9fa; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+    .info-block h3 { margin-top: 0; }
+</style>
 
 <div class="glass-panel">
     {% with messages = get_flashed_messages() %}
@@ -18,101 +18,129 @@
     {% endif %}
     {% endwith %}
     <body>
-    
-    <!-- Back to Dashboard Button -->
-    <div class="container">
-        <div class="glass-panel">
-            <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+        <!-- Back to Dashboard Button -->
+        <div class="container">
+            <div class="glass-panel">
+                <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
         </div>
-    </div>
-    <div class="container-status-page">
-        <div class="container-serverstatus-version">
-            <p>SharewareZ server version: {{ app_version }}</p>
+        <div class="container-status-page">
+            <div class="container-serverstatus-version">
+                <h1><i class="fas fa-server"></i> Server Status</h1>
+                <p>SharewareZ server version: {{ app_version }}</p>
+            </div>
+            <div class="container mt-5">
+                <!-- System Resources -->
+                <div class="info-block">
+                    <h3><i class="fas fa-microchip"></i> System Resources</h3>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h4><i class="fas fa-tachometer-alt"></i> CPU Usage</h4>
+                            <p>{{ cpu_usage|default('N/A') }}%</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h4><i class="fas fa-memory"></i> Memory Usage</h4>
+                            {% if memory_usage %}
+                            <p>
+                                {{ memory_usage.used_formatted }} used of {{ memory_usage.total_formatted }} 
+                                ({{ memory_usage.percent }}%)<br>
+                                Available: {{ memory_usage.available_formatted }}
+                            </p>
+                            {% else %}
+                            <p>N/A</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <h4><i class="fas fa-hdd"></i> Disk Usage (Base Folder)</h4>
+                            {% if disk_usage %}
+                            <p>
+                                {{ disk_usage.used_formatted }} used of {{ disk_usage.total_formatted }}
+                                ({{ disk_usage.percent }}%)<br>
+                                Free: {{ disk_usage.free_formatted }}
+                            </p>
+                            {% else %}
+                            <p>N/A</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- System Information -->
+                <div class="info-block">
+                    <h3><i class="fas fa-info-circle"></i> System Information</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4><i class="fas fa-clock"></i> System Uptime</h4>
+                            <p>{{ system_info['System Uptime'] }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4><i class="fas fa-clock"></i> Application Uptime</h4>
+                            <p>{{ system_info['Application Uptime'] }}</p>
+                        </div>
+                    </div>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Key</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, value in system_info.items() %}
+                                {% if key not in ['System Uptime', 'Application Uptime'] %}
+                                <tr>
+                                    <td>{{ key }}</td>
+                                    <td>{{ value }}</td>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Application Configuration -->
+                <div class="info-block">
+                    <h3><i class="fas fa-cogs"></i> Application Configuration</h3>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Key</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, value in config_values.items() %}
+                            <tr>
+                                <td>{{ key }}</td>
+                                <td>{{ value }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Log Information -->
+                <div class="info-block">
+                    <h3><i class="fas fa-clipboard-list"></i> Log Information</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4><i class="fas fa-list-ol"></i> Total Log Entries</h4>
+                            <p>{{ log_count }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4><i class="fas fa-clock"></i> Latest Log Entry</h4>
+                            {% if latest_log %}
+                            <p>{{ latest_log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }} - {{ latest_log.event_text }}</p>
+                            {% else %}
+                            <p>No log entries found</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="container mt-5">
-
-
-
-
-            <h2>Application Configuration</h2>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Key</th>
-                        <th>Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- System Resources Section -->
-                    <tr class="table-info">
-                        <td colspan="2"><strong>System Resources</strong></td>
-                    </tr>
-                    <tr>
-                        <td>CPU Usage</td>
-                        <td>{{ cpu_usage|default('N/A') }}%</td>
-                    </tr>
-                    {% if memory_usage %}
-                    <tr>
-                        <td>Memory Usage</td>
-                        <td>
-                            {{ memory_usage.used_formatted }} used of {{ memory_usage.total_formatted }} 
-                            ({{ memory_usage.percent }}%)
-                            <br>
-                            Available: {{ memory_usage.available_formatted }}
-                        </td>
-                    </tr>
-                    {% endif %}
-                    {% if disk_usage %}
-                    <tr>
-                        <td>Disk Usage (Base Folder)</td>
-                        <td>
-                            {{ disk_usage.used_formatted }} used of {{ disk_usage.total_formatted }}
-                            ({{ disk_usage.percent }}%)
-                            <br>
-                            Free: {{ disk_usage.free_formatted }}
-                        </td>
-                    </tr>
-                    {% endif %}
-                    {% for key, value in config_values.items() %}
-                    <tr>
-                        <td>{{ key }}</td>
-                        <td>{{ value }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <h2>System Information</h2>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Key</th>
-                        <th>Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Display uptime information first -->
-                    <tr class="table-primary">
-                        <td><strong>System Uptime</strong></td>
-                        <td>{{ system_info['System Uptime'] }}</td>
-                    </tr>
-                    <tr class="table-primary">
-                        <td><strong>Application Uptime</strong></td>
-                        <td>{{ system_info['Application Uptime'] }}</td>
-                    </tr>
-                    <!-- Display rest of system information -->
-                    {% for key, value in system_info.items() %}
-                        {% if key not in ['System Uptime', 'Application Uptime'] %}
-                        <tr>
-                            <td>{{ key }}</td>
-                            <td>{{ value }}</td>
-                        </tr>
-                        {% endif %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
+    </body>
 </div>
-
 {% endblock %}
