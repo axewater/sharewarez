@@ -21,6 +21,7 @@ from modules.utils_functions import (
 from modules.utils_igdb_api import make_igdb_api_request
 from modules.utils_discord import discord_webhook
 from modules.utils_scanning import log_unmatched_folder, delete_game_images
+from modules.utils_logging import log_system_event
 
 def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_uuid):
     global settings
@@ -418,6 +419,7 @@ def remove_from_lib(game_uuid):
         db.session.delete(game)
         db.session.commit()
         
+        log_system_event(f"Game deleted: {game.name} (UUID: {game_uuid})", "game", "WARNING")
         print(f"Successfully removed game {game.name} (UUID: {game_uuid}) from library")
         return True
         
@@ -458,4 +460,3 @@ def delete_game(game_identifier):
         db.session.rollback()
         print(f'Error deleting game with UUID {game_uuid_str}: {e}')
         flash(f'Error deleting game: {e}', 'error')
-

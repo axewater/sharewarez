@@ -16,6 +16,7 @@ from modules.models import (
 )
 from modules.utils_functions import read_first_nfo_content
 from modules.utils_igdb_api import make_igdb_api_request
+from modules.utils_logging import log_system_event
 
 
 def try_add_game(game_name, full_disk_path, scan_job_id, library_uuid, check_exists=True):
@@ -29,6 +30,8 @@ def try_add_game(game_name, full_disk_path, scan_job_id, library_uuid, check_exi
     if not library:
         print(f"Library with UUID {library_uuid} not found.")
         return False
+
+    log_system_event(f"Starting scan for library '{library.name}' at path: {full_disk_path}", "scan", "INFO")
 
     if check_exists:
         existing_game = Game.query.filter_by(full_disk_path=full_disk_path).first()
@@ -95,6 +98,7 @@ def log_unmatched_folder(scan_job_id, folder_path, matched_status, library_uuid=
             db.session.commit()
             print(f"Logged unmatched folder: {folder_path}")
         except IntegrityError:
+            log_system_event(f"Failed to log unmatched folder: {folder_path}", "scan", "ERROR")
             db.session.rollback()
             print(f"Failed to log unmatched folder due to a database error: {folder_path}")
     else:

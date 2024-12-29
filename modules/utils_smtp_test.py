@@ -7,6 +7,7 @@ import argparse
 import sys
 from getpass import getpass
 from typing import Dict, Tuple, Union, Optional
+from modules.utils_logging import log_system_event
 
 class SMTPTester:
     def __init__(self, debug: bool = False):
@@ -93,6 +94,7 @@ class SMTPTester:
 
                 smtp.quit()
                 
+                log_system_event(f"SMTP test successful for {host}:{port}", "smtp", "INFO")
                 return True, {
                     'status': 'Connection successful',
                     'auth_status': auth_status,
@@ -101,6 +103,7 @@ class SMTPTester:
                 }
 
             except smtplib.SMTPException as e:
+                log_system_event(f"SMTP test failed for {host}:{port}: {str(e)}", "smtp", "ERROR")
                 return False, f"SMTP error: {str(e)}"
             finally:
                 try:
