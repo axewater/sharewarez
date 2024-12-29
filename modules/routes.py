@@ -2021,14 +2021,6 @@ def search_igdb_by_name():
     return jsonify({'error': 'No game name provided'})
 
 
-@bp.route('/check_scan_status', methods=['GET'])
-@login_required
-@admin_required
-def check_scan_status():
-    active_job = ScanJob.query.filter_by(status='Running').first()
-    
-    is_active = active_job is not None
-    return jsonify({"is_active": is_active})
 
 
     
