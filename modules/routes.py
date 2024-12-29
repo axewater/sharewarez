@@ -60,10 +60,6 @@ def inject_settings():
     return get_global_settings()
 
 
-
-
-
-
 @bp.route('/api/current_user_role', methods=['GET'])
 @login_required
 def get_current_user_role():
