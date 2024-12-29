@@ -63,7 +63,7 @@ class WhitelistForm(FlaskForm):
 
 class EditProfileForm(FlaskForm):
     avatar = FileField('Profile Avatar', validators=[
-        FileAllowed(['jpg', 'png'], 'Images only!')
+        FileAllowed(['jpg', 'jpeg','png', 'gif'], 'Images only!')
     ])
     
 class ScanFolderForm(FlaskForm):
@@ -224,7 +224,7 @@ class UserPreferencesForm(FlaskForm):
 class LibraryForm(FlaskForm):
     name = StringField('Library Name', validators=[DataRequired()])
     platform = SelectField('Platform', choices=[(choice.value, choice.name) for choice in LibraryPlatform], validators=[DataRequired()])
-    image = FileField('Library Image', validators=[FileAllowed(['jpg', 'jpeg', 'png'], 'Images only!')])
+    image = FileField('Library Image', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif'], 'Images only!')])
 
 class ThemeUploadForm(FlaskForm):
     theme_zip = FileField('Theme ZIP File', validators=[

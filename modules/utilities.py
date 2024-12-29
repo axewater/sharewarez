@@ -1,8 +1,9 @@
 #/modules/utilities.py
 import os
 from datetime import datetime
+from threading import Thread
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-
+from flask import current_app, flash, redirect, url_for, session, copy_current_request_context
 from modules.utils_functions import (
     load_release_group_patterns,
 )
@@ -167,3 +168,54 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
         print(f"Scan completed for folder: {folder_path} with ScanJob ID: {scan_job_entry.id}")
     except SQLAlchemyError as e:
         print(f"Database error when finalizing ScanJob: {str(e)}")
+        
+        
+
+
+def handle_auto_scan(auto_form):
+    print("handle_auto_scan: function running.")
+    if auto_form.validate_on_submit():
+        library_uuid = auto_form.library_uuid.data
+        remove_missing = auto_form.remove_missing.data
+        
+        running_job = ScanJob.query.filter_by(status='Running').first()
+        if running_job:
+            flash('A scan is already in progress. Please wait until the current scan completes.', 'error')
+            session['active_tab'] = 'auto'
+            return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='auto'))
+
+    
+        library = Library.query.filter_by(uuid=library_uuid).first()
+        if not library:
+            flash('Selected library does not exist. Please select a valid library.', 'error')
+            return redirect(url_for('main.scan_management', active_tab='auto'))
+
+        
+        folder_path = auto_form.folder_path.data
+        
+        scan_mode = auto_form.scan_mode.data
+
+        
+        print(f"Auto-scan form submitted. Library: {library.name}, Folder: {folder_path}, Scan mode: {scan_mode}")
+        # Prepend the base path
+        base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
+        full_path = os.path.join(base_dir, folder_path)
+        if not os.path.exists(full_path) or not os.access(full_path, os.R_OK):
+            flash(f"Cannot access folder: {full_path}. Please check the path and permissions.", 'error')
+            print(f"Cannot access folder: {full_path}. Please check the path and permissions.", 'error')
+            session['active_tab'] = 'auto'
+            return redirect(url_for('library.library'))
+
+        @copy_current_request_context
+        def start_scan():
+            scan_and_add_games(full_path, scan_mode, library_uuid, remove_missing)
+
+        thread = Thread(target=start_scan)
+        thread.start()
+        
+        flash(f"Auto-scan started for folder: {full_path} and library name: {library.name}", 'info')
+        session['active_tab'] = 'auto'
+    else:
+        flash(f"Auto-scan form validation failed: {auto_form.errors}")
+        print(f"Auto-scan form validation failed: {auto_form.errors}")
+    return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='auto'))

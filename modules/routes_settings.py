@@ -40,11 +40,18 @@ def settings_profile_edit():
     if form.validate_on_submit():
         file = form.avatar.data
         if file:
-            # Ensure UPLOAD_FOLDER exists
+            MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB in bytes
+            file.seek(0, os.SEEK_END)
+            file_size = file.tell()
+            file.seek(0)
+            
+            if file_size > MAX_FILE_SIZE:
+                flash(f"File size exceeds the {MAX_FILE_SIZE//1024//1024}MB limit.", "error")
+                return redirect(url_for('settings.settings_profile_edit'))
+
             upload_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'images/avatars_users')
             if not os.path.exists(upload_folder):
                 try:
-                    # Safe check to avoid creating 'static' directly
                     os.makedirs(upload_folder, exist_ok=True)
                 except Exception as e:
                     print(f"Error creating upload directory: {e}")
@@ -56,23 +63,69 @@ def settings_profile_edit():
                 old_thumbnailpath = os.path.splitext(old_avatarpath)[0] + '_thumbnail' + os.path.splitext(old_avatarpath)[1]
             else:
                 old_thumbnailpath = None
+
             filename = secure_filename(file.filename)
             uuid_filename = str(uuid4()) + '.' + filename.rsplit('.', 1)[1].lower()
             image_path = os.path.join(upload_folder, uuid_filename)
             file.save(image_path)
+
             # Image processing
             img = PILImage.open(image_path)
-            img = square_image(img, 500)
-            img.save(image_path)
-            img = PILImage.open(image_path)
-            img = square_image(img, 50)
-            thumbnail_path = os.path.splitext(image_path)[0] + '_thumbnail' + os.path.splitext(image_path)[1]
-            img.save(thumbnail_path)
+            is_gif = img.format == 'GIF' and 'duration' in img.info
+
+            if is_gif:
+                # For GIFs, maintain animation but resize each frame
+                frames = []
+                try:
+                    while True:
+                        # Copy the current frame
+                        frame = img.copy()
+                        # Resize the frame maintaining aspect ratio
+                        frame.thumbnail((500, 500), PILImage.LANCZOS)
+                        # Add the frame to our list
+                        frames.append(frame)
+                        # Go to next frame
+                        img.seek(img.tell() + 1)
+                except EOFError:
+                    pass  # We've hit the end of the GIF
+
+                # Save the resized GIF with all frames
+                frames[0].save(
+                    image_path,
+                    save_all=True,
+                    append_images=frames[1:],
+                    format='GIF',
+                    duration=img.info.get('duration', 100),
+                    loop=img.info.get('loop', 0)
+                )
+
+                # Create thumbnail (first frame only for performance)
+                thumbnail = frames[0].copy()
+                thumbnail.thumbnail((50, 50), PILImage.LANCZOS)
+                thumbnail_path = os.path.splitext(image_path)[0] + '_thumbnail' + os.path.splitext(image_path)[1]
+                thumbnail.save(thumbnail_path, 'GIF')
+
+            else:
+                # For non-GIF images, use the existing square_image processing
+                img = square_image(img, 500)
+                img.save(image_path)
+                
+                # Create thumbnail
+                thumbnail = img.copy()
+                thumbnail.thumbnail((50, 50), PILImage.LANCZOS)
+                thumbnail_path = os.path.splitext(image_path)[0] + '_thumbnail' + os.path.splitext(image_path)[1]
+                thumbnail.save(thumbnail_path)
+
+            # Delete old avatar files if they exist
             if old_avatarpath and old_avatarpath != 'newstyle/avatar_default.jpg':
                 try:
-                    os.remove(os.path.join(upload_folder, os.path.basename(old_avatarpath)))
-                    if old_thumbnailpath:  # Check if old_thumbnailpath was defined
-                        os.remove(os.path.join(upload_folder, os.path.basename(old_thumbnailpath)))
+                    old_avatar_full_path = os.path.join(upload_folder, os.path.basename(old_avatarpath))
+                    if os.path.exists(old_avatar_full_path):
+                        os.remove(old_avatar_full_path)
+                    if old_thumbnailpath:
+                        old_thumbnail_full_path = os.path.join(upload_folder, os.path.basename(old_thumbnailpath))
+                        if os.path.exists(old_thumbnail_full_path):
+                            os.remove(old_thumbnail_full_path)
                 except Exception as e:
                     print(f"Error deleting old avatar: {e}")
                     flash("Error deleting old avatar. Please try again.", 'error')
@@ -101,11 +154,11 @@ def settings_profile_edit():
 
     return render_template('settings/settings_profile_edit.html', form=form, avatarpath=current_user.avatarpath)
 
+
 @settings_bp.route('/settings_profile_view', methods=['GET'])
 @login_required
 def settings_profile_view():
     print("Route: Settings profile view")
-    # Calculate remaining invites
     unused_invites = InviteToken.query.filter_by(
         creator_user_id=current_user.user_id, 
         used=False

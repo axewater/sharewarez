@@ -19,7 +19,7 @@ login_manager = LoginManager()
 mail = Mail()
 cache = Cache(config={'CACHE_TYPE': 'simple'})
 app_start_time = datetime.now()
-app_version = '2.1.0'
+app_version = '2.1.1'
 
 def create_app():
     global s    
@@ -46,6 +46,7 @@ def create_app():
         from modules.routes_settings import settings_bp
         from modules.routes_login import login_bp
         from modules.routes_discover import discover_bp
+        from modules.routes_apis_filters import apis_filters_bp
         db.create_all()
         insert_default_filters()
         initialize_default_settings()
@@ -57,5 +58,6 @@ def create_app():
     app.register_blueprint(settings_bp)
     app.register_blueprint(login_bp)
     app.register_blueprint(discover_bp)
+    app.register_blueprint(apis_filters_bp)
 
     return app

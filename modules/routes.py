@@ -20,31 +20,28 @@ from PIL import Image as PILImage
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
 from modules.forms import (
-    UserPasswordForm, EditProfileForm, 
     ScanFolderForm, ClearDownloadRequestsForm, CsrfProtectForm, 
-    AddGameForm, LoginForm, ResetPasswordRequestForm, AutoScanForm,
-    UpdateUnmatchedFolderForm, RegistrationForm, UserPreferencesForm, 
-    InviteForm, CsrfForm
+    AddGameForm, AutoScanForm, UpdateUnmatchedFolderForm, CsrfForm
 )
 from modules.models import (
-    User, Whitelist, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder,
+    User, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder,
     Publisher, Developer, Genre, Theme, GameMode, PlayerPerspective, GameUpdate, GameExtra,
-    Category, UserPreference, GameURL, GlobalSettings, InviteToken, Library, AllowedFileType,
+    Category, GameURL, GlobalSettings, Library, AllowedFileType,
     user_favorites
 )
-from modules.utilities import (
-    scan_and_add_games
+from modules.utils_functions import (
+    load_release_group_patterns, get_folder_size_in_bytes, 
+    get_folder_size_in_bytes_updates, format_size, read_first_nfo_content, 
+    PLATFORM_IDS
 )
-from modules.utils_auth import _authenticate_and_redirect, admin_required
-from modules.utils_smtp import send_email, send_password_reset_email, send_invite_email
+from modules.utilities import handle_auto_scan
+from modules.utils_auth import admin_required
 from modules.utils_gamenames import get_game_names_from_folder, get_game_names_from_files
 from modules.utils_scanning import refresh_images_in_background, delete_game_images
 from modules.utils_game_core import get_game_by_uuid, check_existing_game_by_igdb_id
 from modules.utils_download import update_download_request, zip_folder, zip_game
-from modules.utils_functions import square_image, load_release_group_patterns, get_folder_size_in_bytes, get_folder_size_in_bytes_updates, format_size, read_first_nfo_content, PLATFORM_IDS
 from modules.utils_igdb_api import make_igdb_api_request, get_cover_thumbnail_url
 from modules.utils_processors import get_global_settings
-
 from modules import app_start_time, app_version
 
 bp = Blueprint('main', __name__)
@@ -58,6 +55,15 @@ has_initialized_setup = False
 def inject_settings():
     """Context processor to inject global settings into templates"""
     return get_global_settings()
+
+
+@bp.context_processor
+def inject_current_theme():
+    if current_user.is_authenticated and current_user.preferences:
+        current_theme = current_user.preferences.theme or 'default'
+    else:
+        current_theme = 'default'
+    return dict(current_theme=current_theme)
 
 
 @bp.route('/api/current_user_role', methods=['GET'])
@@ -77,36 +83,6 @@ def check_username():
     print(f"Checking username: {username}")
     existing_user = User.query.filter(func.lower(User.name) == func.lower(username)).first()
     return jsonify({"exists": existing_user is not None})
-
-
-
-@bp.route('/api/genres')
-@login_required
-def get_genres():
-    genres = Genre.query.all()
-    genres_list = [{'id': genre.id, 'name': genre.name} for genre in genres]
-    return jsonify(genres_list)
-
-@bp.route('/api/themes')
-@login_required
-def get_themes():
-    themes = Theme.query.all()
-    themes_list = [{'id': theme.id, 'name': theme.name} for theme in themes]
-    return jsonify(themes_list)
-
-@bp.route('/api/game_modes')
-@login_required
-def get_game_modes():
-    game_modes = GameMode.query.all()
-    game_modes_list = [{'id': game_mode.id, 'name': game_mode.name} for game_mode in game_modes]
-    return jsonify(game_modes_list)
-
-@bp.route('/api/player_perspectives')
-@login_required
-def get_player_perspectives():
-    perspectives = PlayerPerspective.query.all()
-    perspectives_list = [{'id': perspective.id, 'name': perspective.name} for perspective in perspectives]
-    return jsonify(perspectives_list)
 
 
 
@@ -254,42 +230,6 @@ def toggle_favorite(game_uuid):
     db.session.commit()
     return jsonify({'success': True, 'is_favorite': is_favorite})
 
-@bp.route('/favoritesz')
-@login_required
-def favoritesz():
-    page = request.args.get('page', 1, type=int)
-    per_page = current_user.preferences.items_per_page if current_user.preferences else 20
-    
-    # Create a proper query for pagination
-    favorites_query = Game.query.join(user_favorites).filter(
-        user_favorites.c.user_id == current_user.id
-    )
-    pagination = favorites_query.paginate(page=page, per_page=per_page, error_out=False)
-    games = pagination.items
-    
-    # Process game data for display
-    game_data = []
-    for game in games:
-        cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
-        cover_url = cover_image.url if cover_image else 'newstyle/default_cover.jpg'
-        genres = [genre.name for genre in game.genres]
-        game_size_formatted = format_size(game.size)
-        
-        game_data.append({
-            'id': game.id,
-            'uuid': game.uuid,
-            'name': game.name,
-            'cover_url': cover_url,
-            'summary': game.summary,
-            'url': game.url,
-            'size': game_size_formatted,
-            'genres': genres
-        })
-    
-    return render_template('games/favorites.html', 
-                         games=game_data,
-                         pagination=pagination)
-
 
 @bp.route('/favorites')
 @login_required
@@ -426,54 +366,6 @@ def scan_management():
                            libraries=libraries,
                            game_names_with_ids=game_names_with_ids)
 
-
-def handle_auto_scan(auto_form):
-    print("handle_auto_scan: function running.")
-    if auto_form.validate_on_submit():
-        library_uuid = auto_form.library_uuid.data
-        remove_missing = auto_form.remove_missing.data
-        
-        running_job = ScanJob.query.filter_by(status='Running').first()
-        if running_job:
-            flash('A scan is already in progress. Please wait until the current scan completes.', 'error')
-            session['active_tab'] = 'auto'
-            return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='auto'))
-
-    
-        library = Library.query.filter_by(uuid=library_uuid).first()
-        if not library:
-            flash('Selected library does not exist. Please select a valid library.', 'error')
-            return redirect(url_for('main.scan_management', active_tab='auto'))
-
-        
-        folder_path = auto_form.folder_path.data
-        
-        scan_mode = auto_form.scan_mode.data
-
-        
-        print(f"Auto-scan form submitted. Library: {library.name}, Folder: {folder_path}, Scan mode: {scan_mode}")
-        # Prepend the base path
-        base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
-        full_path = os.path.join(base_dir, folder_path)
-        if not os.path.exists(full_path) or not os.access(full_path, os.R_OK):
-            flash(f"Cannot access folder: {full_path}. Please check the path and permissions.", 'error')
-            print(f"Cannot access folder: {full_path}. Please check the path and permissions.", 'error')
-            session['active_tab'] = 'auto'
-            return redirect(url_for('library.library'))
-
-        @copy_current_request_context
-        def start_scan():
-            scan_and_add_games(full_path, scan_mode, library_uuid, remove_missing)
-
-        thread = Thread(target=start_scan)
-        thread.start()
-        
-        flash(f"Auto-scan started for folder: {full_path} and library name: {library.name}", 'info')
-        session['active_tab'] = 'auto'
-    else:
-        flash(f"Auto-scan form validation failed: {auto_form.errors}")
-        print(f"Auto-scan form validation failed: {auto_form.errors}")
-    return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='auto'))
 
 
 
@@ -1298,13 +1190,7 @@ def admin_dashboard():
     return render_template('admin/admin_dashboard.html')
 
 
-@bp.context_processor
-def inject_current_theme():
-    if current_user.is_authenticated and current_user.preferences:
-        current_theme = current_user.preferences.theme or 'default'
-    else:
-        current_theme = 'default'
-    return dict(current_theme=current_theme)
+
 
 
 @bp.route('/delete_game/<string:game_uuid>', methods=['POST'])
