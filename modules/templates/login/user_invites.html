@@ -17,6 +17,15 @@
 {% endif %}
 {% endwith %}
 
+{% if not smtp_enabled %}
+<div class="alert alert-warning" role="alert">
+    <i class="fas fa-exclamation-triangle"></i> 
+    <strong>Warning:</strong> SMTP settings are not configured. Users will not be able to confirm their email addresses 
+    and activate their accounts. It is recommended to use the 
+    <a href="{{ url_for('admin.manage_users') }}">user manager</a> to create accounts manually.
+</div>
+{% endif %}
+
 <div class="glass-panel container py-4">
     <h2 class="mb-3">Invite friends to your pirate crew!</h2>
     <p>Invites expire automatically after 48 hours. If not used by then, the invite is returned to you.</p>
