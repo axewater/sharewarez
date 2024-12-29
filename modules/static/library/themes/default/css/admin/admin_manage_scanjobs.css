@@ -67,7 +67,6 @@ th {
     min-width: 100px; /* Adjust to make it fit content or set a min-width */
 }
 
-
 .loading-spinner {
     position: fixed; /* or absolute */
     top: 5%;
@@ -97,8 +96,6 @@ th {
     border-radius: 15px;
 }
 
-
-
 .folder-item:hover {
     background-color: #1671cd; /* Light gray background on hover, change as needed */
     cursor: pointer; /* Changes the mouse cursor to a pointer to indicate it's clickable */
@@ -106,14 +103,22 @@ th {
     border-radius: 10px;
 }
 
+/* File browser icons styling */
+.folder-item i {
+    margin-right: 10px;
+    color: #ffd700; /* Golden color for folders */
+}
+
+.folder-item i.fa-file {
+    color: #6c757d; /* Gray color for default file icon */
+}
+
 .scanandbrowse {
-    
-    padding: 5px;
+    padding: 15px;
+    color: #ffffff; /* White text color for better contrast */
     background: #495057;
     border-radius: 15px;
 }
-
-
 
 .container-unmatched-buttons {
     display: flex;
