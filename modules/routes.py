@@ -32,8 +32,8 @@ from modules.utilities import handle_auto_scan, handle_manual_scan
 from modules.utils_auth import admin_required
 from modules.utils_gamenames import get_game_names_from_folder, get_game_name_by_uuid
 from modules.utils_scanning import refresh_images_in_background, is_scan_job_running
-from modules.utils_game_core import get_game_by_uuid, check_existing_game_by_igdb_id, delete_game
-from modules.utils_unmatched import clear_only_unmatched_folders, handle_delete_unmatched
+from modules.utils_game_core import delete_game
+from modules.utils_unmatched import handle_delete_unmatched
 from modules.utils_processors import get_global_settings
 from modules import app_start_time, app_version
 
@@ -128,23 +128,6 @@ def browse_games():
         'pages': pagination.pages,
         'current_page': page
     })
-    
-
-
-
-@bp.route('/favorites')
-@login_required
-def favorites():
-    favorites = current_user.favorites
-    game_data = []
-    for game in favorites:
-        cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
-        cover_url = cover_image.url if cover_image else 'newstyle/default_cover.jpg'
-        genres = [genre.name for genre in game.genres]
-        game_size_formatted = format_size(game.size)
-        game_data.append({'uuid': game.uuid, 'name': game.name, 'cover_url': cover_url, 'size': game_size_formatted, 'genres': genres})
-    
-    return render_template('games/favorites.html', favorites=game_data)
 
 
 @bp.route('/scan_manual_folder', methods=['GET', 'POST'])
@@ -416,7 +399,7 @@ def clear_all_scan_jobs():
 @admin_required
 def delete_all_unmatched_folders():
     try:
-        UnmatchedFolder.query.delete()  # Deletes all unmatched folder records
+        UnmatchedFolder.query.delete()
         db.session.commit()
         flash('All unmatched folders deleted successfully.', 'success')
     except SQLAlchemyError as e:
@@ -430,10 +413,6 @@ def delete_all_unmatched_folders():
         print(error_message)
         flash(error_message, 'error')
     return redirect(url_for('main.scan_management'))
-
-
-
-
 
 
 @bp.route('/update_unmatched_folder_status', methods=['POST'])
