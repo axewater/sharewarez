@@ -1,4 +1,3 @@
-
 body {
     background-image: url('/static/newstyle/gamecontroller.jpg'); 
     background-size: cover;
@@ -52,6 +51,12 @@ body {
     text-decoration: none;
     transition: background-color 0.2s ease;
     border-radius: 15px;
+}
+
+.account-menu-option i {
+    width: 20px;
+    margin-right: 8px;
+    text-align: center;
 }
 
 .account-menu-option:hover {
