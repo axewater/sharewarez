@@ -219,3 +219,58 @@ def handle_auto_scan(auto_form):
         flash(f"Auto-scan form validation failed: {auto_form.errors}")
         print(f"Auto-scan form validation failed: {auto_form.errors}")
     return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='auto'))
+
+
+
+def handle_manual_scan(manual_form):
+    settings = GlobalSettings.query.first()
+    session['active_tab'] = 'manual'
+    if manual_form.validate_on_submit():
+        # check job status
+        running_job = ScanJob.query.filter_by(status='Running').first()
+        if running_job:
+            flash('A scan is already in progress. Please wait until the current scan completes.', 'error')
+            session['active_tab'] = 'manual'
+            return redirect(url_for('main.scan_management', active_tab='manual'))
+        
+        folder_path = manual_form.folder_path.data
+        scan_mode = manual_form.scan_mode.data
+        library_uuid = manual_form.library_uuid.data
+        
+        if not library_uuid:
+            flash('Please select a library.', 'error')
+            return redirect(url_for('main.scan_management', active_tab='manual'))
+        
+        # Store library_uuid in session for use in identify page
+        session['selected_library_uuid'] = library_uuid
+        print(f"Manual scan: Selected library UUID: {library_uuid}")
+
+        base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
+        full_path = os.path.join(base_dir, folder_path)
+        print(f"Manual scan form submitted. Full path: {full_path}, Library UUID: {library_uuid}")
+
+        if os.path.exists(full_path) and os.access(full_path, os.R_OK):
+            print("Folder exists and can be accessed.")
+            insensitive_patterns, sensitive_patterns = load_release_group_patterns()
+            if scan_mode == 'folders':
+                games_with_paths = get_game_names_from_folder(full_path, insensitive_patterns, sensitive_patterns)
+            else:  # files mode
+                # Load allowed file types from database
+                allowed_file_types = AllowedFileType.query.all()
+                supported_extensions = [file_type.value for file_type in allowed_file_types]
+                if not supported_extensions:
+                    flash("No allowed file types defined in the database.", "error")
+                    return redirect(url_for('main.scan_management', active_tab='manual'))
+                
+                games_with_paths = get_game_names_from_files(full_path, supported_extensions, insensitive_patterns, sensitive_patterns)
+            session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
+            print(f"Found {len(session['game_paths'])} games in the folder.")
+            flash('Manual scan processed for folder: ' + full_path, 'info')
+            
+        else:
+            flash("Folder does not exist or cannot be accessed.", "error")
+    else:
+        flash('Manual scan form validation failed.', 'error')
+        
+    print("Game paths: ", session.get('game_paths', {}))
+    return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='manual'))
