@@ -5,7 +5,7 @@ from threading import Thread
 from flask import copy_current_request_context
 from uuid import uuid4
 from sqlalchemy.exc import SQLAlchemyError
-from modules.forms import CsrfProtectForm
+from modules.forms import CsrfProtectForm, ClearDownloadRequestsForm
 from modules.models import Game, DownloadRequest, GameUpdate, GameExtra, GlobalSettings
 from modules.utils_processors import get_global_settings
 from modules.utils_functions import get_folder_size_in_bytes, format_size
@@ -372,3 +372,24 @@ def delete_download(download_id):
     db.session.commit()
 
     return redirect(url_for('download.downloads'))
+
+@download_bp.route('/admin/manage-downloads', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def manage_downloads():
+    print("Route: /admin/manage-downloads")
+    form = ClearDownloadRequestsForm()
+    if form.validate_on_submit():
+        print("Deleting all download requests")
+        try:
+            DownloadRequest.query.filter(DownloadRequest.status == 'processing').delete()
+            
+            db.session.commit()
+            flash('All processing downloads have been cleared.', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred: {e}', 'danger')
+        return redirect(url_for('main.manage_downloads'))
+
+    download_requests = DownloadRequest.query.all()
+    return render_template('admin/admin_manage_downloads.html', form=form, download_requests=download_requests)

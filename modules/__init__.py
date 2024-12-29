@@ -51,6 +51,7 @@ def create_app():
         from modules.routes_downloads import download_bp
         from modules.routes_games import games_bp
         from modules.routes_apis_ssfb import ssfb_bp
+        from modules.routes_smtp import smtp_bp
         db.create_all()
         insert_default_filters()
         initialize_default_settings()
@@ -67,5 +68,6 @@ def create_app():
     app.register_blueprint(download_bp)
     app.register_blueprint(games_bp)
     app.register_blueprint(ssfb_bp)
+    app.register_blueprint(smtp_bp)
 
     return app

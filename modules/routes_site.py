@@ -1,12 +1,14 @@
 # modules/routes_site.py
 from flask import Blueprint, render_template, redirect, url_for, current_app, send_from_directory, jsonify, request
 from flask_login import login_required, logout_user, current_user
+
 from sqlalchemy import func
 from flask import flash
 import os
-from modules.models import User
+from modules.models import User, Image
 from modules.utils_processors import get_global_settings
 from modules.utils_auth import admin_required
+from modules.utils_functions import format_size
 from modules import cache
 
 site_bp = Blueprint('site', __name__)
@@ -65,7 +67,19 @@ def admin_dashboard():
     return render_template('admin/admin_dashboard.html')
 
 
-
+@site_bp.route('/favorites')
+@login_required
+def favorites():
+    favorites = current_user.favorites
+    game_data = []
+    for game in favorites:
+        cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
+        cover_url = cover_image.url if cover_image else 'newstyle/default_cover.jpg'
+        genres = [genre.name for genre in game.genres]
+        game_size_formatted = format_size(game.size)
+        game_data.append({'uuid': game.uuid, 'name': game.name, 'cover_url': cover_url, 'size': game_size_formatted, 'genres': genres})
+    
+    return render_template('games/favorites.html', favorites=game_data)
 
 @site_bp.route('/favicon.ico')
 def favicon():
