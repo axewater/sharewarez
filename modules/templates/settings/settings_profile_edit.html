@@ -1,49 +1,77 @@
 {% extends "base.html" %}
-
 {% block content %}
-
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/css/settings/settings_profile_edit.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/settings/settings_profile_edit.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/settings/settings_profile_edit.css') }}">
 {% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/settings/settings_profile_edit.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/settings/settings_profile_edit.css') }}">
 {% endif %}
 
-<div class="glass-panel">
-	<div class="container mt-4">
-		<div class="mb-3">
-			{% with messages = get_flashed_messages() %}
-			{% if messages %}
-				<div class="alert alert-info" role="alert">
-					{% for message in messages %}
-						{{ message }}<br>
-					{% endfor %}
-				</div>
-			{% endif %}
-			{% endwith %}
-		</div>
-		
-		<h2>Edit Your Profile</h2>
-		<div class="row">
-			<div class="col-md-4">
-				<div class="profile_avatar mb-3">
-					<img src="{{ url_for('static', filename=avatarpath) }}" alt="User Avatar" class="img-thumbnail">
-				</div>
-				<div class="profile_avatar_thumb">
-					{% set thumbnail_path = avatarpath | replace('.', '_thumbnail.') %}
-					<img src="{{ url_for('static', filename=thumbnail_path) if thumbnail_path else url_for('static', filename='nothumbnail.jpg') }}" alt="User Thumbnail" class="img-thumbnail profile-avatar-thumb">
-				</div>
-			</div>
-			<div class="col-md-8">
-				<form method="POST" enctype="multipart/form-data">
-					{{ form.hidden_tag() }}
-					<div class="mb-3">
-						{{ form.avatar.label(class="form-label") }}
-						{{ form.avatar(class="form-control") }}
-					</div>
-					<input class="btn btn-primary" type="submit" value="Save Profile">
-				</form>
-			</div>
-		</div>
-	</div>
+<!-- Breadcrumb navigation -->
+<div class="breadcrumb-container glass-panel mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{{ url_for('settings.settings_panel') }}"><i class="fas fa-cog"></i> Settings</a></li>
+            <li class="breadcrumb-item active"><i class="fas fa-user-edit"></i> Edit Profile</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<div class="alert-container">
+    {% for message in messages %}
+    <div class="alert alert-info fade show" role="alert">
+        <i class="fas fa-info-circle"></i> {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<!-- Main Content -->
+<div class="profile-edit-container glass-panel">
+    <h2 class="section-title"><i class="fas fa-user-circle"></i> Change Pirate Avatar</h2>
+    
+    <div class="row">
+        <!-- Left Column - Avatar Preview -->
+        <div class="col-md-5">
+            <div class="avatar-section">
+                <div class="current-avatar">
+                    <h4><i class="fas fa-image"></i> Current Avatar</h4>
+                    <img src="{{ url_for('static', filename=avatarpath) }}" alt="Current Avatar" class="avatar-preview">
+                </div>
+                
+                <div class="avatar-thumbnail">
+                    <h4><i class="fas fa-crop"></i> Thumbnail Preview</h4>
+                    {% set thumbnail_path = avatarpath | replace('.', '_thumbnail.') %}
+                    <img src="{{ url_for('static', filename=thumbnail_path) if thumbnail_path else url_for('static', filename='nothumbnail.jpg') }}" 
+                         alt="Avatar Thumbnail" class="thumbnail-preview">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column - Upload Form -->
+        <div class="col-md-7">
+            <div class="upload-section">
+                <h4><i class="fas fa-upload"></i> Upload New Avatar</h4>
+                <form method="POST" enctype="multipart/form-data" class="upload-form">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-4">
+                        <div class="upload-zone">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            {{ form.avatar(class="form-control") }}
+                            <p class="upload-hint">Click to select or drag an image here</p>
+                            <p class="upload-requirements">Supported formats: JPG, PNG, GIF (Max 5MB)</p>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary save-button">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
