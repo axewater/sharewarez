@@ -3,7 +3,6 @@ from modules import create_app, db
 import argparse
 from modules.updateschema import DatabaseManager
 from modules.models import User
-from modules.init_data import initialize_library_folders
 
 # Add argument parser
 parser = argparse.ArgumentParser(description='SharewareZ Application')
@@ -24,8 +23,7 @@ if args.force_setup:
         db.create_all()
         print("Database reset complete.")
 
-# Initialize library folders before creating the app
-initialize_library_folders()
+
 
 # Check if force-setup is enabled
 if args.force_setup:

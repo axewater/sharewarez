@@ -12,3 +12,4 @@ discord-webhook
 python-dotenv
 psutil
 tenacity
+email-validator
