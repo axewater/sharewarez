@@ -52,14 +52,14 @@
                 <ul class="pagination justify-content-center">
                     {% if logs.has_prev %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('admin.system_logs', page=logs.prev_num) }}">Previous</a>
+                        <a class="page-link" href="{{ url_for('admin2.system_logs', page=logs.prev_num) }}">Previous</a>
                     </li>
                     {% endif %}
                     
                     {% for page_num in logs.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
                         {% if page_num %}
                             <li class="page-item {% if page_num == logs.page %}active{% endif %}">
-                                <a class="page-link" href="{{ url_for('admin.system_logs', page=page_num) }}">{{ page_num }}</a>
+                                <a class="page-link" href="{{ url_for('admin2.system_logs', page=page_num) }}">{{ page_num }}</a>
                             </li>
                         {% else %}
                             <li class="page-item disabled"><span class="page-link">...</span></li>
@@ -68,7 +68,7 @@
                     
                     {% if logs.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('admin.system_logs', page=logs.next_num) }}">Next</a>
+                        <a class="page-link" href="{{ url_for('admin2.system_logs', page=logs.next_num) }}">Next</a>
                     </li>
                     {% endif %}
                 </ul>

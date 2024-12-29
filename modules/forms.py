@@ -3,7 +3,7 @@ import re
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SelectField, BooleanField, SubmitField, PasswordField, TextAreaField, RadioField, FloatField, DateTimeField, ValidationError, HiddenField
 from flask_wtf.file import FileField, FileAllowed, FileRequired
-from wtforms.validators import DataRequired, Length, Optional, NumberRange, Regexp, URL,Email, EqualTo
+from wtforms.validators import DataRequired, Length, Optional, NumberRange, Regexp, URL, Email, EqualTo
 from wtforms.widgets import TextInput
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField
 from wtforms.widgets import ListWidget, CheckboxInput
@@ -63,7 +63,7 @@ class WhitelistForm(FlaskForm):
 
 class EditProfileForm(FlaskForm):
     avatar = FileField('Profile Avatar', validators=[
-        FileAllowed(['jpg', 'jpeg','png', 'gif'], 'Images only!')
+        FileAllowed(['jpg', 'jpeg', 'png', 'gif'], 'Images only!')
     ])
     
 class ScanFolderForm(FlaskForm):
@@ -123,6 +123,16 @@ class CreateUserForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
+    
+    def validate_username(self, field):
+        if field.data.lower() == 'system':
+            raise ValidationError("'system' is a reserved username and cannot be used.")
+        # Check for valid characters
+        if not re.match(r'^[\w.]+$', field.data):
+            raise ValidationError("Username can only contain letters, numbers, dots and underscores")
+        if len(field.data) < 3 or len(field.data) > 64:
+            raise ValidationError("Username must be between 3 and 64 characters long")
+    
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Create User')
 
@@ -185,6 +195,16 @@ class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
+    
+    def validate_username(self, field):
+        if field.data.lower() == 'system':
+            raise ValidationError("'system' is a reserved username and cannot be used.")
+        # Check for valid characters
+        if not re.match(r'^[\w.]+$', field.data):
+            raise ValidationError("Username can only contain letters, numbers, dots and underscores")
+        if len(field.data) < 3 or len(field.data) > 64:
+            raise ValidationError("Username must be between 3 and 64 characters long")
+    
     submit = SubmitField('Register')
 
 class UserPreferencesForm(FlaskForm):

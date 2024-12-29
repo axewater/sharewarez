@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from modules.utils_auth import admin_required
 from modules.models import User, InviteToken, ReleaseGroup, AllowedFileType, GlobalSettings, SystemEvents, Library, LibraryPlatform
-from modules import db
+from modules import db, cache
 from modules.forms import ReleaseGroupForm, ThemeUploadForm, LibraryForm
 from modules.utils_processors import get_global_settings
 from modules.utils_discord import DiscordWebhookHandler
@@ -13,7 +13,22 @@ from uuid import uuid4
 from werkzeug.utils import secure_filename
 import os
 
+
 admin2_bp = Blueprint('admin2', __name__)
+
+@admin2_bp.context_processor
+@cache.cached(timeout=500, key_prefix='global_settings')
+def inject_settings():
+    """Context processor to inject global settings into templates"""
+    return get_global_settings()
+
+@admin2_bp.context_processor
+def inject_current_theme():
+    if current_user.is_authenticated and current_user.preferences:
+        current_theme = current_user.preferences.theme or 'default'
+    else:
+        current_theme = 'default'
+    return dict(current_theme=current_theme)
 
 @admin2_bp.route('/admin/manage_invites', methods=['GET', 'POST'])
 @login_required

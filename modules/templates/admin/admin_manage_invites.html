@@ -41,7 +41,7 @@
               <td class="admin_manage_invites-td-1">{{ user.name }}</td>
               <td class="admin_manage_invites-td-2">{{ user.invite_quota - unused_invites }} out of {{ user.invite_quota }}</td>
               <td>
-                <form action="{{ url_for('admin.manage_invites') }}" method="POST" class="d-flex gap-2">
+                <form action="{{ url_for('admin2.manage_invites') }}" method="POST" class="d-flex gap-2">
              
                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
