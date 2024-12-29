@@ -1,9 +1,9 @@
 from datetime import datetime
-from flask import flash, current_app
+from flask import flash, current_app, abort
 from flask_login import current_user
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.utils import secure_filename
-import os
+import os, uuid
 
 from modules import db
 from modules.models import (
@@ -13,7 +13,7 @@ from modules.models import (
     category_mapping, status_mapping, player_perspective_mapping
 )
 from modules.utils_functions import (
-    read_first_nfo_content, 
+    read_first_nfo_content, delete_associations_for_game,
     website_category_to_string,
     PLATFORM_IDS, format_size, download_image,
     get_folder_size_in_bytes_updates
@@ -165,7 +165,6 @@ def fetch_and_store_game_urls(game_uuid, igdb_id):
     
 def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_uuid=None):
     print(f"rns Retrieving and saving game: {game_name} on {full_disk_path} to library with UUID {library_uuid}.")
-    # Fetch the library using the UUID
     library = Library.query.filter_by(uuid=library_uuid).first()
     if not library:
         print(f"rns Library with UUID {library_uuid} not found.")
@@ -351,10 +350,9 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
             company_info = company_data.get('company')
             if not isinstance(company_info, dict) or 'name' not in company_info:
                 print(f"Unexpected company data structure or missing name: {company_data}")
-                continue  # Skip to the next iteration
+                continue  # Skip to the next
 
-            company_name = company_info['name'][:50]  # Safely access 'name' and truncate to 50 characters
-
+            company_name = company_info['name'][:50] 
             is_developer = company_data.get('developer', False)
             is_publisher = company_data.get('publisher', False)
 
@@ -427,3 +425,37 @@ def remove_from_lib(game_uuid):
         db.session.rollback()
         print(f"Error removing game from library: {str(e)}")
         return False
+    
+
+def delete_game(game_identifier):
+    """Delete a game by UUID or Game object."""
+    game_to_delete = None
+    if isinstance(game_identifier, Game):
+        game_to_delete = game_identifier
+        game_uuid_str = game_to_delete.uuid
+    else:
+        try:
+            valid_uuid = uuid.UUID(game_identifier, version=4)
+            game_uuid_str = str(valid_uuid)
+            game_to_delete = Game.query.filter_by(uuid=game_uuid_str).first_or_404()
+        except ValueError:
+            print(f"Invalid UUID format: {game_identifier}")
+            abort(404)
+        except Exception as e:
+            print(f"Error fetching game with UUID {game_uuid_str}: {e}")
+            abort(404)
+
+    try:
+        print(f"Found game to delete: {game_to_delete}")
+        GameURL.query.filter_by(game_uuid=game_uuid_str).delete()
+        delete_associations_for_game(game_to_delete)        
+        delete_game_images(game_uuid_str)
+        db.session.delete(game_to_delete)
+        db.session.commit()
+        flash('Game and its images have been deleted successfully.', 'success')
+        print(f'Deleted game with UUID: {game_uuid_str}')
+    except Exception as e:
+        db.session.rollback()
+        print(f'Error deleting game with UUID {game_uuid_str}: {e}')
+        flash(f'Error deleting game: {e}', 'error')
+

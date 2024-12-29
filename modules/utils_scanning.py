@@ -11,7 +11,8 @@ from modules.models import (
     GameUpdate, 
     GameExtra, 
     UnmatchedFolder,
-    GlobalSettings
+    GlobalSettings,
+    ScanJob
 )
 from modules.utils_functions import read_first_nfo_content
 from modules.utils_igdb_api import make_igdb_api_request
@@ -286,4 +287,12 @@ def delete_game_images(game_uuid):
             db.session.rollback()
             print(f"Error committing image deletion changes to the database: {e}")
             
-            
+def is_scan_job_running():
+    """
+    Check if there is any scan job with the status 'Running'.
+    
+    Returns:
+        bool: True if there is a running scan job, False otherwise.
+    """
+    running_scan_job = ScanJob.query.filter_by(status='Running').first()
+    return running_scan_job is not None

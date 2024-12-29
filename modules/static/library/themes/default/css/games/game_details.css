@@ -5,7 +5,7 @@
     backdrop-filter: blur(10px);
     border-radius: 10px;
     padding: 20px;
-    margin: 20px 210px;
+    margin: 20px auto;
     box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     width: 900px;
     min-height: 80vh; 
@@ -42,10 +42,9 @@
     text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
     padding: 20px;
     padding-right: 40px;
-    position: relative; /* Add this to make it a positioning context */
+    position: relative; 
 }
 
-/* Favorite button styling */
 .favorite-btn {
     position: absolute;
     top: 10px;
@@ -57,7 +56,7 @@
     border: 2px solid #000;
     cursor: pointer;
     transition: all 0.3s ease;
-    z-index: 10; /* Ensure it stays above other elements */
+    z-index: 10; 
 }
 
 .favorite-btn i {
@@ -248,39 +247,10 @@
 
 .game-link-icon-container .game-link-icon:hover {
     color: #fff; 
-    /* transform: scale(1.2); */
-
-
-}
-
-/* .game-link-icon i {
-    color: white; 
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); 
-    margin-top: 5px;
-}
-
-.game-link-icon {
-
-    transition: color 0.9s ease, font-size 0.5s ease;
 
 }
 
 
-.game-link-icon:hover {
-    margin: 0 5px; 
-    color: rgb(24, 47, 179); 
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    font-size:x-large;
-
-}
-
-.game-link-icon i:hover {
-    color: rgb(32, 56, 192); 
-   
-} */
-
-
-/* in static/css/game_details.css */
 pre {
     font-family: 'Consolas', 'Courier New', Courier, monospace;
     white-space: pre-wrap;       /* Since CSS 2.1 */
@@ -509,7 +479,6 @@ pre {
     background-color: #3c332c;
     border-radius: 25px;
     text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.9);
-    text-size: 112px;
     border: 1px solid black;
     text-decoration: none;
     color: white;

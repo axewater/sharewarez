@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Check initial favorite status
         try {
-            const response = await fetch(`/check_favorite/${gameUuid}`);
+            const response = await fetch(`/api/check_favorite/${gameUuid}`);
             if (!response.ok) {
                 throw new Error(`Failed to check favorite status: ${response.statusText}`);
             }
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             button.classList.add('processing');
 
             try {
-                const toggleResponse = await fetch(`/toggle_favorite/${gameUuid}`, {
+                const toggleResponse = await fetch(`/api/toggle_favorite/${gameUuid}`, {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': csrfToken,

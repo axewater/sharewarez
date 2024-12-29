@@ -87,7 +87,7 @@ def newsletter():
     if not enable_newsletter:
         flash('Newsletter feature is disabled.', 'warning')
         print("ADMIN NEWSLETTER: Newsletter feature is disabled.")
-        return redirect(url_for('main.admin_dashboard'))
+        return redirect(url_for('site.admin_dashboard'))
     print("ADMIN NEWSLETTER: Request method:", request.method)
     form = NewsletterForm()
     users = User.query.all()
@@ -357,7 +357,7 @@ def admin_server_status():
         settings_record = GlobalSettings.query.first()
         if not settings_record or not settings_record.settings:
             flash('Server settings not configured.', 'warning')
-            return redirect(url_for('main.admin_dashboard'))
+            return redirect(url_for('site.admin_dashboard'))
 
         from modules.utils_system_stats import get_cpu_usage, get_memory_usage, get_disk_usage, format_bytes
         
@@ -380,11 +380,11 @@ def admin_server_status():
         enable_server_status = settings_record.settings.get('enableServerStatusFeature', False)
         if not enable_server_status:
             flash('Server Status feature is disabled.', 'warning')
-            return redirect(url_for('main.admin_dashboard'))
+            return redirect(url_for('site.admin_dashboard'))
             
     except Exception as e:
         flash(f'Error accessing server settings: {str(e)}', 'error')
-        return redirect(url_for('main.admin_dashboard'))
+        return redirect(url_for('site.admin_dashboard'))
 
     try:
         uptime = datetime.now() - app_start_time
