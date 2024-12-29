@@ -1,0 +1,47 @@
+.log-level-error {
+    background-color: rgba(255, 0, 0, 0.1) !important;
+}
+
+.log-level-warning {
+    background-color: rgba(255, 165, 0, 0.1) !important;
+}
+
+.log-level-information {
+    background-color: rgba(0, 0, 255, 0.1) !important;
+}
+
+.table {
+    margin-top: 20px;
+}
+
+.pagination {
+    margin-top: 20px;
+}
+
+.dataTables_filter {
+    margin-bottom: 20px;
+}
+
+.dataTables_filter input {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 6px 12px;
+}
+
+.card {
+    background: rgba(30, 30, 30, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.table thead th {
+    background-color: rgba(40, 40, 40, 0.5);
+    color: #fff;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.table td {
+    color: #fff;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}

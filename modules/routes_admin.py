@@ -3,6 +3,7 @@ from flask import Blueprint, render_template, redirect, url_for, current_app, js
 from flask_login import login_required, current_user
 from flask_mail import Message as MailMessage
 from modules.utils_auth import admin_required
+from modules.models import SystemEvents
 from modules.utils_themes import ThemeManager
 from modules.discord_handler import DiscordWebhookHandler
 from modules.utils_processors import get_global_settings
@@ -105,9 +106,6 @@ def newsletter():
         return redirect(url_for('admin.newsletter'))
     return render_template('admin/admin_newsletter.html', title='Newsletter', form=form, users=users)
 
-
-
-
 @admin_bp.route('/admin/whitelist/<int:whitelist_id>', methods=['DELETE'])
 @login_required
 @admin_required
@@ -121,17 +119,12 @@ def delete_whitelist(whitelist_id):
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
 
-    
-
 @admin_bp.route('/admin/users', methods=['GET'])
 @login_required
 @admin_required
 def manage_users():
     users = User.query.all()
     return render_template('admin/admin_manage_users.html', users=users)
-
-
-
 
 @admin_bp.route('/admin/api/user/<int:user_id>', methods=['GET', 'PUT', 'DELETE'])
 @login_required
@@ -299,8 +292,6 @@ def manage_settings():
         current_settings['extrasFolderName'] = settings_record.extras_folder_name if settings_record else 'extras'
         return render_template('admin/admin_server_settings.html', current_settings=current_settings)
 
-
-
 @admin_bp.route('/admin/igdb_settings', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -379,9 +370,6 @@ def manage_invites():
                          users=users, 
                          user_unused_invites=user_unused_invites)
 
-
-
-
 @admin_bp.route('/admin/edit_filters', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -407,7 +395,6 @@ def delete_filter(id):
     return redirect(url_for('main.edit_filters'))
 
 
-
 @admin_bp.route('/admin/extensions')
 @login_required
 @admin_required
@@ -415,9 +402,6 @@ def extensions():
     allowed_types = AllowedFileType.query.order_by(AllowedFileType.value.asc()).all()
     return render_template('admin/admin_manage_extensions.html', 
                          allowed_types=allowed_types)
-
-
-
 
 @admin_bp.route('/admin/discord_settings', methods=['GET', 'POST'])
 @login_required
@@ -532,7 +516,6 @@ def delete_theme(theme_name):
         flash(f"An unexpected error occurred: {str(e)}", 'error')
     return redirect(url_for('admin.manage_themes'))
 
-
 @admin_bp.route('/admin/library/add', methods=['GET', 'POST'])
 @admin_bp.route('/admin/library/edit/<library_uuid>', methods=['GET', 'POST'])
 @login_required
@@ -618,3 +601,27 @@ def add_edit_library(library_uuid=None):
             print(f"Error saving library: {e}")
 
     return render_template('admin/admin_manage_library_create.html', form=form, library=library, page_title=page_title)
+
+@admin_bp.route('/admin/system_logs')
+@login_required
+@admin_required
+def system_logs():
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
+    
+    # Get filter parameters
+    event_type = request.args.get('event_type')
+    event_level = request.args.get('event_level')
+    date_from = request.args.get('date_from')
+    date_to = request.args.get('date_to')
+    
+    query = SystemEvents.query.order_by(SystemEvents.timestamp.desc())
+    
+    # Apply filters if they exist
+    if event_type:
+        query = query.filter(SystemEvents.event_type == event_type)
+    if event_level:
+        query = query.filter(SystemEvents.event_level == event_level)
+    
+    logs = query.paginate(page=page, per_page=per_page)
+    return render_template('admin/admin_system_logs.html', logs=logs)

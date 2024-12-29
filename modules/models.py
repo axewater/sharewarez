@@ -40,7 +40,20 @@ class JSONEncodedDict(TypeDecorator):
                 return {}
         return value
 
+class SystemEvents(db.Model):
+    __tablename__ = 'system_events'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    event_type = db.Column(db.String(32), default='log')
+    event_text = db.Column(db.String(256), nullable=False)
+    event_level = db.Column(db.String(32), default='information')
+    audit_user = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref='system_events')
 
+    def __repr__(self):
+        return f"<SystemEvent {self.event_type}: {self.event_text}>"
 
 game_genre_association = db.Table('game_genre_association',
     db.Column('game_id', db.Integer, db.ForeignKey('games.id'), primary_key=True),

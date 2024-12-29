@@ -2,6 +2,7 @@ import smtplib, socket, traceback
 from email.message import EmailMessage
 from flask import flash, current_app, url_for, render_template
 from modules.models import GlobalSettings
+from modules.utils_logging import log_system_event
 
 def get_smtp_settings():
     """Get SMTP settings from database."""
@@ -129,6 +130,7 @@ def send_email(to, subject, template):
     if not is_server_reachable(mail_server, mail_port):
         print(f"Mail server {mail_server}:{mail_port} is unreachable. Email not sent.")
         flash(f"Mail server {mail_server}:{mail_port} is unreachable. Email not sent.", "error")
+        log_system_event(f"Failed to send email to {to}: Mail server unreachable", event_type='email', event_level='error')
         return False
 
     try:
@@ -161,6 +163,7 @@ def send_email(to, subject, template):
         print("=== SMTP Transaction Complete ===")
         print(f"Email sent successfully to {to}")
         flash(f"Email sent successfully to {to}", "success")
+        log_system_event(f"Email sent to {to} with subject: {subject}", event_type='email', event_level='information')
         return True
         
     except smtplib.SMTPAuthenticationError as e:
@@ -180,7 +183,7 @@ def send_email(to, subject, template):
         print(f"Error type: {type(e)}")
         print(f"Error details: {traceback.format_exc()}")
         flash("An unexpected error occurred while sending the email", "error")
-    
+        log_system_event(f"Failed to send email to {to}: {traceback.format_exc()}", event_type='email', event_level='error')
     print("=== Email Send Process Failed ===\n")
     return False
 
