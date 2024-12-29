@@ -221,7 +221,7 @@ function fetchFolders(path, folderContentsId, spinnerId, upButtonId, inputFieldI
     console.log("Fetching folders for path:", path);
     $(spinnerId).show();
     $.ajax({
-        url: '/browse_folders_ss',
+        url: '/api/browse_folders_ss',
         data: { path: path },
         success: function(data) {
             $(spinnerId).hide();
