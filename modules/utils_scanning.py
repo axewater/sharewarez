@@ -31,8 +31,6 @@ def try_add_game(game_name, full_disk_path, scan_job_id, library_uuid, check_exi
         print(f"Library with UUID {library_uuid} not found.")
         return False
 
-    log_system_event(f"Starting scan for library '{library.name}' at path: {full_disk_path}", "scan", "INFO")
-
     if check_exists:
         existing_game = Game.query.filter_by(full_disk_path=full_disk_path).first()
         if existing_game:

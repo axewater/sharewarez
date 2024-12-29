@@ -41,7 +41,7 @@
                             <td>{{ log.event_type }}</td>
                             <td>{{ log.event_level }}</td>
                             <td>{{ log.event_text }}</td>
-                            <td>{{ log.audit_user if log.audit_user else 'system' }}</td>
+                            <td>{{ log.user.name if log.user else 'system' }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

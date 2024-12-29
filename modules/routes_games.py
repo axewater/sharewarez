@@ -7,6 +7,7 @@ from modules.utils_processors import get_global_settings
 from modules.utils_functions import read_first_nfo_content, get_folder_size_in_bytes_updates, format_size, PLATFORM_IDS
 from modules.utils_auth import admin_required
 from modules.utils_scanning import is_scan_job_running, refresh_images_in_background
+from modules.utils_logging import log_system_event
 from modules.utils_game_core import check_existing_game_by_igdb_id, get_game_by_uuid
 from modules import cache, db
 from threading import Thread
@@ -129,6 +130,7 @@ def add_game_manual():
                     db.session.commit()
             flash('Game added successfully.', 'success')
             print(f"add_game_manual Game: {game_name} added by user {current_user.name}.")
+            log_system_event(f"Game {game_name} added manually by user {current_user.name}.")
             # Trigger image refresh after adding the game
             @copy_current_request_context
             def refresh_images_in_thread():
@@ -245,6 +247,7 @@ def game_edit(game_uuid):
                
         try:
             db.session.commit()
+            log_system_event(f"Game {game.name} with IGDB ID {game.igdb_id} updated by user {current_user.name}.")
             flash('Game updated successfully.', 'success')
             
             if igdb_id_changed:

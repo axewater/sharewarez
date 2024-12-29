@@ -225,33 +225,6 @@ def manage_settings():
         settings_record.settings = new_settings
         settings_record.last_updated = datetime.utcnow()
         
-        # Update specific boolean fields
-        settings_record.enable_delete_game_on_disk = new_settings.get('enableDeleteGameOnDisk', True)
-        settings_record.discord_notify_new_games = new_settings.get('discordNotifyNewGames', False)
-        settings_record.discord_notify_game_updates = new_settings.get('discordNotifyGameUpdates', False)
-        settings_record.discord_notify_game_extras = new_settings.get('discordNotifyGameExtras', False)
-        settings_record.discord_notify_downloads = new_settings.get('discordNotifyDownloads', False)
-        settings_record.enable_main_game_updates = new_settings.get('enableMainGameUpdates', False)
-        settings_record.enable_game_updates = new_settings.get('enableGameUpdates', False)
-        settings_record.update_folder_name = new_settings.get('updateFolderName', 'updates')
-        settings_record.enable_game_extras = new_settings.get('enableGameExtras', False)
-        settings_record.extras_folder_name = new_settings.get('extrasFolderName', 'extras')
-        settings_record.site_url = new_settings.get('siteUrl', 'http://127.0.0.1')
-        settings_record.last_updated = datetime.utcnow()
-        
-        settings_record.settings = new_settings
-        settings_record.enable_delete_game_on_disk = new_settings.get('enableDeleteGameOnDisk', True)
-        settings_record.discord_notify_new_games = new_settings.get('discordNotifyNewGames', False)
-        settings_record.discord_notify_game_updates = new_settings.get('discordNotifyGameUpdates', False)
-        settings_record.discord_notify_game_extras = new_settings.get('discordNotifyGameExtras', False)
-        settings_record.discord_notify_downloads = new_settings.get('discordNotifyDownloads', False)
-        settings_record.enable_main_game_updates = new_settings.get('enableMainGameUpdates', False)
-        settings_record.enable_game_updates = new_settings.get('enableGameUpdates', False)
-        settings_record.update_folder_name = new_settings.get('updateFolderName', 'updates')
-        settings_record.enable_game_extras = new_settings.get('enableGameExtras', False)
-        settings_record.extras_folder_name = new_settings.get('extrasFolderName', 'extras')
-        settings_record.site_url = new_settings.get('siteUrl', 'http://127.0.0.1')
-        settings_record.last_updated = datetime.utcnow()
         db.session.commit()
         log_system_event("Global settings updated", "settings", "INFO")
         cache.delete('global_settings')
@@ -617,7 +590,9 @@ def system_logs():
     date_from = request.args.get('date_from')
     date_to = request.args.get('date_to')
     
-    query = SystemEvents.query.order_by(SystemEvents.timestamp.desc())
+    query = SystemEvents.query\
+        .options(db.joinedload(SystemEvents.user))\
+        .order_by(SystemEvents.timestamp.desc())
     
     # Apply filters if they exist
     if event_type:
