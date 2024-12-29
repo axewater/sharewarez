@@ -11,3 +11,4 @@ psycopg2-binary
 discord-webhook
 python-dotenv
 psutil
+tenacity

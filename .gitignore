@@ -18,7 +18,6 @@ modules/static/library/images
 /.codebuddy
 /.codebuddy/*
 .codebuddy
-*.zip
 /.git
 /.github
-
+/modules/static/library/zips/
