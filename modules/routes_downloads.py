@@ -103,7 +103,7 @@ def download_other(file_type, game_uuid, file_id):
     # Validate file_type
     if file_type not in ['update', 'extra']:
         flash("Invalid file type", "error")
-        return redirect(url_for('main.game_details', game_uuid=game_uuid))
+        return redirect(url_for('games.game_details', game_uuid=game_uuid))
 
     FileModel = GameUpdate if file_type == 'update' else GameExtra
     # Fetch the file record
@@ -111,12 +111,12 @@ def download_other(file_type, game_uuid, file_id):
     
     if not file_record:
         flash(f"{file_type.capitalize()} file not found", "error")
-        return redirect(url_for('main.game_details', game_uuid=game_uuid))
+        return redirect(url_for('games.game_details', game_uuid=game_uuid))
 
     # Check if the file or folder exists
     if not os.path.exists(file_record.file_path):
         flash("File not found on disk", "error")
-        return redirect(url_for('main.game_details', game_uuid=game_uuid))
+        return redirect(url_for('games.game_details', game_uuid=game_uuid))
 
     # Check for an existing download request
     existing_request = DownloadRequest.query.filter_by(
@@ -158,7 +158,7 @@ def download_other(file_type, game_uuid, file_id):
     except SQLAlchemyError:
         db.session.rollback()
         flash("Database error occurred", "error")
-        return redirect(url_for('main.game_details', game_uuid=game_uuid))
+        return redirect(url_for('games.game_details', game_uuid=game_uuid))
 
     # Start the download process in a background thread
     @copy_current_request_context
@@ -211,7 +211,7 @@ def download_file(file_location, file_size, game_uuid, file_name):
         else:
             print(f"Update file not found for game {game_uuid}")
             flash("Update file not found", "error")
-            return redirect(url_for('main.game_details', game_uuid=game_uuid))
+            return redirect(url_for('games.game_details', game_uuid=game_uuid))
     elif file_location == "extras":
         # Query the extra record directly
         extra = GameExtra.query.filter_by(game_uuid=game_uuid, file_path=file_name).first()
@@ -220,7 +220,7 @@ def download_file(file_location, file_size, game_uuid, file_name):
         else:
             print(f"Extra file not found for game {game_uuid}")
             flash("Extra file not found", "error")
-            return redirect(url_for('main.game_details', game_uuid=game_uuid))
+            return redirect(url_for('games.game_details', game_uuid=game_uuid))
     else:
         print(f"Error - No location: {file_location}")
         return
