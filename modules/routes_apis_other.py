@@ -1,11 +1,13 @@
+import os
 from flask import Blueprint, jsonify
 from modules.utils_processors import get_global_settings
 from modules import cache
 from flask_login import login_required, current_user
-from modules.models import Genre, Theme, GameMode, PlayerPerspective
 from modules.utils_auth import admin_required
 from modules.utils_igdb_api import make_igdb_api_request, get_cover_thumbnail_url
-from modules.models import Library, Image, Game, User, AllowedFileType, IgnoredFileType
+from modules.utils_game_core import check_existing_game_by_igdb_id
+from modules.utils_functions import PLATFORM_IDS
+from modules.models import Library, Image, Game, User, AllowedFileType, IgnoredFileType, ScanJob, UnmatchedFolder
 from sqlalchemy.exc import IntegrityError
 from flask import request, url_for
 from modules import db
@@ -17,6 +19,46 @@ apis_other_bp = Blueprint('apis_other', __name__)
 def inject_settings():
     """Context processor to inject global settings into templates"""
     return get_global_settings()
+
+
+@apis_other_bp.route('/api/scan_jobs_status', methods=['GET'])
+@login_required
+@admin_required
+def scan_jobs_status():
+    jobs = ScanJob.query.all()
+    jobs_data = [{
+        'id': job.id,
+        'library_name': job.library.name if job.library else 'No Library Assigned',
+        'folders': job.folders,
+        'status': job.status,
+        'total_folders': job.total_folders,
+        'folders_success': job.folders_success,
+        'folders_failed': job.folders_failed,
+        'error_message': job.error_message,
+        'last_run': job.last_run.strftime('%Y-%m-%d %H:%M:%S') if job.last_run else 'Not Available',
+        'next_run': job.next_run.strftime('%Y-%m-%d %H:%M:%S') if job.next_run else 'Not Scheduled'
+    } for job in jobs]
+    return jsonify(jobs_data)
+
+@apis_other_bp.route('/api/unmatched_folders', methods=['GET'])
+@login_required
+@admin_required
+def unmatched_folders():
+    unmatched = UnmatchedFolder.query.join(Library).with_entities(
+        UnmatchedFolder, Library.name.label('library_name'), Library.platform
+    ).order_by(UnmatchedFolder.status.desc()).all()
+    
+    unmatched_data = [{
+        'id': folder.id,
+        'folder_path': folder.folder_path,
+        'status': folder.status,
+        'library_name': library_name,
+        'platform_name': platform.name if platform else '',
+        'platform_id': PLATFORM_IDS.get(platform.name) if platform else None
+    } for folder, library_name, platform in unmatched]
+    
+    return jsonify(unmatched_data)
+
 
 
 @apis_other_bp.route('/api/current_user_role', methods=['GET'])
@@ -45,9 +87,7 @@ def search():
     if query:
         games = Game.query.filter(Game.name.ilike(f'%{query}%')).all()
         results = [{'id': game.id, 'uuid': game.uuid, 'name': game.name} for game in games]
-
     return jsonify(results)
-
 
 @apis_other_bp.route('/api/get_libraries')
 def get_libraries():
@@ -60,8 +100,6 @@ def get_libraries():
             'image_url': lib.image_url if lib.image_url else url_for('static', filename='newstyle/default_library.jpg')
         } for lib in libraries_query
     ]
-
-    # Logging the count of libraries returned
     print(f"Returning {len(libraries)} libraries.")
     return jsonify(libraries)
     
@@ -72,19 +110,15 @@ def game_screenshots(game_uuid):
     screenshot_urls = [url_for('static', filename=f'library/images/{screenshot.url}') for screenshot in screenshots]
     return jsonify(screenshot_urls)
 
-
 @apis_other_bp.route('/api/get_company_role', methods=['GET'])
 @login_required
 def get_company_role():
     game_igdb_id = request.args.get('game_igdb_id')
     company_id = request.args.get('company_id')
-    
     # Validate input
     if not game_igdb_id or not company_id or not game_igdb_id.isdigit() or not company_id.isdigit():
         print("Invalid input: Both game_igdb_id and company_id must be provided and numeric.")
         return jsonify({'error': 'Invalid input. Both game_igdb_id and company_id must be provided and numeric.'}), 400
-
-
     try:
         print(f"Requested company role for Game IGDB ID: {game_igdb_id} and Company ID: {company_id}")
         
@@ -105,7 +139,6 @@ def get_company_role():
             else:
                 print(f"Unexpected data structure for company info: {company_info}")
                 continue  # Skip this iteration
-
             role = 'Not Found'
             if company_data.get('developer', False):
                 role = 'Developer'
@@ -119,15 +152,11 @@ def get_company_role():
                 'company_name': company_name,
                 'role': role
             }), 200
-
-            
-        
         return jsonify({'error': 'Company with given ID not found in the specified game.'}), 404
 
     except Exception as e:
         print(f"Error processing request: {e}")
         return jsonify({'error': 'An error occurred processing your request.'}), 500
-
 
 
 @apis_other_bp.route('/api/get_cover_thumbnail', methods=['GET'])
@@ -149,7 +178,6 @@ def search_igdb_by_id():
     igdb_id = request.args.get('igdb_id')
     if not igdb_id:
         return jsonify({"error": "IGDB ID is required"}), 400
-
     endpoint_url = "https://api.igdb.com/v4/games"
     query_params = f"""
         fields name, summary, cover.url, summary, url, release_dates.date, platforms.name, genres.name, themes.name, game_modes.name, 
@@ -158,7 +186,6 @@ def search_igdb_by_id():
                total_rating_count;
         where id = {igdb_id};
     """
-
     response = make_igdb_api_request(endpoint_url, query_params)
     if "error" in response:
         return jsonify({"error": response["error"]}), 500
@@ -187,12 +214,11 @@ def search_igdb_by_name():
 
         # Check if a platform_id was provided and is valid
         if platform_id and platform_id.isdigit():
-            # Append the platform filter to the existing search query
             query += f" where platforms = ({platform_id});"
         else:
             query += ";"
 
-        query += " limit 10;"  # Set a limit to the number of results
+        query += " limit 10;"  # limit results
         results = make_igdb_api_request('https://api.igdb.com/v4/games', query)
 
         if 'error' not in results:
@@ -200,6 +226,7 @@ def search_igdb_by_name():
         else:
             return jsonify({'error': results['error']})
     return jsonify({'error': 'No game name provided'})
+
 
 @apis_other_bp.route('/api/reorder_libraries', methods=['POST'])
 @login_required
@@ -280,3 +307,21 @@ def manage_file_types(type_category):
         db.session.delete(file_type)
         db.session.commit()
         return jsonify({'success': True})
+    
+@apis_other_bp.route('/check_path_availability', methods=['GET'])
+@login_required
+def check_path_availability():
+    full_disk_path = request.args.get('full_disk_path', '')
+    is_available = os.path.exists(full_disk_path)
+    return jsonify({'available': is_available})
+
+
+@apis_other_bp.route('/api/check_igdb_id')
+@login_required
+def check_igdb_id():
+    igdb_id = request.args.get('igdb_id', type=int)
+    if igdb_id is None:
+        return jsonify({'message': 'Invalid request', 'available': False}), 400
+
+    game_exists = check_existing_game_by_igdb_id(igdb_id) is not None
+    return jsonify({'available': not game_exists})
