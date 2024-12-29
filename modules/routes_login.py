@@ -18,6 +18,16 @@ from sqlalchemy.exc import IntegrityError
 login_bp = Blueprint('login', __name__)
 s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 
+def is_smtp_configured():
+    """Check if SMTP settings are properly configured."""
+    settings = GlobalSettings.query.first()
+    if not settings:
+        return False
+    return bool(settings.smtp_server and 
+                settings.smtp_port and 
+                settings.smtp_username and 
+                settings.smtp_password)
+
 @login_bp.context_processor
 @cache.cached(timeout=500, key_prefix='global_settings')
 def inject_settings():
@@ -171,7 +181,6 @@ def confirm_email(token):
         return render_template('login/confirmation_success.html')
 
 
-
 @login_bp.route('/reset_password_request', methods=['GET', 'POST'])
 def reset_password_request():
     if current_user.is_authenticated:
@@ -233,6 +242,7 @@ def reset_password(token):
 def invites():
     settings = GlobalSettings.query.first()
     site_url = settings.site_url if settings else 'http://127.0.0.1'
+    smtp_enabled = is_smtp_configured()
     if site_url == 'http://127.0.0.1'and current_user.role == 'admin':
         flash('Please configure the site URL in the admin settings.', 'danger')
     form = InviteForm()
@@ -267,7 +277,15 @@ def invites():
     current_invites_count = len(invites)
     remaining_invites = max(0, current_user.invite_quota - current_invites_count)
 
-    return render_template('/login/user_invites.html', form=form, invites=invites, invite_quota=current_user.invite_quota, site_url=site_url, current_invites_count=current_invites_count, remaining_invites=remaining_invites, datetime=datetime.utcnow())
+    return render_template('/login/user_invites.html', 
+                         form=form, 
+                         invites=invites, 
+                         invite_quota=current_user.invite_quota, 
+                         site_url=site_url, 
+                         smtp_enabled=smtp_enabled,
+                         current_invites_count=current_invites_count, 
+                         remaining_invites=remaining_invites, 
+                         datetime=datetime.utcnow())
 
 @login_bp.route('/delete_invite/<token>', methods=['POST'])
 @login_required
@@ -284,4 +302,3 @@ def delete_invite(token):
         db.session.rollback()
         print(f"Error deleting invite: {str(e)}")
         return jsonify({'success': False, 'message': 'An error occurred while deleting the invite.'}), 500
-
