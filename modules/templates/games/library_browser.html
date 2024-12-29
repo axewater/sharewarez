@@ -37,6 +37,11 @@
     <script src="{{ url_for('static', filename='library/themes/default/js/library_search.js') }}"></script>
 {% endif %}
 
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/favorites.js') %}
+    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/favorites.js') }}"></script>
+{% else %}
+    <script src="{{ url_for('static', filename='library/themes/default/js/favorites.js') }}"></script>
+{% endif %}
 
 </head>
 <body data-user-per-page="{{ user_per_page }}" data-user-default-sort="{{ user_default_sort }}" data-user-default-sort-order="{{ user_default_sort_order }}">
