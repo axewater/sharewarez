@@ -112,7 +112,8 @@ document.addEventListener('DOMContentLoaded', function() {
             role: document.getElementById('editRole').value,
             state: document.getElementById('editState').checked,
             is_email_verified: document.getElementById('editEmailVerified').checked,
-            password: document.getElementById('editPassword').value
+            password: document.getElementById('editPassword').value,
+            about: document.getElementById('editAbout').value
         };
         updateUser(userId, userData);
     });
@@ -127,6 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('editRole').value = data.role;
                 document.getElementById('editState').checked = data.state;
                 document.getElementById('editEmailVerified').checked = data.is_email_verified;
+                document.getElementById('editAbout').value = data.about || '';
                 document.getElementById('editPassword').value = '';
                 editModal.show();
             })
