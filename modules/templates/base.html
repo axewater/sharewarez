@@ -82,7 +82,7 @@
         {% if current_user.is_authenticated %}
             <a href="{{ url_for('discover.discover') }}" class="sidebar-link"><i class="fas fa-compass"></i><span class="link-text">Discover</span></a>
             <a href="{{ url_for('library.library') }}" class="sidebar-link"><i class="fas fa-gamepad"></i><span class="link-text">Library</span></a>
-            <a href="{{ url_for('main.downloads') }}" class="sidebar-link"><i class="fas fa-download"></i><span class="link-text">Downloads</span></a>
+            <a href="{{ url_for('download.downloads') }}" class="sidebar-link"><i class="fas fa-download"></i><span class="link-text">Downloads</span></a>
             <a href="{{ url_for('main.favorites') }}" class="sidebar-link"><i class="fas fa-heart"></i><span class="link-text">Favorites</span></a>
     
             {% if current_user.role == 'admin' %}
