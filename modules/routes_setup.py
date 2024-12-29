@@ -46,6 +46,7 @@ def setup_submit():
             role='admin',
             is_email_verified=True,
             user_id=str(uuid4()),
+            invite_quota=10,
             created=datetime.utcnow()
         )
         user.set_password(form.password.data)
