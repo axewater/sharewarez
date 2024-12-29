@@ -40,4 +40,3 @@ def get_player_perspectives():
     perspectives = PlayerPerspective.query.all()
     perspectives_list = [{'id': perspective.id, 'name': perspective.name} for perspective in perspectives]
     return jsonify(perspectives_list)
-
