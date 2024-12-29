@@ -111,7 +111,7 @@ def delete_whitelist(whitelist_id):
         db.session.delete(whitelist_entry)
         db.session.commit()
         log_system_event(f"Admin {current_user.name} deleted whitelist entry: {whitelist_entry.email}", 
-                          event_type='admin', event_level='information', audit_user=current_user.name)
+                          event_type='admin', event_level='information', audit_user=current_user.id)
         return jsonify({'success': True, 'message': 'Entry deleted successfully'})
     except Exception as e:
         db.session.rollback()
@@ -143,7 +143,7 @@ def manage_user_api(user_id):
             db.session.add(new_user)
             db.session.commit()
             log_system_event(f"Admin {current_user.name} created new user: {data['username']}", 
-                              event_type='admin', event_level='information', audit_user=current_user.name)
+                              event_type='admin', event_level='information', audit_user=current_user.id)
             return jsonify({'success': True})
         except Exception as e:
             db.session.rollback()
@@ -311,4 +311,3 @@ def test_igdb():
             return jsonify({'status': 'error', 'message': 'Invalid API response'}), 500
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
-    
