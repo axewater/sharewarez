@@ -5,10 +5,10 @@ from threading import Thread
 from flask import copy_current_request_context
 from uuid import uuid4
 from sqlalchemy.exc import SQLAlchemyError
-
+from modules.forms import CsrfProtectForm
 from modules.models import Game, DownloadRequest, GameUpdate, GameExtra, GlobalSettings
 from modules.utils_processors import get_global_settings
-from modules.utils_functions import get_folder_size_in_bytes
+from modules.utils_functions import get_folder_size_in_bytes, format_size
 from modules.utils_download import zip_game, zip_folder, update_download_request
 from modules.utils_auth import admin_required
 from modules import db
@@ -31,6 +31,17 @@ def inject_current_theme():
         current_theme = 'default'
     return dict(current_theme=current_theme)
 
+@download_bp.route('/downloads')
+@login_required
+def downloads():
+    user_id = current_user.id
+    print(f"Route: /downloads user_id: {user_id}")
+    download_requests = DownloadRequest.query.filter_by(user_id=user_id).all()
+    for download_request in download_requests:
+        download_request.formatted_size = format_size(download_request.download_size)
+    form = CsrfProtectForm()
+    return render_template('games/manage_downloads.html', download_requests=download_requests, form=form)
+
 @download_bp.route('/download_game/<game_uuid>', methods=['GET'])
 @login_required
 def download_game(game_uuid):
@@ -43,7 +54,7 @@ def download_game(game_uuid):
     
     if existing_request:
         flash("You already have a download request for this game in your basket. Please check your downloads page.", "info")
-        return redirect(url_for('main.downloads'))
+        return redirect(url_for('download.downloads'))
     
     if os.path.isdir(game.full_disk_path):
         # List all files, case-insensitively excluding .NFO and .SFV files, and file_id.diz
@@ -82,7 +93,7 @@ def download_game(game_uuid):
     thread.start()
 
     flash("Your download request is being processed. You will be notified when the download is ready.", "info")
-    return redirect(url_for('main.downloads'))
+    return redirect(url_for('download.downloads'))
 
 @download_bp.route('/download_other/<file_type>/<game_uuid>/<file_id>', methods=['GET'])
 @login_required
@@ -114,7 +125,7 @@ def download_other(file_type, game_uuid, file_id):
     ).first()
     if existing_request:
         flash("You already have a download request for this file", "info")
-        return redirect(url_for('main.downloads'))
+        return redirect(url_for('download.downloads'))
     try:
         # Determine if the path is a file or a directory
         if os.path.isfile(file_record.file_path):
@@ -183,7 +194,7 @@ def download_other(file_type, game_uuid, file_id):
     thread.start()
 
     flash("Your download request is being processed. You will be notified when it's ready.", "info")
-    return redirect(url_for('main.downloads'))
+    return redirect(url_for('download.downloads'))
 
 
 @download_bp.route('/download_file/<file_location>/<file_size>/<game_uuid>/<file_name>', methods=['GET'])
@@ -229,7 +240,7 @@ def download_file(file_location, file_size, game_uuid, file_name):
     
     if existing_request:
         flash("You already have a download request for this file in your basket. Please check your downloads page.", "info")
-        return redirect(url_for('main.downloads'))
+        return redirect(url_for('download.downloads'))
 
     print(f"Creating a new download request for user {current_user.id} for file {file_location}")
     new_request = DownloadRequest(
@@ -253,7 +264,7 @@ def download_file(file_location, file_size, game_uuid, file_name):
     thread.start()
     
     flash("Your download request is being processed. You will be notified when the download is ready.", "info")
-    return redirect(url_for('main.downloads'))
+    return redirect(url_for('download.downloads'))
 
 
 @download_bp.route('/download_zip/<download_id>')
@@ -352,7 +363,7 @@ def delete_download(download_id):
         except Exception as e:
             db.session.rollback()
             flash(f'An error occurred while deleting the file: {e}', 'danger')
-            return redirect(url_for('main.downloads'))
+            return redirect(url_for('download.downloads'))
         else:
             flash('Only the download request was deleted, the original game file was not removed.', 'info')
     else:
@@ -360,4 +371,4 @@ def delete_download(download_id):
     db.session.delete(download_request)
     db.session.commit()
 
-    return redirect(url_for('main.downloads'))
+    return redirect(url_for('download.downloads'))

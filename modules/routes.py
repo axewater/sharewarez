@@ -206,16 +206,7 @@ def check_favorite(game_uuid):
     return jsonify({'is_favorite': is_favorite})
 
 
-@bp.route('/downloads')
-@login_required
-def downloads():
-    user_id = current_user.id
-    print(f"Route: /downloads user_id: {user_id}")
-    download_requests = DownloadRequest.query.filter_by(user_id=user_id).all()
-    for download_request in download_requests:
-        download_request.formatted_size = format_size(download_request.download_size)
-    form = CsrfProtectForm()
-    return render_template('games/manage_downloads.html', download_requests=download_requests, form=form)
+
 
 
 @bp.route('/scan_manual_folder', methods=['GET', 'POST'])

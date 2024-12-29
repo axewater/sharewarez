@@ -45,7 +45,7 @@
         <th>
             {% set file_name = file.file_path.split('/')[-1] %}
             {{ get_file_icon(file_name) }}
-            <a href="{{ url_for('main.download_other', 
+            <a href="{{ url_for('download.downloads_other', 
                                file_type=file_type,
                                game_uuid=game_uuid,
                                file_id=file.id) }}" 
@@ -110,7 +110,7 @@
                             <th>
                                 {% set file_name = update.file_path.split('/')[-1] %}
                                 {{ get_file_icon(file_name) }}
-                                <a href="{{ url_for('main.download_other',
+                                <a href="{{ url_for('download.downloads_other',
                                                    file_type='update',
                                                    game_uuid=game_uuid,
                                                    file_id=update.id) }}"
@@ -137,7 +137,7 @@
                             <th>
                                 {% set file_name = extra.file_path.split('/')[-1] %}
                                 {{ get_file_icon(file_name) }}
-                                <a href="{{ url_for('main.download_other',
+                                <a href="{{ url_for('download.downloads_other',
                                                    file_type='extra',
                                                    game_uuid=game_uuid,
                                                    file_id=extra.id) }}"
@@ -343,7 +343,7 @@
                             <div class="chip-size">{{ game.size }}</div>
                         {% endif %}
                         <div class="download-buttons">
-                            <form action="{{ url_for('main.download_game', game_uuid=game.uuid) }}" method="get" class="download-form">
+                            <form action="{{ url_for('download.downloads_game', game_uuid=game.uuid) }}" method="get" class="download-form">
                                 <input type="submit" value="Download Now!" class="button-glass-download" data-game-uuid="{{ game.uuid }}">
                                 {{ form.csrf_token }}
                             </form>
