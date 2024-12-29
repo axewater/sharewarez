@@ -36,3 +36,6 @@ def browse_folders_ss():
         return jsonify(sorted(contents, key=lambda x: (not x['isDir'], x['name'].lower())))
     else:
         return jsonify({'error': 'SS folder browser: Folder not found'}), 404
+    
+    
+    
