@@ -1,7 +1,7 @@
 import os
 from flask import flash
 import re
-
+from modules.models import Game
 
 def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns):
     if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
@@ -43,7 +43,15 @@ def get_game_names_from_files(folder_path, extensions, insensitive_patterns, sen
     return game_names_with_paths
 
 
-    
+def get_game_name_by_uuid(uuid):
+    print(f"Searching for game UUID: {uuid}")
+    game = Game.query.filter_by(uuid=uuid).first()
+    if game:
+        print(f"Game with name {game.name} and UUID {game.uuid} found")
+        return game.name
+    else:
+        print("Game not found")
+        return None
     
     
 def clean_game_name(filename, insensitive_patterns, sensitive_patterns):

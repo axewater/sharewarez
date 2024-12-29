@@ -26,17 +26,16 @@ from modules.forms import (
 from modules.models import (
     User, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder,
     Publisher, Developer, Genre, Theme, GameMode, PlayerPerspective, GameUpdate, GameExtra,
-    Category, GameURL, GlobalSettings, Library, AllowedFileType,
-    user_favorites
+    Category, GameURL, GlobalSettings, Library, user_favorites
 )
 from modules.utils_functions import (
     load_release_group_patterns, get_folder_size_in_bytes, 
     get_folder_size_in_bytes_updates, format_size, read_first_nfo_content, 
     PLATFORM_IDS
 )
-from modules.utilities import handle_auto_scan
+from modules.utilities import handle_auto_scan, handle_manual_scan
 from modules.utils_auth import admin_required
-from modules.utils_gamenames import get_game_names_from_folder, get_game_names_from_files
+from modules.utils_gamenames import get_game_names_from_folder, get_game_name_by_uuid
 from modules.utils_scanning import refresh_images_in_background, delete_game_images
 from modules.utils_game_core import get_game_by_uuid, check_existing_game_by_igdb_id
 from modules.utils_download import update_download_request, zip_folder, zip_game
@@ -84,7 +83,33 @@ def check_username():
     existing_user = User.query.filter(func.lower(User.name) == func.lower(username)).first()
     return jsonify({"exists": existing_user is not None})
 
+@bp.route('/api/search')
+@login_required
+def search():
+    query = request.args.get('query', '')
+    results = []
+    if query:
+        games = Game.query.filter(Game.name.ilike(f'%{query}%')).all()
+        results = [{'id': game.id, 'uuid': game.uuid, 'name': game.name} for game in games]
 
+    return jsonify(results)
+
+
+@bp.route('/api/reorder_libraries', methods=['POST'])
+@login_required
+@admin_required
+def reorder_libraries():
+    try:
+        new_order = request.json.get('order', [])
+        for index, library_uuid in enumerate(new_order):
+            library = Library.query.get(library_uuid)
+            if library:
+                library.display_order = index
+        db.session.commit()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @bp.route('/browse_games')
 @login_required
@@ -92,8 +117,6 @@ def browse_games():
     print(f"Route: /browse_games - {current_user.name}")
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
-    
-    # Filters
     library_uuid = request.args.get('library_uuid')
     category = request.args.get('category')
     genre = request.args.get('genre')
@@ -101,9 +124,8 @@ def browse_games():
     game_mode = request.args.get('game_mode')
     player_perspective = request.args.get('player_perspective')
     theme = request.args.get('theme')
-    sort_by = request.args.get('sort_by', 'name')  # Adding sort_by parameter
-    sort_order = request.args.get('sort_order', 'asc')  # Adding sort_order parameter
-
+    sort_by = request.args.get('sort_by', 'name')
+    sort_order = request.args.get('sort_order', 'asc')
     query = Game.query.options(joinedload(Game.genres))
     if library_uuid:
         query = query.filter(Game.library_uuid == library_uuid)
@@ -116,12 +138,9 @@ def browse_games():
     if game_mode:
         query = query.filter(Game.game_modes.any(GameMode.name == game_mode))
     if player_perspective:
-        # print(f'player_perspective query: {player_perspective}')
         query = query.filter(Game.player_perspectives.any(PlayerPerspective.name == player_perspective))
     if theme:
         query = query.filter(Game.themes.any(Theme.name == theme))
-
-    # Apply sorting logic
     if sort_by == 'name':
         query = query.order_by(Game.name.asc() if sort_order == 'asc' else Game.name.desc())
     elif sort_by == 'rating':
@@ -133,14 +152,10 @@ def browse_games():
     elif sort_by == 'date_identified':
         query = query.order_by(Game.date_identified.asc() if sort_order == 'asc' else Game.date_identified.desc())
 
-
-
-        
     # Pagination
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     games = pagination.items
     
-
     # Get game data
     game_data = []
     for game in games:
@@ -200,19 +215,6 @@ def browse_folders_ss():
         return jsonify(sorted(contents, key=lambda x: (not x['isDir'], x['name'].lower())))
     else:
         return jsonify({'error': 'SS folder browser: Folder not found'}), 404
-
-
-@bp.route('/api/search')
-@login_required
-def search():
-    query = request.args.get('query', '')
-    results = []
-    if query:
-        games = Game.query.filter(Game.name.ilike(f'%{query}%')).all()
-        results = [{'id': game.id, 'uuid': game.uuid, 'name': game.name} for game in games]
-
-        # print(f'Search results for "{query}": {results}')
-    return jsonify(results)
 
 
 @bp.route('/toggle_favorite/<game_uuid>', methods=['POST'])
@@ -283,14 +285,10 @@ def scan_folder():
 
         if os.path.exists(folder_path) and os.access(folder_path, os.R_OK):
             print("Folder exists and is accessible.")
-
             insensitive_patterns, sensitive_patterns = load_release_group_patterns()
-            
             games_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
             session['active_tab'] = 'manualScan'
-            session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
-            # print("Session updated with game paths.")
-            
+            session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}            
             game_names_with_ids = [{'name': game['name'], 'id': i} for i, game in enumerate(games_with_paths)]
         else:
             flash("Folder does not exist or cannot be accessed.", "error")
@@ -367,8 +365,6 @@ def scan_management():
                            game_names_with_ids=game_names_with_ids)
 
 
-
-
 @bp.route('/cancel_scan_job/<job_id>', methods=['POST'])
 @login_required
 @admin_required
@@ -382,64 +378,6 @@ def cancel_scan_job(job_id):
     else:
         flash('Scan job not found or not in a cancellable state.', 'error')
     return redirect(url_for('main.scan_management'))
-
-
-
-def handle_manual_scan(manual_form):
-    settings = GlobalSettings.query.first()
-    session['active_tab'] = 'manual'
-    if manual_form.validate_on_submit():
-        # check job status
-        running_job = ScanJob.query.filter_by(status='Running').first()
-        if running_job:
-            flash('A scan is already in progress. Please wait until the current scan completes.', 'error')
-            session['active_tab'] = 'manual'
-            return redirect(url_for('main.scan_management', active_tab='manual'))
-        
-        folder_path = manual_form.folder_path.data
-        scan_mode = manual_form.scan_mode.data
-        library_uuid = manual_form.library_uuid.data
-        
-        if not library_uuid:
-            flash('Please select a library.', 'error')
-            return redirect(url_for('main.scan_management', active_tab='manual'))
-        
-        # Store library_uuid in session for use in identify page
-        session['selected_library_uuid'] = library_uuid
-        print(f"Manual scan: Selected library UUID: {library_uuid}")
-
-        base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
-        full_path = os.path.join(base_dir, folder_path)
-        print(f"Manual scan form submitted. Full path: {full_path}, Library UUID: {library_uuid}")
-
-        if os.path.exists(full_path) and os.access(full_path, os.R_OK):
-            print("Folder exists and can be accessed.")
-            insensitive_patterns, sensitive_patterns = load_release_group_patterns()
-            if scan_mode == 'folders':
-                games_with_paths = get_game_names_from_folder(full_path, insensitive_patterns, sensitive_patterns)
-            else:  # files mode
-                # Load allowed file types from database
-                allowed_file_types = AllowedFileType.query.all()
-                supported_extensions = [file_type.value for file_type in allowed_file_types]
-                if not supported_extensions:
-                    flash("No allowed file types defined in the database.", "error")
-                    return redirect(url_for('main.scan_management', active_tab='manual'))
-                
-                games_with_paths = get_game_names_from_files(full_path, supported_extensions, insensitive_patterns, sensitive_patterns)
-            session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
-            print(f"Found {len(session['game_paths'])} games in the folder.")
-            flash('Manual scan processed for folder: ' + full_path, 'info')
-            
-        else:
-            flash("Folder does not exist or cannot be accessed.", "error")
-    else:
-        flash('Manual scan form validation failed.', 'error')
-        
-    print("Game paths: ", session.get('game_paths', {}))
-    return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='manual'))
-
-
-
 
 
 @bp.route('/add_game_manual', methods=['GET', 'POST'])
@@ -577,7 +515,7 @@ def add_game_manual():
 @admin_required
 def game_edit(game_uuid):
     game = Game.query.filter_by(uuid=game_uuid).first_or_404()
-    form = AddGameForm(obj=game)  # Pre-populate form
+    form = AddGameForm(obj=game)
     form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in Library.query.order_by(Library.name).all()]
     platform_id = PLATFORM_IDS.get(game.library.platform.value.upper(), None)
     platform_name = game.library.platform.value
@@ -597,14 +535,10 @@ def game_edit(game_uuid):
         ).first()
         
         if existing_game_with_igdb_id is not None:
-            # Inform user that igdb_id already in use
             flash(f'The IGDB ID {form.igdb_id.data} is already used by another game.', 'error')
             return render_template('admin/admin_game_identify.html', form=form, library_name=library_name, game_uuid=game_uuid, action="edit")
         
-        # Check if IGDB ID has changed
         igdb_id_changed = game.igdb_id != form.igdb_id.data
-        
-        # Update game attributes
         game.library_uuid = form.library_uuid.data
         game.igdb_id = form.igdb_id.data
         game.name = form.name.data
@@ -616,7 +550,6 @@ def game_edit(game_uuid):
         game.aggregated_rating = form.aggregated_rating.data
         game.first_release_date = form.first_release_date.data
         game.status = form.status.data
-
         category_str = form.category.data 
         category_str = category_str.replace('Category.', '')
         if category_str in Category.__members__:
@@ -657,9 +590,7 @@ def game_edit(game_uuid):
         new_folder_size_bytes = get_folder_size_in_bytes_updates(game.full_disk_path)
         print(f"New folder size for {game.full_disk_path}: {format_size(new_folder_size_bytes)}")
         game.size = new_folder_size_bytes
-
         game.nfo_content = read_first_nfo_content(game.full_disk_path)
-
         game.date_identified = datetime.utcnow()
                
         # DB commit and conditional image update
@@ -672,7 +603,6 @@ def game_edit(game_uuid):
                 @copy_current_request_context
                 def refresh_images_in_thread():
                     refresh_images_in_background(game_uuid)
-
                 thread = Thread(target=refresh_images_in_thread)
                 thread.start()
                 print(f"Refresh images thread started for game UUID: {game_uuid}")
@@ -708,9 +638,7 @@ def get_platform_by_library(library_uuid):
 @admin_required
 def edit_game_images(game_uuid):
     if is_scan_job_running():
-        # Inform the user that editing images might not be possible at the moment
-        flash('Image editing might be restricted while a scan job is running. Please try again later.', 'warning')
-
+        flash('Image editing is restricted while a scan job is running. Please try again later.', 'warning')
     game = Game.query.filter_by(uuid=game_uuid).first_or_404()
     cover_image = Image.query.filter_by(game_uuid=game_uuid, image_type='cover').first()
     screenshots = Image.query.filter_by(game_uuid=game_uuid, image_type='screenshot').all()
@@ -748,14 +676,13 @@ def upload_image(game_uuid):
     try:
         img = PILImage.open(file)
         img.verify()  # Verify that it is, in fact, an image
-        img = PILImage.open(file)  # Re-open the image for processing
+        img = PILImage.open(file)
     except (IOError, SyntaxError):
         return jsonify({'error': 'Invalid image data'}), 400
 
-    file.seek(0)  # Seek to the beginning of the file after verifying
+    file.seek(0)
     max_width, max_height = 1200, 1600
     if image_type == 'cover':
-        # Resize the image if it exceeds the maximum dimensions
         if img.width > max_width or img.height > max_height:
             img.thumbnail((max_width, max_height), PILImage.ANTIALIAS)
     file.seek(0) 
@@ -774,8 +701,6 @@ def upload_image(game_uuid):
                 os.remove(old_cover_path)
             db.session.delete(existing_cover)
             db.session.commit()
-
-    
     short_uuid = str(uuid.uuid4())[:8]
     if image_type == 'cover':
         unique_identifier = str(uuid.uuid4())[:8]
@@ -785,11 +710,9 @@ def upload_image(game_uuid):
         short_uuid = str(uuid.uuid4())[:8]
         filename = f"{game_uuid}_{unique_identifier}_{short_uuid}.{file_extension}"
     save_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], filename)
-
     file.save(save_path)
     print(f"File saved to: {save_path}")
     new_image = Image(game_uuid=game_uuid, image_type=image_type, url=filename)
-
     db.session.add(new_image)
     db.session.commit()
     print(f"File saved to DB with ID: {new_image.id}")
@@ -816,7 +739,6 @@ def delete_image():
         
         image_id = data['image_id']
         is_cover = data.get('is_cover', False)
-        
         image = Image.query.get(image_id)
         if not image:
             return jsonify({'error': 'Image not found'}), 404
@@ -840,25 +762,6 @@ def delete_image():
         # Log the error for debugging purposes
         print(f"Error deleting image: {str(e)}")
         return jsonify({'error': 'An unexpected error occurred while deleting the image'}), 500
-
-
-
-
-@bp.route('/api/reorder_libraries', methods=['POST'])
-@login_required
-@admin_required
-def reorder_libraries():
-    try:
-        new_order = request.json.get('order', [])
-        for index, library_uuid in enumerate(new_order):
-            library = Library.query.get(library_uuid)
-            if library:
-                library.display_order = index
-        db.session.commit()
-        return jsonify({'status': 'success'})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
 @bp.route('/delete_scan_job/<job_id>', methods=['POST'])
@@ -1146,15 +1049,6 @@ def game_details(game_uuid):
     else:
         return jsonify({"error": "Game not found"}), 404
 
-def get_game_name_by_uuid(uuid):
-    print(f"Searching for game UUID: {uuid}")
-    game = Game.query.filter_by(uuid=uuid).first()
-    if game:
-        print(f"Game with name {game.name} and UUID {game.uuid} found")
-        return game.name
-    else:
-        print("Game not found")
-        return None
 
 @bp.route('/refresh_game_images/<game_uuid>', methods=['POST'])
 @login_required
