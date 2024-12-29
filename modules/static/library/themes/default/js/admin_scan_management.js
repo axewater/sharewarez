@@ -3,20 +3,43 @@ var currentPathManual = '';
 
 // File type to icon mapping
 const fileIcons = {
-    // Folders
-    directory: 'fa-folder',
+    // Folders (default)
+    directory: 'fa-folder text-warning',
     
-    // Archives
+    // Archives & Compressed
     zip: 'fa-file-zipper',
     rar: 'fa-file-zipper',
     '7z': 'fa-file-zipper',
+    gz: 'fa-file-zipper',
+    tar: 'fa-file-zipper',
+    
+    // Executables & Games
+    exe: 'fa-gamepad',
+    iso: 'fa-compact-disc',
+    bin: 'fa-compact-disc',
+    msi: 'fa-gamepad',
+    app: 'fa-gamepad',
+     
+    // Media
+    mp3: 'fa-file-audio',
+    wav: 'fa-file-audio',
+    mp4: 'fa-file-video',
+    avi: 'fa-file-video',
+    mkv: 'fa-file-video',
     
     // Documents
     pdf: 'fa-file-pdf',
     doc: 'fa-file-word',
     docx: 'fa-file-word',
+    xls: 'fa-file-excel',
+    xlsx: 'fa-file-excel',
+    ppt: 'fa-file-powerpoint',
+    pptx: 'fa-file-powerpoint',
     txt: 'fa-file-lines',
-    
+    md: 'fa-file-lines',
+    cfg: 'fa-file-lines',
+    ini: 'fa-file-lines',
+     
     // Images
     jpg: 'fa-file-image',
     jpeg: 'fa-file-image',
@@ -255,13 +278,34 @@ function fetchFolders(path, folderContentsId, spinnerId, upButtonId, inputFieldI
             $(spinnerId).hide();
             $(folderContentsId).empty();
             data.forEach(function(item) {
-                var itemElement = $('<div>').html('<i class="fas fa-folder"></i> ' + item.name);
+                var itemElement;
                 if (item.isDir) {
+                    itemElement = $('<div>').html('<i class="fas fa-folder text-warning"></i> ' + item.name);
                     var fullPath = path + item.name + "/";
                     $(itemElement).addClass('folder-item').attr('data-path', fullPath);
-                    $(folderContentsId).append(itemElement);
+                } else {
+                    // Get file extension and appropriate icon
+                    var ext = item.ext ? item.ext.toLowerCase() : '';
+                    var iconClass = fileIcons[ext] || fileIcons['default'];
+                    
+                    // Format file size
+                    var sizeText = formatFileSize(item.size);
+                    
+                    // Create file element with icon, name, and size
+                    itemElement = $('<div>').html(
+                        '<i class="fas ' + iconClass + '"></i> ' + 
+                        item.name + 
+                        '<span class="file-size">(' + sizeText + ')</span>'
+                    );
+                    $(itemElement)
+                        .addClass('file-item')
+                        .attr('title', item.name + ' - ' + sizeText)
+                        .css('cursor', 'default');
                 }
+                $(folderContentsId).append(itemElement);
             });
+
+            // Only attach click handlers to folders
             $('.folder-item').click(function() {
                 var newPath = $(this).data('path');
                 window[currentPathVar] = newPath; 
@@ -279,4 +323,12 @@ function fetchFolders(path, folderContentsId, spinnerId, upButtonId, inputFieldI
             console.error("Error fetching folders:", error);
         }
     });
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
