@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.2.0 beta
+# 🎮 SharewareZ v2.2.1 beta
 
 ** ⚠️This is a BETA application⚠️ **
 
@@ -9,17 +9,17 @@ Invite your friends securely and share your favorite games!
 
 - 🔄 Updating from older versions: Automatic update supported - simply overwrite files
 - ⚠️ For versions below 1.2.1: Database reset required
-  - Run `app.py --force-setup` to recreate database
+  - Run `app.py --force-setup` to recreate database and run setup wizard
 - ⚖️ SharewareZ promotes legal usage only
 
 ## ✨ Core Features
 
 ### 📚 Game Library Management
 - 🔍 Smart folder scanning & cataloging
-- 📁 Support for 'updates' and 'extras' folders
 - 🖼️ Steam-style popup with screenshot galleries
 - 🏷️ Advanced filtering (genre, rating, gameplay modes)
-- 🎯 Discovery page features:
+- 📁 Support for 'updates' and 'extras' folders
+- 🎯 Discovery page to find new gems:
   - 🆕 Latest additions
   - ⭐ Top downloads
   - ❤️ Most favorited
