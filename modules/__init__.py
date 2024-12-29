@@ -54,6 +54,7 @@ def create_app():
         from modules.routes_apis_ssfb import ssfb_bp
         from modules.routes_smtp import smtp_bp
         from modules.routes_info import info_bp
+        from modules.routes_admin_more import admin2_bp
         log_system_event(f"SharewareZ v{app_version} initializing database", event_type='startup', event_level='information', audit_user='system')
         db.create_all()
         insert_default_filters()
@@ -61,6 +62,7 @@ def create_app():
     app.register_blueprint(routes.bp)
     app.register_blueprint(site_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(admin2_bp)
     app.register_blueprint(library_bp)
     app.register_blueprint(setup_bp)
     app.register_blueprint(settings_bp)
