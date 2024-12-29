@@ -604,9 +604,7 @@ pre {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 50px;
     position: relative;
-    margin: auto;
     padding: 0;
     width: 90%;
     max-height: calc(100vh - 100px);
