@@ -36,45 +36,113 @@ def square_image(image, size):
         image = new_image
     return image
 
-def get_folder_size_in_bytes(folder_path):
-    """Calculate the total size of a folder in bytes."""
-    if os.path.isfile(folder_path):
-        return os.path.getsize(folder_path)
+def get_folder_size_in_bytes(folder_path, timeout=300):
+    """Calculate the total size of a folder in bytes.
     
-    total_size = 0
-    for dirpath, dirnames, filenames in os.walk(folder_path):
-        for f in filenames:
-            fp = os.path.join(dirpath, f)
-            if os.path.exists(fp):
-                total_size += os.path.getsize(fp)
-    return max(total_size, 1)
+    Args:
+        folder_path (str): Path to the folder
+        timeout (int): Maximum time in seconds to spend calculating size
+    
+    Returns:
+        int: Total size in bytes, or 0 if there was an error
+    """
+    try:
+        # Check if path exists and is accessible
+        if not os.path.exists(folder_path):
+            print(f"Error: Path does not exist: {folder_path}")
+            return 0
+            
+        if not os.access(folder_path, os.R_OK):
+            print(f"Error: No read permission for path: {folder_path}")
+            return 0
 
-def get_folder_size_in_bytes_updates(folder_path):
-    settings = GlobalSettings.query.first()
-    total_size = 0
-    for dirpath, dirnames, filenames in os.walk(folder_path):
-        for f in filenames:
-            if settings and settings.update_folder_name and settings.update_folder_name != "" and settings.extras_folder_name and settings.extras_folder_name != "":
-                if settings.update_folder_name.lower() not in dirpath.lower() and settings.extras_folder_name.lower() not in dirpath.lower():
-                    fp = os.path.join(dirpath, f)
-                    if os.path.exists(fp):
-                        total_size += os.path.getsize(fp)
-            elif settings and settings.update_folder_name and settings.update_folder_name != "":
-                if settings.update_folder_name.lower() not in dirpath.lower():
-                    fp = os.path.join(dirpath, f)
-                    if os.path.exists(fp):
-                        total_size += os.path.getsize(fp)
-            elif settings.extras_folder_name and settings.extras_folder_name != "":
-                if settings.extras_folder_name.lower() not in dirpath.lower():
-                    fp = os.path.join(dirpath, f)
-                    if os.path.exists(fp):
-                        total_size += os.path.getsize(fp)
-            else:
-                fp = os.path.join(dirpath, f)
-                if os.path.exists(fp):
-                    total_size += os.path.getsize(fp)
-    return total_size
+        # Handle single file case
+        if os.path.isfile(folder_path):
+            try:
+                return os.path.getsize(folder_path)
+            except (OSError, IOError) as e:
+                print(f"Error getting file size: {e}")
+                return 0
 
+        total_size = 0
+        for dirpath, dirnames, filenames in os.walk(folder_path):
+            try:
+                # Skip if we can't access the directory
+                if not os.access(dirpath, os.R_OK):
+                    print(f"Warning: Skipping inaccessible directory: {dirpath}")
+                    continue
+
+                for f in filenames:
+                    try:
+                        fp = os.path.join(dirpath, f)
+                        # Skip symlinks unless they point to regular files
+                        if os.path.islink(fp):
+                            continue
+                        if os.path.exists(fp):
+                            total_size += os.path.getsize(fp)
+                    except (OSError, IOError) as e:
+                        print(f"Error processing file {f}: {e}")
+                        continue
+            except (OSError, IOError) as e:
+                print(f"Error accessing directory {dirpath}: {e}")
+                continue
+
+        return max(total_size, 1)
+
+    except Exception as e:
+        print(f"Unexpected error calculating folder size: {e}")
+        return 0
+
+
+def get_folder_size_in_bytes_updates(folder_path, timeout=300):
+    """Calculate folder size excluding update and extras folders."""
+    try:
+        if not os.path.exists(folder_path):
+            print(f"Error: Path does not exist: {folder_path}")
+            return 0
+            
+        if not os.access(folder_path, os.R_OK):
+            print(f"Error: No read permission for path: {folder_path}")
+            return 0
+
+        settings = GlobalSettings.query.first()
+        total_size = 0
+        
+        for dirpath, dirnames, filenames in os.walk(folder_path):
+            try:
+                # Skip if we can't access the directory
+                if not os.access(dirpath, os.R_OK):
+                    print(f"Warning: Skipping inaccessible directory: {dirpath}")
+                    continue
+
+                # Check if current directory should be excluded
+                should_process = True
+                if settings:
+                    if (settings.update_folder_name and settings.update_folder_name.lower() in dirpath.lower()) or \
+                       (settings.extras_folder_name and settings.extras_folder_name.lower() in dirpath.lower()):
+                        should_process = False
+
+                if should_process:
+                    for f in filenames:
+                        try:
+                            fp = os.path.join(dirpath, f)
+                            if os.path.islink(fp):
+                                continue
+                            if os.path.exists(fp):
+                                total_size += os.path.getsize(fp)
+                        except (OSError, IOError) as e:
+                            print(f"Error processing file {f}: {e}")
+                            continue
+
+            except (OSError, IOError) as e:
+                print(f"Error accessing directory {dirpath}: {e}")
+                continue
+
+        return max(total_size, 1)
+
+    except Exception as e:
+        print(f"Unexpected error calculating folder size: {e}")
+        return 0
 
 
 def read_first_nfo_content(full_disk_path):
