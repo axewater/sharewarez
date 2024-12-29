@@ -4,7 +4,7 @@ from threading import Thread
 from config import Config
 from flask import (
     Flask, render_template, flash, redirect, url_for, request, Blueprint, 
-    jsonify, session, abort, current_app, send_from_directory, 
+    jsonify, session, abort, current_app, 
     copy_current_request_context, g, current_app
 )
 from flask_login import current_user, login_required
@@ -19,7 +19,7 @@ from PIL import Image as PILImage
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
 from modules.forms import (
-    ScanFolderForm, ClearDownloadRequestsForm, CsrfProtectForm, 
+    ScanFolderForm, CsrfProtectForm, 
     AddGameForm, AutoScanForm, UpdateUnmatchedFolderForm, CsrfForm
 )
 from modules.models import (
@@ -28,7 +28,7 @@ from modules.models import (
     Category, GameURL, GlobalSettings, Library, user_favorites
 )
 from modules.utils_functions import (
-    load_release_group_patterns, get_folder_size_in_bytes, delete_associations_for_game,
+    load_release_group_patterns, delete_associations_for_game,
     get_folder_size_in_bytes_updates, format_size, read_first_nfo_content, 
     PLATFORM_IDS
 )
@@ -37,8 +37,6 @@ from modules.utils_auth import admin_required
 from modules.utils_gamenames import get_game_names_from_folder, get_game_name_by_uuid
 from modules.utils_scanning import refresh_images_in_background, delete_game_images
 from modules.utils_game_core import get_game_by_uuid, check_existing_game_by_igdb_id
-from modules.utils_download import update_download_request, zip_folder, zip_game
-from modules.utils_igdb_api import make_igdb_api_request, get_cover_thumbnail_url
 from modules.utils_processors import get_global_settings
 from modules import app_start_time, app_version
 
