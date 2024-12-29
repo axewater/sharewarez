@@ -1,17 +1,17 @@
 table {
     width: 100%;
-    table-layout: fixed; /* Use a fixed table layout */
-    border-collapse: collapse; /* Optional: for cleaner borders */
+    table-layout: fixed; 
+    border-collapse: collapse; 
 }
 
 th, td {
-    padding: 8px; /* Adjust padding for readability */
+    padding: 8px; 
     text-align: left;
-    word-wrap: break-word; /* Ensure text wraps within the cell */
+    word-wrap: break-word;
 }
 
 th {
-    background-color: #555; /* Optional: for better header contrast */
+    background-color: #555;
     color: #fff;
 }
 
@@ -36,12 +36,10 @@ th {
     margin-bottom: 10px;    
 }
 
-/* Spacing between form groups */
 .form-group {
-    margin-bottom: 20px; /* Adjust spacing as needed */
+    margin-bottom: 20px; 
 }
 
-/* Selection container for horizontal layout */
 .selection-container {
     display: flex;
     flex-direction: row;
@@ -52,23 +50,21 @@ th {
     margin-bottom: 20px;
 }
 
-/* Adjust form groups within selection container */
 .selection-container .form-group {
     flex: 1;
     min-width: 200px;
     margin-bottom: 0;
 }
 
-/* Control width of the library dropdown */
 #libraryUuid {
-    width: auto; /* Adjust to make it fit content or set a max-width */
-    display: inline-block; /* Makes width auto-adjust to content */
-    max-width: 100%; /* Prevents it from extending beyond its container */
-    min-width: 100px; /* Adjust to make it fit content or set a min-width */
+    width: auto; 
+    display: inline-block;
+    max-width: 100%; 
+    min-width: 100px; 
 }
 
 .loading-spinner {
-    position: fixed; /* or absolute */
+    position: fixed; 
     top: 5%;
     left: 5%;
 }
@@ -76,13 +72,11 @@ th {
     border-radius: 15px;
 
 }
-/* Ensure the loading spinner is hidden by default */
 #loadingSpinner,
 #loadingSpinnerManual {
     display: none; /* Hidden by default */
 }
 
-/* Styles for the global spinner (Unmatched Folders tab) */
 #globalSpinner {
     display: none;
     position: fixed;
@@ -91,31 +85,29 @@ th {
     transform: translate(-50%, -50%);
 }
 
-/* Table in Unmatched Folders tab */
 .table {
     border-radius: 15px;
 }
 
 .folder-item:hover {
-    background-color: #1671cd; /* Light gray background on hover, change as needed */
-    cursor: pointer; /* Changes the mouse cursor to a pointer to indicate it's clickable */
+    background-color: #1671cd; 
+    cursor: pointer; 
     padding: 1px;
     border-radius: 10px;
 }
 
-/* File browser icons styling */
 .folder-item i {
     margin-right: 10px;
-    color: #ffd700; /* Golden color for folders */
+    color: #ffd700; 
 }
 
 .folder-item i.fa-file {
-    color: #6c757d; /* Gray color for default file icon */
+    color: #6c757d; 
 }
 
 .scanandbrowse {
     padding: 15px;
-    color: #ffffff; /* White text color for better contrast */
+    color: #ffffff;
     background: #495057;
     border-radius: 15px;
 }
