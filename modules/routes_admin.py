@@ -74,7 +74,6 @@ def whitelist():
                          form=form)
     
 
-
 @admin_bp.route('/admin/newsletter', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -164,6 +163,7 @@ def manage_user_api(user_id):
             'email': user.email,
             'role': user.role,
             'state': user.state,
+            'about': user.about,
             'is_email_verified': user.is_email_verified
         })
     
@@ -176,6 +176,7 @@ def manage_user_api(user_id):
         user.role = data.get('role', user.role)
         user.state = data.get('state', user.state)
         user.is_email_verified = data.get('is_email_verified', user.is_email_verified)
+        user.about = data.get('about', user.about)
         
         if data.get('password'):
             user.set_password(data['password'])
@@ -198,7 +199,6 @@ def manage_user_api(user_id):
         except Exception as e:
             db.session.rollback()
             return jsonify({'success': False, 'message': str(e)}), 500
-        
         
 
 @admin_bp.route('/admin/settings', methods=['GET', 'POST'])
@@ -346,7 +346,6 @@ def test_igdb():
             return jsonify({'status': 'error', 'message': 'Invalid API response'}), 500
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
-    
     
 
 @admin_bp.route('/admin/manage_invites', methods=['GET', 'POST'])

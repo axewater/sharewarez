@@ -32,8 +32,10 @@
 				<table class="table table-hover">
 					<thead>
 						<tr>
+							<th>Avatar</th>
 							<th>Username</th>
 							<th>Email</th>
+							<th>About</th>
 							<th>Role</th>
 							<th>Status</th>
 							<th>Email Verified</th>
@@ -43,8 +45,13 @@
 					<tbody>
 						{% for user in users %}
 						<tr>
+							<td>
+								<img src="{{ url_for('static', filename=user.avatarpath) }}" 
+									 alt="User Avatar" class="user-avatar-small">
+							</td>
 							<td>{{ user.name }}</td>
 							<td>{{ user.email }}</td>
+							<td>{{ user.about or 'No description' }}</td>
 							<td>{{ user.role }}</td>
 							<td>
 								<span class="badge {% if user.state %}bg-success{% else %}bg-danger{% endif %}">
@@ -113,6 +120,11 @@
                             <input class="form-check-input" type="checkbox" id="editEmailVerified">
                             <label class="form-check-label" for="editEmailVerified">Email Verified</label>
                         </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editAbout" class="form-label">About</label>
+                        <textarea class="form-control" id="editAbout" 
+                                  rows="3" maxlength="256"></textarea>
                     </div>
                     <div class="mb-3">
                         <label for="editPassword" class="form-label">New Password (leave blank to keep current)</label>
