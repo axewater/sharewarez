@@ -154,7 +154,7 @@ def settings_panel():
         db.session.add(current_user.preferences)
         db.session.commit()
         flash('Your settings have been updated.', 'success')
-        return redirect(url_for('main.discover'))
+        return redirect(url_for('discover.discover'))
     elif request.method == 'GET':
         # Ensure preferences exist
         if not current_user.preferences:

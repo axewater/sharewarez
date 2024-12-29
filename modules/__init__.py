@@ -45,6 +45,7 @@ def create_app():
         from modules.routes_setup import setup_bp
         from modules.routes_settings import settings_bp
         from modules.routes_login import login_bp
+        from modules.routes_discover import discover_bp
         db.create_all()
         insert_default_filters()
         initialize_default_settings()
@@ -55,5 +56,6 @@ def create_app():
     app.register_blueprint(setup_bp)
     app.register_blueprint(settings_bp)
     app.register_blueprint(login_bp)
+    app.register_blueprint(discover_bp)
 
     return app

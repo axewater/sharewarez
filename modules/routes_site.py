@@ -54,7 +54,7 @@ def index():
         return redirect(url_for('login.login'))
         
     # If authenticated, redirect to discover page
-    return redirect(url_for('main.discover'))
+    return redirect(url_for('discover.discover'))
 
 
 @site_bp.route('/favicon.ico')

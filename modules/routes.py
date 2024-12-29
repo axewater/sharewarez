@@ -1737,77 +1737,6 @@ def download_file(file_location, file_size, game_uuid, file_name):
     flash("Your download request is being processed. You will be notified when the download is ready.", "info")
     return redirect(url_for('main.downloads'))
 
-@bp.route('/discover')
-@login_required
-def discover():
-    page_loc = get_loc("discover")
-    
-    def fetch_game_details(games_query, limit=8):
-        # Handle both query objects and lists
-        if hasattr(games_query, 'limit'):
-            games = games_query.limit(limit).all()
-        else:
-            games = games_query[:limit] if limit else games_query
-
-        game_details = []
-        for game in games:
-            # If game is a tuple (from group by query), get the Game object
-            if isinstance(game, tuple):
-                game = game[0]
-                
-            cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
-            cover_url = cover_image.url if cover_image else url_for('static', filename='newstyle/default_cover.jpg')
-            game_details.append({
-                'id': game.id,
-                'uuid': game.uuid,
-                'name': game.name,
-                'cover_url': cover_url,
-                'summary': game.summary,
-                'url': game.url,
-                'size': format_size(game.size),
-                'genres': [genre.name for genre in game.genres],
-                'first_release_date': game.first_release_date.strftime('%Y-%m-%d') if game.first_release_date else 'Not available',
-                # Optionally include library information here
-            })
-        return game_details
-
-    # Fetch libraries directly from the Library model
-    libraries_query = Library.query.all()
-    libraries = []
-    for lib in libraries_query:
-        libraries.append({
-            'uuid': lib.uuid,
-            'name': lib.name,
-            'image_url': lib.image_url if lib.image_url else url_for('static', filename='newstyle/default_library.jpg'),
-            # Include the platform if needed
-            'platform': lib.platform.name,
-        })
-
-    # Use the helper function to fetch games for each category
-    latest_games = fetch_game_details(Game.query.order_by(Game.date_created.desc()))
-    most_downloaded_games = fetch_game_details(Game.query.order_by(Game.times_downloaded.desc()))
-    highest_rated_games = fetch_game_details(Game.query.filter(Game.rating != None).order_by(Game.rating.desc()))
-    last_updated_games = fetch_game_details(Game.query.filter(Game.last_updated != None).order_by(Game.last_updated.desc()))
-    
-    # Get most favorited games using a subquery to count favorites
-    most_favorited = db.session.query(
-        Game,
-        func.count(user_favorites.c.user_id).label('favorite_count')
-    ).join(user_favorites).group_by(Game).order_by(
-        func.count(user_favorites.c.user_id).desc()
-    )
-    
-    # Extract just the Game objects from the query results
-    most_favorited_games_list = [game[0] for game in most_favorited]
-    most_favorited_games = fetch_game_details(most_favorited_games_list)
-
-    return render_template('games/discover.html',
-                           most_favorited_games=most_favorited_games,
-                           latest_games=latest_games,
-                           most_downloaded_games=most_downloaded_games,
-                           highest_rated_games=highest_rated_games,
-                           libraries=libraries, loc=page_loc, last_updated_games=last_updated_games)
-
 
 
 @bp.route('/download_zip/<download_id>')
@@ -2083,7 +2012,6 @@ def search_igdb_by_name():
             query += ";"
 
         query += " limit 10;"  # Set a limit to the number of results
-
         results = make_igdb_api_request('https://api.igdb.com/v4/games', query)
 
         if 'error' not in results:
@@ -2091,8 +2019,6 @@ def search_igdb_by_name():
         else:
             return jsonify({'error': results['error']})
     return jsonify({'error': 'No game name provided'})
-
-
 
 
 @bp.route('/check_scan_status', methods=['GET'])
@@ -2105,15 +2031,6 @@ def check_scan_status():
     return jsonify({"is_active": is_active})
 
 
-
-
-
-
-def get_loc(page):
-    
-    with open(f'modules/static/localization/en/{page}.json', 'r', encoding='utf8') as f:
-            loc_data = json.load(f)    
-    return loc_data
     
 @bp.add_app_template_global  
 def verify_file(full_path):
