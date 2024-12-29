@@ -1,4 +1,3 @@
-// Enhanced cookie handling functions
 function setCookie(name, value, days) {
     try {
         var expires = "";
@@ -31,7 +30,7 @@ function getCookie(name) {
                     return JSON.parse(decodedValue);
                 } catch (parseError) {
                     console.error('Error parsing cookie value:', parseError);
-                    deleteCookie(name); // Clean up invalid cookie
+                    deleteCookie(name);
                     return null;
                 }
             }
@@ -42,23 +41,16 @@ function getCookie(name) {
     }
     return null;
 }
-
 function deleteCookie(name) {
     document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
-
-// When updating this file, remember to update popup_menu.html too
 var csrfToken;
-var sortOrder = 'asc'; // Default sort order
-
+var sortOrder = 'asc'; 
 $('#sortOrderToggle').text(sortOrder === 'asc' ? '^' : '~');
-
 $(document).ready(function() {
-    // Load filters from cookie if they exist
     var savedFilters = getCookie('libraryFilters');
     if (savedFilters) {
         try {
-            // Apply saved filters to form elements
             $('#libraryNameSelect').val(savedFilters.library_uuid || '');
             $('#genreSelect').val(savedFilters.genre || '');
             $('#themeSelect').val(savedFilters.theme || '');
@@ -69,14 +61,10 @@ $(document).ready(function() {
             console.log('Successfully restored filters from cookie');
         } catch (e) {
             console.error('Error parsing saved filters:', e);
-            // Clean up invalid cookie
             deleteCookie('libraryFilters');
-            // Set default values
             resetFilters();
         }
     }
-
-    // Read preferences from data attributes
     var userPerPage = $('body').data('user-per-page');
     var userDefaultSort = $('body').data('user-default-sort');
     var userDefaultSortOrder = $('body').data('user-default-sort-order');
@@ -84,19 +72,13 @@ $(document).ready(function() {
     var currentPage = 1;
     var totalPages = 0;
     csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-    // Set items per page dropdown
     if (userPerPage) {
         $('#perPageSelect').val(userPerPage.toString());
     }
-
-    // Set sort dropdown
     if (userDefaultSort) {
         $('#sortSelect').val(userDefaultSort);
     }
-
-    // Update sort order and toggle button
-    sortOrder = userDefaultSortOrder || 'asc'; // Use user preference or default
+    sortOrder = userDefaultSortOrder || 'asc';
     $('#sortOrderToggle').text(sortOrder === 'asc' ? '^' : '~');
 
     function populateLibraries(callback) {
@@ -108,8 +90,8 @@ $(document).ready(function() {
                 librarySelect.empty().append($('<option>', { value: '', text: 'All Libraries' }));
                 response.forEach(function(library) {
                     librarySelect.append($('<option>', {
-                        value: library.uuid, // Use library UUID as the value
-                        text: library.name // Use library name as the display text
+                        value: library.uuid, 
+                        text: library.name
                     }));
                 });
                 if (typeof callback === "function") callback();
@@ -119,14 +101,12 @@ $(document).ready(function() {
             }
         }).done(function() {
             var initialParams = getUrlParams();
-            // Adjusted to check for library_uuid
             if (initialParams.library_uuid) {
                 $('#libraryNameSelect').val(initialParams.library_uuid);
             }
             fetchFilteredGames();
         });
     }
-
     function populateGenres(callback) {
         $.ajax({
             url: '/api/genres',
@@ -235,8 +215,8 @@ $(document).ready(function() {
     }
 
     function fetchFilteredGames(page) {
-        var urlParams = getUrlParams(); // Get URL parameters
-        page = page || urlParams.page || 1; // Use URL parameter for page if available
+        var urlParams = getUrlParams(); 
+        page = page || urlParams.page || 1; 
         var filters = {
             library_uuid: $('#libraryNameSelect').val() || urlParams.library_uuid || undefined,
             page: page,
@@ -246,17 +226,14 @@ $(document).ready(function() {
             game_mode: $('#gameModeSelect').val() || urlParams.gameMode,
             player_perspective: $('#playerPerspectiveSelect').val() || urlParams.playerPerspective,
             theme: $('#themeSelect').val() || urlParams.theme,
-            rating: $('#ratingSlider').val() !== '0' ? $('#ratingSlider').val() : undefined, // if 0, do not filter!
+            rating: $('#ratingSlider').val() !== '0' ? $('#ratingSlider').val() : undefined, 
             sort_by: $('#sortSelect').val(),
             sort_order: sortOrder,
         };
-
-        // Enhanced Logging
         console.log("Fetching games with filters:", filters);
-        var queryString = $.param(filters); // Convert filters object to query string
+        var queryString = $.param(filters);
         console.log(`Full query URL: /browse_games?${queryString}`);
 
-        // AJAX request using filters, including those from URL parameters
         $.ajax({
             url: '/browse_games',
             data: filters,
@@ -276,28 +253,22 @@ $(document).ready(function() {
 
     function updateGamesContainer(games) {
         $('#gamesContainer').empty();
-
         if (libraryCount < 1) {
-            // Fetch the current user's role from the server
             $.ajax({
-                url: '/api/current_user_role',  // Ensure this URL is correct and accessible
+                url: '/api/current_user_role',
                 method: 'GET',
                 success: function(response) {
-                    let message;  // Declare the message variable here for wider scope
+                    let message;
                     if (response.role === 'admin') {
-                        // Dynamic URL for the Library Manager
                         message = `<p>You have no Libraries!<br><br> Go to <a href="${libraryManagerUrl}">Library Manager</a> and create one.</p>`;
                     } else {
-                        // User is not an admin, show a generic message
                         message = '<p>No games or libraries found. Complain to the Captain of this vessel!</p>';
                     }
-                    // Append the message to the gamesContainer
                     if ($('#gamesContainer').empty()) {
                         $('#gamesContainer').append(message);
                     }
                 },
                 error: function() {
-                    // Handle errors, e.g., if the endpoint is unreachable
                     $('#gamesContainer').append('<p>Error fetching user role. Please try again later.</p>');
                 }
             });
@@ -305,26 +276,21 @@ $(document).ready(function() {
         }
 
         else if (gamesCount < 1) {
-            // Fetch the current user's role from the server
             $.ajax({
-                url: '/api/current_user_role',  // Ensure this URL is correct and accessible
+                url: '/api/current_user_role',
                 method: 'GET',
                 success: function(response) {
-                    let message;  // Declare the message variable here for wider scope
+                    let message;
                     if (response.role === 'admin') {
-                        // Dynamic URL for the Library Manager
                         message = `<p>You have no games!<br> <br>Go to <a href="${libraryScanUrl}">Scan Manager</a> and add some games.</p>`;
                     } else {
-                        // User is not an admin, show a generic message
                         message = '<p>No games or libraries found. Complain to the Captain of this vessel!</p>';
                     }
-                    // Append the message to the gamesContainer
                     if ($('#gamesContainer').empty()) {
                         $('#gamesContainer').append(message);
                     }
                 },
                 error: function() {
-                    // Handle errors, e.g., if the endpoint is unreachable
                     $('#gamesContainer').append('<p>Error fetching user role. Please try again later.</p>');
                 }
             });
@@ -332,26 +298,21 @@ $(document).ready(function() {
         }
 
         else if (games.length === 0) {
-            // Fetch the current user's role from the server
             $.ajax({
-                url: '/api/current_user_role',  // Ensure this URL is correct and accessible
+                url: '/api/current_user_role', 
                 method: 'GET',
                 success: function(response) {
-                    let message;  // Declare the message variable here for wider scope
+                    let message; 
                     if (response.role === 'admin') {
-                        // Dynamic URL for the Library Manager
                         message = `<p>You have no games in this library!<br> <br>Go to <a href="${libraryScanUrl}">Scan Manager</a> and add some games to the library.</p>`;
                     } else {
-                        // User is not an admin, show a generic message
                         message = '<p>No games or libraries found. Complain to the Captain of this vessel!</p>';
                     }
-                    // Append the message to the gamesContainer
                     if ($('#gamesContainer').empty()) {
                         $('#gamesContainer').append(message);
                     }
                 },
                 error: function() {
-                    // Handle errors, e.g., if the endpoint is unreachable
                     $('#gamesContainer').append('<p>Error fetching user role. Please try again later.</p>');
                 }
             });
@@ -366,11 +327,9 @@ $(document).ready(function() {
 
     function createGameCardHtml(game) {
         var genres = game.genres ? game.genres.join(', ') : 'No Genres';
-        // Check if cover_url is not specified or is exactly 'newstyle/default_cover.jpg'
         var defaultCover = 'newstyle/default_cover.jpg';
         var fullCoverUrl = !game.cover_url || game.cover_url === defaultCover ? '/static/' + defaultCover : '/static/library/images/' + game.cover_url;
-        var popupMenuHtml = createPopupMenuHtml(game); // Ensure this function generates the correct HTML for your popup menu
-
+        var popupMenuHtml = createPopupMenuHtml(game);
         var gameCardHtml = `
     <div class="game-card-container">
         <div class="game-card" onmouseover="showDetails(this, '${game.uuid}')" onmouseout="hideDetails()" data-name="${game.name}" data-size="${game.size}" data-genres="${genres}">
@@ -392,49 +351,39 @@ $(document).ready(function() {
     }
 
     function createPopupMenuHtml(game) {
-        // when modifying this function, make sure to update the popup_menu.html template as well
+        // update the popup_menu.html template as well
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-        // Fetch the current setting for enableDeleteGameOnDisk
         const enableDeleteGameOnDisk = document.body.getAttribute('data-enable-delete-game-on-disk') === 'true';
-
         let menuHtml = `
     <div id="popupMenu-${game.uuid}" class="popup-menu" style="display: none;">
         <form action="/download_game/${game.uuid}" method="get" class="menu-item">
             <button type="submit" class="menu-button">Download</button>
         </form>
-
         <form action="/game_edit/${game.uuid}" method="get" class="menu-item">
             <button type="submit" class="menu-button">Edit Details</button>
         </form>
-        
         <form action="/edit_game_images/${game.uuid}" method="get" class="menu-item">
             <button type="submit" class="menu-button">Edit Images</button>
         </form>
-
         <form action="/refresh_game_images/${game.uuid}" method="post" class="menu-item">
             <input type="hidden" name="csrf_token" value="${csrfToken}">
             <button type="submit" class="menu-button refresh-game-images" data-game-uuid="${game.uuid}">Refresh Images</button>
         </form>
-        
         <div class="menu-item">
             <button type="button" class="menu-button delete-game" data-game-uuid="${game.uuid}">Remove Game</button>
         </div>`;
-
         if (enableDeleteGameOnDisk) {
             menuHtml += `
         <div class="menu-item">
             <button type="button" class="menu-button trigger-delete-disk-modal delete-game-from-disk" data-game-uuid="${game.uuid}">Delete Game from Disk</button>
         </div>`;
         }
-
         menuHtml += `
         <div class="menu-item">
             <button type="submit" onclick="window.open('{{ game.url }}', 'target=_new')" class="menu-button">Open IGDB Page</button>
         </div>
     </div>
     `;
-
         return menuHtml;
     }
 
@@ -442,7 +391,7 @@ $(document).ready(function() {
         sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
         $(this).text(sortOrder === 'asc' ? '^' : '~'); 
         console.log('sortOrderToggle clicked, new sort order:', sortOrder);
-        fetchFilteredGames(currentPage); // Refetch games with the new sort order
+        fetchFilteredGames(currentPage);
     });
 
     function updatePaginationControls() {
@@ -451,7 +400,7 @@ $(document).ready(function() {
     }
 
     $('#perPageSelect').change(function() {
-        fetchFilteredGames(1); // Fetch starting at page 1 with the new per page value
+        fetchFilteredGames(1);
         console.log('perPageSelect changed to ' + $(this).val());
     });
 
@@ -471,7 +420,6 @@ $(document).ready(function() {
 
     $('#filterForm').on('submit', function(e) {
         e.preventDefault();
-        // Save filters to cookie
         var filters = {
             library_uuid: $('#libraryNameSelect').val(),
             genre: $('#genreSelect').val(),
@@ -481,7 +429,7 @@ $(document).ready(function() {
             rating: $('#ratingSlider').val()
         };
         console.log('Saving filters to cookie:', filters);
-        setCookie('libraryFilters', filters, 30); // Save for 30 days
+        setCookie('libraryFilters', filters, 30);
         fetchFilteredGames(1);
     });
 
@@ -490,20 +438,11 @@ $(document).ready(function() {
     });
 
     $('#clearFilters').click(function() {
-        // Reset all select elements to their first option
         $('#libraryNameSelect, #genreSelect, #themeSelect, #gameModeSelect, #playerPerspectiveSelect').val('');
-
-        // Reset rating slider
         $('#ratingSlider').val(0);
         $('#ratingValue').text('0');
-
-        // Reset sort select to default (assuming 'name' is the default)
         $('#sortSelect').val('name');
-
-        // Clear the cookie
         deleteCookie('libraryFilters');
-
-        // Fetch games with cleared filters
         fetchFilteredGames(1);
     });
 
@@ -528,13 +467,12 @@ $(document).ready(function() {
         $('#playerPerspectiveSelect').val(initialParams.playerPerspective);
     }
 
-    // Initialize filter dropdowns
     populateLibraries(function() {
         populateGenres(function() {
             populateThemes(function() {
                 populateGameModes(function() {
                     populatePlayerPerspectives(function() {
-                        // After all dropdowns are populated, restore filters from cookie
+                        // restore filters from cookie
                         var savedFilters = getCookie('libraryFilters');
                         if (savedFilters) {
                             console.log('Restoring filters from cookie:', savedFilters);
@@ -560,7 +498,7 @@ $(document).ready(function() {
 
 document.body.addEventListener('click', function(event) {
     if (event.target.classList.contains('refresh-game-images')) {
-        event.preventDefault(); // Prevent default form submission
+        event.preventDefault();
         const gameUuid = event.target.getAttribute('data-game-uuid');
         console.log(`Refreshing images for game UUID: ${gameUuid}`);
 
@@ -571,7 +509,7 @@ document.body.addEventListener('click', function(event) {
                 'X-CSRF-Token': csrfToken,
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({ /* Your data here */ })
+            body: JSON.stringify({ /*  */ })
         })
         .then(response => {
             console.log('Response status:', response.status);
@@ -580,7 +518,7 @@ document.body.addEventListener('click', function(event) {
             }
             return response.text().then(text => {
                 try {
-                    return JSON.parse(text); // Manually parse the JSON to handle non-JSON responses gracefully
+                    return JSON.parse(text);
                 } catch (error) {
                     console.error('Error parsing JSON:', error);
                     console.log('Raw text response:', text);
@@ -590,7 +528,6 @@ document.body.addEventListener('click', function(event) {
         })
         .then(data => {
             console.log('Game images refreshed successfully', data);
-            // Handle successful refresh, maybe update the UI to reflect the change
         })
         .catch(error => {
             console.error('There has been a problem with your fetch operation:', error);
