@@ -128,8 +128,8 @@ def setup_igdb():
         try:
             db.session.commit()
             session.pop('setup_step', None)  # Clear setup progress
-            flash('Setup completed successfully! You can now log in.', 'success')
-            return redirect(url_for('main.login'))
+            flash('Setup completed successfully! Please create your first game library.', 'success')
+            return redirect(url_for('library.libraries'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error saving IGDB settings: {str(e)}', 'error')
