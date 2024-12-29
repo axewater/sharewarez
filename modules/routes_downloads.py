@@ -50,7 +50,7 @@ def download_game(game_uuid):
     game = Game.query.filter_by(uuid=game_uuid).first_or_404()
     print(f"Game found: {game}")
 
-    log_system_event(f"User initiated download for game: {game.name}", event_type='download', event_level='information')
+    log_system_event(f"User initiated download for game: {game.name}", event_type='game', event_level='information')
     # Check for any existing download request for the same game by the current user, regardless of status
     existing_request = DownloadRequest.query.filter_by(user_id=current_user.id, file_location=game.full_disk_path).first()
     
@@ -85,7 +85,7 @@ def download_game(game_uuid):
     game.times_downloaded += 1
     db.session.commit()
 
-    log_system_event(f"Download request created for game: {game.name}", event_type='download', event_level='information')
+    log_system_event(f"Download request created for game: {game.name}", event_type='game', event_level='information')
     # Start the download process (potentially in a new thread as before)
     @copy_current_request_context
     def thread_function():
@@ -114,7 +114,7 @@ def download_other(file_type, game_uuid, file_id):
     
     if not file_record:
         flash(f"{file_type.capitalize()} file not found", "error")
-        log_system_event(f"Failed to download {file_type} - file not found: {game_uuid}", event_type='download', event_level='error')
+        log_system_event(f"Failed to download {file_type} - file not found: {game_uuid}", event_type='game', event_level='error')
         return redirect(url_for('games.game_details', game_uuid=game_uuid))
 
     # Check if the file or folder exists

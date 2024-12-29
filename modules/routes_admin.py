@@ -109,9 +109,7 @@ def delete_whitelist(whitelist_id):
     try:
         whitelist_entry = Whitelist.query.get_or_404(whitelist_id)
         db.session.delete(whitelist_entry)
-        db.session.commit()
-        log_system_event(f"Admin {current_user.name} deleted whitelist entry: {whitelist_entry.email}", 
-                          event_type='admin', event_level='information', audit_user=current_user.id)
+        log_system_event(f"Admin {current_user.name} deleted whitelist entry: {whitelist_entry.email}", event_type='audit', event_level='information', audit_user=current_user.id)
         return jsonify({'success': True, 'message': 'Entry deleted successfully'})
     except Exception as e:
         db.session.rollback()
@@ -142,8 +140,7 @@ def manage_user_api(user_id):
             new_user.set_password(data['password'])
             db.session.add(new_user)
             db.session.commit()
-            log_system_event(f"Admin {current_user.name} created new user: {data['username']}", 
-                              event_type='admin', event_level='information', audit_user=current_user.id)
+            log_system_event(f"Admin {current_user.name} created new user: {data['username']}", event_type='audit', event_level='information', audit_user=current_user.id)
             return jsonify({'success': True})
         except Exception as e:
             db.session.rollback()
@@ -225,7 +222,7 @@ def manage_settings():
         settings_record.last_updated = datetime.utcnow()
         
         db.session.commit()
-        log_system_event("Global settings updated", "settings", "INFO")
+        log_system_event("Global settings updated", "audit", "information")
         cache.delete('global_settings')
         return jsonify({'message': 'Settings updated successfully'}), 200
 
