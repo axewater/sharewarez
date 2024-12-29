@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_system_logs.css') }}">
 {% endif %}
 
+<!-- Move DataTables CSS to head -->
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.css">
+{% endblock %}
+
 <div class="container">
     <div class="row mb-4">
         <div class="col">
@@ -71,18 +76,10 @@
     </div>
 </div>
 
-<script>
-$(document).ready(function() {
-    $('#logsTable').DataTable({
-        order: [[0, 'desc']],
-        pageLength: 50,
-        dom: '<"top"f>rt<"bottom"lip><"clear">',
-        language: {
-            search: "_INPUT_",
-            searchPlaceholder: "Search logs..."
-        }
-    });
-});
-</script>
+{% block scripts %}
+    <!-- Add DataTables JS -->
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.js"></script>
+    <script src="{{ url_for('static', filename='library/themes/default/js/admin_system_logs.js') }}"></script>
+{% endblock %}
 
 {% endblock %}
