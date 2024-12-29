@@ -13,6 +13,8 @@ import uuid, json
 from uuid import uuid4
 from datetime import datetime, timedelta
 from enum import Enum as PyEnum
+import re
+from wtforms.validators import ValidationError
 
 
 ph = PasswordHasher()
@@ -405,6 +407,12 @@ class User(db.Model):
 
     def get_id(self):
         return str(self.id)
+
+    @staticmethod
+    def is_username_reserved(username):
+        """Check if a username is reserved"""
+        reserved_names = {'system'}
+        return username.lower() in reserved_names
 
     def __repr__(self):
         return f"<User id={self.id}, name={self.name}, email={self.email}>"
