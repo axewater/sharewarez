@@ -48,6 +48,7 @@ def create_app():
         from modules.routes_discover import discover_bp
         from modules.routes_apis_filters import apis_filters_bp
         from modules.routes_apis_other import apis_other_bp
+        from modules.routes_downloads import download_bp
         db.create_all()
         insert_default_filters()
         initialize_default_settings()
@@ -61,5 +62,6 @@ def create_app():
     app.register_blueprint(discover_bp)
     app.register_blueprint(apis_filters_bp)
     app.register_blueprint(apis_other_bp)
+    app.register_blueprint(download_bp)
 
     return app
