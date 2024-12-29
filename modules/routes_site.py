@@ -77,7 +77,10 @@ def favorites():
         cover_url = cover_image.url if cover_image else 'newstyle/default_cover.jpg'
         genres = [genre.name for genre in game.genres]
         game_size_formatted = format_size(game.size)
-        game_data.append({'uuid': game.uuid, 'name': game.name, 'cover_url': cover_url, 'size': game_size_formatted, 'genres': genres})
+        favorite_count = len(game.favorited_by)
+        game_data.append({'uuid': game.uuid, 'name': game.name, 'cover_url': cover_url, 
+                         'size': game_size_formatted, 'genres': genres, 
+                         'favorite_count': favorite_count})
     
     return render_template('games/favorites.html', favorites=game_data)
 
@@ -87,4 +90,3 @@ def favicon():
     full_dir = os.path.join(current_app.static_folder, favidir)
     # print(f"Full dir: {full_dir}" if os.path.isdir(full_dir) else f"Dir not found: {full_dir}")
     return send_from_directory(full_dir, 'favicon.ico', mimetype='image/vnd.microsoft.icon')
-
