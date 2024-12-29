@@ -5,7 +5,7 @@
     backdrop-filter: blur(10px);
     border-radius: 10px;
     padding: 20px;
-    margin: 20px;
+    margin: 20px 210px;
     box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     width: 900px;
     min-height: 80vh; 
@@ -294,13 +294,11 @@ pre {
     display: none;
     position: fixed;
     z-index: 1050;
-    padding-top: 50px;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgb(0,0,0);
     background-color: rgba(0,0,0,0.9);
 }
 
@@ -582,13 +580,12 @@ pre {
 .modal {
     display: none;
     position: fixed;
-    z-index: 15;
+    z-index: 1050;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgb(0,0,0);
     background-color: rgba(0,0,0,0.9);
 }
 
@@ -607,13 +604,14 @@ pre {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100%;
+    margin-top: 50px;
     position: relative;
     margin: auto;
     padding: 0;
     width: 90%;
+    max-height: calc(100vh - 100px);
     background-color: #080e1d;
-    z-index: 15;
+    z-index: 1051;
 }
 
 .close {
@@ -621,8 +619,9 @@ pre {
     position: absolute;
     top: 10px;
     right: 25px;
-    font-size: 35px;
+    font-size: 40px;
     font-weight: bold;
+    z-index: 1052;
     cursor: pointer;
 }
 

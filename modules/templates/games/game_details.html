@@ -232,9 +232,6 @@
 
 {# Game Details #}
 
-
-
-
 {% if game %}
     <div class="glass-panel-gamecard">
         <head>
@@ -377,7 +374,7 @@
                         <img src="{{ url_for('static', filename='library/images/' + image.url) }}" 
                              alt="{{ game.name }} Screenshot" 
                              class="screenshot-image" 
-                             onclick="openModal();currentSlide({{ loop.index }})">
+                             onclick="openModal({{ loop.index }})">
                     {% endfor %}
                 </div>
             {% endif %}
