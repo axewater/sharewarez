@@ -285,3 +285,5 @@ def delete_game_images(game_uuid):
         except Exception as e:
             db.session.rollback()
             print(f"Error committing image deletion changes to the database: {e}")
+            
+            
