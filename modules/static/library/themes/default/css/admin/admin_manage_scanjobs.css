@@ -108,7 +108,7 @@ th {
 .scanandbrowse {
     padding: 15px;
     color: #ffffff;
-    background: #495057;
+    background: rgba(30, 30, 30, 0.95);
     border-radius: 15px;
 }
 
