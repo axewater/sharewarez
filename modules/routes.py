@@ -1568,27 +1568,6 @@ def delete_download(download_id):
     return redirect(url_for('main.downloads'))
 
 
-@bp.route('/admin/manage-downloads', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def manage_downloads():
-    print("Route: /admin/manage-downloads")
-    form = ClearDownloadRequestsForm()
-    if form.validate_on_submit():
-        print("Deleting all download requests")
-        try:
-            DownloadRequest.query.filter(DownloadRequest.status == 'processing').delete()
-            
-            db.session.commit()
-            flash('All processing downloads have been cleared.', 'success')
-        except Exception as e:
-            db.session.rollback()
-            flash(f'An error occurred: {e}', 'danger')
-        return redirect(url_for('main.manage_downloads'))
-
-    download_requests = DownloadRequest.query.all()
-    return render_template('admin/admin_manage_downloads.html', form=form, download_requests=download_requests)
-
     
 @bp.add_app_template_global  
 def verify_file(full_path):

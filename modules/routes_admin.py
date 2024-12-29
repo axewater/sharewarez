@@ -11,9 +11,9 @@ from modules.utils_processors import get_global_settings
 from modules import app_version
 from config import Config
 from modules.utils_igdb_api import make_igdb_api_request
-from modules.models import Whitelist, User, GlobalSettings, InviteToken, ReleaseGroup, AllowedFileType, IgnoredFileType, LibraryPlatform, Library
+from modules.models import Whitelist, User, GlobalSettings, InviteToken, ReleaseGroup, AllowedFileType, IgnoredFileType, LibraryPlatform, Library, DownloadRequest
 from modules import db, mail, cache
-from modules.forms import WhitelistForm, NewsletterForm, ReleaseGroupForm, ThemeUploadForm, LibraryForm
+from modules.forms import WhitelistForm, NewsletterForm, ReleaseGroupForm, ThemeUploadForm, LibraryForm, ClearDownloadRequestsForm
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func
 from datetime import datetime
@@ -510,47 +510,7 @@ def extensions():
     return render_template('admin/admin_manage_extensions.html', 
                          allowed_types=allowed_types)
 
-# File type management routes
-@admin_bp.route('/api/file_types/<string:type_category>', methods=['GET', 'POST', 'PUT', 'DELETE'])
-@login_required
-@admin_required
-def manage_file_types(type_category):
-    if type_category not in ['allowed', 'ignored']:
-        return jsonify({'error': 'Invalid type category'}), 400
 
-    ModelClass = AllowedFileType if type_category == 'allowed' else IgnoredFileType
-
-    if request.method == 'GET':
-        types = ModelClass.query.order_by(ModelClass.value.asc()).all()
-        return jsonify([{'id': t.id, 'value': t.value} for t in types])
-
-    elif request.method == 'POST':
-        data = request.get_json()
-        new_type = ModelClass(value=data['value'].lower())
-        try:
-            db.session.add(new_type)
-            db.session.commit()
-            return jsonify({'id': new_type.id, 'value': new_type.value})
-        except IntegrityError:
-            db.session.rollback()
-            return jsonify({'error': 'Type already exists'}), 400
-
-    elif request.method == 'PUT':
-        data = request.get_json()
-        file_type = ModelClass.query.get_or_404(data['id'])
-        file_type.value = data['value'].lower()
-        try:
-            db.session.commit()
-            return jsonify({'id': file_type.id, 'value': file_type.value})
-        except IntegrityError:
-            db.session.rollback()
-            return jsonify({'error': 'Type already exists'}), 400
-
-    elif request.method == 'DELETE':
-        file_type = ModelClass.query.get_or_404(request.get_json()['id'])
-        db.session.delete(file_type)
-        db.session.commit()
-        return jsonify({'success': True})
 
 
 
@@ -839,3 +799,24 @@ def add_edit_library(library_uuid=None):
             print(f"Error saving library: {e}")
 
     return render_template('admin/admin_manage_library_create.html', form=form, library=library, page_title=page_title)
+
+@admin_bp.route('/admin/manage-downloads', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def manage_downloads():
+    print("Route: /admin/manage-downloads")
+    form = ClearDownloadRequestsForm()
+    if form.validate_on_submit():
+        print("Deleting all download requests")
+        try:
+            DownloadRequest.query.filter(DownloadRequest.status == 'processing').delete()
+            
+            db.session.commit()
+            flash('All processing downloads have been cleared.', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'An error occurred: {e}', 'danger')
+        return redirect(url_for('main.manage_downloads'))
+
+    download_requests = DownloadRequest.query.all()
+    return render_template('admin/admin_manage_downloads.html', form=form, download_requests=download_requests)
