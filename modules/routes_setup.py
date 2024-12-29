@@ -5,6 +5,7 @@ from modules.forms import SetupForm, IGDBSetupForm
 from modules.models import User, GlobalSettings
 from uuid import uuid4
 from datetime import datetime
+from modules.utils_logging import log_system_event
 
 setup_bp = Blueprint('setup', __name__)
 
@@ -55,6 +56,7 @@ def setup_submit():
             db.session.add(user)
             db.session.commit()
             session['setup_step'] = 2  # Move to SMTP setup
+            log_system_event("Admin account created during setup", event_type='setup', event_level='information')
             flash('Admin account created successfully! Please configure your SMTP settings.', 'success')
             return redirect(url_for('setup.setup_smtp'))
         except Exception as e:
@@ -102,6 +104,7 @@ def setup_smtp():
         try:
             db.session.commit()
             session['setup_step'] = 3  # Move to IGDB setup
+            log_system_event("SMTP settings configured during setup", event_type='setup', event_level='information')
             flash('SMTP settings saved successfully! Please configure your IGDB settings.', 'success')
             return redirect(url_for('setup.setup_igdb'))
         except Exception as e:
@@ -129,6 +132,7 @@ def setup_igdb():
         try:
             db.session.commit()
             session.pop('setup_step', None)  # Clear setup progress
+            log_system_event("IGDB settings configured - Setup completed", event_type='setup', event_level='information')
             flash('Setup completed successfully! Please create your first game library.', 'success')
             return redirect(url_for('library.libraries'))
         except Exception as e:
