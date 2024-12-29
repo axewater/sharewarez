@@ -32,7 +32,7 @@
     
 
     <div class="mb-5">
-        <form action="{{ url_for('main.invites') }}" method="POST" class="row g-3">
+        <form action="{{ url_for('login.invites') }}" method="POST" class="row g-3">
             {{ form.hidden_tag() }}
             <div class="col-auto">
                 {{ form.email(class="form-control") }}

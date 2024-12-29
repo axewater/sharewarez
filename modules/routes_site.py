@@ -39,7 +39,7 @@ def helpfaq():
 @site_bp.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('main.login'))
+    return redirect(url_for('login.login'))
 
 
 @site_bp.route('/', methods=['GET', 'POST'])
@@ -51,7 +51,7 @@ def index():
         
     # If not authenticated, redirect to login
     if not current_user.is_authenticated:
-        return redirect(url_for('main.login'))
+        return redirect(url_for('login.login'))
         
     # If authenticated, redirect to discover page
     return redirect(url_for('main.discover'))

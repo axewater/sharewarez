@@ -32,7 +32,7 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     mail.init_app(app)
-    login_manager.login_view = 'main.login'
+    login_manager.login_view = 'login.login'
     cache.init_app(app)
 
     with app.app_context():
@@ -44,6 +44,7 @@ def create_app():
         from modules.routes_library import library_bp
         from modules.routes_setup import setup_bp
         from modules.routes_settings import settings_bp
+        from modules.routes_login import login_bp
         db.create_all()
         insert_default_filters()
         initialize_default_settings()
@@ -53,5 +54,6 @@ def create_app():
     app.register_blueprint(library_bp)
     app.register_blueprint(setup_bp)
     app.register_blueprint(settings_bp)
+    app.register_blueprint(login_bp)
 
     return app

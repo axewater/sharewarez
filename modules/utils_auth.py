@@ -30,13 +30,13 @@ def _authenticate_and_redirect(username, password):
         return redirect(next_page)
     else:
         flash('Invalid username or password', 'error')
-        return redirect(url_for('main.login'))
+        return redirect(url_for('login.login'))
 
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or current_user.role != 'admin':
             flash("You must be an admin to access this page.", "danger")
-            return redirect(url_for('main.login'))
+            return redirect(url_for('login.login'))
         return f(*args, **kwargs)
     return decorated_function

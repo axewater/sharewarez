@@ -24,7 +24,7 @@ def setup():
 
     if User.query.first():
         flash('Setup has already been completed.', 'warning')
-        return redirect(url_for('main.login'))
+        return redirect(url_for('login.login'))
 
     form = SetupForm()
     return render_template('setup/setup.html', form=form)
@@ -33,7 +33,7 @@ def setup():
 def setup_submit():
     if User.query.first():
         flash('Setup has already been completed.', 'warning')
-        return redirect(url_for('main.login'))
+        return redirect(url_for('login.login'))
 
     form = SetupForm()
     if form.validate_on_submit():
@@ -72,7 +72,7 @@ def setup_smtp():
     
     if setup_step is None:
         flash('Setup already completed.', 'warning')
-        return redirect(url_for('main.login'))
+        return redirect(url_for('login.login'))
     
     if setup_step != 2:
         flash('Please complete the admin account setup first.', 'warning')

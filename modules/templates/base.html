@@ -52,7 +52,7 @@
         <!-- Expandable User Account Menu -->
         <div id="userAccountMenu" class="user-account-menu hide">
             <a href="{{ url_for('settings.settings_profile_view') }}" class="account-menu-option">Profile</a>
-            <a href="{{ url_for('main.invites') }}" class="account-menu-option">Invites</a>
+            <a href="{{ url_for('login.invites') }}" class="account-menu-option">Invites</a>
             <a href="{{ url_for('settings.settings_panel') }}" class="account-menu-option">Preferences</a>
             <a href="{{ url_for('settings.account_pw') }}" class="account-menu-option">Change Password</a>
             <a href="{{ url_for('site.logout') }}" class="account-menu-option">Logout</a>
@@ -94,8 +94,8 @@
             {% endif %}
             
         {% else %}
-            <a href="{{ url_for('main.login') }}" class="sidebar-link"><i class="fas fa-sign-in-alt"></i><span class="link-text">Login</span></a>
-            <a href="{{ url_for('main.register') }}" class="sidebar-link"><i class="fas fa-user-plus"></i><span class="link-text">Register</span></a>
+            <a href="{{ url_for('login.login') }}" class="sidebar-link"><i class="fas fa-sign-in-alt"></i><span class="link-text">Login</span></a>
+            <a href="{{ url_for('login.register') }}" class="sidebar-link"><i class="fas fa-user-plus"></i><span class="link-text">Register</span></a>
         {% endif %}
         {% include 'games/library_filters.html' %}
     </div>
