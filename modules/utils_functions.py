@@ -347,3 +347,10 @@ def get_games_count():
     # Logging the count of games returned
     print(f"Returning {len(games)} games.")
     return len(games)
+
+def delete_associations_for_game(game_to_delete):
+    associations = [game_to_delete.genres, game_to_delete.platforms, game_to_delete.game_modes,
+                    game_to_delete.themes, game_to_delete.player_perspectives, game_to_delete.multiplayer_modes]
+    
+    for association in associations:
+        association.clear()
