@@ -36,6 +36,8 @@ def create_app():
     cache.init_app(app)
 
     with app.app_context():
+        # Initialize library folders
+        from modules.init_data import initialize_library_folders
         from modules.utils_logging import log_system_event
         from . import routes, models
         from modules.utils_auth import load_user
@@ -55,6 +57,8 @@ def create_app():
         from modules.routes_smtp import smtp_bp
         from modules.routes_info import info_bp
         from modules.routes_admin_more import admin2_bp
+        initialize_library_folders()
+
         log_system_event(f"SharewareZ v{app_version} initializing database", event_type='startup', event_level='startup', audit_user='system')
         db.create_all()
         insert_default_filters()
