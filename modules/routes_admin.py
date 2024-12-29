@@ -22,6 +22,7 @@ from flask import flash
 from uuid import uuid4
 import os
 from modules import app_start_time
+from modules.utils_logging import log_system_event
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -252,6 +253,7 @@ def manage_settings():
         settings_record.site_url = new_settings.get('siteUrl', 'http://127.0.0.1')
         settings_record.last_updated = datetime.utcnow()
         db.session.commit()
+        log_system_event("Global settings updated", "settings", "INFO")
         cache.delete('global_settings')
         return jsonify({'message': 'Settings updated successfully'}), 200
 
@@ -427,10 +429,10 @@ def discord_settings():
         
         return redirect(url_for('admin.discord_settings'))
 
-    # Get default values from config if no settings exist
-    webhook_url = settings.discord_webhook_url if settings else Config.DISCORD_WEBHOOK_URL
-    bot_name = settings.discord_bot_name if settings else Config.DISCORD_BOT_NAME
-    bot_avatar_url = settings.discord_bot_avatar_url if settings else Config.DISCORD_BOT_AVATAR_URL
+    # Set default values if no settings exist
+    webhook_url = settings.discord_webhook_url if settings else 'insert_webhook_url_here'
+    bot_name = settings.discord_bot_name if settings else 'SharewareZ Bot'
+    bot_avatar_url = settings.discord_bot_avatar_url if settings else 'insert_bot_avatar_url_here'
 
     return render_template('admin/admin_discord_settings.html',
                          webhook_url=webhook_url,
