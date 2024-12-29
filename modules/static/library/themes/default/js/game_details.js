@@ -1,50 +1,71 @@
-// Modal functionality
-let originalScrollPosition = 0;
-let modalOpen = false;
+// Global variables for modal state
+let modalState = {
+    originalScrollPosition: 0,
+    modalOpen: false,
+    slideIndex: 1
+};
 
-function openModal() {
-    // Store original scroll position
-    originalScrollPosition = window.scrollY;
-
-    // Reset scroll position before showing modal
-    window.scrollTo(0, 0);
-    modalOpen = true;
-
-    // Show modal
+function openModal(clickedIndex) {
+    modalState.originalScrollPosition = window.scrollY;
+    modalState.slideIndex = clickedIndex || 1;
+    modalState.modalOpen = true;
+     
     const modal = document.getElementById("myModal");
     modal.style.display = "block";
+    
+    // Prevent background scrolling
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${modalState.originalScrollPosition}px`;
+    document.body.style.width = '100%';
+     
+    showSlides(modalState.slideIndex);
+    
+    // Add click outside listener
+    modal.addEventListener('click', handleModalClick);
+}
 
-    // Prevent body scrolling
-    document.body.style.overflow = 'hidden';
+function handleModalClick(event) {
+    if (event.target.id === "myModal") {
+        closeModal();
+    }
+}
+
+function cleanupModal() {
+    const modal = document.getElementById("myModal");
+    modal.removeEventListener('click', handleModalClick);
 }
 
 function closeModal() {
+    cleanupModal();
     document.getElementById("myModal").style.display = "none";
-    document.body.style.overflow = 'auto';
-    modalOpen = false;
-    // Restore original scroll position
-    window.scrollTo(0, originalScrollPosition);
+    
+    // Restore body position and scrolling
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    window.scrollTo(0, modalState.originalScrollPosition);
+    
+    modalState.modalOpen = false;
 }
 
-var slideIndex = 1;
-showSlides(slideIndex);
-
 function plusSlides(n) {
-    showSlides(slideIndex += n);
+    showSlides(modalState.slideIndex += n);
 }
 
 function showSlides(n) {
     var i;
     var slides = document.getElementsByClassName("mySlides");
-    if (slides.length === 0) {
-        return;  // No slides, exit early
-    }
     
+    // Ensure slides exist
+    if (!slides || slides.length === 0) {
+        return;
+    }
+ 
     if (n > slides.length) {
-        slideIndex = 1;
+        modalState.slideIndex = 1;
     }    
     if (n < 1) {
-        slideIndex = slides.length;
+        modalState.slideIndex = slides.length;
     }
     
     // Hide all slides
@@ -53,8 +74,8 @@ function showSlides(n) {
     }
 
     // Safely display the current slide
-    if (slides[slideIndex - 1]) {
-        slides[slideIndex - 1].style.display = "block";
+    if (slides[modalState.slideIndex - 1]) {
+        slides[modalState.slideIndex - 1].style.display = "block";
     }
 }
 
