@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
+<!-- Include the custom CSS file -->
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_system_logs.css') %}
     <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_system_logs.css') }}">
 {% else %}
@@ -35,7 +36,7 @@
                     </thead>
                     <tbody>
                         {% for log in logs.items %}
-                        <tr class="log-level-{{ log.event_level }}">
+                        <tr class="log-level-{{ log.event_level.lower() }}">
                             <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                             <td>{{ log.event_type }}</td>
                             <td>{{ log.event_level }}</td>
@@ -77,7 +78,7 @@
 </div>
 
 {% block scripts %}
-    <!-- Add DataTables JS -->
+    <!-- Add DataTables JavaScript -->
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.js"></script>
     <script src="{{ url_for('static', filename='library/themes/default/js/admin_system_logs.js') }}"></script>
 {% endblock %}
