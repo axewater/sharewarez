@@ -60,16 +60,19 @@ def login():
         if user:
             if not user.is_email_verified:
                 flash('Your account is not activated, check your email.', 'warning')
-                log_system_event(f"User {username} attempted to log in with an unverified account.", event_type='login', event_level='warning', audit_user=username)
+                log_system_event(f"User {username} attempted to log in with an unverified account.", 
+                               event_type='login', event_level='warning', audit_user=username)
                 return redirect(url_for('login.login'))
 
             if not user.state:
                 flash('Your account has been banned.', 'error')
-                log_system_event(f"User {username} attempted to log in with a banned account.", event_type='login', event_level='warning', audit_user=username)
+                log_system_event(f"User {username} attempted to log in with a banned account.", 
+                               event_type='login', event_level='warning', audit_user=username)
                 print(f"Error: Attempted login to disabled account - User: {username}")
                 return redirect(url_for('login.login'))
 
-            log_system_event(f"User {username} logged in.", event_type='login', event_level='information', audit_user=username)
+            log_system_event(f"User {username} logged in successfully.", 
+                           event_type='login', event_level='information', audit_user=username)
             return _authenticate_and_redirect(username, password)
         else:
             flash('Invalid username or password. USERNAMES ARE CASE SENSITIVE!', 'error')
@@ -141,16 +144,14 @@ def register():
             user.set_password(form.password.data)
             db.session.add(user)
             db.session.commit()
-            print(f"Invite Token from URL: {invite_token_from_url}")
-
+            
+            log_system_event(f"New user registered: {user.name}", 
+                           event_type='registration', event_level='information', audit_user=user.name)
+            
             if invite:
-                print(f"Found valid invite: {invite.token}, expires at: {invite.expires_at}, used: {invite.used}")
                 invite.used = True
                 invite.used_by = user.user_id
-                invite.used_at = datetime.utcnow()
-                db.session.commit()
-            else:
-                print("No valid invite found or invite expired/used.")
+
             # Verification email
             verification_token = user.email_verification_token
             confirm_url = url_for('login.confirm_email', token=verification_token, _external=True)
@@ -203,7 +204,10 @@ def reset_password_request():
             token = s.dumps(user.email, salt='password-reset-salt')
             user.password_reset_token = token
             user.token_creation_time = datetime.utcnow()
-            print(f'pwr token: {token}')
+            
+            log_system_event(f"Password reset requested for user: {user.email}", 
+                           event_type='password_reset', event_level='information', audit_user=user.email)
+            
             db.session.commit()
 
             # Send reset email
