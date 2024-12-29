@@ -50,6 +50,7 @@ def create_app():
         from modules.routes_apis_other import apis_other_bp
         from modules.routes_downloads import download_bp
         from modules.routes_games import games_bp
+        from modules.routes_apis_ssfb import ssfb_bp
         db.create_all()
         insert_default_filters()
         initialize_default_settings()
@@ -65,5 +66,6 @@ def create_app():
     app.register_blueprint(apis_other_bp)
     app.register_blueprint(download_bp)
     app.register_blueprint(games_bp)
+    app.register_blueprint(ssfb_bp)
 
     return app

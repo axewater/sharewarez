@@ -24,7 +24,7 @@ from modules.forms import (
 )
 from modules.models import (
     Game, Image, ScanJob, UnmatchedFolder,
-    Genre, Theme, GameMode, PlayerPerspective, GameUpdate, GameExtra,
+    Genre, Theme, GameMode, PlayerPerspective,
     Category, Library, user_favorites
 )
 from modules.utils_functions import load_release_group_patterns, format_size, PLATFORM_IDS
@@ -33,6 +33,7 @@ from modules.utils_auth import admin_required
 from modules.utils_gamenames import get_game_names_from_folder, get_game_name_by_uuid
 from modules.utils_scanning import refresh_images_in_background, is_scan_job_running
 from modules.utils_game_core import get_game_by_uuid, check_existing_game_by_igdb_id, delete_game
+from modules.utils_unmatched import clear_only_unmatched_folders, handle_delete_unmatched
 from modules.utils_processors import get_global_settings
 from modules import app_start_time, app_version
 
@@ -129,38 +130,6 @@ def browse_games():
     })
     
 
-@bp.route('/browse_folders_ss')
-@login_required
-@admin_required
-def browse_folders_ss():
-    # Select base by OS
-    base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
-    print(f'SS folder browser: Base directory: {base_dir}', file=sys.stderr)
-    
-    # Attempt to get 'path' from request arguments; default to an empty string which signifies the base directory
-    req_path = request.args.get('path', '')
-    print(f'SS folder browser: Requested path: {req_path}', file=sys.stderr)
-    # Handle the default path case
-    if not req_path:
-        print(f'SS folder browser: No default path provided; using base directory: {base_dir}', file=sys.stderr)
-        req_path = ''
-        folder_path = base_dir
-    else:
-        # Safely construct the folder path to prevent directory traversal vulnerabilities
-        folder_path = os.path.abspath(os.path.join(base_dir, req_path))
-        print(f'SS folder browser: Folder path: {folder_path}', file=sys.stderr)
-        # Prevent directory traversal outside the base directory
-        if not folder_path.startswith(base_dir):
-            print(f'SS folder browser: Access denied: {folder_path} outside of base directory: {base_dir}', file=sys.stderr)
-            return jsonify({'error': 'Access denied'}), 403
-
-    if os.path.isdir(folder_path):
-        # List directory contents; distinguish between files and directories
-        # print(f'Folder contents: {os.listdir(folder_path)}', file=sys.stderr)
-        contents = [{'name': item, 'isDir': os.path.isdir(os.path.join(folder_path, item))} for item in sorted(os.listdir(folder_path))]
-        return jsonify(sorted(contents, key=lambda x: (not x['isDir'], x['name'].lower())))
-    else:
-        return jsonify({'error': 'SS folder browser: Folder not found'}), 404
 
 
 @bp.route('/favorites')
@@ -461,57 +430,6 @@ def delete_all_unmatched_folders():
         print(error_message)
         flash(error_message, 'error')
     return redirect(url_for('main.scan_management'))
-
-
-def clear_only_unmatched_folders():
-    print("Attempting to clear only unmatched folders")
-    try:
-        result = UnmatchedFolder.query.filter(UnmatchedFolder.status == 'Unmatched').delete(synchronize_session='fetch')
-        print(f"Number of unmatched folders deleted: {result}")
-        db.session.commit()
-        flash(f'Successfully cleared {result} unmatched folders with status "Unmatched".', 'success')
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        error_message = f"Database error while clearing unmatched folders: {str(e)}"
-        print(error_message)
-        flash(error_message, 'error')
-    except Exception as e:
-        db.session.rollback()
-        error_message = f"An unexpected error occurred while clearing unmatched folders: {str(e)}"
-        print(error_message)
-        flash(error_message, 'error')
-    
-    print("Redirecting to scan management page")
-    return redirect(url_for('main.scan_management'))
-
-
-def handle_delete_unmatched(all):
-    print(f"Route: /delete_unmatched - {current_user.name} - {current_user.role} method: {request.method} arguments: all={all}")
-    try:
-        if all:
-            print(f"Clearing all unmatched folders: {UnmatchedFolder.query.count()}")
-            UnmatchedFolder.query.delete()
-            flash('All unmatched folders cleared successfully.', 'success')
-        else:
-            count = UnmatchedFolder.query.filter(UnmatchedFolder.status == 'Unmatched').count()
-            print(f"Clearing this number of unmatched folders: {count}")
-            UnmatchedFolder.query.filter(UnmatchedFolder.status == 'Unmatched').delete()
-            flash('Unmatched folders with status "Unmatched" cleared successfully.', 'success')
-        db.session.commit()
-        session['active_tab'] = 'unmatched'
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        error_message = f"Database error while clearing unmatched folders: {str(e)}"
-        print(error_message)
-        flash(error_message, 'error')
-    except Exception as e:
-        db.session.rollback()
-        error_message = f"An unexpected error occurred while clearing unmatched folders: {str(e)}"
-        print(error_message)
-        flash(error_message, 'error')
-    return redirect(url_for('main.scan_management'))
-
-
 
 
 
