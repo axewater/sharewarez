@@ -5,7 +5,8 @@ from flask_login import login_required, current_user
 from modules.models import Genre, Theme, GameMode, PlayerPerspective
 from modules.utils_auth import admin_required
 from modules.utils_igdb_api import make_igdb_api_request, get_cover_thumbnail_url
-from modules.models import Library, Image, Game, User
+from modules.models import Library, Image, Game, User, AllowedFileType, IgnoredFileType
+from sqlalchemy.exc import IntegrityError
 from flask import request, url_for
 from modules import db
 from sqlalchemy import func
@@ -217,3 +218,43 @@ def reorder_libraries():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@apis_other_bp.route('/api/file_types/<string:type_category>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@login_required
+@admin_required
+def manage_file_types(type_category):
+    if type_category not in ['allowed', 'ignored']:
+        return jsonify({'error': 'Invalid type category'}), 400
+
+    ModelClass = AllowedFileType if type_category == 'allowed' else IgnoredFileType
+
+    if request.method == 'GET':
+        types = ModelClass.query.order_by(ModelClass.value.asc()).all()
+        return jsonify([{'id': t.id, 'value': t.value} for t in types])
+
+    elif request.method == 'POST':
+        data = request.get_json()
+        new_type = ModelClass(value=data['value'].lower())
+        try:
+            db.session.add(new_type)
+            db.session.commit()
+            return jsonify({'id': new_type.id, 'value': new_type.value})
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify({'error': 'Type already exists'}), 400
+
+    elif request.method == 'PUT':
+        data = request.get_json()
+        file_type = ModelClass.query.get_or_404(data['id'])
+        file_type.value = data['value'].lower()
+        try:
+            db.session.commit()
+            return jsonify({'id': file_type.id, 'value': file_type.value})
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify({'error': 'Type already exists'}), 400
+
+    elif request.method == 'DELETE':
+        file_type = ModelClass.query.get_or_404(request.get_json()['id'])
+        db.session.delete(file_type)
+        db.session.commit()
+        return jsonify({'success': True})
