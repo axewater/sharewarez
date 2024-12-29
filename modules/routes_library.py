@@ -140,6 +140,9 @@ def library():
 def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
     query = Game.query.options(joinedload(Game.genres))
 
+    # Add current_user to the query to check favorite status
+    current_user_id = current_user.id if current_user.is_authenticated else None
+
     # Resolve library_name to library_uuid if necessary
     if 'library_name' in filters and filters['library_name']:
         library = Library.query.filter_by(name=filters['library_name']).first()
@@ -206,9 +209,8 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
             'url': game.url,
             'size': game_size_formatted,
             'genres': genres,
+            'is_favorite': current_user_id in [user.id for user in game.favorited_by],
             'first_release_date': first_release_date_formatted
         })
 
     return game_data, pagination.total, pagination.pages, page
-
-

@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const favoriteButtons = document.querySelectorAll('.favorite-btn');
         console.log(`[LibFavs] Found ${favoriteButtons.length} favorite buttons`);
 
-        // Get CSRF token
         const csrfMeta = document.querySelector('meta[name="csrf-token"]');
         if (!csrfMeta) {
             console.error('[LibFavs] Error: CSRF token meta tag not found');
@@ -15,24 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const csrfToken = csrfMeta.content;
 
         favoriteButtons.forEach(async (button) => {
-            const gameUuid = button.dataset.gameUuid;
-            if (!gameUuid) {
-                console.error('[LibFavs] Error: Button missing game UUID');
-                return;
-            }
-
-            // Check initial favorite status
-            try {
-                const response = await fetch(`/api/check_favorite/${gameUuid}`);
-                if (!response.ok) throw new Error(`Failed to check favorite status: ${response.statusText}`);
-                const data = await response.json();
-                
-                if (data.is_favorite) {
-                    button.classList.add('favorited');
-                    button.querySelector('i').style.color = '#ff69b4';
-                }
-            } catch (error) {
-                console.error('[LibFavs] Error checking favorite status:', error);
+            // Use the pre-computed favorite status from the server
+            if (button.dataset.isFavorite === 'true') {
+                button.classList.add('favorited');
+                button.querySelector('i').style.color = '#ff69b4';
             }
 
             // Add click handler
@@ -44,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 button.classList.add('processing');
 
                 try {
+                    const gameUuid = button.dataset.gameUuid;
                     const response = await fetch(`/api/toggle_favorite/${gameUuid}`, {
                         method: 'POST',
                         headers: {
