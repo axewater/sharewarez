@@ -9,7 +9,7 @@
 {% endif %}
 
 <div id="popupMenu-{{ game_uuid }}" class="popup-menu" style="display: none;">
-    <form action="{{ url_for('main.download_game', game_uuid=game_uuid) }}" method="get" class="menu-item">
+    <form action="{{ url_for('download.download_game', game_uuid=game_uuid) }}" method="get" class="menu-item">
         {{ form.csrf_token }}
         <button type="submit" class="menu-button">Download</button>
     </form>

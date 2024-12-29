@@ -440,7 +440,7 @@ $(document).ready(function() {
 
     $('#sortOrderToggle').click(function() {
         sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-        $(this).text(sortOrder === 'asc' ? '^' : '~'); // Update button text based on sort order
+        $(this).text(sortOrder === 'asc' ? '^' : '~'); 
         console.log('sortOrderToggle clicked, new sort order:', sortOrder);
         fetchFilteredGames(currentPage); // Refetch games with the new sort order
     });

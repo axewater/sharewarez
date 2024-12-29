@@ -6,6 +6,7 @@ from flask import flash
 import os
 from modules.models import User
 from modules.utils_processors import get_global_settings
+from modules.utils_auth import admin_required
 from modules import cache
 
 site_bp = Blueprint('site', __name__)
@@ -55,6 +56,15 @@ def index():
         
     # If authenticated, redirect to discover page
     return redirect(url_for('discover.discover'))
+
+@site_bp.route('/admin/dashboard')
+@login_required
+@admin_required
+def admin_dashboard():
+    print(f"Route: /admin/dashboard - {current_user.name} - {current_user.role} method: {request.method}")
+    return render_template('admin/admin_dashboard.html')
+
+
 
 
 @site_bp.route('/favicon.ico')

@@ -217,6 +217,28 @@ def reorder_libraries():
         db.session.rollback()
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
+@apis_other_bp.route('/api/check_favorite/<game_uuid>')
+@login_required
+def check_favorite(game_uuid):
+    game = Game.query.filter_by(uuid=game_uuid).first_or_404()
+    is_favorite = game in current_user.favorites
+    return jsonify({'is_favorite': is_favorite})
+
+@apis_other_bp.route('/api/toggle_favorite/<game_uuid>', methods=['POST'])
+@login_required
+def toggle_favorite(game_uuid):
+    game = Game.query.filter_by(uuid=game_uuid).first_or_404()
+    
+    if game in current_user.favorites:
+        current_user.favorites.remove(game)
+        is_favorite = False
+    else:
+        current_user.favorites.append(game)
+        is_favorite = True
+    
+    db.session.commit()
+    return jsonify({'success': True, 'is_favorite': is_favorite})
+
 
 @apis_other_bp.route('/api/file_types/<string:type_category>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @login_required

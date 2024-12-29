@@ -20,23 +20,19 @@ from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
 from modules.forms import (
     ScanFolderForm, CsrfProtectForm, 
-    AddGameForm, AutoScanForm, UpdateUnmatchedFolderForm, CsrfForm
+    AutoScanForm, UpdateUnmatchedFolderForm, CsrfForm
 )
 from modules.models import (
-    User, Game, Image, DownloadRequest, ScanJob, UnmatchedFolder,
-    Publisher, Developer, Genre, Theme, GameMode, PlayerPerspective, GameUpdate, GameExtra,
-    Category, GameURL, GlobalSettings, Library, user_favorites
+    Game, Image, ScanJob, UnmatchedFolder,
+    Genre, Theme, GameMode, PlayerPerspective, GameUpdate, GameExtra,
+    Category, Library, user_favorites
 )
-from modules.utils_functions import (
-    load_release_group_patterns, delete_associations_for_game,
-    get_folder_size_in_bytes_updates, format_size, read_first_nfo_content, 
-    PLATFORM_IDS
-)
+from modules.utils_functions import load_release_group_patterns, format_size, PLATFORM_IDS
 from modules.utilities import handle_auto_scan, handle_manual_scan
 from modules.utils_auth import admin_required
 from modules.utils_gamenames import get_game_names_from_folder, get_game_name_by_uuid
-from modules.utils_scanning import refresh_images_in_background, delete_game_images
-from modules.utils_game_core import get_game_by_uuid, check_existing_game_by_igdb_id
+from modules.utils_scanning import refresh_images_in_background, is_scan_job_running
+from modules.utils_game_core import get_game_by_uuid, check_existing_game_by_igdb_id, delete_game
 from modules.utils_processors import get_global_settings
 from modules import app_start_time, app_version
 
@@ -167,22 +163,6 @@ def browse_folders_ss():
         return jsonify({'error': 'SS folder browser: Folder not found'}), 404
 
 
-@bp.route('/toggle_favorite/<game_uuid>', methods=['POST'])
-@login_required
-def toggle_favorite(game_uuid):
-    game = Game.query.filter_by(uuid=game_uuid).first_or_404()
-    
-    if game in current_user.favorites:
-        current_user.favorites.remove(game)
-        is_favorite = False
-    else:
-        current_user.favorites.append(game)
-        is_favorite = True
-    
-    db.session.commit()
-    return jsonify({'success': True, 'is_favorite': is_favorite})
-
-
 @bp.route('/favorites')
 @login_required
 def favorites():
@@ -196,17 +176,6 @@ def favorites():
         game_data.append({'uuid': game.uuid, 'name': game.name, 'cover_url': cover_url, 'size': game_size_formatted, 'genres': genres})
     
     return render_template('games/favorites.html', favorites=game_data)
-
-
-@bp.route('/check_favorite/<game_uuid>')
-@login_required
-def check_favorite(game_uuid):
-    game = Game.query.filter_by(uuid=game_uuid).first_or_404()
-    is_favorite = game in current_user.favorites
-    return jsonify({'is_favorite': is_favorite})
-
-
-
 
 
 @bp.route('/scan_manual_folder', methods=['GET', 'POST'])
@@ -319,259 +288,6 @@ def cancel_scan_job(job_id):
     else:
         flash('Scan job not found or not in a cancellable state.', 'error')
     return redirect(url_for('main.scan_management'))
-
-
-@bp.route('/add_game_manual', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def add_game_manual():
-    if is_scan_job_running():
-        flash('Cannot add a new game while a scan job is running. Please try again later.', 'error')
-        print("Attempt to add a new game while a scan job is running.")
-        
-        # Determine redirection based on from_unmatched
-        from_unmatched = request.args.get('from_unmatched', 'false') == 'true'
-        if from_unmatched:
-            return redirect(url_for('main.scan_management', active_tab='unmatched'))
-        else:
-            return redirect(url_for('library.library'))
-    
-    full_disk_path = request.args.get('full_disk_path', None)
-    library_uuid = request.args.get('library_uuid') or session.get('selected_library_uuid')
-    from_unmatched = request.args.get('from_unmatched', 'false') == 'true'  # Detect origin
-    game_name = os.path.basename(full_disk_path) if full_disk_path else ''
-
-    form = AddGameForm()
-
-    # Populate the choices for the library_uuid field
-    form.library_uuid.choices = [(str(library.uuid), library.name) for library in Library.query.order_by(Library.name).all()]
-    print(f'agm Library choices: {form.library_uuid.choices}')
-    
-    # Fetch library details for displaying on the form
-    library_uuid = request.args.get('library_uuid')
-    library = Library.query.filter_by(uuid=library_uuid).first()
-    if library:
-        library_name = library.name
-        platform_name = library.platform.name
-        platform_id = PLATFORM_IDS.get(library.platform.name)
-    else:
-        library_name = platform_name = ''
-        platform_id = None
-    
-    if request.method == 'GET':
-        if full_disk_path:
-            form.full_disk_path.data = full_disk_path
-            form.name.data = game_name
-        if library_uuid:
-            form.library_uuid.data = library_uuid
-    
-    if form.validate_on_submit():
-        if check_existing_game_by_igdb_id(form.igdb_id.data):
-            flash('A game with this IGDB ID already exists.', 'error')
-            print(f"IGDB ID {form.igdb_id.data} already exists.")
-            return render_template('admin/admin_game_identify.html', form=form, library_uuid=library_uuid, library_name=library_name, platform_name=platform_name, platform_id=platform_id)
-        
-        new_game = Game(
-            igdb_id=form.igdb_id.data,
-            name=form.name.data,
-            summary=form.summary.data,
-            storyline=form.storyline.data,
-            url=form.url.data,
-            full_disk_path=form.full_disk_path.data,
-            category=form.category.data,
-            status=form.status.data,
-            first_release_date=form.first_release_date.data,
-            video_urls=form.video_urls.data,
-            library_uuid=form.library_uuid.data
-        )
-        new_game.genres = form.genres.data
-        new_game.game_modes = form.game_modes.data
-        new_game.themes = form.themes.data
-        new_game.platforms = form.platforms.data
-        new_game.player_perspectives = form.player_perspectives.data
-
-        # Handle developer
-        if form.developer.data and form.developer.data != 'Not Found':
-            developer = Developer.query.filter_by(name=form.developer.data).first()
-            if not developer:
-                developer = Developer(name=form.developer.data)
-                db.session.add(developer)
-                db.session.flush() 
-            new_game.developer = developer
-
-        if form.publisher.data and form.publisher.data != 'Not Found':
-            publisher = Publisher.query.filter_by(name=form.publisher.data).first()
-            if not publisher:
-                publisher = Publisher(name=form.publisher.data)
-                db.session.add(publisher)
-                db.session.flush()
-            new_game.publisher = publisher
-        new_game.nfo_content = read_first_nfo_content(form.full_disk_path.data)
-
-        # print("New game:", new_game)
-        try:
-            db.session.add(new_game)
-            db.session.commit()
-            if full_disk_path: 
-                unmatched_folder = UnmatchedFolder.query.filter_by(folder_path=full_disk_path).first()
-                if unmatched_folder:
-                    db.session.delete(unmatched_folder)
-                    print("Deleted unmatched folder:", unmatched_folder)
-                    db.session.commit()
-            flash('Game added successfully.', 'success')
-            print(f"add_game_manual Game: {game_name} added by user {current_user.name}.")
-            # Trigger image refresh after adding the game
-            @copy_current_request_context
-            def refresh_images_in_thread():
-                refresh_images_in_background(new_game.uuid)
-
-            # Start the background process for refreshing images
-            thread = Thread(target=refresh_images_in_thread)
-            thread.start()
-            print(f"Refresh images thread started for game UUID: {new_game.uuid}")
-            
-            if from_unmatched:
-                return redirect(url_for('main.scan_management', active_tab='unmatched'))
-            else:
-                return redirect(url_for('library.library'))
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            print(f"Error saving the game to the database: {e}")
-            flash('An error occurred while adding the game. Please try again.', 'error')
-    else:
-        print(f"Form validation failed: {form.errors}")
-    return render_template(
-        'admin/admin_game_identify.html',
-        form=form,
-        from_unmatched=from_unmatched,
-        action="add",
-        library_uuid=library_uuid,
-        library_name=library_name,
-        platform_name=platform_name,
-        platform_id=platform_id
-    )
-
-@bp.route('/game_edit/<game_uuid>', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def game_edit(game_uuid):
-    game = Game.query.filter_by(uuid=game_uuid).first_or_404()
-    form = AddGameForm(obj=game)
-    form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in Library.query.order_by(Library.name).all()]
-    platform_id = PLATFORM_IDS.get(game.library.platform.value.upper(), None)
-    platform_name = game.library.platform.value
-    library_name = game.library.name
-    print(f"game_edit1 Platform ID: {platform_id}, Platform Name: {platform_name} Library Name: {library_name}")
-    if form.validate_on_submit():
-        if is_scan_job_running():
-            flash('Cannot edit the game while a scan job is running. Please try again later.', 'error')
-            print("Attempt to edit a game while a scan job is running by user:", current_user.name)
-            # Re-render the template with the current form data
-            return render_template('admin/admin_game_identify.html', form=form, game_uuid=game_uuid, action="edit")
-
-        # Check if any other game has the same igdb_id and is not the current game
-        existing_game_with_igdb_id = Game.query.filter(
-            Game.igdb_id == form.igdb_id.data,
-            Game.id != game.id 
-        ).first()
-        
-        if existing_game_with_igdb_id is not None:
-            flash(f'The IGDB ID {form.igdb_id.data} is already used by another game.', 'error')
-            return render_template('admin/admin_game_identify.html', form=form, library_name=library_name, game_uuid=game_uuid, action="edit")
-        
-        igdb_id_changed = game.igdb_id != form.igdb_id.data
-        game.library_uuid = form.library_uuid.data
-        game.igdb_id = form.igdb_id.data
-        game.name = form.name.data
-        game.summary = form.summary.data
-        game.storyline = form.storyline.data
-        game.url = form.url.data
-        game.full_disk_path = form.full_disk_path.data
-        game.video_urls = form.video_urls.data         
-        game.aggregated_rating = form.aggregated_rating.data
-        game.first_release_date = form.first_release_date.data
-        game.status = form.status.data
-        category_str = form.category.data 
-        category_str = category_str.replace('Category.', '')
-        if category_str in Category.__members__:
-            game.category = Category[category_str]
-        else:
-            flash(f'Invalid category: {category_str}', 'error')
-            return render_template('admin/admin_game_identify.html', form=form, game_uuid=game_uuid, action="edit")
-        
-        # Handling Developer
-        developer_name = form.developer.data
-        if developer_name:
-            developer = Developer.query.filter_by(name=developer_name).first()
-            if not developer:
-                developer = Developer(name=developer_name)
-                db.session.add(developer)
-                db.session.flush()
-            game.developer = developer
-
-        # Handling Publisher
-        publisher_name = form.publisher.data
-        if publisher_name:
-            publisher = Publisher.query.filter_by(name=publisher_name).first()
-            if not publisher:
-                publisher = Publisher(name=publisher_name)
-                db.session.add(publisher)
-                db.session.flush()
-            game.publisher = publisher
-
-        # Update many-to-many relationships
-        game.genres = form.genres.data
-        game.game_modes = form.game_modes.data
-        game.themes = form.themes.data
-        game.platforms = form.platforms.data
-        game.player_perspectives = form.player_perspectives.data
-        
-        # Updating size
-        print(f"Calculating folder size for {game.full_disk_path}.")
-        new_folder_size_bytes = get_folder_size_in_bytes_updates(game.full_disk_path)
-        print(f"New folder size for {game.full_disk_path}: {format_size(new_folder_size_bytes)}")
-        game.size = new_folder_size_bytes
-        game.nfo_content = read_first_nfo_content(game.full_disk_path)
-        game.date_identified = datetime.utcnow()
-               
-        # DB commit and conditional image update
-        try:
-            db.session.commit()
-            flash('Game updated successfully.', 'success')
-            
-            if igdb_id_changed:
-                flash('IGDB ID changed. Triggering image update.')
-                @copy_current_request_context
-                def refresh_images_in_thread():
-                    refresh_images_in_background(game_uuid)
-                thread = Thread(target=refresh_images_in_thread)
-                thread.start()
-                print(f"Refresh images thread started for game UUID: {game_uuid}")
-            else:
-                print(f"IGDB ID unchanged. Skipping image refresh for game UUID: {game_uuid}")
-                    
-            return redirect(url_for('library.library'))
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            flash('An error occurred while updating the game. Please try again.', 'error')
-
-    if request.method == 'POST':
-        print(f"/game_edit/: Form validation failed: {form.errors}")
-
-    # For GET or if form fails
-    print(f"game_edit2 Platform ID: {platform_id}, Platform Name: {platform_name}, Library Name: {library_name}")
-    return render_template('admin/admin_game_identify.html', form=form, game_uuid=game_uuid, platform_id=platform_id, platform_name=platform_name, library_name=library_name, action="edit")
-
-# @bp.route('/get_platform_by_library/<library_uuid>')
-# @login_required
-# @admin_required
-# def get_platform_by_library(library_uuid):
-#     library = Library.query.filter_by(uuid=library_uuid).first()
-#     if library:
-#         platform_name = library.platform.name
-#         platform_id = PLATFORM_IDS.get(library.platform.value.upper(), None)
-#         return jsonify({'platform_name': platform_name, 'platform_id': platform_id})
-#     return jsonify({'error': 'Library not found'}), 404
 
 
 @bp.route('/edit_game_images/<game_uuid>', methods=['GET'])
@@ -1017,14 +733,6 @@ def refresh_game_images(game_uuid):
 
 
 
-@bp.route('/admin/dashboard')
-@login_required
-@admin_required
-def admin_dashboard():
-    print(f"Route: /admin/dashboard - {current_user.name} - {current_user.role} method: {request.method}")
-    return render_template('admin/admin_dashboard.html')
-
-
 
 
 
@@ -1040,53 +748,6 @@ def delete_game_route(game_uuid):
         return redirect(url_for('library.library'))
     delete_game(game_uuid)
     return redirect(url_for('library.library'))
-
-def is_scan_job_running():
-    """
-    Check if there is any scan job with the status 'Running'.
-    
-    Returns:
-        bool: True if there is a running scan job, False otherwise.
-    """
-    running_scan_job = ScanJob.query.filter_by(status='Running').first()
-    return running_scan_job is not None
-
-
-def delete_game(game_identifier):
-    """Delete a game by UUID or Game object."""
-    game_to_delete = None
-    if isinstance(game_identifier, Game):
-        game_to_delete = game_identifier
-        game_uuid_str = game_to_delete.uuid
-    else:
-        try:
-            valid_uuid = uuid.UUID(game_identifier, version=4)
-            game_uuid_str = str(valid_uuid)
-            game_to_delete = Game.query.filter_by(uuid=game_uuid_str).first_or_404()
-        except ValueError:
-            print(f"Invalid UUID format: {game_identifier}")
-            abort(404)
-        except Exception as e:
-            print(f"Error fetching game with UUID {game_uuid_str}: {e}")
-            abort(404)
-
-    try:
-        print(f"Found game to delete: {game_to_delete}")
-        GameURL.query.filter_by(game_uuid=game_uuid_str).delete()
-
-        delete_associations_for_game(game_to_delete)
-        
-        
-        delete_game_images(game_uuid_str)
-        db.session.delete(game_to_delete)
-        db.session.commit()
-        flash('Game and its images have been deleted successfully.', 'success')
-        print(f'Deleted game with UUID: {game_uuid_str}')
-    except Exception as e:
-        db.session.rollback()
-        print(f'Error deleting game with UUID {game_uuid_str}: {e}')
-        flash(f'Error deleting game: {e}', 'error')
-
 
 
 
@@ -1222,9 +883,6 @@ def delete_full_library(library_uuid=None):
         flash(f"Error during deletion: {str(e)}", 'error')
 
     return redirect(url_for('library.libraries'))
-
-
-
 
     
 @bp.add_app_template_global  
