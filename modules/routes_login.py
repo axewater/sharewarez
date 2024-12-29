@@ -8,12 +8,14 @@ from modules.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm,
 from modules.utils_auth import _authenticate_and_redirect
 from modules.utils_smtp import send_email, send_password_reset_email, send_invite_email
 from modules.utils_processors import get_global_settings
+from modules.utils_logging import log_system_event
 from modules import cache
 from datetime import datetime, timedelta
 from sqlalchemy import func
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from uuid import uuid4
 from sqlalchemy.exc import IntegrityError
+
 
 login_bp = Blueprint('login', __name__)
 s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
@@ -47,6 +49,7 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('discover.discover'))
 
+
     print("Route: /login")
     form = LoginForm()
     if request.method == 'POST' and form.validate_on_submit():
@@ -57,16 +60,20 @@ def login():
         if user:
             if not user.is_email_verified:
                 flash('Your account is not activated, check your email.', 'warning')
+                log_system_event(f"User attempted to log in with an unverified account.", event_type='login', event_level='warning', audit_user='system')
                 return redirect(url_for('login.login'))
 
             if not user.state:
                 flash('Your account has been banned.', 'error')
+                log_system_event(f"User attempted to log in with a banned account.", event_type='login', event_level='warning', audit_user='system')
                 print(f"Error: Attempted login to disabled account - User: {username}")
                 return redirect(url_for('login.login'))
 
+            log_system_event(f"User logged in.", event_type='login', event_level='information', audit_user='system')
             return _authenticate_and_redirect(username, password)
         else:
             flash('Invalid username or password. USERNAMES ARE CASE SENSITIVE!', 'error')
+            log_system_event(f"User attempted to log in with invalid credentials.", event_type='login', event_level='warning', audit_user=current_user.name)
             return redirect(url_for('login.login'))
 
     return render_template('login/login.html', form=form)
@@ -124,7 +131,7 @@ def register():
             user = User(
                 user_id=user_uuid,
                 name=form.username.data,
-                email=form.email.data.lower(),  # Ensuring lowercase
+                email=form.email.data.lower(),
                 role='user',
                 is_email_verified=False,
                 email_verification_token=s.dumps(form.email.data, salt='email-confirm'),

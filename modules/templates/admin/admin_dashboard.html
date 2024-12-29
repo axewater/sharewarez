@@ -93,6 +93,12 @@
                     <span class="button-label">Server Info</span>
                 </div>
                 {% endif %}
+                <div class="admin-button-item" data-toggle="tooltip" title="View system logs">
+                    <a href="{{ url_for('admin.system_logs') }}" class="btn btn-circle">
+                        <i class="fas fa-clipboard-list"></i>
+                    </a>
+                    <span class="button-label">System Logs</span>
+                </div>
             </div>
         </div>
 

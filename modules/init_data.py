@@ -2,6 +2,7 @@ import os
 import zipfile
 from modules import db
 from modules.models import ReleaseGroup, GlobalSettings
+from modules.utils_logging import log_system_event
 
 def initialize_default_settings():
     """Initialize default global settings if they don't exist."""
@@ -37,7 +38,7 @@ def initialize_library_folders():
     # Check if default theme exists
     if not os.path.exists(os.path.join(themes_path, 'default', 'theme.json')):
         print(f"Default theme not found at {os.path.join(themes_path, 'default', 'theme.json')}")
-        
+        log_system_event(f"Default theme not found at {os.path.join(themes_path, 'default', 'theme.json')}", event_type='startup', event_level='warning', audit_user='system')
         # Extract themes.zip
         themes_zip = os.path.join('modules', 'setup', 'themes.zip')
         if os.path.exists(themes_zip):

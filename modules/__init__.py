@@ -36,6 +36,7 @@ def create_app():
     cache.init_app(app)
 
     with app.app_context():
+        from modules.utils_logging import log_system_event
         from . import routes, models
         from modules.utils_auth import load_user
         from modules.init_data import insert_default_filters, initialize_default_settings
@@ -53,6 +54,7 @@ def create_app():
         from modules.routes_apis_ssfb import ssfb_bp
         from modules.routes_smtp import smtp_bp
         from modules.routes_info import info_bp
+        log_system_event(f"SharewareZ v{app_version} initializing database", event_type='startup', event_level='information', audit_user='system')
         db.create_all()
         insert_default_filters()
         initialize_default_settings()
