@@ -712,4 +712,3 @@ def add_edit_library(library_uuid=None):
             print(f"Error saving library: {e}")
 
     return render_template('admin/admin_manage_library_create.html', form=form, library=library, page_title=page_title)
-
