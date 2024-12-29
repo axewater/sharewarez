@@ -45,7 +45,7 @@ def inject_current_theme():
 @login_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('main.discover'))
+        return redirect(url_for('discover.discover'))
 
     print("Route: /login")
     form = LoginForm()
