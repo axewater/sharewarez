@@ -119,6 +119,11 @@
             <div class="game-card-container">
                 <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
                     <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
+                    <button class="favorite-button" data-game-uuid="{{ game.uuid }}"
+                           data-is-favorite="{{ game.is_favorite|lower }}">
+                        <i class="fas fa-heart"></i>
+                    </button>
+
                     {% with game_uuid=game.uuid, game_url=game.url %}
              
                     {% endwith %}
