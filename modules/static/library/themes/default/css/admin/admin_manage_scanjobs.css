@@ -99,10 +99,27 @@ th {
 .folder-item i {
     margin-right: 10px;
     color: #ffd700; 
+    transition: color 0.2s ease;
 }
 
-.folder-item i.fa-file {
-    color: #6c757d; 
+.file-item {
+    padding: 5px;
+    margin: 2px 0;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    border-radius: 5px;
+    transition: background-color 0.2s ease;
+}
+
+.file-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.file-item i {
+    margin-right: 10px;
+    min-width: 20px;
+    text-align: center;
 }
 
 .scanandbrowse {
@@ -116,4 +133,11 @@ th {
     display: flex;
     flex-direction: row;
     gap: 25px;
+}
+
+.file-size {
+    margin-left: auto;
+    color: #888;
+    font-size: 0.85em;
+    padding-left: 15px;
 }
