@@ -1,6 +1,32 @@
 var currentPathAuto = '';
 var currentPathManual = '';
 
+// File type to icon mapping
+const fileIcons = {
+    // Folders
+    directory: 'fa-folder',
+    
+    // Archives
+    zip: 'fa-file-zipper',
+    rar: 'fa-file-zipper',
+    '7z': 'fa-file-zipper',
+    
+    // Documents
+    pdf: 'fa-file-pdf',
+    doc: 'fa-file-word',
+    docx: 'fa-file-word',
+    txt: 'fa-file-lines',
+    
+    // Images
+    jpg: 'fa-file-image',
+    jpeg: 'fa-file-image',
+    png: 'fa-file-image',
+    gif: 'fa-file-image',
+    
+    // Default
+    default: 'fa-file'
+};
+
 function showSpinner() {
     document.getElementById('globalSpinner').style.display = 'block';
 }
@@ -136,7 +162,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 data.forEach(folder => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${folder.folder_path}</td>
+                        <td>
+                            <i class="fas fa-folder"></i> ${folder.folder_path}
+                        </td>
                         <td>${folder.status}</td>
                         <td>${folder.library_name}</td>
                         <td>${folder.platform_name}</td>
@@ -227,7 +255,7 @@ function fetchFolders(path, folderContentsId, spinnerId, upButtonId, inputFieldI
             $(spinnerId).hide();
             $(folderContentsId).empty();
             data.forEach(function(item) {
-                var itemElement = $('<div>').text(item.name);
+                var itemElement = $('<div>').html('<i class="fas fa-folder"></i> ' + item.name);
                 if (item.isDir) {
                     var fullPath = path + item.name + "/";
                     $(itemElement).addClass('folder-item').attr('data-path', fullPath);
