@@ -55,7 +55,7 @@ def create_app():
         from modules.routes_smtp import smtp_bp
         from modules.routes_info import info_bp
         from modules.routes_admin_more import admin2_bp
-        log_system_event(f"SharewareZ v{app_version} initializing database", event_type='startup', event_level='information', audit_user='system')
+        log_system_event(f"SharewareZ v{app_version} initializing database", event_type='startup', event_level='startup', audit_user='system')
         db.create_all()
         insert_default_filters()
         initialize_default_settings()

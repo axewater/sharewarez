@@ -14,6 +14,7 @@ args = parser.parse_args()
 # Create the Flask app
 app = create_app()
 
+
 # If force-setup is enabled, drop and recreate all tables
 if args.force_setup:
     with app.app_context():

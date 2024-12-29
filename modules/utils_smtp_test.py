@@ -94,7 +94,7 @@ class SMTPTester:
 
                 smtp.quit()
                 
-                log_system_event(f"SMTP test successful for {host}:{port}", "smtp", "INFO")
+                log_system_event(f"SMTP test successful for {host}:{port}", event_type='test', event_level='information')
                 return True, {
                     'status': 'Connection successful',
                     'auth_status': auth_status,
@@ -103,7 +103,7 @@ class SMTPTester:
                 }
 
             except smtplib.SMTPException as e:
-                log_system_event(f"SMTP test failed for {host}:{port}: {str(e)}", "smtp", "ERROR")
+                log_system_event(f"SMTP test failed for {host}:{port}", event_type='test', event_level='information')
                 return False, f"SMTP error: {str(e)}"
             finally:
                 try:
