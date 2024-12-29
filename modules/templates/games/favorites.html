@@ -51,6 +51,10 @@
                                     <img src="{{ url_for('static', filename='newstyle/default_cover.jpg') }}" alt="Default Cover Image" class="game-cover">
                                 </a>
                             {% endif %}
+                            <div class="favorite-count">
+                                <i class="fas fa-heart"></i>
+                                <span>{{ game.favorite_count }}</span>
+                            </div>
                             <div id="details-{{ game.uuid }}" class="popup-game-details hidden">
                                 <!-- Details and screenshots will be injected here by JavaScript -->
                             </div>
