@@ -362,7 +362,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fullPathInput.addEventListener('blur', function() {
             const fullPath = this.value;
             if (fullPath.trim().length > 0) {
-                fetch(`/check_path_availability?full_disk_path=${encodeURIComponent(fullPath)}`)
+                fetch(`/api/check_path_availability?full_disk_path=${encodeURIComponent(fullPath)}`)
                     .then(response => response.json())
                     .then(data => {
                         const isValid = data.available;

@@ -514,43 +514,7 @@ def handle_delete_unmatched(all):
 
 
 
-@bp.route('/api/scan_jobs_status', methods=['GET'])
-@login_required
-@admin_required
-def scan_jobs_status():
-    jobs = ScanJob.query.all()
-    jobs_data = [{
-        'id': job.id,
-        'library_name': job.library.name if job.library else 'No Library Assigned',
-        'folders': job.folders,
-        'status': job.status,
-        'total_folders': job.total_folders,
-        'folders_success': job.folders_success,
-        'folders_failed': job.folders_failed,
-        'error_message': job.error_message,
-        'last_run': job.last_run.strftime('%Y-%m-%d %H:%M:%S') if job.last_run else 'Not Available',
-        'next_run': job.next_run.strftime('%Y-%m-%d %H:%M:%S') if job.next_run else 'Not Scheduled'
-    } for job in jobs]
-    return jsonify(jobs_data)
 
-@bp.route('/api/unmatched_folders', methods=['GET'])
-@login_required
-@admin_required
-def unmatched_folders():
-    unmatched = UnmatchedFolder.query.join(Library).with_entities(
-        UnmatchedFolder, Library.name.label('library_name'), Library.platform
-    ).order_by(UnmatchedFolder.status.desc()).all()
-    
-    unmatched_data = [{
-        'id': folder.id,
-        'folder_path': folder.folder_path,
-        'status': folder.status,
-        'library_name': library_name,
-        'platform_name': platform.name if platform else '',
-        'platform_id': PLATFORM_IDS.get(platform.name) if platform else None
-    } for folder, library_name, platform in unmatched]
-    
-    return jsonify(unmatched_data)
 
 
 
@@ -576,28 +540,6 @@ def update_unmatched_folder_status():
         flash('Folder not found.', 'error')
 
     return redirect(url_for('main.scan_management'))
-
-
-@bp.route('/check_path_availability', methods=['GET'])
-@login_required
-def check_path_availability():
-    full_disk_path = request.args.get('full_disk_path', '')
-    is_available = os.path.exists(full_disk_path)
-    return jsonify({'available': is_available})
-
-
-
-@bp.route('/api/check_igdb_id')
-@login_required
-def check_igdb_id():
-    igdb_id = request.args.get('igdb_id', type=int)
-    if igdb_id is None:
-        return jsonify({'message': 'Invalid request', 'available': False}), 400
-
-    game_exists = check_existing_game_by_igdb_id(igdb_id) is not None
-    return jsonify({'available': not game_exists})
-
-
 
 
 @bp.route('/refresh_game_images/<game_uuid>', methods=['POST'])
