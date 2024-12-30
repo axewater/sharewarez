@@ -173,6 +173,16 @@ class DatabaseManager:
         -- Add uuid column to game_updates table if it doesn't exist
         ALTER TABLE game_updates
         ADD COLUMN IF NOT EXISTS uuid VARCHAR(36) UNIQUE NOT NULL DEFAULT 1111-1111-1111-1111;
+
+        -- Create system_events table if it doesn't exist
+        CREATE TABLE IF NOT EXISTS system_events (
+            id SERIAL PRIMARY KEY,
+            event_type VARCHAR(32) DEFAULT 'log',
+            event_text VARCHAR(256) NOT NULL,
+            event_level VARCHAR(32) DEFAULT 'information',
+            audit_user INTEGER REFERENCES users(id),
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
         
         """
         print("Upgrading database to the latest schema")
