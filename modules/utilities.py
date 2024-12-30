@@ -179,12 +179,14 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
 
 def handle_auto_scan(auto_form):
     print("handle_auto_scan: function running.")
+    print(f"Auto-scan form data: {auto_form.data}")
     if auto_form.validate_on_submit():
         library_uuid = auto_form.library_uuid.data
         remove_missing = auto_form.remove_missing.data
         
         running_job = ScanJob.query.filter_by(status='Running').first()
         if running_job:
+            print("A scan is already in progress. Please wait until the current scan completes.")
             flash('A scan is already in progress. Please wait until the current scan completes.', 'error')
             session['active_tab'] = 'auto'
             return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='auto'))
@@ -192,15 +194,12 @@ def handle_auto_scan(auto_form):
     
         library = Library.query.filter_by(uuid=library_uuid).first()
         if not library:
+            print(f"Selected library does not exist. Please select a valid library.")
             flash('Selected library does not exist. Please select a valid library.', 'error')
             return redirect(url_for('main.scan_management', active_tab='auto'))
 
-        
         folder_path = auto_form.folder_path.data
-        
-        scan_mode = auto_form.scan_mode.data
-
-        
+        scan_mode = auto_form.scan_mode.data        
         print(f"Auto-scan form submitted. Library: {library.name}, Folder: {folder_path}, Scan mode: {scan_mode}")
         # Prepend the base path
         base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')

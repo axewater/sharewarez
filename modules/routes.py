@@ -28,7 +28,7 @@ from modules.models import (
     Category, Library, user_favorites
 )
 from modules.utils_functions import load_release_group_patterns, format_size, PLATFORM_IDS
-from modules.utilities import handle_auto_scan, handle_manual_scan
+from modules.utilities import handle_auto_scan, handle_manual_scan, scan_and_add_games
 from modules.utils_auth import admin_required
 from modules.utils_gamenames import get_game_names_from_folder, get_game_name_by_uuid
 from modules.utils_scanning import refresh_images_in_background, is_scan_job_running
@@ -239,6 +239,51 @@ def cancel_scan_job(job_id):
         print(f"Scan job {job_id} has been canceled.")
     else:
         flash('Scan job not found or not in a cancellable state.', 'error')
+    return redirect(url_for('main.scan_management'))
+
+@bp.route('/restart_scan_job/<job_id>', methods=['POST'])
+@login_required
+@admin_required
+def restart_scan_job(job_id):
+    print(f"Request to restart scan job: {job_id}")
+    job = ScanJob.query.get_or_404(job_id)    
+    if job.status == 'Running':
+        flash('Cannot restart a running scan.', 'error')
+        return redirect(url_for('main.scan_management'))
+
+    # Start a new scan using the existing job's settings
+    @copy_current_request_context
+    def start_scan():
+        base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
+        full_path = os.path.join(base_dir, job.scan_folder)
+        
+        if not os.path.exists(full_path) or not os.access(full_path, os.R_OK):
+            job.status = 'Failed'
+            job.error_message = f"Cannot access folder: {full_path}"
+            db.session.commit()
+            return
+
+        scan_mode = 'files' if job.setting_filefolder else 'folders'
+        scan_and_add_games(
+            full_path,
+            scan_mode=scan_mode,
+            library_uuid=job.library_uuid,
+            remove_missing=job.setting_remove
+        )
+
+    # Reset job counters and status
+    job.is_enabled = True
+    job.folders_success = 0
+    job.folders_failed = 0
+    job.total_folders = 0
+    job.removed_count = 0
+    job.status = 'Scheduled'
+    job.error_message = ''
+    job.last_run = datetime.utcnow()
+    db.session.commit()    
+
+    thread = Thread(target=start_scan)
+    thread.start()
     return redirect(url_for('main.scan_management'))
 
 
@@ -546,7 +591,6 @@ def delete_full_game():
         return jsonify({'status': 'error', 'message': 'Game folder does not exist.'}), 404
 
     try:
-        # Delete the game folder
         print(f"Deleting game folder: {full_path}")
         shutil.rmtree(full_path)
         if os.path.exists(full_path):
@@ -615,8 +659,6 @@ def delete_full_library(library_uuid=None):
 @bp.add_app_template_global  
 def verify_file(full_path):
     if os.path.exists(full_path) or os.access(full_path, os.R_OK):
-        # print(f"File Exists: {full_path}.")
         return True
     else:
-        # print(f"Cannot find theme specific file: {full_path}. Using default theme file.", 'warning')
         return False
