@@ -46,13 +46,19 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const data = await response.json();
-            if (response.ok) {
+            if (response.ok && data.success) {
                 $.notify("Webhook test successful! Check your Discord channel.", {
                     className: 'success',
                     position: 'top center'
                 });
             } else {
-                $.notify("Webhook test failed: " + (data.message || "Unknown error"), {
+                let errorMessage = data.message || "Unknown error";
+                if (response.status === 400) {
+                    errorMessage = "Invalid webhook configuration: " + errorMessage;
+                } else if (response.status === 403) {
+                    errorMessage = "Permission denied: " + errorMessage;
+                }
+                $.notify("Webhook test failed: " + errorMessage, {
                     className: 'error',
                     position: 'top center'
                 });

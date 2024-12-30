@@ -17,7 +17,8 @@ class DiscordWebhookHandler:
         return (
             self.webhook_url 
             and isinstance(self.webhook_url, str) 
-            and self.webhook_url.startswith('https://discord.com/api/webhooks/')
+            and ('discord.com/api/webhooks/' in self.webhook_url 
+                 or 'discordapp.com/api/webhooks/' in self.webhook_url)
         )
 
     @retry(
@@ -29,8 +30,7 @@ class DiscordWebhookHandler:
         """Send webhook with retry mechanism and error handling."""
         try:
             if not self.validate_webhook_url():
-                print("Invalid Discord webhook URL")
-                return False
+                raise ValueError("Invalid Discord webhook URL")
 
             webhook = DiscordWebhook(
                 url=self.webhook_url,
@@ -40,18 +40,13 @@ class DiscordWebhookHandler:
             webhook.add_embed(embed)
             response = webhook.execute()
             
-            if response and response.status_code == 204:
+            if response and response.status_code in [200, 204]:
                 print("Discord webhook sent successfully")
                 return True
-            if response and response.status_code == 200:
-                print("Discord webhook sent successfully")
-                return True
-            if response and response.status_code == 429:
-                print("Discord webhook rate limited")
-                return False
+            elif response and response.status_code == 429:
+                raise Exception("Discord webhook rate limited")
             else:
-                print(f"Discord webhook failed with status code: {response.status_code}")
-                return False
+                raise Exception(f"Discord webhook failed with status code: {response.status_code}")
 
         except Timeout:
             print("Discord webhook request timed out")
