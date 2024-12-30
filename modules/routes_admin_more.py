@@ -319,4 +319,4 @@ def system_logs():
         query = query.filter(SystemEvents.event_level == event_level)
     
     logs = query.paginate(page=page, per_page=per_page)
-    return render_template('admin/admin_system_logs.html', logs=logs)
+    return render_template('admin/admin_server_logs.html', logs=logs)
