@@ -38,7 +38,6 @@
 
 .info-block h3 i {
     margin-right: 10px;
-    color: #0096ff;
 }
 
 /* Table styling */
@@ -96,6 +95,23 @@
 /* Icons */
 .fas {
     margin-right: 8px;
+}
+
+/* Progress bar styling */
+.progress {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+    text-align: center;
+    line-height: 25px;
+    color: white;
+    font-weight: bold;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 /* Responsive design */

@@ -41,31 +41,22 @@
                     <div class="row">
                         <div class="col-md-4">
                             <h4><i class="fas fa-tachometer-alt"></i> CPU Usage</h4>
-                            <p>{{ cpu_usage|default('N/A') }}%</p>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar" id="cpuBar" role="progressbar" 
+                                     style="width: {{ cpu_usage|default(0) }}%;"
+                                     aria-valuenow="{{ cpu_usage|default(0) }}" 
+                                     aria-valuemin="0" aria-valuemax="100">
+                                    {{ cpu_usage|default('N/A') }}%
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-4">
                             <h4><i class="fas fa-memory"></i> Memory Usage</h4>
-                            {% if memory_usage %}
-                            <p>
-                                {{ memory_usage.used_formatted }} used of {{ memory_usage.total_formatted }} 
-                                ({{ memory_usage.percent }}%)<br>
-                                Available: {{ memory_usage.available_formatted }}
-                            </p>
-                            {% else %}
-                            <p>N/A</p>
-                            {% endif %}
+                            <canvas id="memoryChart"></canvas>
                         </div>
                         <div class="col-md-4">
                             <h4><i class="fas fa-hdd"></i> Disk Usage (Base Folder)</h4>
-                            {% if disk_usage %}
-                            <p>
-                                {{ disk_usage.used_formatted }} used of {{ disk_usage.total_formatted }}
-                                ({{ disk_usage.percent }}%)<br>
-                                Free: {{ disk_usage.free_formatted }}
-                            </p>
-                            {% else %}
-                            <p>N/A</p>
-                            {% endif %}
+                            <canvas id="diskChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -146,4 +137,88 @@
         </div>
     </body>
 </div>
+
+<!-- Add Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Update CPU progress bar color based on usage
+    const cpuBar = document.getElementById('cpuBar');
+    const cpuUsage = {{ cpu_usage|default(0) }};
+    
+    if (cpuUsage > 90) {
+        cpuBar.classList.add('bg-danger');
+    } else if (cpuUsage > 50) {
+        cpuBar.classList.add('bg-warning');
+    } else {
+        cpuBar.classList.add('bg-success');
+    }
+
+    // Memory Usage Chart
+    {% if memory_usage %}
+    const memoryCtx = document.getElementById('memoryChart').getContext('2d');
+    new Chart(memoryCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Used', 'Available'],
+            datasets: [{
+                data: [
+                    {{ memory_usage.used }},
+                    {{ memory_usage.available }}
+                ],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(75, 192, 192, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + 
+                                   (context.label === 'Used' ? '{{ memory_usage.used_formatted }}' : '{{ memory_usage.available_formatted }}');
+                        }
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // Disk Usage Chart
+    {% if disk_usage %}
+    const diskCtx = document.getElementById('diskChart').getContext('2d');
+    new Chart(diskCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Used', 'Free'],
+            datasets: [{
+                data: [{{ disk_usage.used }}, {{ disk_usage.free }}],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(75, 192, 192, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + 
+                                   (context.label === 'Used' ? '{{ disk_usage.used_formatted }}' : '{{ disk_usage.free_formatted }}');
+                        }
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+</script>
 {% endblock %}
