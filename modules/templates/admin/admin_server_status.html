@@ -147,84 +147,22 @@
 <!-- Add Chart.js library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<!-- Add our server status JavaScript -->
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin/server_status.js') == True %}
+    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin/server_status.js') }}"></script>
+{% else %}
+    <script src="{{ url_for('static', filename='library/themes/default/js/admin/server_status.js') }}"></script>
+{% endif %}
+
 <script>
-    // Update CPU progress bar color based on usage
-    const cpuBar = document.getElementById('cpuBar');
-    const cpuUsage = {{ cpu_usage.percent|default(0) }};
+    // Initialize server data
+    initializeServerData({
+        cpuUsage: {{ cpu_usage.percent|default(0) }},
+        memoryUsage: {% if memory_usage %}{{ memory_usage|tojson }}{% else %}null{% endif %},
+        diskUsage: {% if disk_usage %}{{ disk_usage|tojson }}{% else %}null{% endif %}
+    });
     
-    if (cpuUsage > 90) {
-        cpuBar.classList.add('bg-danger');
-    } else if (cpuUsage > 50) {
-        cpuBar.classList.add('bg-warning');
-    } else {
-        cpuBar.classList.add('bg-success');
-    }
-
-    // Memory Usage Chart
-    {% if memory_usage %}
-    const memoryCtx = document.getElementById('memoryChart').getContext('2d');
-    new Chart(memoryCtx, {
-        type: 'pie',
-        data: {
-            labels: ['Used', 'Available'],
-            datasets: [{
-                data: [
-                    {{ memory_usage.used }},
-                    {{ memory_usage.available }}
-                ],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(75, 192, 192, 0.8)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.label + ': ' + 
-                                   (context.label === 'Used' ? '{{ memory_usage.used_formatted }}' : '{{ memory_usage.available_formatted }}');
-                        }
-                    }
-                }
-            }
-        }
-    });
-    {% endif %}
-
-    // Disk Usage Chart
-    {% if disk_usage %}
-    const diskCtx = document.getElementById('diskChart').getContext('2d');
-    new Chart(diskCtx, {
-        type: 'pie',
-        data: {
-            labels: ['Used', 'Free'],
-            datasets: [{
-                data: [{{ disk_usage.used }}, {{ disk_usage.free }}],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(75, 192, 192, 0.8)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.label + ': ' + 
-                                   (context.label === 'Used' ? '{{ disk_usage.used_formatted }}' : '{{ disk_usage.free_formatted }}');
-                        }
-                    }
-                }
-            }
-        }
-    });
-    {% endif %}
+    // Initialize all charts and components
+    document.addEventListener('DOMContentLoaded', initializeServerStatus);
 </script>
 {% endblock %}
