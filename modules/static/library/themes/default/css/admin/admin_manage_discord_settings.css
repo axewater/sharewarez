@@ -8,11 +8,6 @@
     color: #ffffff;
 }
 
-.card-header {
-    background: rgba(50, 50, 50, 0.9);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 1rem;
-}
 
 .card-body {
     padding: 1.5rem;
@@ -78,4 +73,34 @@
 .alert-danger {
     background-color: rgba(220, 53, 69, 0.2);
     border-color: rgba(220, 53, 69, 0.3);
+}
+
+.extenstions-table {
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    color: white; /* Keep text white */
+}
+
+.card {
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    color: white; /* Keep text white */
+}
+
+.info-panel {
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    color: white; /* Keep text white */
 }

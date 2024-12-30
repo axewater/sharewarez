@@ -116,14 +116,14 @@ def discord_settings():
             db.session.rollback()
             flash(f'Error updating Discord settings: {str(e)}', 'error')
         
-        return redirect(url_for('admin.discord_settings'))
+        return redirect(url_for('admin2.discord_settings'))
 
     # Set default values if no settings exist
     webhook_url = settings.discord_webhook_url if settings else 'insert_webhook_url_here'
     bot_name = settings.discord_bot_name if settings else 'SharewareZ Bot'
     bot_avatar_url = settings.discord_bot_avatar_url if settings else 'insert_bot_avatar_url_here'
 
-    return render_template('admin/admin_discord_settings.html',
+    return render_template('admin/admin_manage_discord_settings.html',
                          webhook_url=webhook_url,
                          bot_name=bot_name,
                          bot_avatar_url=bot_avatar_url)
