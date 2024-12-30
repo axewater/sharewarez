@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from modules.utils_auth import admin_required
 from modules.utils_processors import get_global_settings
-from modules.utils_system_stats import format_bytes
+from modules.utils_system_stats import format_bytes, get_cpu_usage, get_memory_usage, get_disk_usage, get_process_count, get_open_files
 from modules.utils_uptime import get_formatted_system_uptime, get_formatted_app_uptime
 from modules import app_version, app_start_time
 from config import Config
@@ -42,10 +42,11 @@ def admin_server_status():
             return redirect(url_for('site.admin_dashboard'))
 
         log_system_event("Admin accessed server status page", event_type='audit', event_level='information')
-        from modules.utils_system_stats import get_cpu_usage, get_memory_usage, get_disk_usage, format_bytes
         
         # Get system resource statistics
         cpu_usage = get_cpu_usage()
+        process_count = get_process_count()
+        open_files = get_open_files()
         memory_usage = get_memory_usage()
         disk_usage = get_disk_usage()
         
@@ -105,7 +106,6 @@ def admin_server_status():
         print(f"Error retrieving IP address: {e}")
     
     
-    
     system_info = {
         'OS': platform.system(),
         'OS Version': platform.version(),
@@ -123,6 +123,8 @@ def admin_server_status():
         config_values=safe_config_values, 
         system_info=system_info, 
         app_version=app_version,
+        process_count=process_count,
+        open_files=open_files,
         cpu_usage=cpu_usage,
         memory_usage=memory_usage,
         disk_usage=disk_usage,

@@ -1,11 +1,19 @@
 import psutil
 import os
 from config import Config
+import platform
 
 def get_cpu_usage():
     """Get CPU usage percentage"""
     try:
-        return psutil.cpu_percent(interval=1)
+        cpu_percent = psutil.cpu_percent(interval=1)
+        cpu_count_physical = psutil.cpu_count(logical=False)
+        cpu_count_logical = psutil.cpu_count(logical=True)
+        return {
+            'percent': cpu_percent,
+            'cores_physical': cpu_count_physical,
+            'cores_logical': cpu_count_logical
+        }
     except Exception as e:
         print(f"Error getting CPU usage: {e}")
         return None
@@ -52,3 +60,25 @@ def format_bytes(bytes_value):
             return f"{bytes_value:.2f} {unit}"
         bytes_value /= 1024
     return f"{bytes_value:.2f} PB"
+
+def get_process_count():
+    """Get number of running processes"""
+    try:
+        return len(psutil.pids())
+    except Exception as e:
+        print(f"Error getting process count: {e}")
+        return None
+
+def get_open_files():
+    """Get number of open files (platform specific)"""
+    try:
+        if platform.system() == 'Linux':
+            # On Linux, we can get this from /proc/sys/fs/file-nr
+            with open('/proc/sys/fs/file-nr') as f:
+                return int(f.read().split()[0])
+        else:
+            # On Windows, we'll return the number of handles as an approximation
+            return len(psutil.Process().open_files())
+    except Exception as e:
+        print(f"Error getting open files count: {e}")
+        return None
