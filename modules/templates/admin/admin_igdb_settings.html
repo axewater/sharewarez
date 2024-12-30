@@ -11,7 +11,7 @@
         <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
     </div>
 </div>
-<div class="igdb-settings-container">
+<div class="igdb-settings-container container">
     <div class="glass-panel">
 
         <h2>IGDB API Settings</h2>
@@ -46,8 +46,8 @@
         
         <div class="settings-form">
             <div class="form-group">
-                <label for="igdb_client_id">Client ID</label>
-                <input type="text" id="igdb_client_id" value="{{ settings.igdb_client_id if settings else '' }}" class="form-control" 
+                <label for="igdb_client_id">Client ID *</label>
+                <input type="text" id="igdb_client_id" value="{{ settings.igdb_client_id if settings else '' }}" class="form-control input-glass" 
                     minlength="20" maxlength="50">
             </div>
             
