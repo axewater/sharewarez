@@ -182,3 +182,8 @@
 .toggle-password:focus {
     outline: none;
 }
+.card {
+    width: 70%;
+    margin: 0 auto;
+    padding: 20px;
+}
