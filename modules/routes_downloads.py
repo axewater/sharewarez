@@ -343,7 +343,7 @@ def delete_download_request(request_id):
     db.session.commit()
     
     flash('Download request deleted successfully.', 'success')
-    return redirect(url_for('main.manage_downloads'))
+    return redirect(url_for('download.manage_downloads'))
 
 
 @download_bp.route('/delete_download/<int:download_id>', methods=['POST'])
@@ -393,7 +393,7 @@ def manage_downloads():
         except Exception as e:
             db.session.rollback()
             flash(f'An error occurred: {e}', 'danger')
-        return redirect(url_for('main.manage_downloads'))
+        return redirect(url_for('download.manage_downloads'))
 
     download_requests = DownloadRequest.query.all()
     return render_template('admin/admin_manage_downloads.html', form=form, download_requests=download_requests)

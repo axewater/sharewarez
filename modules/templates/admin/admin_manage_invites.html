@@ -3,7 +3,7 @@
 {% block content %}
 
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_manage_invites.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_manage_invites.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_manage_invites.css') }}">
 {% else %}
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_invites.css') }}">
 {% endif %}
@@ -11,51 +11,48 @@
   <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
 </div>
 
-<div class="admin_manage_invites-panel glass-panel container mt-5">
-
-
-  {% with messages = get_flashed_messages() %}
-  {% if messages %}
-      <div class="alert alert-info" role="alert">
-          {% for message in messages %}
-              {{ message }}<br>
-          {% endfor %}
-      </div>
-  {% endif %}
-  {% endwith %}
-
-    <h2 class="admin_manage_invites-heading mb-4">Manage User Invites</h2>
-    <div class="admin_manage_invites-table-div table-responsive">
-        <table class="admin_manage_invites-table table table-striped">
-          <thead class="admin_manage_invites-table-head table-dark">
-            <tr>
-              <th class="admin_manage_invites-th-1" scope="col">User</th>
-              <th class="admin_manage_invites-th-2" scope="col">Available Invites</th>
-              <th class="admin_manage_invites-th-3" scope="col">Add Invites</th>
-            </tr>
-          </thead>
-          <tbody class="admin_manage_invites-table-body">
-            {% for user in users %}
-            {% set unused_invites = user_unused_invites.get(user.user_id, 0) %}
-            <tr>
-              <td class="admin_manage_invites-td-1">{{ user.name }}</td>
-              <td class="admin_manage_invites-td-2">{{ user.invite_quota - unused_invites }} out of {{ user.invite_quota }}</td>
-              <td>
-                <form action="{{ url_for('admin2.manage_invites') }}" method="POST" class="d-flex gap-2">
-             
-                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-                  <input type="hidden" name="user_id" value="{{ user.user_id }}">
-                  <div class="admin_manage_invites-invitesleft flex-grow-1">
-                    <input type="number" name="invites_number" min="1" value="1" class="admin_manage_invites-form-control form-control">
-                  </div>
-                  <button type="submit" class="admin_manage_invites-add-btn btn btn-primary">Add</button>
-                </form>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="alert alert-info" role="alert">
+        {% for message in messages %}
+            {{ message }}<br>
+        {% endfor %}
     </div>
+{% endif %}
+{% endwith %}
+<div class="admin_manage_invites-panel container-settings mt-5">
+  <h2 class="admin_manage_invites-heading mb-4">Manage User Invites</h2>
+  <div class="admin_manage_invites-table-div table-responsive">
+    <table class="admin_manage_invites-table table table-striped">
+      <thead class="admin_manage_invites-table-head table-dark">
+        <tr>
+          <th class="admin_manage_invites-th-1" scope="col">User</th>
+          <th class="admin_manage_invites-th-2" scope="col">Available Invites</th>
+          <th class="admin_manage_invites-th-3" scope="col">Add Invites</th>
+        </tr>
+      </thead>
+      <tbody class="admin_manage_invites-table-body">
+        {% for user in users %}
+        {% set unused_invites = user_unused_invites.get(user.user_id, 0) %}
+        <tr>
+          <td class="admin_manage_invites-td-1">{{ user.name }}</td>
+          <td class="admin_manage_invites-td-2">{{ user.invite_quota - unused_invites }} out of {{ user.invite_quota }}</td>
+          <td>
+            <form action="{{ url_for('admin2.manage_invites') }}" method="POST" class="d-flex gap-2">
+          
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+              <input type="hidden" name="user_id" value="{{ user.user_id }}">
+              <div class="admin_manage_invites-invitesleft flex-grow-1">
+                <input type="number" name="invites_number" min="1" value="1" class="admin_manage_invites-form-control form-control">
+              </div>
+              <button type="submit" class="admin_manage_invites-add-btn btn btn-primary">Add</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 {% endblock %}

@@ -118,3 +118,14 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 0 20px rgba(0, 150, 255, 0.3);
 }
+
+/* Table header styling */
+.table thead th {
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    padding: 1rem;
+    color: #ffffff; /* Add this line to make the headers white */
+}
