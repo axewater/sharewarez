@@ -85,4 +85,16 @@ document.addEventListener('DOMContentLoaded', function() {
             testButton.textContent = originalText;
         });
     };
+
+    // Add password visibility toggle functionality
+    const togglePassword = document.querySelector('.toggle-password');
+    const passwordInput = document.querySelector('#igdb_client_secret');
+
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        // Toggle the eye icon
+        this.querySelector('i').classList.toggle('fa-eye');
+        this.querySelector('i').classList.toggle('fa-eye-slash');
+    });
 });

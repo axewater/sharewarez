@@ -11,8 +11,9 @@
         <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
     </div>
 </div>
-<div class="igdb-settings-container container">
-    <div class="glass-panel">
+<div class="glass-panel">
+    <div class="igdb-settings-container container">
+    
 
         <h2>IGDB API Settings</h2>
 
@@ -53,8 +54,13 @@
             
             <div class="form-group">
                 <label for="igdb_client_secret">Client Secret</label>
-                <input type="password" id="igdb_client_secret" value="{{ settings.igdb_client_secret if settings else '' }}" class="form-control"
+                <div class="password-input-container">
+                    <input type="password" id="igdb_client_secret" value="{{ settings.igdb_client_secret if settings else '' }}" class="form-control"
                     minlength="20" maxlength="50">
+                    <button type="button" class="toggle-password" aria-label="Toggle password visibility">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
             </div>
             
             {% if settings and settings.igdb_last_tested %}
