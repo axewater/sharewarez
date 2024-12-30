@@ -60,23 +60,20 @@ def login():
         if user:
             if not user.is_email_verified:
                 flash('Your account is not activated, check your email.', 'warning')
-                log_system_event(f"User {username} attempted to log in with an unverified account.", 
-                               event_type='login', event_level='warning', audit_user=username)
+                log_system_event(f"User {username} attempted to log in with an unverified account.", event_type='login', event_level='warning')
                 return redirect(url_for('login.login'))
 
             if not user.state:
                 flash('Your account has been banned.', 'error')
-                log_system_event(f"User {username} attempted to log in with a banned account.", 
-                               event_type='login', event_level='warning', audit_user=username)
+                log_system_event(f"User {username} attempted to log in with a banned account.", event_type='login', event_level='warning')
                 print(f"Error: Attempted login to disabled account - User: {username}")
                 return redirect(url_for('login.login'))
 
-            log_system_event(f"User {username} logged in successfully.", 
-                           event_type='login', event_level='information', audit_user=username)
+            log_system_event(f"User {username} logged in successfully.", event_type='login', event_level='information')
             return _authenticate_and_redirect(username, password)
         else:
             flash('Invalid username or password. USERNAMES ARE CASE SENSITIVE!', 'error')
-            log_system_event(f"User {username} attempted to log in with invalid credentials.", event_type='login', event_level='warning', audit_user=username)
+            log_system_event(f"User {username} attempted to log in with invalid credentials.", event_type='login', event_level='warning')
             return redirect(url_for('login.login'))
 
     return render_template('login/login.html', form=form)
@@ -145,8 +142,7 @@ def register():
             db.session.add(user)
             db.session.commit()
             
-            log_system_event(f"New user registered: {user.name}", 
-                           event_type='registration', event_level='information', audit_user=user.name)
+            log_system_event(f"New user registered: {user.name}", event_type='audit', event_level='information')
             
             if invite:
                 invite.used = True
@@ -205,8 +201,7 @@ def reset_password_request():
             user.password_reset_token = token
             user.token_creation_time = datetime.utcnow()
             
-            log_system_event(f"Password reset requested for user: {user.email}", 
-                           event_type='password_reset', event_level='information', audit_user=user.email)
+            log_system_event(f"Password reset requested for user: {user.email}", event_type='password_reset', event_level='information')
             
             db.session.commit()
 

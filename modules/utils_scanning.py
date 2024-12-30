@@ -98,7 +98,7 @@ def log_unmatched_folder(scan_job_id, folder_path, matched_status, library_uuid=
             db.session.commit()
             print(f"Logged unmatched folder: {folder_path}")
         except IntegrityError:
-            log_system_event(f"Failed to log unmatched folder: {folder_path}", "scan", "ERROR")
+            log_system_event(f"Failed to log unmatched folder: {folder_path}", event_type='scan', event_level='warning')
             db.session.rollback()
             print(f"Failed to log unmatched folder due to a database error: {folder_path}")
     else:

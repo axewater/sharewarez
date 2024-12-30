@@ -59,8 +59,18 @@ def download_game(game_uuid):
         return redirect(url_for('download.downloads'))
     
     if os.path.isdir(game.full_disk_path):
-        # List all files, case-insensitively excluding .NFO and .SFV files, and file_id.diz
-        files_in_directory = [f for f in os.listdir(game.full_disk_path) if os.path.isfile(os.path.join(game.full_disk_path, f))]
+        settings = GlobalSettings.query.first()
+        files_in_directory = []
+        for f in os.listdir(game.full_disk_path):
+            full_path = os.path.join(game.full_disk_path, f)
+            # Skip updates and extras folders
+            if os.path.isdir(full_path) and (
+                f.lower() == settings.update_folder_name.lower() or 
+                f.lower() == settings.extras_folder_name.lower()):
+                continue
+            if os.path.isfile(full_path):
+                files_in_directory.append(f)
+        # Filter out .nfo, .sfv files after excluding special folders
         significant_files = [f for f in files_in_directory if not f.lower().endswith(('.nfo', '.sfv')) and not f.lower() == 'file_id.diz']
 
         # If more than one significant file remains, expect a zip file

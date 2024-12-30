@@ -123,8 +123,7 @@ def add_game_manual():
             db.session.add(new_game)
             db.session.commit()
             flash('Game added successfully.', 'success')
-            log_system_event(f"Game {game_name} added manually by admin {current_user.name}", 
-                          event_type='game', event_level='information', audit_user=current_user.name)
+            log_system_event(f"Game {game_name} added manually by admin {current_user.name}",  event_type='game', event_level='information')
             
             if full_disk_path: 
                 unmatched_folder = UnmatchedFolder.query.filter_by(folder_path=full_disk_path).first()
@@ -133,7 +132,7 @@ def add_game_manual():
                     print("Deleted unmatched folder:", unmatched_folder)
                     db.session.commit()
             print(f"add_game_manual Game: {game_name} added by user {current_user.name}.")
-            log_system_event(f"Game {game_name} added manually by user {current_user.name}.")
+            log_system_event(f"Game {game_name} added manually by user {current_user.name}", event_type='game', event_level='information')
             # Trigger image refresh after adding the game
             @copy_current_request_context
             def refresh_images_in_thread():
@@ -250,8 +249,7 @@ def game_edit(game_uuid):
                
         try:
             db.session.commit()
-            log_system_event(f"Game {game.name} updated by admin {current_user.name}", 
-                          event_type='game', event_level='information', audit_user=current_user.name)
+            log_system_event(f"Game {game.name} updated by admin {current_user.name}", event_type='game', event_level='information')
             flash('Game updated successfully.', 'success')
             
             if igdb_id_changed:

@@ -419,7 +419,7 @@ def remove_from_lib(game_uuid):
         db.session.delete(game)
         db.session.commit()
         
-        log_system_event(f"Game deleted: {game.name} (UUID: {game_uuid})", "game", "WARNING")
+        log_system_event(f"Game deleted: {game.name} (UUID: {game_uuid})", event_type='game', event_level='information')
         print(f"Successfully removed game {game.name} (UUID: {game_uuid}) from library")
         return True
         
