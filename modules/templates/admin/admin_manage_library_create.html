@@ -16,7 +16,11 @@
     </div>
 {% endif %}
 {% endwith %}
-
+<div class="container">
+    <div class="glass-panel">
+        <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
 <div class="admin_manage_library_create-panel container glass-panel">
 	<div class="admin_manage_library-header">
 		<h2>{{ page_title }}</h2>
