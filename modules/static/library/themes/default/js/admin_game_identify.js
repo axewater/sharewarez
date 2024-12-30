@@ -217,13 +217,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     if (data.error) {
                         console.error('Error:', data.error);
-                        // Show flash message using notify.js
                         $.notify("Game not found", {
                             className: 'error',
                             position: 'top center'
                         });
                     } else {
-                        // Ensure the collapsible section is expanded when populating data
                         const gameDetailsCollapse = document.querySelector('#gameDetails');
                         if (gameDetailsCollapse) {
                             const bootstrapCollapse = new bootstrap.Collapse(gameDetailsCollapse, {
@@ -231,7 +229,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             });
                         }
                         
-                        // Add a small delay to ensure the collapse animation is complete
                         setTimeout(() => {
                             // Update form fields
                             nameInput.value = data.name;

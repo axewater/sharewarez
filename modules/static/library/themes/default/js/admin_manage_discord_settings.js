@@ -46,7 +46,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const data = await response.json();
-            // Use notify.js for notifications
             if (response.ok) {
                 $.notify("Webhook test successful! Check your Discord channel.", {
                     className: 'success',
