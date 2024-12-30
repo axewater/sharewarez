@@ -271,16 +271,16 @@ def restart_scan_job(job_id):
             remove_missing=job.setting_remove
         )
 
-    # Reset job counters and status
-    job.is_enabled = True
-    job.folders_success = 0
-    job.folders_failed = 0
-    job.total_folders = 0
-    job.removed_count = 0
-    job.status = 'Scheduled'
-    job.error_message = ''
-    job.last_run = datetime.utcnow()
-    db.session.commit()    
+    # # Reset job counters and status
+    # job.is_enabled = True
+    # job.folders_success = 0
+    # job.folders_failed = 0
+    # job.total_folders = 0
+    # job.removed_count = 0
+    # job.status = 'Scheduled'
+    # job.error_message = ''
+    # job.last_run = datetime.utcnow()
+    # db.session.commit()    
 
     thread = Thread(target=start_scan)
     thread.start()
