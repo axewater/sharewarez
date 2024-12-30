@@ -13,3 +13,4 @@ python-dotenv
 psutil
 tenacity
 email-validator
+psutil
