@@ -40,7 +40,7 @@ def inject_current_theme():
 @login_required
 @admin_required
 def discord_help():
-    return render_template('admin/discord_help.html')
+    return render_template('admin/admin_manage_discord_readme.html')
 
 
 @admin_bp.route('/admin/whitelist', methods=['GET', 'POST'])
@@ -261,7 +261,7 @@ def manage_settings():
         current_settings['updateFolderName'] = settings_record.update_folder_name if settings_record else 'updates'
         current_settings['enableGameExtras'] = settings_record.enable_game_extras if settings_record else True
         current_settings['extrasFolderName'] = settings_record.extras_folder_name if settings_record else 'extras'
-        return render_template('admin/admin_server_settings.html', current_settings=current_settings)
+        return render_template('admin/admin_manage_server_settings.html', current_settings=current_settings)
 
 @admin_bp.route('/admin/igdb_settings', methods=['GET', 'POST'])
 @login_required
