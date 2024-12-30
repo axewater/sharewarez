@@ -152,6 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 data.sort((a, b) => new Date(b.last_run) - new Date(a.last_run));
                 data.forEach(job => {
                     const row = document.createElement('tr');
+                    const isAnyJobRunning = data.some(j => j.status === 'Running');
                     row.innerHTML = `
                         <td>${job.id.substring(0, 8)}</td>
                         <td>${job.library_name || 'N/A'}</td>
@@ -172,10 +173,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <input type="hidden" name="csrf_token" value="${csrfToken}">
                                     <button type="submit" class="btn btn-warning btn-sm">Cancel Scan</button>
                                 </form>` : 
-                                `<form action="/restart_scan_job/${job.id}" method="post" style="display: inline-block;">
-                                    <input type="hidden" name="csrf_token" value="${csrfToken}">
-                                    <button type="submit" class="btn btn-info btn-sm">Restart Scan</button>
-                                </form>`}
+                                `${isAnyJobRunning ? 
+                                    `<button class="btn btn-info btn-sm" disabled title="Cannot restart while another scan is running">Restart Scan</button>` :
+                                    `<form action="/restart_scan_job/${job.id}" method="post" style="display: inline-block;">
+                                        <input type="hidden" name="csrf_token" value="${csrfToken}">
+                                        <button type="submit" class="btn btn-info btn-sm">Restart Scan</button>
+                                    </form>`
+                                }`
+                            }
                         </td>
                     `;
                     jobsTableBody.appendChild(row);
