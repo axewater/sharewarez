@@ -9,23 +9,9 @@
 .igdb-settings-container {
     max-width: 800px;
     margin: 2rem auto;
-}
-
-.glass-panel {
     background: rgba(30, 30, 30, 0.95);
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    padding: 2rem;
-}
-
-.glass-panel h2 {
-    color: #fff;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    border-radius: 15px;
+    padding: 20px;
 }
 
 .instructions-toggle {
@@ -173,4 +159,34 @@
     border-radius: 15px;
     max-width: 100px;
     max-height: 100px;
+}
+
+/* Password visibility toggle styling */
+.password-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    color: rgba(67, 64, 74, 0.733);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    transition: color 0.3s ease;
+}
+
+.toggle-password:hover {
+    color: rgba(0, 0, 0, 0.8);
+}
+
+.toggle-password:focus {
+    outline: none;
 }
