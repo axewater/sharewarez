@@ -14,65 +14,67 @@
 {% endblock %}
 
 <div class="container">
-    <div class="row mb-4">
-        <div class="col">
-            <h2>System Logs</h2>
-            <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped" id="logsTable">
-                    <thead>
-                        <tr>
-                            <th>Timestamp</th>
-                            <th>Event Type</th>
-                            <th>Level</th>
-                            <th>Message</th>
-                            <th>User</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for log in logs.items %}
-                        <tr class="log-level-{{ log.event_level.lower() }}">
-                            <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                            <td>{{ log.event_type }}</td>
-                            <td>{{ log.event_level }}</td>
-                            <td>{{ log.event_text }}</td>
-                            <td>{{ log.user.name if log.user else 'system' }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <div class="glass-panel">
+        <div class="row mb-4">
+            <div class="col">
+                <h2>System Logs</h2>
+                <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
             </div>
+        </div>
 
-            <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-center">
-                    {% if logs.has_prev %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('admin2.system_logs', page=logs.prev_num) }}">Previous</a>
-                    </li>
-                    {% endif %}
-                    
-                    {% for page_num in logs.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
-                        {% if page_num %}
-                            <li class="page-item {% if page_num == logs.page %}active{% endif %}">
-                                <a class="page-link" href="{{ url_for('admin2.system_logs', page=page_num) }}">{{ page_num }}</a>
-                            </li>
-                        {% else %}
-                            <li class="page-item disabled"><span class="page-link">...</span></li>
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped" id="logsTable">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Event Type</th>
+                                <th>Level</th>
+                                <th>Message</th>
+                                <th>User</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs.items %}
+                            <tr class="log-level-{{ log.event_level.lower() }}">
+                                <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td>{{ log.event_type }}</td>
+                                <td>{{ log.event_level }}</td>
+                                <td>{{ log.event_text }}</td>
+                                <td>{{ log.user.name if log.user else 'system' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if logs.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin2.system_logs', page=logs.prev_num) }}">Previous</a>
+                        </li>
                         {% endif %}
-                    {% endfor %}
-                    
-                    {% if logs.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('admin2.system_logs', page=logs.next_num) }}">Next</a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
+                        
+                        {% for page_num in logs.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+                            {% if page_num %}
+                                <li class="page-item {% if page_num == logs.page %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('admin2.system_logs', page=page_num) }}">{{ page_num }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if logs.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin2.system_logs', page=logs.next_num) }}">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
         </div>
     </div>
 </div>
