@@ -1,7 +1,129 @@
-.table {
-	background-color: #333;
-	color: #fff;
+/* Main container styling */
+.container-status-page {
+    background: rgba(30, 30, 30, 0.95);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px auto;
+    max-width: 1200px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
-.table th {
-	background-color: #444;
+
+/* Header styling */
+.container-serverstatus-version {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 15px;
+    background: rgba(40, 40, 40, 0.8);
+    border-radius: 10px;
+}
+
+/* Info blocks styling */
+.info-block {
+    background: rgba(40, 40, 40, 0.5);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-block h3 {
+    color: #fff;
+    font-size: 1.3em;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+}
+
+.info-block h3 i {
+    margin-right: 10px;
+    color: #0096ff;
+}
+
+/* Table styling */
+.table {
+    background: rgba(30, 30, 30, 0.3);
+    color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.table thead th {
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    padding: 12px;
+}
+
+.table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.table td {
+    padding: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* System resources section */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: -10px;
+}
+
+.col-md-4, .col-md-6 {
+    flex: 1;
+    padding: 10px;
+    min-width: 250px;
+}
+
+/* Resource cards */
+.col-md-4 h4, .col-md-6 h4 {
+    color: #0096ff;
+    font-size: 1.1em;
+    margin-bottom: 10px;
+}
+
+.col-md-4 p, .col-md-6 p {
+    color: #fff;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    border-radius: 6px;
+    margin: 0;
+}
+
+/* Icons */
+.fas {
+    margin-right: 8px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .container-status-page {
+        margin: 10px;
+        padding: 15px;
+    }
+
+    .info-block {
+        padding: 15px;
+    }
+
+    .col-md-4, .col-md-6 {
+        flex: 100%;
+    }
+
+    .table {
+        display: block;
+        overflow-x: auto;
+    }
+
+    .container-serverstatus-version {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .container-serverstatus-version > div {
+        margin-bottom: 10px;
+    }
 }
