@@ -12,6 +12,11 @@
     margin-right: 8px; /* Add some spacing between icon and text */
 }
 
+/* Hide beta scanning features */
+.hidden-beta-feature {
+    display: none !important;
+    visibility: hidden !important;
+}
 
 /* Header styling */
 .container-serverstatus-version {
