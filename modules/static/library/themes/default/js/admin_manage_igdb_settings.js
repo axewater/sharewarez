@@ -56,9 +56,9 @@ document.addEventListener('DOMContentLoaded', function() {
     window.testSettings = function() {
         const testButton = document.querySelector('button.btn-secondary');
         const spinner = document.getElementById('loadingSpinner');
+        spinner.style.display = 'flex';  // Changed from 'block' to 'flex'
         const originalText = testButton.textContent;
         testButton.disabled = true;
-        spinner.style.display = 'block';
         
         fetch('/admin/test_igdb', {
             method: 'POST',
@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .finally(() => {
             testButton.disabled = false;
+            spinner.style.display = 'none';
             testButton.textContent = originalText;
         });
     };
