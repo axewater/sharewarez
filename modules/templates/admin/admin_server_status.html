@@ -1,12 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-    .info-block { background-color: #f8f9fa; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
-    .info-block h3 { margin-top: 0; }
-</style>
-
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_server_settings.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_server_settings.css') }}">
+{% else %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_server_settings.css') }}">
+{% endif %}
 <div class="glass-panel">
     {% with messages = get_flashed_messages() %}
     {% if messages %}
@@ -28,8 +27,12 @@
         </div>
         <div class="container-status-page">
             <div class="container-serverstatus-version">
-                <h1><i class="fas fa-server"></i> Server Status</h1>
-                <p>SharewareZ server version: {{ app_version }}</p>
+                <div>
+                    <h1><i class="fas fa-server"></i> Server Status</h1>
+                </div>
+                <div>
+                    <p>SharewareZ server version: {{ app_version }}</p>
+                </div>
             </div>
             <div class="container mt-5">
                 <!-- System Resources -->
