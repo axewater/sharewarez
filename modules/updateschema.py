@@ -128,6 +128,18 @@ class DatabaseManager:
         ALTER TABLE games
         ADD COLUMN IF NOT EXISTS last_updated TIMESTAMP;
 
+        ALTER TABLE scan_jobs
+        ADD COLUMN IF NOT EXISTS removed_count INTEGER DEFAULT 0;
+
+        ALTER TABLE scan_jobs
+        ADD COLUMN IF NOT EXISTS scan_folder VARCHAR(512);
+
+        ALTER TABLE scan_jobs
+        ADD COLUMN IF NOT EXISTS setting_remove BOOLEAN DEFAULT FALSE;
+
+        ALTER TABLE scan_jobs
+        ADD COLUMN IF NOT EXISTS setting_filefolder BOOLEAN DEFAULT FALSE;
+
         -- Create allowed_file_types table if it doesn't exist
         CREATE TABLE IF NOT EXISTS allowed_file_types (
             id SERIAL PRIMARY KEY,
