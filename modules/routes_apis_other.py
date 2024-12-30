@@ -34,9 +34,13 @@ def scan_jobs_status():
         'total_folders': job.total_folders,
         'folders_success': job.folders_success,
         'folders_failed': job.folders_failed,
+        'removed_count': job.removed_count,
+        'scan_folder': job.scan_folder,
+        'setting_remove': bool(job.setting_remove),
         'error_message': job.error_message,
         'last_run': job.last_run.strftime('%Y-%m-%d %H:%M:%S') if job.last_run else 'Not Available',
-        'next_run': job.next_run.strftime('%Y-%m-%d %H:%M:%S') if job.next_run else 'Not Scheduled'
+        'next_run': job.next_run.strftime('%Y-%m-%d %H:%M:%S') if job.next_run else 'Not Scheduled',
+        'setting_filefolder': bool(job.setting_filefolder)
     } for job in jobs]
     return jsonify(jobs_data)
 

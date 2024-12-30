@@ -159,12 +159,20 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${job.status}</td>
                         <td>${job.error_message}</td>
                         <td>${job.last_run}</td>
+                        <td>${job.removed_count || 0}</td>
+                        <td>${job.scan_folder || 'N/A'}</td>
                         <td>${job.total_folders}</td>
                         <td>${job.folders_success}</td>
                         <td>${job.folders_failed}</td>
                         <td>
+                            ${job.setting_remove ? 'On' : 'Off'}
+                        </td>
+                        <td>
+                            ${job.setting_filefolder ? 'Files' : 'Folders'}
+                        </td>
+                        <td>
                             ${job.status === 'Running' ? 
-                                `<form action="/cancel_scan_job/${job.id}" method="post">
+                                `<form action="/cancel_scan_job/${job.id}" method="post" style="display: inline-block;">
                                     <input type="hidden" name="csrf_token" value="${csrfToken}">
                                     <button type="submit" class="btn btn-warning btn-sm">Cancel Scan</button>
                                 </form>` : ''}
