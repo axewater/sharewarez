@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
+{% block head %}
+    <!-- Add DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+{% endblock %}
 
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_manage_users.css') == True %}
     <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_manage_users.css') }}">
@@ -29,7 +34,7 @@
 		</div>
 		<div class="card-body">
 			<div class="table-responsive">
-				<table class="table table-hover">
+				<table id="usersTable" class="table table-hover display responsive nowrap">
 					<thead>
 						<tr>
 							<th>Avatar</th>
@@ -195,10 +200,13 @@
         </div>
     </div>
 </div>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.js"></script>
+
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin_manage_users.js') %}
 <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin_manage_users.js') }}"></script>
 {% else %}
 <script src="{{ url_for('static', filename='library/themes/default/js/admin_manage_users.js') }}"></script>
 {% endif %}
+<script src="{{ url_for('static', filename='library/themes/default/js/admin/users_table.js') }}"></script>
 
 {% endblock %}
