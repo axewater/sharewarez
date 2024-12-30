@@ -36,20 +36,6 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
 
     print(f"Starting auto scan for games in folder: {folder_path} with scan mode: {scan_mode} and library UUID: {library_uuid} for platform: {library.platform.name}")
     
-    # If remove_missing is enabled, check for games that no longer exist
-    if remove_missing:
-        print("Checking for missing games...")
-        games_in_library = Game.query.filter_by(library_uuid=library_uuid).all()
-        for game in games_in_library:
-            if not os.path.exists(game.full_disk_path):
-                print(f"Game no longer found at path: {game.full_disk_path}")
-                try:
-                    remove_from_lib(game.uuid)
-                    scan_job_entry.removed_count += 1
-                    print(f"Removed game {game.name} as it no longer exists at {game.full_disk_path}")
-                except Exception as e:
-                    print(f"Error removing game {game.name}: {e}")
-
     # Create initial scan job
     scan_job_entry = ScanJob(
         folders={folder_path: True},
@@ -164,6 +150,20 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
     if scan_job_entry.status != 'Failed':
         scan_job_entry.status = 'Completed'
     
+    # If remove_missing is enabled, check for games that no longer exist
+    if remove_missing:
+        print("Checking for missing games...")
+        games_in_library = Game.query.filter_by(library_uuid=library_uuid).all()
+        for game in games_in_library:
+            if not os.path.exists(game.full_disk_path):
+                print(f"Game no longer found at path: {game.full_disk_path}")
+                try:
+                    remove_from_lib(game.uuid)
+                    scan_job_entry.removed_count += 1
+                    print(f"Removed game {game.name} as it no longer exists at {game.full_disk_path}")
+                except Exception as e:
+                    print(f"Error removing game {game.name}: {e}")
+
     try:
         # Truncate error message if it's too long
         if scan_job_entry.error_message and len(scan_job_entry.error_message) > 500:
