@@ -30,17 +30,10 @@ body {
     color: white;
 }
 
-.useraccount-minimenu-container {
-    display: flex;
-    margin-left: 50px;
-    padding-left: 50px;
-}
-
-
 
 .user-avatar {
-    width: 25px;
-    height: 25px;
+    width: 35px;
+    height: 35px;
     border-radius: 20px;
     margin-right: 10px;
     border: 2px solid #ecf0f1;

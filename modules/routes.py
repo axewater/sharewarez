@@ -594,29 +594,12 @@ def delete_full_game():
 
 
 @bp.route('/delete_full_library/<library_uuid>', methods=['POST'])
-@bp.route('/delete_full_library/KILL_ALL_LIBRARIES', methods=['POST'])
 @login_required
 @admin_required
 def delete_full_library(library_uuid=None):
     print(f"Route: /delete_full_library - {current_user.name} - {current_user.role} method: {request.method} UUID: {library_uuid}")
     try:
-        if library_uuid == "KILL_ALL_LIBRARIES":
-            print(f"KILL ALL Deleting all libraries and their games.")
-            libraries = Library.query.all()
-            for library in libraries:
-                games_to_delete = Game.query.filter_by(library_uuid=library.uuid).all()
-                for game in games_to_delete:
-                    try:
-                        delete_game(game.uuid)
-                    except FileNotFoundError as fnfe:
-                        print(f'File not found for game with UUID {game.uuid}: {fnfe}')
-                        flash(f'File not found for game with UUID {game.uuid}. Skipping...', 'info')
-                    except Exception as e:
-                        print(f'Error deleting game with UUID {game.uuid}: {e}')
-                        flash(f'Error deleting game with UUID {game.uuid}: {e}', 'error')
-                db.session.delete(library)
-            flash('All libraries and their games have been deleted.', 'success')
-        elif library_uuid:
+        if library_uuid:
             library = Library.query.filter_by(uuid=library_uuid).first()
             if library:
                 print(f"Deleting full library: {library}")
@@ -635,8 +618,7 @@ def delete_full_library(library_uuid=None):
             else:
                 flash('Library not found.', 'error')
         else:
-            flash('No operation specified.', 'error')
-
+            flash('No library specified.', 'error')
         db.session.commit()
     except Exception as e:
         db.session.rollback()
