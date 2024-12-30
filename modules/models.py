@@ -316,7 +316,6 @@ class GameURL(db.Model):
     def __repr__(self):
         return f"<GameURL id={self.id}, game_uuid={self.game_uuid}, url_type={self.url_type}, url={self.url}>"
 
-
 class Image(db.Model):
     __tablename__ = 'images'
 
@@ -328,7 +327,6 @@ class Image(db.Model):
 
     def __repr__(self):
         return f"<Image id={self.id}, game_uuid={self.game_uuid}, image_type={self.image_type}, url={self.url}>"
-
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -433,8 +431,6 @@ class ReleaseGroup(db.Model):
     def __repr__(self):
         return f"<ReleaseGroup id={self.id}, rlsgroup={self.rlsgroup}, rlsgroupcs={self.rlsgroupcs}>"
 
-
-
 class GameMode(db.Model):
     __tablename__ = 'game_modes'
     id = db.Column(db.Integer, primary_key=True)
@@ -525,7 +521,10 @@ class ScanJob(db.Model):
     folders_failed = db.Column(db.Integer, default=0)
     library_uuid = db.Column(db.String(36), db.ForeignKey('libraries.uuid'), nullable=True)
     library = db.relationship('Library', backref=db.backref('scan_jobs', lazy=True))
-
+    removed_count = db.Column(db.Integer, default=0)
+    scan_folder = db.Column(db.String(512), nullable=True)
+    setting_remove = db.Column(db.Boolean, default=False)
+    setting_filefolder = db.Column(db.Boolean, default=False)
 
 class UnmatchedFolder(db.Model):
     __tablename__ = 'unmatched_folders'
@@ -537,7 +536,6 @@ class UnmatchedFolder(db.Model):
     content_type = db.Column(db.Enum('Games', name='unmatched_folder_content_type_enum'))
     status = db.Column(db.Enum('Pending', 'Ignore', 'Duplicate', 'Unmatched', name='unmatched_folder_status_enum'))
 
-    
 
 class UserPreference(db.Model):
     __tablename__ = 'user_preferences'
