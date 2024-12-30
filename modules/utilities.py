@@ -45,6 +45,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                 print(f"Game no longer found at path: {game.full_disk_path}")
                 try:
                     remove_from_lib(game.uuid)
+                    scan_job_entry.removed_count += 1
                     print(f"Removed game {game.name} as it no longer exists at {game.full_disk_path}")
                 except Exception as e:
                     print(f"Error removing game {game.name}: {e}")
@@ -60,7 +61,11 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
         error_message='',
         total_folders=0,
         folders_success=0,
-        folders_failed=0
+        folders_failed=0,
+        removed_count=0,
+        scan_folder=folder_path,
+        setting_remove=remove_missing,
+        setting_filefolder=(scan_mode == 'files')
     )
     
     db.session.add(scan_job_entry)

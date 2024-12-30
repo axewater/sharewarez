@@ -44,6 +44,7 @@ def try_add_game(game_name, full_disk_path, scan_job_id, library_uuid, check_exi
 def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_uuid):
     # Fetch library details based on library_uuid
     library = Library.query.filter_by(uuid=library_uuid).first()
+    scan_job = ScanJob.query.get(scan_job_id)
     if not library:
         print(f"Library with UUID {library_uuid} not found.")
         return False
@@ -58,6 +59,7 @@ def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_u
     existing_game = Game.query.filter_by(full_disk_path=full_disk_path, library_uuid=library_uuid).first()
     if existing_game:
         print(f"Game already exists in database: {game_name} at {full_disk_path}")
+        scan_job.folders_success += 1
         return True 
 
     print(f'Game does not exist in database: {game_name} at {full_disk_path}')
