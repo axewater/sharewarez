@@ -74,10 +74,10 @@
     </div>
 </div>
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin_igdb_settings.js') %}
-    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin_igdb_settings.js') }}"></script>
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin_manage_igdb_settings.js') %}
+    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin_manage_igdb_settings.js') }}"></script>
 {% else %}
-    <script src="{{ url_for('static', filename='library/themes/default/js/admin_igdb_settings.js') }}"></script>
+    <script src="{{ url_for('static', filename='library/themes/default/js/admin_manage_igdb_settings.js') }}"></script>
 {% endif %}
 
 {% endblock %}
