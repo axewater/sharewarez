@@ -1,10 +1,26 @@
+/* Dark theme styling for system logs */
+body {
+    background-color: #1a1a1a;
+    color: #ffffff;
+}
+
+.container {
+    background: rgba(30, 30, 30, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
 /* Table styling */
 .table {
     border-collapse: separate;
     border-spacing: 0;
     width: 100%;
     margin-bottom: 1rem;
-    background-color: transparent;
+    background: rgba(40, 40, 40, 0.5);
+    color: #fff;
 }
 
 /* Row styling for different event levels */
@@ -44,8 +60,8 @@
 
 /* Table header styling */
 .table thead th {
-    background-color: #f8f9fa;
-    border-bottom: 2px solid #dee2e6;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.875rem;
@@ -60,9 +76,11 @@
 
 /* Card styling */
 .card {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    background: rgba(40, 40, 40, 0.5);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     border: none;
     margin-bottom: 2rem;
+    color: #fff;
 }
 
 /* Pagination styling */
@@ -71,17 +89,32 @@
 }
 
 .page-link {
-    color: #6c757d;
-    border: 1px solid #dee2e6;
+    background: rgba(40, 40, 40, 0.5);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .page-link:hover {
-    background-color: #e9ecef;
-    border-color: #dee2e6;
-    color: #495057;
+    background: rgba(60, 60, 60, 0.5);
+    color: #0096ff;
 }
 
 .page-item.active .page-link {
-    background-color: #6c757d;
-    border-color: #6c757d;
+    background-color: #0096ff;
+    border-color: #0096ff;
+    color: #fff;
+}
+
+/* Back to Dashboard button styling */
+.btn-secondary {
+    background: rgba(0, 150, 255, 0.2);
+    color: #fff;
+    border: 1px solid rgba(0, 150, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: rgba(0, 150, 255, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(0, 150, 255, 0.3);
 }
