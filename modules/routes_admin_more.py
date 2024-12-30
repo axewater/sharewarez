@@ -291,8 +291,7 @@ def add_edit_library(library_uuid=None):
             db.session.add(library)
         try:
             db.session.commit()
-            log_system_event(f"Library {library.name} created by admin {current_user.name}", 
-                              event_type='library', event_level='information', audit_user=current_user.name)
+            log_system_event(f"Library created: {library.name}", event_type='library', event_level='information')
             flash('Library saved successfully!', 'success')
             return redirect(url_for('library.libraries'))
         except Exception as e:
