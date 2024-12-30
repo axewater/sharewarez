@@ -31,243 +31,244 @@
     </div>
 </div>
 
-<div class="admin_manage_scanjobs-nav-panel glass-panel mt-3">
-    <!-- Nav tabs -->
-    <ul class="admin_manage_scanjobs-nav-tabs nav nav-tabs">
-        <li class="admin_manage_scanjobs-nav-item nav-item">
-            <a class="admin_manage_scanjobs-nav-link nav-link" id="autoScan-tab" data-bs-toggle="tab" href="#autoScan">Auto Scan</a>
-        </li>
-        <li class="admin_manage_scanjobs-nav-item nav-item">
-            <a class="admin_manage_scanjobs-nav-link nav-link" id="manualScan-tab" data-bs-toggle="tab" href="#manualScan">Manual Scan</a>
-        </li>
-        <li class="admin_manage_scanjobs-nav-item nav-item">
-            <a class="admin_manage_scanjobs-nav-link nav-link" id="unmatchedFolders-tab" data-bs-toggle="tab" href="#unmatchedFolders">Unmatched Folders</a>
-        </li>
-    </ul>
+<div class="admin_manage_scanjobs-nav-panel mt-3">
+    <div class="container-settings">
+        <!-- Nav tabs -->
+        <ul class="admin_manage_scanjobs-nav-tabs nav nav-tabs">
+            <li class="admin_manage_scanjobs-nav-item nav-item">
+                <a class="admin_manage_scanjobs-nav-link nav-link" id="autoScan-tab" data-bs-toggle="tab" href="#autoScan">Auto Scan</a>
+            </li>
+            <li class="admin_manage_scanjobs-nav-item nav-item">
+                <a class="admin_manage_scanjobs-nav-link nav-link" id="manualScan-tab" data-bs-toggle="tab" href="#manualScan">Manual Scan</a>
+            </li>
+            <li class="admin_manage_scanjobs-nav-item nav-item">
+                <a class="admin_manage_scanjobs-nav-link nav-link" id="unmatchedFolders-tab" data-bs-toggle="tab" href="#unmatchedFolders">Unmatched Folders</a>
+            </li>
+        </ul>
 
-    <!-- Tab panes -->
-    <div class="admin_manage_scanjobs-tab-content tab-content">
-        <!-- Auto Scan Tab -->
-        <div id="autoScan" class="admin_manage_scanjobs-tab-panel tab-pane active"><br>
-			<div class="admin_manage_scanjobs-tab-header">
-				<h3>Automatic Folder Scan</h3>
-			</div>
-            {% if libraries|length > 0 %}
-            <form action="" method="post">
-                {{ auto_form.hidden_tag() }}
-                
-                <div class="selection-container glass-panel">
-                    <!-- Library Dropdown -->
-                    <div class="admin_manage_scanjobs-library form-group">
-                        {{ auto_form.library_uuid.label }}
-                        {{ auto_form.library_uuid(class="form-control", id="libraryUuid", onchange='onLibraryChange(this.value, "auto")') }}
-                        {% if auto_form.library_uuid.errors %}
-                            {% for error in auto_form.library_uuid.errors %}
+        <!-- Tab panes -->
+        <div class="admin_manage_scanjobs-tab-content tab-content">
+            <!-- Auto Scan Tab -->
+            <div id="autoScan" class="admin_manage_scanjobs-tab-panel tab-pane active"><br>
+                <div class="admin_manage_scanjobs-tab-header">
+                    <h3>Automatic Folder Scan</h3>
+                </div>
+                {% if libraries|length > 0 %}
+                <form action="" method="post">
+                    {{ auto_form.hidden_tag() }}
+                    
+                    <div class="selection-container glass-panel">
+                        <!-- Library Dropdown -->
+                        <div class="admin_manage_scanjobs-library form-group">
+                            {{ auto_form.library_uuid.label }}
+                            {{ auto_form.library_uuid(class="form-control", id="libraryUuid", onchange='onLibraryChange(this.value, "auto")') }}
+                            {% if auto_form.library_uuid.errors %}
+                                {% for error in auto_form.library_uuid.errors %}
+                                    <div class="alert alert-danger">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <!-- Scan Mode -->
+                        <div class="admin_manage_scanjobs-scanmode form-group">
+                            {{ auto_form.scan_mode.label }}
+                            {% for subfield in auto_form.scan_mode %}
+                                <div class="form-check">
+                                    {{ subfield(class="form-check-input") }}
+                                    {{ subfield.label(class="form-check-label") }}
+                                </div>
+                            {% endfor %}
+                            {% if auto_form.scan_mode.errors %}
+                                {% for error in auto_form.scan_mode.errors %}
+                                    <div class="alert alert-danger">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+        
+                        <!-- Remove Missing Games Option -->
+                        <div class="admin_manage_scanjobs-removemissing form-group">
+                            <div class="form-check">
+                                {{ auto_form.remove_missing(class="form-check-input") }}
+                                {{ auto_form.remove_missing.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                    </div>
+                        
+                    <!-- Folder Path -->
+                    <div class="admin_manage_scanjobs-folderpath form-group">
+                        {{ auto_form.folder_path.label }}
+                        {{ auto_form.folder_path(class="form-control") }}
+                        {% if auto_form.folder_path.errors %}
+                            {% for error in auto_form.folder_path.errors %}
                                 <div class="alert alert-danger">{{ error }}</div>
                             {% endfor %}
                         {% endif %}
                     </div>
+                    
+                    <!-- Scan and Browse Buttons -->
+                    <div class="form-group">
+                        <button id="browseFoldersBtn" type="button" class="admin_manage_scanjobs-browsefolders-btn btn btn-info" data-browse-url="{{ url_for('ssfb.browse_folders_ss') }}">Browse Folders</button>
+                        <button type="submit" name="submit" value="AutoScan" class="admin_manage_scanjobs-startscan-btn btn btn-primary">Start On-Demand Scan</button>
+                        <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                            <img src="/static/newstyle/searching_small.gif" alt="Loading...">
+                        </div>
+                        <button id="upFolderBtn" type="button" class="admin_manage_scanjobs-up-btn btn btn-secondary" style="display: none;">Up</button>
+                        <div id="folderContents" class="scanandbrowse"></div>
+                    </div>
+                </form>
+                {% else %}
+                <p>You have no Libraries!, go to <a href="{{ url_for('library.libraries') }}">Library Manager</a> and create one.</p>
+                {% endif %}
+                <div class="admin_manage_scanjobs-scanjobs-panel mt-4">
+                    <div class="scanjobs-header-text">
+                        <h2>Scan Jobs Management</h2>
+                        <p>(You can only have one scan job 'Running' at a time!)</p>
+                    </div>
+                    
+                    <form action="{{ url_for('main.clear_all_scan_jobs') }}" method="post">
+                        {{ csrf_form.csrf_token }}
+                        <input type="submit" value="Clear All" class="admin_manage_scanjobs-clearall-btn btn btn-danger" onclick="return confirm('Delete ALL jobs?');">
+                    </form>
+                    <table class="admin_manage_scanjobs-scanjobs-table table mt-3">
+                        <thead>
+                            <tr>
+                                <th class="admin_manage_scanjobs-scanjobs-table-id">ID</th>
+                                <th class="admin_manage_scanjobs-scanjobs-table-library">Library</th>
+                                <th class="admin_manage_scanjobs-scanjobs-table-folder">Folder</th>
+                                <th class="admin_manage_scanjobs-scanjobs-table-status">Status</th>
+                                <th class="admin_manage_scanjobs-scanjobs-table-error">Error Message</th>
+                                <th class="admin_manage_scanjobs-scanjobs-table-lastrun">Last Run</th>
+                                <th class="admin_manage_scanjobs-scanjobs-table-removed">Removed Missing</th>
+                                <th class="admin_manage_scanjobs-scanjobs-table-scanfolder">Scan Folder</th>
+                                <th class="admin_manage_scanjobs-scanjobs-table-total">Total Files/Folders</th>
+                                <th class="admin_manage_scanjobs-scanjobs-table-found">Games Found</th>
+                                <th class="admin_manage_scanjobs-scanjobs-table-failed">Failed Files/Folders</th>
+                                <th class="admin_manage_scanjobs-scanjobs-table-remove">Remove Missing (on/off)</th>
+                                <th class="admin_manage_scanjobs-scanjobs-table-mode">File / Folder mode</th>
+                                <th class="admin_manage_scanjobs-scanjobs-table-actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="jobsTableBody">
+                            <!-- Scan job rows will be dynamically populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
+            <!-- Manual Scan Tab -->
+            <div id="manualScan" class="admin_manage_scanjobs-manual-panel glass-panel tab-pane fade"><br>
+                <div class="admin_manage_scanjobs-tab-header">
+                    <h3>Manual Folder Scan</h3>
+                </div>
+                <form action="" method="post">
+                    {{ manual_form.hidden_tag() }}
+                    <!-- Library Selection -->
+                    <div class="admin_manage_scanjobs-library form-group">
+                        {{ manual_form.library_uuid.label }}
+                        {{ manual_form.library_uuid(class="form-control", id="manualLibraryUuid", onchange='onLibraryChange(this.value, "manual")') }}
+                        {% if manual_form.library_uuid.errors %}
+                            {% for error in manual_form.library_uuid.errors %}
+                                <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
                     <!-- Scan Mode -->
                     <div class="admin_manage_scanjobs-scanmode form-group">
-                        {{ auto_form.scan_mode.label }}
-                        {% for subfield in auto_form.scan_mode %}
+                        {{ manual_form.scan_mode.label }}
+                        {% for subfield in manual_form.scan_mode %}
                             <div class="form-check">
                                 {{ subfield(class="form-check-input") }}
                                 {{ subfield.label(class="form-check-label") }}
                             </div>
                         {% endfor %}
-                        {% if auto_form.scan_mode.errors %}
-                            {% for error in auto_form.scan_mode.errors %}
+                    </div>
+                    <div class="form-group">
+                        {{ manual_form.folder_path.label }}
+                        {{ manual_form.folder_path(class="form-control", id="manualFolderPath") }}
+                        {% if manual_form.folder_path.errors %}
+                            {% for error in manual_form.folder_path.errors %}
                                 <div class="alert alert-danger">{{ error }}</div>
                             {% endfor %}
                         {% endif %}
                     </div>
-    
-                    <!-- Remove Missing Games Option -->
-                    <div class="admin_manage_scanjobs-removemissing form-group">
-                        <div class="form-check">
-                            {{ auto_form.remove_missing(class="form-check-input") }}
-                            {{ auto_form.remove_missing.label(class="form-check-label") }}
-                        </div>
+                    <div class="form-group">
+                        <button id="browseFoldersBtnManual" type="button" class="admin_manage_scanjobs-browsefolders-btn btn btn-info">Browse Folders</button>
+                        <button type="submit" name="submit" value="ManualScan" class="admin_manage_scanjobs-browsefolders-listgames-btn btn btn-primary">List Games</button>
+                        <button id="upFolderBtnManual" type="button" class="admin_manage_scanjobs-browsefolders-up-btn btn btn-secondary" style="display: none;">Up</button>
                     </div>
-                </div>
-                    
-                <!-- Folder Path -->
-                <div class="admin_manage_scanjobs-folderpath form-group">
-                    {{ auto_form.folder_path.label }}
-                    {{ auto_form.folder_path(class="form-control") }}
-                    {% if auto_form.folder_path.errors %}
-                        {% for error in auto_form.folder_path.errors %}
-                            <div class="alert alert-danger">{{ error }}</div>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-                
-                <!-- Scan and Browse Buttons -->
-                <div class="form-group">
-                    <button id="browseFoldersBtn" type="button" class="admin_manage_scanjobs-browsefolders-btn btn btn-info" data-browse-url="{{ url_for('ssfb.browse_folders_ss') }}">Browse Folders</button>
-                    <button type="submit" name="submit" value="AutoScan" class="admin_manage_scanjobs-startscan-btn btn btn-primary">Start On-Demand Scan</button>
-                    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
-                        <img src="/static/newstyle/searching_small.gif" alt="Loading...">
-                    </div>
-                    <button id="upFolderBtn" type="button" class="admin_manage_scanjobs-up-btn btn btn-secondary" style="display: none;">Up</button>
-                    <div id="folderContents" class="scanandbrowse"></div>
-                </div>
-            </form>
-            {% else %}
-            <p>You have no Libraries!, go to <a href="{{ url_for('library.libraries') }}">Library Manager</a> and create one.</p>
-            {% endif %}
-            <div class="admin_manage_scanjobs-scanjobs-panel mt-4">
-                <div class="scanjobs-header-text">
-                    <h2>Scan Jobs Management</h2>
-                    <p>(You can only have one scan job 'Running' at a time!)</p>
-                </div>
-                
-                <form action="{{ url_for('main.clear_all_scan_jobs') }}" method="post">
-                     {{ csrf_form.csrf_token }}
-                    <input type="submit" value="Clear All" class="admin_manage_scanjobs-clearall-btn btn btn-danger" onclick="return confirm('Delete ALL jobs?');">
                 </form>
-                <table class="admin_manage_scanjobs-scanjobs-table table mt-3">
-                    <thead>
-                        <tr>
-                            <th class="admin_manage_scanjobs-scanjobs-table-id">ID</th>
-                            <th class="admin_manage_scanjobs-scanjobs-table-library">Library</th>
-                            <th class="admin_manage_scanjobs-scanjobs-table-folder">Folder</th>
-                            <th class="admin_manage_scanjobs-scanjobs-table-status">Status</th>
-                            <th class="admin_manage_scanjobs-scanjobs-table-error">Error Message</th>
-                            <th class="admin_manage_scanjobs-scanjobs-table-lastrun">Last Run</th>
-                            <th class="admin_manage_scanjobs-scanjobs-table-removed">Removed Missing</th>
-                            <th class="admin_manage_scanjobs-scanjobs-table-scanfolder">Scan Folder</th>
-                            <th class="admin_manage_scanjobs-scanjobs-table-total">Total Files/Folders</th>
-                            <th class="admin_manage_scanjobs-scanjobs-table-found">Games Found</th>
-                            <th class="admin_manage_scanjobs-scanjobs-table-failed">Failed Files/Folders</th>
-                            <th class="admin_manage_scanjobs-scanjobs-table-remove">Remove Missing (on/off)</th>
-                            <th class="admin_manage_scanjobs-scanjobs-table-mode">File / Folder mode</th>
-                            <th class="admin_manage_scanjobs-scanjobs-table-actions">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="jobsTableBody">
-                        <!-- Scan job rows will be dynamically populated here -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Manual Scan Tab -->
-        <div id="manualScan" class="admin_manage_scanjobs-manual-panel glass-panel tab-pane fade"><br>
-			<div class="admin_manage_scanjobs-tab-header">
-				<h3>Manual Folder Scan</h3>
-			</div>
-            <form action="" method="post">
-                {{ manual_form.hidden_tag() }}
-                <!-- Library Selection -->
-                <div class="admin_manage_scanjobs-library form-group">
-                    {{ manual_form.library_uuid.label }}
-                    {{ manual_form.library_uuid(class="form-control", id="manualLibraryUuid", onchange='onLibraryChange(this.value, "manual")') }}
-                    {% if manual_form.library_uuid.errors %}
-                        {% for error in manual_form.library_uuid.errors %}
-                            <div class="alert alert-danger">{{ error }}</div>
-                        {% endfor %}
-                    {% endif %}
+                <div id="loadingSpinnerManual" class="loading-spinner">
+                    <img src="/static/newstyle/searching_small.gif" alt="Loading...">
                 </div>
-                <!-- Scan Mode -->
-                <div class="admin_manage_scanjobs-scanmode form-group">
-                    {{ manual_form.scan_mode.label }}
-                    {% for subfield in manual_form.scan_mode %}
-                        <div class="form-check">
-                            {{ subfield(class="form-check-input") }}
-                            {{ subfield.label(class="form-check-label") }}
+                <div id="folderContentsManual"></div>
+            
+                {% if game_names_with_ids %}
+                <br>
+                <div class="admin_manage_scanjobs-foundgames-header">
+                    <h4>Found Games:</h4>
+                </div>
+                <div class="admin_manage_scanjobs-foudngames-list list-group">
+                    {% for game in game_names_with_ids %}
+                        <div class="admin_manage_scanjobs-list-item list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            {{ game['name'] }}
+                            <!-- Identify Form for each game -->
+                            <form action="{{ url_for('main.add_game_manual') }}" method="GET">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                                <input type="hidden" name="full_disk_path" value="{{ game['full_path'] }}">
+                                <input type="submit" class="admin_manage_scanjobs-identify-btn btn btn-primary btn-sm" value="Identify">
+                            </form>
                         </div>
                     {% endfor %}
                 </div>
-                <div class="form-group">
-                    {{ manual_form.folder_path.label }}
-                    {{ manual_form.folder_path(class="form-control", id="manualFolderPath") }}
-                    {% if manual_form.folder_path.errors %}
-                        {% for error in manual_form.folder_path.errors %}
-                            <div class="alert alert-danger">{{ error }}</div>
-                        {% endfor %}
-                    {% endif %}
+            {% endif %}
+            
                 </div>
-                <div class="form-group">
-                    <button id="browseFoldersBtnManual" type="button" class="admin_manage_scanjobs-browsefolders-btn btn btn-info">Browse Folders</button>
-                    <button type="submit" name="submit" value="ManualScan" class="admin_manage_scanjobs-browsefolders-listgames-btn btn btn-primary">List Games</button>
-                    <button id="upFolderBtnManual" type="button" class="admin_manage_scanjobs-browsefolders-up-btn btn btn-secondary" style="display: none;">Up</button>
-                </div>
-            </form>
-            <div id="loadingSpinnerManual" class="loading-spinner">
-                <img src="/static/newstyle/searching_small.gif" alt="Loading...">
-            </div>
-            <div id="folderContentsManual"></div>
-        
-            {% if game_names_with_ids %}
-            <br>
-			<div class="admin_manage_scanjobs-foundgames-header">
-				<h4>Found Games:</h4>
-			</div>
-            <div class="admin_manage_scanjobs-foudngames-list list-group">
-                {% for game in game_names_with_ids %}
-                    <div class="admin_manage_scanjobs-list-item list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                        {{ game['name'] }}
-                        <!-- Identify Form for each game -->
-                        <form action="{{ url_for('main.add_game_manual') }}" method="GET">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-                            <input type="hidden" name="full_disk_path" value="{{ game['full_path'] }}">
-                            <input type="submit" class="admin_manage_scanjobs-identify-btn btn btn-primary btn-sm" value="Identify">
+            <!-- Unmatched Folders Tab -->
+            <div id="unmatchedFolders" class="admin_manage_scanjobs-unmatched-container container tab-pane fade"><br>
+                <div class="admin_manage_scanjobs-unmatched-panel glass-panel">
+                    <div class="admin_manage_scanjobs-tab-header">
+                        <h3>Resolve Unmatched Folders</h3>
+                    </div>
+                    <!-- spinner -->
+                    <div id="globalSpinner">
+                        <img src="{{ url_for('static', filename='/newstyle/pirate_treasure.gif') }}" alt="Loading...">
+                    </div>
+
+                    <div class="container-unmatched-buttons mb-3">
+                        <form action="" method="post">
+                            {{ csrf_form.csrf_token }}
+                            <input type="hidden" name="submit" value="DeleteAllUnmatched">
+                            <button type="submit" class="admin_manage_scanjobs-clearall-btn btn btn-danger" onclick="return confirm('Are you sure you want to delete all entries in the list? This cannot be undone.');">Clear All</button>
+                        </form>
+                        <form action="" method="post">
+                            {{ csrf_form.csrf_token }}
+                            <input type="hidden" name="submit" value="DeleteOnlyUnmatched">
+                            <button type="submit" class="admin_manage_scanjobs-clearunmatched-btn btn btn-warning" onclick="return confirm('Are you sure you want to clear all unmatched folders? This cannot be undone.');">Clear Unmatched</button>
                         </form>
                     </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-        
-            </div>
-
-        <!-- Unmatched Folders Tab -->
-        <div id="unmatchedFolders" class="admin_manage_scanjobs-unmatched-container container tab-pane fade"><br>
-            <div class="admin_manage_scanjobs-unmatched-panel glass-panel">
-				<div class="admin_manage_scanjobs-tab-header">
-					<h3>Resolve Unmatched Folders</h3>
-				</div>
-                <!-- spinner -->
-                <div id="globalSpinner">
-                    <img src="{{ url_for('static', filename='/newstyle/pirate_treasure.gif') }}" alt="Loading...">
+                    <table class="admin_manage_scanjobs-unmatched-table table" style="border-radius: 15px;">
+                        <thead>
+                            <tr>
+                                <th class="admin_manage_scanjobs-unmatched-table-folderpath">Folder Path</th>
+                                <th class="admin_manage_scanjobs-unmatched-table-status">Status</th>
+                                <th class="admin_manage_scanjobs-unmatched-table-library">Library</th>
+                                <th class="admin_manage_scanjobs-unmatched-table-platform">Platform</th>
+                                <th class="admin_manage_scanjobs-unmatched-table-id">Platform ID</th>
+                                <th class="admin_manage_scanjobs-unmatched-table-actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="unmatchedFoldersTableBody">
+                            <!-- This will be populated dynamically by JavaScript -->
+                        </tbody>
+                    </table>
+                    
                 </div>
 
-                <div class="container-unmatched-buttons mb-3">
-                    <form action="" method="post">
-                        {{ csrf_form.csrf_token }}
-                        <input type="hidden" name="submit" value="DeleteAllUnmatched">
-                        <button type="submit" class="admin_manage_scanjobs-clearall-btn btn btn-danger" onclick="return confirm('Are you sure you want to delete all entries in the list? This cannot be undone.');">Clear All</button>
-                    </form>
-                    <form action="" method="post">
-                        {{ csrf_form.csrf_token }}
-                        <input type="hidden" name="submit" value="DeleteOnlyUnmatched">
-                        <button type="submit" class="admin_manage_scanjobs-clearunmatched-btn btn btn-warning" onclick="return confirm('Are you sure you want to clear all unmatched folders? This cannot be undone.');">Clear Unmatched</button>
-                    </form>
-                </div>
-                <table class="admin_manage_scanjobs-unmatched-table table" style="border-radius: 15px;">
-                    <thead>
-                        <tr>
-                            <th class="admin_manage_scanjobs-unmatched-table-folderpath">Folder Path</th>
-                            <th class="admin_manage_scanjobs-unmatched-table-status">Status</th>
-                            <th class="admin_manage_scanjobs-unmatched-table-library">Library</th>
-                            <th class="admin_manage_scanjobs-unmatched-table-platform">Platform</th>
-                            <th class="admin_manage_scanjobs-unmatched-table-id">Platform ID</th>
-                            <th class="admin_manage_scanjobs-unmatched-table-actions">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="unmatchedFoldersTableBody">
-                        <!-- This will be populated dynamically by JavaScript -->
-                    </tbody>
-                </table>
-                
             </div>
-
         </div>
-    </div>
-        
+    </div>        
 </div>
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin_scan_management.js') %}
 <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin_scan_management.js') }}"></script>

@@ -8,76 +8,77 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_newsletter.css') }}">
 {% endif %}
 
-<div class="glass-panel">
+
     <!-- Back to Dashboard Button -->
-    <div class="container">
-        <div class="glass-panel">
-            <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
-        </div>
-    </div>
-    <h1>Newsletter</h1>
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <div class="alert alert-info" role="alert">
-            {% for message in messages %}
-                {{ message }}<br>
+    
+<div class="glass-panel">
+    <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+
+    <div class="container-settings">        
+        <h1>Newsletter</h1>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-info" role="alert">
+                {% for message in messages %}
+                    {{ message }}<br>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+        <form action="" method="post" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                <label for="subject" class="form-label">{{ form.subject.label }}</label>
+                {{ form.subject(size=32, class="form-control input-glass") }}
+            </div>
+            
+            <div class="mb-3">
+                <label for="content" class="form-label">{{ form.content.label }}</label>
+                {{ form.content(rows=10, cols=32, class="form-control input-glass") }}
+            </div>
+            
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="selectAll">
+                <label class="form-check-label" for="selectAll">Select All/Select None</label>
+            </div>
+            
+            <div class="list-group mb-3">
+            {% for user in users %}
+                <label class="list-group-item">
+                    <input class="form-check-input me-1 userCheckbox" type="checkbox" name="user" value="{{ user.email }}" checked onchange="updateRecipients()">
+                    {{ user.email }}
+                </label>
             {% endfor %}
-        </div>
-    {% endif %}
-    {% endwith %}
-    <form action="" method="post" novalidate>
-        {{ form.hidden_tag() }}
-        <div class="mb-3">
-            <label for="subject" class="form-label">{{ form.subject.label }}</label>
-            {{ form.subject(size=32, class="form-control input-glass") }}
-        </div>
-        
-        <div class="mb-3">
-            <label for="content" class="form-label">{{ form.content.label }}</label>
-            {{ form.content(rows=10, cols=32, class="form-control input-glass") }}
-        </div>
-        
-        <div class="mb-3 form-check">
-            <input type="checkbox" class="form-check-input" id="selectAll">
-            <label class="form-check-label" for="selectAll">Select All/Select None</label>
-        </div>
-        
-        <div class="list-group mb-3">
-        {% for user in users %}
-            <label class="list-group-item">
-                <input class="form-check-input me-1 userCheckbox" type="checkbox" name="user" value="{{ user.email }}" checked onchange="updateRecipients()">
-                {{ user.email }}
-            </label>
-        {% endfor %}
-        </div>
-        
-        {{ form.recipients(style="display:none") }}  <!-- hidden input field -->
-        <button type="submit" class="btn btn-primary">{{ form.send.label }}</button>
-    </form>
-    <script>
-        document.getElementById("selectAll").addEventListener("click", function(e) {
-        var userCheckboxes = document.getElementsByClassName("userCheckbox");
-        for(var i = 0; i < userCheckboxes.length; i++) {
-            userCheckboxes[i].checked = e.target.checked;
-        }
-        updateRecipients();
-    });
+            </div>
+            
+            {{ form.recipients(style="display:none") }}  <!-- hidden input field -->
+            <button type="submit" class="btn btn-primary">{{ form.send.label }}</button>
+        </form>
+    </div>
 
-    function updateRecipients() {
-        var recipients = [];
-        var checkboxes = document.querySelectorAll('input[name="user"]:checked');
+<script>
+    document.getElementById("selectAll").addEventListener("click", function(e) {
+    var userCheckboxes = document.getElementsByClassName("userCheckbox");
+    for(var i = 0; i < userCheckboxes.length; i++) {
+        userCheckboxes[i].checked = e.target.checked;
+    }
+    updateRecipients();
+});
 
-        for (var i = 0; i < checkboxes.length; i++) {
-            recipients.push(checkboxes[i].value);
-        }
+function updateRecipients() {
+    var recipients = [];
+    var checkboxes = document.querySelectorAll('input[name="user"]:checked');
 
-        document.querySelector('input[name="recipients"]').value = recipients.join(',');
-
-        console.log('Recipients: ' + document.querySelector('input[name="recipients"]').value);
+    for (var i = 0; i < checkboxes.length; i++) {
+        recipients.push(checkboxes[i].value);
     }
 
-    updateRecipients(); 
-    </script>
+    document.querySelector('input[name="recipients"]').value = recipients.join(',');
 
-</div>
+    console.log('Recipients: ' + document.querySelector('input[name="recipients"]').value);
+}
+
+updateRecipients(); 
+</script>
 {% endblock %}

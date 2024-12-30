@@ -72,7 +72,7 @@ def smtp_settings():
             db.session.rollback()
             return jsonify({'status': 'error', 'message': str(e)}), 500
     
-    return render_template('admin/admin_smtp_settings.html', settings=settings)
+    return render_template('admin/admin_manage_smtp_settings.html', settings=settings)
 
 @smtp_bp.route('/admin/smtp_test', methods=['POST'])
 @login_required
