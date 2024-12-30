@@ -149,9 +149,16 @@ def test_discord_webhook():
             color="03b2f8"
         )
         success = handler.send_webhook(embed)
-        return jsonify({'success': success, 'message': 'Test message sent successfully'})
+        if success:
+            return jsonify({'success': True, 'message': 'Test message sent successfully'})
+        else:
+            return jsonify({'success': False, 'message': 'Failed to send test message'}), 500
+    except ValueError as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+        error_message = f"Discord webhook error: {str(e)}"
+        print(error_message)
+        return jsonify({'success': False, 'message': error_message}), 500
 
 @admin2_bp.route('/admin/themes', methods=['GET', 'POST'])
 @login_required
