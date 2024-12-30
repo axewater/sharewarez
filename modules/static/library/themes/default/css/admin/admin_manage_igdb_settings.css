@@ -6,14 +6,6 @@
     background-color: #444;
 }
 
-.igdb-settings-container {
-    max-width: 800px;
-    margin: 2rem auto;
-    background: rgba(30, 30, 30, 0.95);
-    border-radius: 15px;
-    padding: 20px;
-}
-
 .instructions-toggle {
     margin-bottom: 1rem;
 }

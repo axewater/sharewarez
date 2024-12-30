@@ -50,50 +50,53 @@
 </div>
 
 
-<div class="admin_manage_libraries-library-container glass-panel">
-    <h2>Game Libraries</h2>
-    <a href="{{ url_for('admin2.add_edit_library') }}" class="btn btn-primary mb-3">
-        <i class="fas fa-plus"></i> Add Library
-    </a>
-    <table class="table table-hover" id="librariesTable">
-        <thead>
-            <tr>
-                <th style="width: 50px;"></th>
-                <th>Library Name</th>
-                <th>Games Count</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for library in libraries %}
-                <tr data-library-uuid="{{ library.uuid }}">
-                    <td>
-                        <i class="fas fa-grip-vertical drag-handle" style="cursor: move;"></i>
-                    </td>
-                    <td>
-                        <img src="{{ library.image_url or url_for('static', filename='default-image.jpg') }}" alt="{{ library.name }}" style="width: 30px; height: 30px; object-fit: cover;" class="me-2 rounded">
-                        {{ library.name }} - {{ library.platform.value }}
-                    </td>
-                    <td>{{ library.games|length }}</td>
-                    <td>
-                        <a href="{{ url_for('main.scan_management', library_uuid=library.uuid) }}" class="btn btn-sm btn-secondary">
-                            <i class="fas fa-search"></i> Scan
-                        </a>
-                        <a href="{{ url_for('admin2.add_edit_library', library_uuid=library.uuid) }}" class="btn btn-sm btn-primary">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                        <form action="{{ url_for('main.delete_full_library', library_uuid=library.uuid) }}" method="post" style="display: inline-block;">
-                            {{ csrf_form.csrf_token }}
-                            <button type="button" class="btn btn-sm btn-danger delete-btn" data-toggle="modal" data-target="#deleteWarningModal" data-library-uuid="{{ library.uuid }}">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        </form>
-                    </td>
+<div class="admin_manage_libraries-library-container">
+    <div class="container-settings">
+        <h1>Library Management</h1>
+        <h2>Game Libraries</h2>
+        <a href="{{ url_for('admin2.add_edit_library') }}" class="btn btn-primary mb-3">
+            <i class="fas fa-plus"></i> Add Library
+        </a>
+        <table class="table table-hover" id="librariesTable">
+            <thead>
+                <tr>
+                    <th style="width: 50px;"></th>
+                    <th>Library Name</th>
+                    <th>Games Count</th>
+                    <th>Actions</th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+            </thead>
+            <tbody>
+                {% for library in libraries %}
+                    <tr data-library-uuid="{{ library.uuid }}">
+                        <td>
+                            <i class="fas fa-grip-vertical drag-handle" style="cursor: move;"></i>
+                        </td>
+                        <td>
+                            <img src="{{ library.image_url or url_for('static', filename='default-image.jpg') }}" alt="{{ library.name }}" style="width: 30px; height: 30px; object-fit: cover;" class="me-2 rounded">
+                            {{ library.name }} - {{ library.platform.value }}
+                        </td>
+                        <td>{{ library.games|length }}</td>
+                        <td>
+                            <a href="{{ url_for('main.scan_management', library_uuid=library.uuid) }}" class="btn btn-sm btn-secondary">
+                                <i class="fas fa-search"></i> Scan
+                            </a>
+                            <a href="{{ url_for('admin2.add_edit_library', library_uuid=library.uuid) }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <form action="{{ url_for('main.delete_full_library', library_uuid=library.uuid) }}" method="post" style="display: inline-block;">
+                                {{ csrf_form.csrf_token }}
+                                <button type="button" class="btn btn-sm btn-danger delete-btn" data-toggle="modal" data-target="#deleteWarningModal" data-library-uuid="{{ library.uuid }}">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
 
 
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin_manage_libs.js') %}

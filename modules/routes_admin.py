@@ -284,7 +284,7 @@ def igdb_settings():
             db.session.rollback()
             return jsonify({'status': 'error', 'message': str(e)}), 500
     
-    return render_template('admin/admin_igdb_settings.html', settings=settings)
+    return render_template('admin/admin_manage_igdb_settings.html', settings=settings)
 
 @admin_bp.route('/admin/test_igdb', methods=['POST'])
 @login_required

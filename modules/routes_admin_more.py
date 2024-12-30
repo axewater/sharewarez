@@ -191,7 +191,7 @@ def manage_themes():
 @login_required
 @admin_required
 def theme_readme():
-    return render_template('admin/readme_theme.html')
+    return render_template('admin/admin_manage_themes_readme.html')
 
 @admin2_bp.route('/admin/themes/delete/<theme_name>', methods=['POST'])
 @login_required

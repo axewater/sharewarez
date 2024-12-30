@@ -2,10 +2,10 @@
 {% block content %}
 
 <meta name="csrf-token" content="{{ csrf_token() }}">
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_smtp_settings.css') == True %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_smtp_settings.css') }}">
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_manage_smtp_settings.css') == True %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_manage_smtp_settings.css') }}">
 {% else %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_smtp_settings.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_smtp_settings.css') }}">
 {% endif %}
 {% with messages = get_flashed_messages() %}
 {% if messages %}
@@ -22,20 +22,26 @@
 </div>
 
 
-<div class="smtp-settings-container">
-
-
-
-        <h2>SMTP Settings <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#smtpHelpModal">
-            <i class="fas fa-question-circle"></i> Help
-        </button></h2>
+<div class="container-settings">
+    <h2>SMTP Settings <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#smtpHelpModal">
+        <i class="fas fa-question-circle"></i> Help
+    </button></h2>
     
     <div class="settings-form">
         <div class="form-group">
             <label for="smtp_enabled">Enable SMTP</label>
             <input type="checkbox" id="smtp_enabled" {% if settings and settings.smtp_enabled %}checked{% endif %}>
         </div>
+        <div class="message">
+            You must save your settings before testing.
+        </div>
+
+            <button type="button" class="btn btn-primary me-2" onclick="saveSettings()">Save Settings</button>
+            <button type="button" class="btn btn-secondary" onclick="testSettings()">Test Settings</button>
+
         
+        <!-- Test results container with improved styling -->
+        <div id="testResults" class="mt-4"></div>
         <div class="form-group">
             <label for="smtp_server">SMTP Server *</label>
             <input type="text" id="smtp_server" value="{{ settings.smtp_server if settings else '' }}" class="form-control" required>
@@ -72,16 +78,7 @@
             Last tested: {{ settings.smtp_last_tested.strftime('%Y-%m-%d %H:%M:%S') }}
         </div>
         {% endif %}
-        <div class="message">
-            You must save your settings before testing.
-        </div>
-        <div class="button-group">
-            <button type="button" class="btn btn-primary me-2" onclick="saveSettings()">Save Settings</button>
-            <button type="button" class="btn btn-secondary" onclick="testSettings()">Test Settings</button>
-        </div>
-        
-        <!-- Test results container with improved styling -->
-        <div id="testResults" class="mt-4"></div>
+
     </div>
 </div>
 
@@ -131,10 +128,10 @@
     </div>
 </div>
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin_smtp_settings.js') %}
-    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin_smtp_settings.js') }}"></script>
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin_manage_smtp_settings.js') %}
+    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin_manage_smtp_settings.js') }}"></script>
 {% else %}
-    <script src="{{ url_for('static', filename='library/themes/default/js/admin_smtp_settings.js') }}"></script>
+    <script src="{{ url_for('static', filename='library/themes/default/js/admin_manage_smtp_settings.js') }}"></script>
 {% endif %}
 
 {% endblock %}

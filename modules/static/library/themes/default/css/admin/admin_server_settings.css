@@ -1,12 +1,17 @@
-/* Main container styling */
-.container-status-page {
-    background: rgba(30, 30, 30, 0.95);
-    border-radius: 15px;
-    padding: 20px;
-    margin: 20px auto;
-    max-width: 1200px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+/* Add this to make table headers white */
+.table thead th {
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    color: white; /* Add this line to make the text white */
 }
+
+/* Style the icons in the headers */
+.table thead th i {
+    color: white; /* Make icons white too */
+    margin-right: 8px; /* Add some spacing between icon and text */
+}
+
 
 /* Header styling */
 .container-serverstatus-version {
