@@ -14,6 +14,11 @@
 <div class="container">
     <div class="glass-panel">
         <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+        <!-- Add CKEditor CDN -->
+        <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+        <style>
+            .ck-editor__editable { min-height: 300px; background: rgba(255, 255, 255, 0.1) !important; }
+        </style>
     </div>
 </div>
 <div class="container-settings">        
@@ -37,7 +42,7 @@
             
             <div class="mb-3">
                 <label for="content" class="form-label">{{ form.content.label }}</label>
-                {{ form.content(rows=10, cols=32, class="form-control input-glass") }}
+                {{ form.content(id="editor", class="form-control input-glass") }}
             </div>
             
             <div class="mb-3 form-check">
@@ -80,6 +85,19 @@ function updateRecipients() {
 
     console.log('Recipients: ' + document.querySelector('input[name="recipients"]').value);
 }
+
+// Initialize CKEditor
+ClassicEditor
+    .create(document.querySelector('#editor'), {
+        toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', '|', 'undo', 'redo'],
+        placeholder: 'Write your newsletter content here...',
+    })
+    .then(editor => {
+        console.log('Editor initialized');
+    })
+    .catch(error => {
+        console.error(error);
+    });
 
 updateRecipients(); 
 </script>

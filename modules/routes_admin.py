@@ -90,7 +90,7 @@ def newsletter():
         print(f"ADMIN NEWSLETTER: Recipient list : {recipients}")
         
         msg = MailMessage(form.subject.data, sender=current_app.config['MAIL_DEFAULT_SENDER'])
-        msg.body = form.content.data
+        msg.html = form.content.data
         
         msg.recipients = recipients
         try:

@@ -1,0 +1,31 @@
+.ck.ck-editor {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.ck-editor__editable {
+    color: #e0e0e0 !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 0 0 5px 5px;
+}
+
+.ck.ck-toolbar {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 5px 5px 0 0;
+}
+
+.ck.ck-button,
+.ck.ck-button.ck-on {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.ck.ck-button:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+.ck.ck-toolbar .ck.ck-toolbar__separator {
+    background: rgba(255, 255, 255, 0.2);
+}
