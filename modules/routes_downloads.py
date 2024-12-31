@@ -9,7 +9,8 @@ from modules.forms import CsrfProtectForm, ClearDownloadRequestsForm
 from modules.models import Game, DownloadRequest, GameUpdate, GameExtra, GlobalSettings
 from modules.utils_processors import get_global_settings
 from modules.utils_functions import get_folder_size_in_bytes, format_size
-from modules.utils_download import zip_game, zip_folder, update_download_request
+from modules.utils_system_stats import format_bytes
+from modules.utils_download import zip_game, zip_folder, update_download_request, get_zip_storage_stats
 from modules.utils_game_core import get_game_by_uuid
 from modules.utils_auth import admin_required
 from modules import db
@@ -388,6 +389,7 @@ def delete_download(download_id):
 
     return redirect(url_for('download.downloads'))
 
+
 @download_bp.route('/admin/manage-downloads', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -407,4 +409,10 @@ def manage_downloads():
         return redirect(url_for('download.manage_downloads'))
 
     download_requests = DownloadRequest.query.all()
-    return render_template('admin/admin_manage_downloads.html', form=form, download_requests=download_requests)
+    # Get zip storage statistics
+    zip_count, zip_size, total_size = get_zip_storage_stats()
+    storage_stats = {
+        'zip_count': zip_count,
+        'total_size': format_bytes(total_size)
+    }
+    return render_template('admin/admin_manage_downloads.html', form=form, download_requests=download_requests, storage_stats=storage_stats)
