@@ -4,8 +4,19 @@ from modules.models import GlobalSettings, Library, Game, GameURL, db
 import os
 import time
 from datetime import datetime
-from modules.utils_game_core import get_game_by_uuid, get_folder_size_in_bytes_updates, delete_game_images
+from modules.utils_game_core import get_folder_size_in_bytes_updates
 from modules.utils_igdb_api import get_cover_url
+
+
+def discord_get_game_by_uuid(game_uuid):
+    print(f"Searching for game UUID: {game_uuid}")
+    game = Game.query.filter_by(uuid=game_uuid).first()
+    if game:
+        print(f"Game ID {game.id} with name {game.name} and UUID {game.uuid} relating to IGDB ID {game.igdb_id} found")
+        return game
+    else:
+        print("Game not found")
+        return None
 
 def format_size(size_in_bytes):
     try:
@@ -53,7 +64,7 @@ def discord_webhook(game_uuid): #Used for notifying of new games.
         print("Discord notifications for new games are disabled")
         return
 
-    newgame = get_game_by_uuid(game_uuid)
+    newgame = discord_get_game_by_uuid(game_uuid)
     newgame_size = format_size(newgame.size)
     newgame_library = get_library_by_uuid(newgame.library_uuid)
     
@@ -226,7 +237,7 @@ def get_library_by_uuid(uuid):
 
     
 def update_game_last_updated(game_uuid, updated_time):
-    game = get_game_by_uuid(game_uuid)
+    game = discord_get_game_by_uuid(game_uuid)
     game.last_updated = updated_time
     db.session.commit()
     return None
@@ -403,50 +414,35 @@ def get_game_name_by_uuid(uuid):
         return None
         
 def update_game_size(game_uuid, size):
-    game = get_game_by_uuid(game_uuid)
+    game = discord_get_game_by_uuid(game_uuid)
     game.size = size
     db.session.commit()
     return None
 
-def remove_from_lib(game_uuid):
+
+def get_game_by_full_disk_path(game_path, file_path=None):
     """
-    Remove a game and its associated data from the database.
+    Get a game from the database by its full disk path.
     
     Args:
-        game_uuid (str): The UUID of the game to remove
+        game_path (str): The full path to the game directory
+        file_path (str, optional): Path to a specific file within the game directory
         
     Returns:
-        str: 'OK' if successful, 'FAIL' if an error occurs
+        Game: Game object if found, None otherwise
     """
     try:
-        # Find the game
-        game = Game.query.filter_by(uuid=game_uuid).first()
-        if not game:
-            print(f"Game with UUID {game_uuid} not found")
-            return 'FAIL'
-
-        # Delete associated URLs
-        GameURL.query.filter_by(game_uuid=game_uuid).delete()
-
-        # Clear all many-to-many relationships
-        game.genres.clear()
-        game.platforms.clear()
-        game.game_modes.clear()
-        game.themes.clear()
-        game.player_perspectives.clear()
-        game.multiplayer_modes.clear()
-
-        # Delete associated images from filesystem and database
-        delete_game_images(game_uuid)
-
-        # Delete the game record
-        db.session.delete(game)
-        db.session.commit()
-        
-        print(f"Successfully removed game {game_uuid} from library")
-        return 'OK'
-        
+        # First try exact match
+        game = Game.query.filter_by(full_disk_path=game_path).first()
+        if game:
+            return game
+            
+        # If no exact match and file_path provided, try parent directory
+        if file_path:
+            parent_path = os.path.dirname(file_path)
+            return Game.query.filter_by(full_disk_path=parent_path).first()
+            
+        return None
     except Exception as e:
-        db.session.rollback()
-        print(f"Error removing game {game_uuid} from library: {e}")
-        return 'FAIL'
+        print(f"Error finding game by path {game_path}: {e}")
+        return None

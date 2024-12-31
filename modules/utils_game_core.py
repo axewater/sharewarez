@@ -430,7 +430,7 @@ def remove_from_lib(game_uuid):
     
 
 def delete_game(game_identifier):
-    """Delete a game by UUID or Game object."""
+    """Delete a game by UUID or Game object.""" 
     game_to_delete = None
     if isinstance(game_identifier, Game):
         game_to_delete = game_identifier
