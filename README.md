@@ -7,7 +7,7 @@ Invite your friends securely and share your favorite games!
 
 ## 📢 Important Notes
 
-- 🔄 Updating from older versions: Automatic update supported - simply overwrite files
+- 🔄 Updating from older versions: Automatic update supported - simply overwrite files and run 'pip install -r requirements.txt' again.
 - ⚠️ For versions below 1.2.1: Database reset required
   - Run `app.py --force-setup` to recreate database and run setup wizard
 - ⚖️ SharewareZ promotes legal usage only
