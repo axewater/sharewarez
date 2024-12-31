@@ -25,9 +25,19 @@
     </div>
 </div>
 <div class="container-settings mt-4">
-	<div class="row">
-		<div class="col-md-8 offset-md-2">
-			<div class="card">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>Storage Statistics</h3>
+                </div>
+                <div class="card-body">
+                    <p><strong>Total Zip Files:</strong> {{ storage_stats.zip_count }}</p>
+                    <p><strong>Total Storage Used:</strong> {{ storage_stats.total_size }}</p>
+                </div>
+            </div>
+            
+            <div class="card">
 
 	<div class="admin_manage_downloads-requests-header">
 		<h2>Download Requests</h2>

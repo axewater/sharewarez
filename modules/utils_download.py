@@ -1,9 +1,10 @@
 import os
 import zipfile
 from datetime import datetime
+from typing import Tuple
 from modules.utils_filename import sanitize_filename
 from modules.models import DownloadRequest, GlobalSettings, db
-    
+
 def zip_game(download_request_id, app, zip_file_path):
     settings = GlobalSettings.query.first()
     with app.app_context():
@@ -129,3 +130,24 @@ def zip_folder(download_request_id, app, file_location, file_name):
             error_message = str(e)
             print(f"An error occurred: {error_message}")
             update_download_request(download_request, 'failed', "Error: " + error_message)
+
+def get_zip_storage_stats() -> Tuple[int, int, int]:
+    """Calculate storage statistics for zip files.
+    
+    Returns:
+        Tuple containing (total_zip_count, total_size_bytes, zip_folder_size_bytes)
+    """
+    from flask import current_app
+    
+    zip_save_path = current_app.config['ZIP_SAVE_PATH']
+    if not os.path.exists(zip_save_path):
+        return 0, 0, 0
+        
+    total_zip_count = 0
+    zip_folder_size_bytes = 0
+    for file in os.listdir(zip_save_path):
+        if file.lower().endswith('.zip'):
+            total_zip_count += 1
+            zip_folder_size_bytes += os.path.getsize(os.path.join(zip_save_path, file))
+            
+    return total_zip_count, zip_folder_size_bytes, zip_folder_size_bytes
