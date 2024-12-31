@@ -83,6 +83,7 @@ def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_u
         
         # Send Discord notification if enabled
         if settings and settings.discord_webhook_url and settings.discord_notify_new_games:
+            print(f"Sending Discord notification for new game '{new_game.name}'.")
             discord_webhook(new_game.uuid)
         
     except Exception as e:

@@ -53,48 +53,55 @@ def get_folder_size_in_bytes(folder_path):
 
 
 def discord_webhook(game_uuid): #Used for notifying of new games.
+    print(f"Discord notifications: Processing notification for new game with UUID: " + game_uuid + ".")
     # Check if Discord webhook URL is configured
     settings = GlobalSettings.query.first()
     if not settings or not settings.discord_webhook_url:
         print("Discord webhook URL not configured")
         return
-        
+    print(f"Discord webhook URL: {settings.discord_webhook_url}")    
     # Check if Discord notifications are enabled for new games
     if not settings.discord_notify_new_games:
         print("Discord notifications for new games are disabled")
         return
-
+    print("Discord notifications for new games are enabled")
     newgame = discord_get_game_by_uuid(game_uuid)
     newgame_size = format_size(newgame.size)
     newgame_library = get_library_by_uuid(newgame.library_uuid)
-    
+    print(f"Discord notifications: New game found: {newgame.name} in library {newgame_library.name}")
     # Get Discord settings from database first, fallback to config
     discord_webhook = settings.discord_webhook_url
     discord_bot_name = settings.discord_bot_name
     discord_bot_avatar_url = settings.discord_bot_avatar_url
-    
     site_url = settings.site_url
     cover_url = get_cover_url(newgame.igdb_id)
+    print(f"Discord notifications:site URL: {site_url}, Cover URL: {cover_url}")
     # if rate_limit_retry is True then in the event that you are being rate 
     # limited by Discord your webhook will automatically be sent once the 
     # rate limit has been lifted
     webhook = DiscordWebhook(url=f"{discord_webhook}", rate_limit_retry=True)
     # create embed object for webhook
+    print(f"Discord notifications: Creating embed object for webhook")
     embed = DiscordEmbed(title=f"{newgame.name}", description=f"{newgame.summary}", url=f"{site_url}/game_details/{newgame.uuid}", color="03b2f8")
     # set author
     embed.set_author(name=f"{discord_bot_name}", url=f"{site_url}", icon_url=f"{discord_bot_avatar_url}")
     # set cover image
+    print(f"Discord notifications: Setting cover image")
     embed.set_image(url=f"{cover_url}")
     # set footer
+    print(f"Discord notifications: Setting footer")
     embed.set_footer(text="This game is now available for download")
     # set timestamp (default is now) accepted types are int, float and datetime
     embed.set_timestamp()
     # add fields to embed
     # Set `inline=False` for the embed field to occupy the whole line
+    print(f"Discord notifications: Adding fields to embed")
     embed.add_embed_field(name="Library", value=f"{newgame_library.name}")
     embed.add_embed_field(name="Size", value=f"{newgame_size}")
     # add embed object to webhook
+    print(f"Discord notifications: Adding embed object to webhook")
     webhook.add_embed(embed)
+    print(f"Discord notifications: Executing webhook with response: {webhook.execute()}")
     response = webhook.execute()
         
 def discord_update(path,event, folder_name, game_path, file_name, file_size, game, game_library): #Used for notifying of game and file updates.
