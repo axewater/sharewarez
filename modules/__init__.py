@@ -59,7 +59,7 @@ def create_app():
         from modules.routes_admin_more import admin2_bp
         initialize_library_folders()
 
-        log_system_event(f"SharewareZ v{app_version} initializing database", event_type='startup', event_level='startup', audit_user='system')
+        log_system_event(f"SharewareZ v{app_version} initializing database", event_type='system', event_level='startup', audit_user='system')
         db.create_all()
         insert_default_filters()
         initialize_default_settings()
