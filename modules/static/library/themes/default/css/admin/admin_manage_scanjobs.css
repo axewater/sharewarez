@@ -15,6 +15,25 @@ th {
     color: #fff;
 }
 
+/* Add proper spinner styling */
+.loading-spinner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    border-radius: 10px;
+    display: none;
+}
+
+.loading-spinner img {
+    width: 100px;
+    height: 100px;
+    border-radius: 15px;
+}
+
 .avatar {
     width: 30px;
     height: 30px;
@@ -63,15 +82,6 @@ th {
     min-width: 100px; 
 }
 
-.loading-spinner {
-    position: fixed; 
-    top: 5%;
-    left: 5%;
-}
-.loading-spinner img {
-    border-radius: 15px;
-
-}
 #loadingSpinner,
 #loadingSpinnerManual {
     display: none; /* Hidden by default */
@@ -125,8 +135,10 @@ th {
 .scanandbrowse {
     padding: 15px;
     color: #ffffff;
-    background: rgba(30, 30, 30, 0.95);
+    background: rgba(30, 30, 30, 0.85);
     border-radius: 15px;
+    position: relative;
+    z-index: 1;
 }
 
 .container-unmatched-buttons {

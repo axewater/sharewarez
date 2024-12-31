@@ -2,6 +2,10 @@
 
 {% extends "base.html" %}
 {% block content %}
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.css">
+{% endblock %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_manage_scanjobs.css') == True %}
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_manage_scanjobs.css') }}">
