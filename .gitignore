@@ -2,6 +2,7 @@ __pycache__
 config.portainer
 config.backup
 config.py.backup
+config.py
 .env
 .env.bak
 /db_data/
