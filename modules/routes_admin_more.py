@@ -5,7 +5,7 @@ from modules.models import User, InviteToken, ReleaseGroup, AllowedFileType, Glo
 from modules import db, cache
 from modules.forms import ReleaseGroupForm, ThemeUploadForm, LibraryForm
 from modules.utils_processors import get_global_settings
-from modules.utils_discord import DiscordWebhookHandler
+from modules.discord_handler import DiscordWebhookHandler
 from modules.utils_themes import ThemeManager
 from modules.utils_logging import log_system_event
 from PIL import Image as PILImage
