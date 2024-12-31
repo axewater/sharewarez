@@ -47,7 +47,8 @@ def initialize_library_folders():
             print("Themes extracted successfully")
         else:
             print("Warning: themes.zip not found in modules/setup/")
-
+    else:
+        print("Default theme found, skipping themes.zip extraction")
     # Create images folder if it doesn't exist
     if not os.path.exists(images_path):
         os.makedirs(images_path)
