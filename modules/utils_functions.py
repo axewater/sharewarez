@@ -52,17 +52,13 @@ def get_folder_size_in_bytes(folder_path, timeout=300):
             print(f"Error: Path does not exist: {folder_path}")
             return 0
             
+        # Handle single file case first
+        if os.path.isfile(folder_path):
+            return os.path.getsize(folder_path)
+            
         if not os.access(folder_path, os.R_OK):
             print(f"Error: No read permission for path: {folder_path}")
             return 0
-
-        # Handle single file case
-        if os.path.isfile(folder_path):
-            try:
-                return os.path.getsize(folder_path)
-            except (OSError, IOError) as e:
-                print(f"Error getting file size: {e}")
-                return 0
 
         total_size = 0
         for dirpath, dirnames, filenames in os.walk(folder_path):
@@ -97,6 +93,10 @@ def get_folder_size_in_bytes(folder_path, timeout=300):
 def get_folder_size_in_bytes_updates(folder_path, timeout=300):
     """Calculate folder size excluding update and extras folders."""
     try:
+        # Handle single file case first
+        if os.path.isfile(folder_path):
+            return os.path.getsize(folder_path)
+            
         if not os.path.exists(folder_path):
             print(f"Error: Path does not exist: {folder_path}")
             return 0

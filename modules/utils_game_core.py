@@ -9,7 +9,7 @@ from modules import db
 from modules.models import (
     Game, Image, Library, GlobalSettings,
     Developer, Publisher, Genre, Theme, GameMode, Platform, 
-    PlayerPerspective, GameURL,
+    PlayerPerspective, GameURL, ScanJob, 
     category_mapping, status_mapping, player_perspective_mapping
 )
 from modules.utils_functions import (
@@ -166,21 +166,21 @@ def fetch_and_store_game_urls(game_uuid, igdb_id):
 
     
 def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_uuid=None):
-    print(f"rns Retrieving and saving game: {game_name} on {full_disk_path} to library with UUID {library_uuid}.")
+    print(f"retrieve_and_save_game Retrieving and saving game: {game_name} on {full_disk_path} to library with UUID {library_uuid}.")
     library = Library.query.filter_by(uuid=library_uuid).first()
     if not library:
-        print(f"rns Library with UUID {library_uuid} not found.")
+        print(f"retrieve_and_save_game Library with UUID {library_uuid} not found.")
         return None
     
-    print(f"rns Finding a way to add {game_name} on {full_disk_path} to the library with UUID {library_uuid}.")
+    print(f"retrieve_and_save_game Finding a way to add {game_name} on {full_disk_path} to the library with UUID {library_uuid}.")
 
     existing_game_by_path = check_existing_game_by_path(full_disk_path)
     if existing_game_by_path:
         return existing_game_by_path 
 
-    print(f"rns No existing game found for {game_name} on {full_disk_path}. Proceeding to retrieve game data from IGDB API.")
+    print(f"retrieve_and_save_game No existing game found for {game_name} on {full_disk_path}. Proceeding to retrieve game data from IGDB API.")
     platform_id = PLATFORM_IDS.get(library.platform.name)
-    print(f"rns Platform ID for {library.platform.name}: {platform_id}")
+    print(f"retrieve_and_save_game Platform ID for {library.platform.name}: {platform_id}")
     if platform_id is None:
         print(f"No platform ID found for platform {library.platform.name}. Proceeding without a platform-specific search.")
     else:
@@ -196,7 +196,6 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
     response_json = make_igdb_api_request(current_app.config['IGDB_API_ENDPOINT'], query_fields + query_filter)
     print(f"retrieve_and_save Response JSON: {response_json}")
     if 'error' not in response_json and response_json:
-
         igdb_id = response_json[0].get('id')
         print(f"Found game {game_name} with IGDB ID {igdb_id}")
 
@@ -300,11 +299,23 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
                 flash("Failed to save game due to a duplicate entry.")
             return new_game
     else:
-        if scan_job_id:
-            pass
-        print(f"IGDB match failed: {game_name} in library {library.name} on platform {library.platform.name}.")
-        error_message = "No game data found for the given name or failed to retrieve data from IGDB API."
-        flash(error_message)
+        if 'error' in response_json:
+            # Check specifically for authentication error
+            if response_json.get('error') == 'Failed to retrieve access token':
+                error_msg = 'IGDB API Authentication Failed'
+                if scan_job_id:
+                    scan_job = ScanJob.query.get(scan_job_id)
+                    if scan_job:
+                        scan_job.error_message = error_msg
+                        scan_job.status = 'Failed'
+                        db.session.commit()
+                
+                log_system_event(f"IGDB API Authentication Failed: {response_json.get('error')}", 
+                                 event_type='scan', event_level='error')
+                return None
+            
+        print(f"No match found: {game_name} in library {library.name} on platform {library.platform.name}.")
+        flash("No game data found for the given name.")
         return None
     
 def check_existing_game_by_path(full_disk_path):
