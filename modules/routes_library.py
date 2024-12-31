@@ -90,8 +90,8 @@ def library():
             flash('Library not found.', 'error')
             return redirect(url_for('library.library'))
 
-
     game_data, total, pages, current_page = get_games(page, per_page, sort_by=sort_by, sort_order=sort_order, **filters)
+    # dont think the 2 below are used at all. check sometime
     library_data = get_library_count()
     games_count_data = get_games_count()
     
@@ -139,10 +139,8 @@ def library():
 
 def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
     query = Game.query.options(joinedload(Game.genres))
-
     # Add current_user to the query to check favorite status
     current_user_id = current_user.id if current_user.is_authenticated else None
-
     # Resolve library_name to library_uuid if necessary
     if 'library_name' in filters and filters['library_name']:
         library = Library.query.filter_by(name=filters['library_name']).first()
@@ -150,7 +148,6 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
             filters['library_uuid'] = library.uuid
         else:
             return [], 0, 0, page  # No such library exists, return empty
-
 
     if 'library_uuid' in filters and filters['library_uuid']:
         query = query.filter(Game.library.has(Library.uuid == filters['library_uuid']))
@@ -169,11 +166,6 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
         query = query.filter(Game.player_perspectives.any(PlayerPerspective.name == filters['player_perspective']))
     if filters.get('theme'):
         query = query.filter(Game.themes.any(Theme.name == filters['theme']))
-
-
-
-    # print(f"get_games: Filters: {filters}")
-    
     # Sorting logic
     if sort_by == 'name':
         query = query.order_by(Game.name.asc() if sort_order == 'asc' else Game.name.desc())
@@ -185,8 +177,6 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
         query = query.order_by(Game.size.asc() if sort_order == 'asc' else Game.size.desc())
     elif sort_by == 'date_identified':
         query = query.order_by(Game.date_identified.asc() if sort_order == 'asc' else Game.date_identified.desc())
-
-    # print(f"get_games: Sorting by {sort_by} {sort_order}")
     # Pagination
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     games = pagination.items
