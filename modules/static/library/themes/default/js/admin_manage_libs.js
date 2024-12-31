@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Existing delete functionality
+    const spinner = document.getElementById('deleteSpinner');
     var confirmDeleteButton = document.getElementById('confirmDeleteButton');
     var deleteForm = document.createElement('form');
     deleteForm.method = 'post';
@@ -61,7 +62,19 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteWarningModal.show();
 
             confirmDeleteButton.onclick = function() {
-                deleteForm.submit();
+                // Hide the modal
+                deleteWarningModal.hide();
+                // Show the spinner
+                spinner.style.display = 'flex';
+                
+                // Submit the form
+                deleteForm.onsubmit = function() {
+                    return true;
+                };
+                
+                setTimeout(() => {
+                    deleteForm.submit();
+                }, 100);
             };
         });
     });
@@ -78,7 +91,19 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteWarningModal.show();
             
             confirmDeleteButton.onclick = function() {
-                deleteForm.submit();
+                // Hide the modal
+                deleteWarningModal.hide();
+                // Show the spinner
+                spinner.style.display = 'flex';
+                
+                // Submit the form
+                deleteForm.onsubmit = function() {
+                    return true;
+                };
+                
+                setTimeout(() => {
+                    deleteForm.submit();
+                }, 100);
             };
         });
     }
