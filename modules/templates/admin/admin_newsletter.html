@@ -62,6 +62,39 @@
             {{ form.recipients(style="display:none") }}  <!-- hidden input field -->
             <button type="submit" class="btn btn-primary">{{ form.send.label }}</button>
         </form>
+        
+       <!-- Newsletter History Table -->
+       <div class="newsletter-history mt-5">
+           <h2>Newsletter History</h2>
+           <table class="table">
+               <thead>
+                   <tr>
+                       <th>Subject</th>
+                       <th>Sent Date</th>
+                       <th>Status</th>
+                       <th>Recipients</th>
+                       <th>Action</th>
+                   </tr>
+               </thead>
+               <tbody>
+                   {% for newsletter in newsletters %}
+                   <tr>
+                       <td>{{ newsletter.subject }}</td>
+                       <td>{{ newsletter.sent_date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                       <td>
+                           {% if newsletter.status == 'sent' %}
+                               <span class="badge bg-success">Sent</span>
+                           {% else %}
+                               <span class="badge bg-danger">Failed</span>
+                           {% endif %}
+                       </td>
+                       <td>{{ newsletter.recipient_count }}</td>
+                       <td><a href="{{ url_for('admin.view_newsletter', newsletter_id=newsletter.id) }}" class="btn btn-sm btn-primary">View</a></td>
+                   </tr>
+                   {% endfor %}
+               </tbody>
+           </table>
+       </div>
     </div>
 
 <script>

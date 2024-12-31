@@ -7,7 +7,7 @@ from modules.utils_processors import get_global_settings
 from modules import app_version
 from config import Config
 from modules.utils_igdb_api import make_igdb_api_request
-from modules.models import Whitelist, User, GlobalSettings
+from modules.models import Whitelist, User, Newsletter, GlobalSettings
 from modules import db, mail, cache
 from modules.forms import WhitelistForm, NewsletterForm
 from sqlalchemy.exc import IntegrityError
@@ -76,31 +76,75 @@ def whitelist():
 @admin_required
 def newsletter():
     settings_record = GlobalSettings.query.first()
+    # Check if SMTP is configured and enabled
+    if not settings_record or not settings_record.smtp_enabled:
+        flash('SMTP is not configured or enabled. Please configure SMTP settings first.', 'warning')
+        return redirect(url_for('site.admin_dashboard'))
+
+    # Check if newsletter feature is enabled
     enable_newsletter = settings_record.settings.get('enableNewsletterFeature', False) if settings_record else False
 
     if not enable_newsletter:
         flash('Newsletter feature is disabled.', 'warning')
-        print("ADMIN NEWSLETTER: Newsletter feature is disabled.")
         return redirect(url_for('site.admin_dashboard'))
-    print("ADMIN NEWSLETTER: Request method:", request.method)
+
+    # Verify SMTP sender is configured
+    if not settings_record.smtp_default_sender:
+        flash('SMTP default sender email is not configured.', 'warning')
+        return redirect(url_for('site.admin_dashboard'))
+
+    print("ADMIN NEWSLETTER: Processing", request.method, "request")
     form = NewsletterForm()
     users = User.query.all()
     if form.validate_on_submit():
-        recipients = form.recipients.data.split(',')
-        print(f"ADMIN NEWSLETTER: Recipient list : {recipients}")
-        
-        msg = MailMessage(form.subject.data, sender=current_app.config['MAIL_DEFAULT_SENDER'])
-        msg.html = form.content.data
-        
-        msg.recipients = recipients
+        # First create the newsletter record
+        recipients = form.recipients.data.split(',')        
+        new_newsletter = Newsletter(
+            subject=form.subject.data,
+            content=form.content.data,
+            sender_id=current_user.id,
+            recipient_count=len(recipients),
+            recipients=recipients,
+            status='pending'
+        )
+        db.session.add(new_newsletter)
+        db.session.commit()
+
         try:
-            print(f"ADMIN NEWSLETTER: Newsletter sent")
+            # Attempt to send the email
+            msg = MailMessage(form.subject.data, sender=settings_record.smtp_default_sender)
+            msg.html = form.content.data
+            msg.recipients = recipients
+            
             mail.send(msg)
+            
+            # Update status to sent
+            new_newsletter.status = 'sent'
+            db.session.commit()
             flash('Newsletter sent successfully!', 'success')
         except Exception as e:
+            new_newsletter.status = 'failed'
+            new_newsletter.error_message = str(e)
+            db.session.commit()
             flash(str(e), 'error')
         return redirect(url_for('admin.newsletter'))
-    return render_template('admin/admin_newsletter.html', title='Newsletter', form=form, users=users)
+    
+    # Get all sent newsletters for display
+    newsletters = Newsletter.query.order_by(Newsletter.sent_date.desc()).all()
+    return render_template('admin/admin_newsletter.html', 
+                         title='Newsletter', 
+                         form=form, 
+                         users=users,
+                         newsletters=newsletters)
+
+@admin_bp.route('/admin/newsletter/<int:newsletter_id>')
+@login_required
+@admin_required
+def view_newsletter(newsletter_id):
+    newsletter = Newsletter.query.get_or_404(newsletter_id)
+    return render_template('admin/view_newsletter.html', 
+                         title='View Newsletter',
+                         newsletter=newsletter)
 
 @admin_bp.route('/admin/whitelist/<int:whitelist_id>', methods=['DELETE'])
 @login_required
