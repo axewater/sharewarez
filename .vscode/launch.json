@@ -23,8 +23,7 @@
           "modules/routes_admin.py",
           "modules/routes_library.py",
           "modules/routes_site.py",
-          "modules/updateschema.py",
-          "update_game_sizes.py"
+          "modules/updateschema.py"
         ]
       }
     ]
