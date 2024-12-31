@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <div class="glass-panel">
+        <a href="{{ url_for('admin.newsletter') }}" class="btn btn-secondary">Back to Newsletters</a>
+    </div>
+</div>
+<div class="container-settings">
+    <div class="card">
+        <h1>{{ newsletter.subject }}</h1>
+        <div class="newsletter-meta">
+            <p>Sent by: {{ newsletter.sender.name }}</p>
+            <p>Date: {{ newsletter.sent_date.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+            <p>Recipients: {{ newsletter.recipient_count }}</p>
+            <p>Status: 
+                {% if newsletter.status == 'sent' %}
+                    <span class="badge bg-success">Sent</span>
+                {% else %}
+                    <span class="badge bg-danger">Failed</span>
+                    <p class="text-danger">Error: {{ newsletter.error_message }}</p>
+                {% endif %}
+            </p>
+        </div>
+        <div class="newsletter-content">
+            {{ newsletter.content|safe }}
+        </div>
+    </div>
+</div>
+{% endblock %}

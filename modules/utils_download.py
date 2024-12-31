@@ -1,6 +1,7 @@
 import os
 import zipfile
 from datetime import datetime
+from modules.utils_filename import sanitize_filename
 from modules.models import DownloadRequest, GlobalSettings, db
     
 def zip_game(download_request_id, app, zip_file_path):
@@ -17,7 +18,8 @@ def zip_game(download_request_id, app, zip_file_path):
         
         zip_save_path = app.config['ZIP_SAVE_PATH']
         source_path = game.full_disk_path
-        zip_file_path = zip_file_path
+        safe_name = sanitize_filename(os.path.basename(zip_file_path))
+        zip_file_path = os.path.join(os.path.dirname(zip_file_path), safe_name)
 
         # Check if source path exists
         if not os.path.exists(source_path):
@@ -109,7 +111,8 @@ def zip_folder(download_request_id, app, file_location, file_name):
                 os.makedirs(zip_save_path)
                 print(f"Created missing directory: {zip_save_path}")
                     
-            zip_file_path = os.path.join(zip_save_path, f"{file_name}.zip")
+            safe_name = sanitize_filename(f"{file_name}.zip")
+            zip_file_path = os.path.join(zip_save_path, safe_name)
             print(f"Zipping game folder: {source_path} to {zip_file_path} with storage method.")
             
             with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_STORED) as zipf:
@@ -125,6 +128,4 @@ def zip_folder(download_request_id, app, file_location, file_name):
         except Exception as e:
             error_message = str(e)
             print(f"An error occurred: {error_message}")
-            update_download_request(download_request, 'failed', "Error: " + error_message)                
-
-        
+            update_download_request(download_request, 'failed', "Error: " + error_message)

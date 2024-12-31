@@ -1,7 +1,7 @@
 # modules/models.py
 from modules import db
 from sqlalchemy import ForeignKey
-from sqlalchemy.dialects.sqlite import TEXT as SQLite_TEXT
+from sqlalchemy.dialects.sqlite import TEXT as SQLite_TEXT, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import TypeDecorator, TEXT
 from sqlalchemy.types import Enum as SQLEnum
@@ -480,6 +480,20 @@ class MultiplayerMode(db.Model):
     name = db.Column(db.String(50), unique=True)
     games = db.relationship("Game", secondary="game_multiplayer_mode_association", back_populates="multiplayer_modes")
 
+class Newsletter(db.Model):
+    __tablename__ = 'newsletters'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    subject = db.Column(db.String(255), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    sent_date = db.Column(db.DateTime, default=datetime.utcnow)
+    recipient_count = db.Column(db.Integer, default=0)
+    recipients = db.Column(JSON)
+    status = db.Column(db.String(20), default='pending')  # pending, sent, failed
+    error_message = db.Column(db.Text, nullable=True)
+    
+    sender = db.relationship('User', backref='sent_newsletters')
 
 def genre_choices():
     return Genre.query.all()
