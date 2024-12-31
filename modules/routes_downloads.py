@@ -74,7 +74,7 @@ def download_game(game_uuid):
         # Filter out .nfo, .sfv files after excluding special folders
         significant_files = [f for f in files_in_directory if not f.lower().endswith(('.nfo', '.sfv')) and not f.lower() == 'file_id.diz']
 
-        # If more than one significant file remains, expect a zip file
+        # If more than one significant file remains, create a zip file
         if len(significant_files) > 1:
             zip_save_path = current_app.config['ZIP_SAVE_PATH']
             zip_file_path = os.path.join(zip_save_path, f"{game.name}.zip")
