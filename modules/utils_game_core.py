@@ -466,7 +466,7 @@ def delete_game(game_identifier):
         delete_game_images(game_uuid_str)
         db.session.delete(game_to_delete)
         db.session.commit()
-        flash('Game and its images have been deleted successfully.', 'success')
+        # flash('Game and its images have been deleted successfully.', 'success')
         print(f'Deleted game with UUID: {game_uuid_str}')
     except Exception as e:
         db.session.rollback()

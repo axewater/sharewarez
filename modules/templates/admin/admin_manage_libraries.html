@@ -21,6 +21,12 @@
     {% endwith %}
 </div>
 <body data-base-delete-url="{{ url_for('main.delete_full_library', library_uuid='') }}">
+    <!-- Loading Spinner -->
+    <div id="deleteSpinner" class="spinner-overlay" style="display: none;">
+        <div class="spinner-container">
+            <img src="{{ url_for('static', filename='newstyle/searching_small.gif') }}" alt="Loading...">
+        </div>
+    </div>
     <!-- Rest of your HTML -->
 </body>
 
@@ -98,14 +104,10 @@
         </table>
     </div>
 
-
-
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin_manage_libs.js') %}
 <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin_manage_libs.js') }}"></script>
 {% else %}
 <script src="{{ url_for('static', filename='library/themes/default/js/admin_manage_libs.js') }}"></script>
 {% endif %}
-
-
 
 {% endblock %}
