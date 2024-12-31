@@ -2,6 +2,7 @@
 
 # List the contents of the /app directory
 echo "SharewareZ container strapping boots"
+echo "(ignore erros about psql missing)"
 
 # Function to check if PostgreSQL is ready
 wait_for_postgres() {

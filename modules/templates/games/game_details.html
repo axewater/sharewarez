@@ -45,7 +45,7 @@
         <th>
             {% set file_name = file.file_path.split('/')[-1] %}
             {{ get_file_icon(file_name) }}
-            <a href="{{ url_for('download.downloads_other', 
+            <a href="{{ url_for('download.download_other', 
                                file_type=file_type,
                                game_uuid=game_uuid,
                                file_id=file.id) }}" 
@@ -110,7 +110,7 @@
                             <th>
                                 {% set file_name = update.file_path.split('/')[-1] %}
                                 {{ get_file_icon(file_name) }}
-                                <a href="{{ url_for('download.downloads_other',
+                                <a href="{{ url_for('download.download_other',
                                                    file_type='update',
                                                    game_uuid=game_uuid,
                                                    file_id=update.id) }}"
@@ -137,7 +137,7 @@
                             <th>
                                 {% set file_name = extra.file_path.split('/')[-1] %}
                                 {{ get_file_icon(file_name) }}
-                                <a href="{{ url_for('download.downloads_other',
+                                <a href="{{ url_for('download.download_other',
                                                    file_type='extra',
                                                    game_uuid=game_uuid,
                                                    file_id=extra.id) }}"
