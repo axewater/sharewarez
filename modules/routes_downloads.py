@@ -10,6 +10,7 @@ from modules.models import Game, DownloadRequest, GameUpdate, GameExtra, GlobalS
 from modules.utils_processors import get_global_settings
 from modules.utils_functions import get_folder_size_in_bytes, format_size
 from modules.utils_download import zip_game, zip_folder, update_download_request
+from modules.utils_game_core import get_game_by_uuid
 from modules.utils_auth import admin_required
 from modules import db
 from modules import cache
