@@ -22,24 +22,24 @@ def get_game_names_from_files(folder_path, extensions, insensitive_patterns, sen
         print(f"Error: The path '{folder_path}' does not exist or is not readable.")
         return []
     file_contents = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
-    print(f"Files found in folder: {file_contents}")
+    # print(f"Files found in folder: {file_contents}")
     game_names_with_paths = []
     for file_name in file_contents:
         print(f"Checking file: {file_name}")
         extension = file_name.split('.')[-1].lower()
         if extension in extensions:
-            print(f"Found supported file: {file_name}")
+            # print(f"Found supported file: {file_name}")
             # Extract the game name without the extension
             game_name_without_extension = '.'.join(file_name.split('.')[:-1])
             # Clean the game name
             cleaned_game_name = clean_game_name(game_name_without_extension, insensitive_patterns, sensitive_patterns)
-            print(f"Extracted and cleaned game name: {cleaned_game_name}")
+            # print(f"Extracted and cleaned game name: {cleaned_game_name}")
             full_path = os.path.join(folder_path, file_name)
             
             game_names_with_paths.append({'name': cleaned_game_name, 'full_path': full_path, 'file_type': extension})
-            print(f"Added cleaned game name with path: {cleaned_game_name} at {full_path}")
+            # print(f"Added cleaned game name with path: {cleaned_game_name} at {full_path}")
 
-    print(f"Game names with paths extracted from files: {game_names_with_paths}")
+    # print(f"Game names with paths extracted from files: {game_names_with_paths}")
     return game_names_with_paths
 
 
@@ -55,12 +55,12 @@ def get_game_name_by_uuid(uuid):
     
     
 def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
-    print(f"Original filename: {filename}")
+    # print(f"Original filename: {filename}")
     
     # Check and remove 'setup' at the start, case-insensitive
     if filename.lower().startswith('setup'):
         filename = filename[len('setup'):].lstrip("_").lstrip("-").lstrip()
-        print(f"After removing 'setup': {filename}")
+        # print(f"After removing 'setup': {filename}")
 
     # First handle version numbers and known patterns that should be removed
     filename = re.sub(r'v\d+(\.\d+)*', '', filename)  # Remove version numbers like v1.0.3
@@ -104,6 +104,6 @@ def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
     # Normalize whitespace and re-title
     filename = re.sub(r'\s+', ' ', filename).strip()
     cleaned_name = ' '.join(filename.split()).title()
-    print(f"Final cleaned name: {cleaned_name}")
+    # print(f"Final cleaned name: {cleaned_name}")
 
     return cleaned_name
