@@ -12,6 +12,8 @@ from sqlalchemy.exc import IntegrityError
 from flask import request, url_for
 from modules import db
 from sqlalchemy import func
+from modules.utils_unmatched import clear_single_unmatched_folder
+
 apis_other_bp = Blueprint('apis_other', __name__)
 
 @apis_other_bp.context_processor
@@ -63,7 +65,15 @@ def unmatched_folders():
     
     return jsonify(unmatched_data)
 
-
+@apis_other_bp.route('/api/clear_unmatched_entry/<folder_id>', methods=['POST'])
+@login_required
+@admin_required
+def clear_unmatched_entry(folder_id):
+    success, message = clear_single_unmatched_folder(folder_id)
+    if success:
+        return jsonify({'status': 'success', 'message': message}), 200
+    else:
+        return jsonify({'status': 'error', 'message': message}), 400
 
 @apis_other_bp.route('/api/current_user_role', methods=['GET'])
 @login_required

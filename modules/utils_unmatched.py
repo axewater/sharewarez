@@ -53,4 +53,17 @@ def handle_delete_unmatched(all):
     return redirect(url_for('main.scan_management'))
 
 
-
+def clear_single_unmatched_folder(folder_id):
+    try:
+        folder = UnmatchedFolder.query.get(folder_id)
+        if folder:
+            db.session.delete(folder)
+            db.session.commit()
+            return True, "Entry cleared successfully"
+        else:
+            return False, "Folder entry not found"
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        error_message = f"Database error while clearing unmatched folder: {str(e)}"
+        print(error_message)
+        return False, error_message
