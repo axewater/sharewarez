@@ -1,8 +1,14 @@
 #unmatchedFoldersTable {
     width: 100%;
-    table-layout: fixed; 
+    table-layout: auto; 
     border-collapse: collapse; 
     margin-bottom: 1rem;
+    min-width: 800px;
+}
+
+.dataTables_wrapper {
+    width: 100%;
+    overflow-x: auto;
 }
 
 .dataTables_wrapper .dataTables_filter {
@@ -27,6 +33,8 @@ th, td {
     padding: 8px; 
     text-align: left;
     word-wrap: break-word;
+    white-space: nowrap;
+    min-width: 100px;
 }
 
 th {
