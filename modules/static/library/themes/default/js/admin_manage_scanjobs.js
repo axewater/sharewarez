@@ -193,9 +193,18 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('/api/unmatched_folders', {cache: 'no-store'})
             .then(response => response.json())
             .then(data => {
+                // Ensure the tab is visible before initializing DataTable
+                const unmatchedTab = document.querySelector('#unmatchedFolders');
+                if (unmatchedTab) {
+                    unmatchedTab.style.display = 'block';
+                }
+
                 const table = $('#unmatchedFoldersTable').DataTable({
                     destroy: true,
                     data: data,
+                    autoWidth: false,
+                    scrollX: true,
+                    responsive: true,
                     columns: [
                         { 
                             data: 'folder_path',
@@ -217,8 +226,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     order: [[1, 'asc']],
                     pageLength: 25,
                     dom: 'Bfrtip',
-                    buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
+                    buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
+                    drawCallback: function() {
+                        // Force layout recalculation
+                        $(window).trigger('resize');
+                    }
                 });
+                
+                // Additional layout adjustment after initialization
+                setTimeout(() => {
+                    $(window).trigger('resize');
+                }, 100);
             })
             .catch(error => console.error('Error fetching unmatched folders:', error));
     };
@@ -278,6 +296,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Then update every 5 seconds
     setInterval(updateScanJobs, 5000);
     setInterval(updateUnmatchedFolders, 5000);
+    
+    // Add tab show event handler
+    $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+        if (e.target.id === 'unmatchedFolders-tab') {
+            setTimeout(() => {
+                $(window).trigger('resize');
+            }, 100);
+        }
+    });
 });
 
 function setupFolderBrowse(browseButtonId, folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar) {
