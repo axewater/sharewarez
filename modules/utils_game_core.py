@@ -166,7 +166,7 @@ def fetch_and_store_game_urls(game_uuid, igdb_id):
 
     
 def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_uuid=None):
-    print(f"retrieve_and_save_game Retrieving and saving game: {game_name} on {full_disk_path} to library with UUID {library_uuid}.")
+    # print(f"retrieve_and_save_game Retrieving and saving game: {game_name} on {full_disk_path} to library with UUID {library_uuid}.")
     library = Library.query.filter_by(uuid=library_uuid).first()
     if not library:
         print(f"retrieve_and_save_game Library with UUID {library_uuid} not found.")
@@ -345,7 +345,7 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
         return
 
     company_ids_str = ','.join(map(str, involved_company_ids))
-    print(f"Company IDs: {company_ids_str}")
+    # print(f"Company IDs: {company_ids_str}")
 
     try:
         response_json = make_igdb_api_request(
@@ -370,7 +370,7 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
             is_publisher = company_data.get('publisher', False)
 
             if is_developer:
-                print(f"Company {company_name} is a developer.")
+                # print(f"Company {company_name} is a developer.")
                 developer = Developer.query.filter_by(name=company_name).first()
                 if not developer:
                     print(f"Creating new developer: {company_name}")
@@ -381,7 +381,7 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
                 game_instance.developer = developer
 
             if is_publisher:
-                print(f"Company {company_name} is a publisher.")
+                # print(f"Company {company_name} is a publisher.")
                 publisher = Publisher.query.filter_by(name=company_name).first()
                 if not publisher:
                     publisher = Publisher(name=company_name)

@@ -13,11 +13,14 @@ from modules.models import (
 from modules import db
 from modules.utils_game_core import remove_from_lib
 from modules.utils_gamenames import get_game_names_from_folder, get_game_names_from_files
-from modules.utils_scanning import process_game_with_fallback, process_game_updates, process_game_extras
-
+from modules.utils_scanning import process_game_with_fallback, process_game_updates, process_game_extras, is_scan_job_running
 
 
 def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remove_missing=False):
+    if is_scan_job_running():
+        print("A scan is already in progress. Please wait for it to complete.")
+        return
+        
     settings = GlobalSettings.query.first()
     update_folder_name = settings.update_folder_name if settings else 'updates'
     extras_folder_name = settings.extras_folder_name if settings else 'extras'
