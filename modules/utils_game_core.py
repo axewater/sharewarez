@@ -81,11 +81,6 @@ def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_u
         fetch_and_store_game_urls(new_game.uuid, game_data['id'])
         print(f"create_game_instance Finished processing game '{new_game.name}'. URLs (if any) have been fetched and stored.")
         
-        # Send Discord notification if enabled
-        if settings and settings.discord_webhook_url and settings.discord_notify_new_games:
-            print(f"Sending Discord notification for new game '{new_game.name}'.")
-            discord_webhook(new_game.uuid)
-        
     except Exception as e:
         print(f"create_game_instance Error during the game instance creation or URL fetching for game '{game_data.get('name')}'. Error: {e}")
     
@@ -293,6 +288,13 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
                     attr = getattr(new_game, column.name)
                 db.session.commit()
                 print(f"Game and its images saved successfully : {new_game.name}.")
+                
+                # Move Discord notification here, after everything is saved successfully
+                settings = GlobalSettings.query.first()
+                if settings and settings.discord_webhook_url and settings.discord_notify_new_games:
+                    print(f"Sending Discord notification for new game '{new_game.name}'.")
+                    discord_webhook(new_game.uuid)
+                    
             except IntegrityError as e:
                 db.session.rollback()
                 print(f"Failed to save game due to a database error: {e}")
