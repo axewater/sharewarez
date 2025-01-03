@@ -180,3 +180,16 @@ th {
     font-size: 0.85em;
     padding-left: 15px;
 }
+
+.action-buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+    width: 200px;
+}
+
+.action-buttons-grid form,
+.action-buttons-grid button {
+    width: 100%;
+    margin: 0;
+}
