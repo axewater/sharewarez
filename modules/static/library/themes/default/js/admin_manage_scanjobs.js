@@ -154,19 +154,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     const row = document.createElement('tr');
                     const isAnyJobRunning = data.some(j => j.status === 'Running');
                     row.innerHTML = `
-                        <td>${job.id.substring(0, 8)}</td>
-                        <td>${job.library_name || 'N/A'}</td>
-                        <td>${Object.keys(job.folders).join(', ')}</td>
-                        <td>${job.status}</td>
-                        <td>${job.error_message}</td>
-                        <td>${job.last_run}</td>
-                        <td>${job.removed_count || 0}</td>
-                        <td>${job.scan_folder || 'N/A'}</td>
-                        <td>${job.total_folders}</td>
-                        <td>${job.folders_success}</td>
-                        <td>${job.folders_failed}</td>
-                        <td>${job.setting_remove ? 'On' : 'Off'}</td>
-                        <td>${job.setting_filefolder ? 'File' : 'Folder'}</td>
                         <td>
                             ${job.status === 'Running' ? 
                                 `<form action="/cancel_scan_job/${job.id}" method="post" style="display: inline-block;">
@@ -182,6 +169,19 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }`
                             }
                         </td>
+                        <td>${job.id.substring(0, 8)}</td>
+                        <td>${job.library_name || 'N/A'}</td>
+                        <td>${Object.keys(job.folders).join(', ')}</td>
+                        <td>${job.status}</td>
+                        <td>${job.error_message}</td>
+                        <td>${job.last_run}</td>
+                        <td>${job.removed_count || 0}</td>
+                        <td>${job.scan_folder || 'N/A'}</td>
+                        <td>${job.total_folders}</td>
+                        <td>${job.folders_success}</td>
+                        <td>${job.folders_failed}</td>
+                        <td>${job.setting_remove ? 'On' : 'Off'}</td>
+                        <td>${job.setting_filefolder ? 'File' : 'Folder'}</td>
                     `;
                     jobsTableBody.appendChild(row);
                 });
@@ -206,6 +206,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     scrollX: true,
                     responsive: true,
                     columns: [
+                        {
+                            data: null,
+                            render: function(data) {
+                                return generateActionButtons(data);
+                            }
+                        },
                         { 
                             data: 'folder_path',
                             render: function(data) {
@@ -214,14 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         },
                         { data: 'status' },
                         { data: 'library_name' },
-                        { data: 'platform_name' },
-                        { data: 'platform_id' },
-                        {
-                            data: null,
-                            render: function(data) {
-                                return generateActionButtons(data);
-                            }
-                        }
+                        { data: 'platform_name' }
                     ],
                     order: [[1, 'asc']],
                     pageLength: 25,
@@ -244,26 +243,27 @@ document.addEventListener('DOMContentLoaded', function() {
     function generateActionButtons(folder) {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         return `
-            <button onclick="clearUnmatchedEntry('${folder.id}')" class="btn btn-warning btn-sm">Clear Entry</button>
-            <form method="post" action="/update_unmatched_folder_status" data-csrf="${csrfToken}" style="display: inline;">
-                <input type="hidden" name="csrf_token" value="${csrfToken}">
-                <input type="hidden" name="folder_id" value="${folder.id}">
-                <input type="hidden" name="new_status" value="Ignore">
-                <input type="submit" class="btn btn-secondary btn-sm" value="Ignore">
-            </form>
-            <form class="delete-folder-form" style="display: inline;">
-                <input type="hidden" name="csrf_token" value="${csrfToken}">
-                <input type="hidden" name="folder_path" value="${folder.folder_path}">
-                <button type="submit" class="btn btn-danger btn-sm">Delete Folder</button>
-            </form>
-            <form action="/add_game_manual" method="GET" style="display: inline;">
-                <input type="hidden" name="full_disk_path" value="${folder.folder_path}">
-                <input type="hidden" name="library_uuid" value="${folder.library_uuid}">
-                <input type="hidden" name="platform_name" value="${folder.platform_name}">
-                <input type="hidden" name="platform_id" value="${folder.platform_id}">
-                <input type="hidden" name="from_unmatched" value="true">
-                <input type="submit" class="btn btn-primary btn-sm" value="Identify">
-            </form>
+            <div class="action-buttons-grid">
+                <button onclick="clearUnmatchedEntry('${folder.id}')" class="btn btn-warning btn-sm">Clear Entry</button>
+                <form method="post" action="/update_unmatched_folder_status" data-csrf="${csrfToken}">
+                    <input type="hidden" name="csrf_token" value="${csrfToken}">
+                    <input type="hidden" name="folder_id" value="${folder.id}">
+                    <input type="hidden" name="new_status" value="Ignore">
+                    <input type="submit" class="btn btn-secondary btn-sm" value="Ignore">
+                </form>
+                <form class="delete-folder-form">
+                    <input type="hidden" name="csrf_token" value="${csrfToken}">
+                    <input type="hidden" name="folder_path" value="${folder.folder_path}">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete Folder</button>
+                </form>
+                <form action="/add_game_manual" method="GET">
+                    <input type="hidden" name="full_disk_path" value="${folder.folder_path}">
+                    <input type="hidden" name="library_uuid" value="${folder.library_uuid}">
+                    <input type="hidden" name="platform_name" value="${folder.platform_name}">
+                    <input type="hidden" name="from_unmatched" value="true">
+                    <input type="submit" class="btn btn-primary btn-sm" value="Identify">
+                </form>
+            </div>
         `;
     }
 
