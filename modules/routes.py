@@ -516,6 +516,7 @@ def delete_game_route(game_uuid):
 @login_required
 @admin_required
 def delete_folder():
+    print(f"Route: /delete_folder - {current_user.name} - {current_user.role} method: {request.method}")
     data = request.get_json()
     folder_path = data.get('folder_path') if data else None
 
@@ -523,7 +524,6 @@ def delete_folder():
         return jsonify({'status': 'error', 'message': 'Path is required.'}), 400
 
     full_path = os.path.abspath(folder_path)
-
     folder_entry = UnmatchedFolder.query.filter_by(folder_path=folder_path).first()
 
     if not os.path.exists(full_path):
