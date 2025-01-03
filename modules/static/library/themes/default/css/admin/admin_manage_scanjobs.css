@@ -1,7 +1,26 @@
-table {
+#unmatchedFoldersTable {
     width: 100%;
     table-layout: fixed; 
     border-collapse: collapse; 
+    margin-bottom: 1rem;
+}
+
+.dataTables_wrapper .dataTables_filter {
+    float: right;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.dataTables_wrapper .dataTables_length {
+    float: left;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_paginate {
+    margin-top: 1rem;
+    color: white;
 }
 
 th, td {
