@@ -226,6 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function generateActionButtons(folder) {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         return `
+            <button onclick="clearUnmatchedEntry('${folder.id}')" class="btn btn-warning btn-sm">Clear Entry</button>
             <form method="post" action="/update_unmatched_folder_status" data-csrf="${csrfToken}" style="display: inline;">
                 <input type="hidden" name="csrf_token" value="${csrfToken}">
                 <input type="hidden" name="folder_id" value="${folder.id}">
@@ -247,6 +248,28 @@ document.addEventListener('DOMContentLoaded', function() {
             </form>
         `;
     }
+
+    // Add the new clearUnmatchedEntry function
+    window.clearUnmatchedEntry = function(folderId) {
+        if (!confirm('Are you sure you want to clear this entry?')) {
+            return;
+        }
+        
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch(`/api/clear_unmatched_entry/${folderId}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-Token': csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                updateUnmatchedFolders();
+            }
+            alert(data.message);
+        });
+    };
 
     // Run immediately on load
     updateScanJobs();
