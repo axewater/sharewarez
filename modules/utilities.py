@@ -123,7 +123,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                 
                 # Check for updates folder using the database setting
                 updates_folder = os.path.join(full_disk_path, update_folder_name)
-                print(f"Checking for updates folder: {updates_folder}")
+                # print(f"Checking for updates folder: {updates_folder}")
                 if os.path.exists(updates_folder) and os.path.isdir(updates_folder):
                     print(f"Updates folder found for game: {game_name}")
                     process_game_updates(game_name, full_disk_path, updates_folder, library_uuid)
@@ -132,7 +132,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                     
                 # Check for extras folder
                 extras_folder = os.path.join(full_disk_path, extras_folder_name)
-                print(f"Checking for extras folder: {extras_folder}")
+                # print(f"Checking for extras folder: {extras_folder}")
                 if os.path.exists(extras_folder) and os.path.isdir(extras_folder):
                     print(f"Extras folder found for game: {game_name}")
                     process_game_extras(game_name, full_disk_path, extras_folder, library_uuid)
