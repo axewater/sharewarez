@@ -1,6 +1,24 @@
 var currentPathAuto = '';
 var currentPathManual = '';
 
+// Flash message utility function
+function showFlashMessage(message, type = 'info') {
+    const flashContainer = document.querySelector('.content-flash');
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.role = 'alert';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    flashContainer.appendChild(alertDiv);
+
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
 // File type to icon mapping
 const fileIcons = {
     // Folders (default)
@@ -91,17 +109,19 @@ function attachDeleteFolderFormListeners() {
                     if(data.status === 'success') {
                         console.log("Deletion successful, removing row.");
                         form.closest('tr').remove();
+                        showFlashMessage(data.message, 'success');
                     } else {
                         console.log("Deletion not successful:", data.message);
                         if (data.message === "The specified path does not exist or is not a folder. Entry removed if it was in the database.") {
                             console.log("Folder does not exist, removing row.");
                             form.closest('tr').remove();
                         }
+                        showFlashMessage(data.message, 'danger');
                     }
-                    alert(data.message);
                 })
                 .catch(error => {
                     console.error('Fetch error:', error);
+                    showFlashMessage('An error occurred while deleting the folder', 'danger');
                 })
                 .finally(() => {
                     hideSpinner();
@@ -285,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.status === 'success') {
                 updateUnmatchedFolders();
             }
-            alert(data.message);
+            showFlashMessage(data.message, data.status === 'success' ? 'success' : 'danger');
         });
     };
 
