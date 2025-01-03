@@ -4,8 +4,15 @@
 {% block content %}
 {% block head %}
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+    <!-- jQuery must come first -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Then DataTables and its extensions -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
 {% endblock %}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_manage_scanjobs.css') == True %}
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_manage_scanjobs.css') }}">
@@ -252,7 +259,7 @@
                             <button type="submit" class="admin_manage_scanjobs-clearunmatched-btn btn btn-warning" onclick="return confirm('Are you sure you want to clear all unmatched folders? This cannot be undone.');">Clear Unmatched</button>
                         </form>
                     </div>
-                    <table class="admin_manage_scanjobs-unmatched-table table" style="border-radius: 15px;">
+                    <table id="unmatchedFoldersTable" class="admin_manage_scanjobs-unmatched-table table" style="border-radius: 15px;">
                         <thead>
                             <tr>
                                 <th class="admin_manage_scanjobs-unmatched-table-folderpath">Folder Path</th>
