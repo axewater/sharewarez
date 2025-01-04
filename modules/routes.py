@@ -455,18 +455,27 @@ def delete_all_unmatched_folders():
 def update_unmatched_folder_status():
     print("Route: /update_unmatched_folder_status")
     folder_id = request.form.get('folder_id')
-    new_status = request.form.get('new_status')
     session['active_tab'] = 'unmatched'
     folder = UnmatchedFolder.query.filter_by(id=folder_id).first()
     if folder:
-        folder.status = new_status
+        # Toggle between 'Ignore' and 'Unmatched'
+        folder.status = 'Unmatched' if folder.status == 'Ignore' else 'Ignore'
         try:
             db.session.commit()
-            print(f'Folder {folder_id} status updated successfully.', 'success')
-            flash(f'Folder {folder_id} status updated successfully.', 'success')
+            response_data = {
+                'status': 'success',
+                'new_status': folder.status,
+                'message': f'Folder status updated to {folder.status}'
+            }
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify(response_data)
+            flash(response_data['message'], 'success')
         except SQLAlchemyError as e:
+            error_msg = f'Error updating folder status: {str(e)}'
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'status': 'error', 'message': error_msg}), 500
             db.session.rollback()
-            flash(f'Error updating folder status: {str(e)}', 'error')
+            flash(error_msg, 'error')
     else:
         flash('Folder not found.', 'error')
 
