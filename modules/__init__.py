@@ -54,9 +54,10 @@ def create_app():
         from modules.routes_smtp import smtp_bp
         from modules.routes_info import info_bp
         from modules.routes_admin_more import admin2_bp
-        from modules.init_data import initialize_library_folders, insert_default_filters, initialize_default_settings, initialize_allowed_file_types  # Add this import
+        from modules.init_data import initialize_library_folders, insert_default_filters, initialize_default_settings, initialize_allowed_file_types, initialize_discovery_sections
 
         initialize_library_folders()
+        initialize_discovery_sections()
 
         log_system_event(f"SharewareZ v{app_version} initializing database", event_type='system', event_level='startup', audit_user='system')
         db.create_all()

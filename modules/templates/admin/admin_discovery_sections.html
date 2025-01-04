@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_discovery_sections.css') == True %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_discovery_sections.css') }}">
+{% else %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_discovery_sections.css') }}">
+{% endif %}
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin/discovery_sections.js') %}
+    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin/discovery_sections.js') }}"></script>
+{% else %}
+    <script src="{{ url_for('static', filename='library/themes/default/js/admin/discovery_sections.js') }}"></script>
+{% endif %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-compass"></i> Discovery Sections Management</h2>
+                </div>
+                <div class="card-body">
+                    <div id="discovery-sections-list" class="sections-list">
+                        {% for section in sections %}
+                        <div class="section-item" data-section-id="{{ section.id }}">
+                            <div class="section-content">
+                                <i class="fas fa-grip-vertical drag-handle"></i>
+                                <span class="section-name">{{ section.name }}</span>
+                                <div class="section-controls">
+                                    <div class="form-check form-switch">
+                                        <input type="checkbox" 
+                                               class="form-check-input section-visibility-toggle" 
+                                               id="visibility-{{ section.id }}"
+                                               data-section-id="{{ section.id }}"
+                                               {% if section.is_visible %}checked{% endif %}>
+                                        <label class="form-check-label" for="visibility-{{ section.id }}">
+                                            Visible
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

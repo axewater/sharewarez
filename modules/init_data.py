@@ -1,6 +1,7 @@
 import os
 import zipfile
 from modules import db
+from modules.models import DiscoverySection
 
 # Default allowed file types
 DEFAULT_ALLOWED_FILE_TYPES = ['zip', 'rar', '7z', 'iso', 'nfo', 'nes', 'sfc', 'smc', 'sms', '32x', 'gen', 'gg', 'gba', 'gb', 'gbc', 'prg', 'dat', 'tap', 'z64', 'd64', 'dsk', 'img', 'bin', 'st', 'stx', 'j64', 'jag', 'lnx', 'adf', 'ngc', 'gz', 'm2v', 'ogg', 'fpt', 'fpl', 'vec', 'pce', 'rom']
@@ -130,4 +131,75 @@ def initialize_allowed_file_types():
         print("Created default allowed file types")
     except Exception as e:
         print(f"Error committing default file types: {e}")
+        db.session.rollback()
+
+
+def initialize_discovery_sections():
+    """Initialize default discovery sections if they don't exist."""
+    print("Initializing default discovery sections...")
+    
+    default_sections = [
+        {
+            'name': 'Libraries',
+            'identifier': 'libraries',
+            'is_visible': True,
+            'display_order': 0
+        },
+        {
+            'name': 'Latest Games',
+            'identifier': 'latest_games',
+            'is_visible': True,
+            'display_order': 1
+        },
+        {
+            'name': 'Most Downloaded',
+            'identifier': 'most_downloaded',
+            'is_visible': True,
+            'display_order': 2
+        },
+        {
+            'name': 'Highest Rated',
+            'identifier': 'highest_rated',
+            'is_visible': True,
+            'display_order': 3
+        },
+        {
+            'name': 'Last Updated',
+            'identifier': 'last_updated',
+            'is_visible': True,
+            'display_order': 4
+        },
+        {
+            'name': 'Most Favorited',
+            'identifier': 'most_favorited',
+            'is_visible': True,
+            'display_order': 5
+        }
+    ]
+
+    # Get existing section identifiers
+    existing_sections = {section.identifier for section in DiscoverySection.query.all()}
+
+    # Add any missing sections
+    for section in default_sections:
+        if section['identifier'] not in existing_sections:
+            try:
+                new_section = DiscoverySection(
+                    name=section['name'],
+                    identifier=section['identifier'],
+                    is_visible=section['is_visible'],
+                    display_order=section['display_order']
+                )
+                db.session.add(new_section)
+                print(f"Adding discovery section: {section['name']}")
+            except Exception as e:
+                print(f"Error adding discovery section {section['name']}: {e}")
+                db.session.rollback()
+                continue
+
+    try:
+        db.session.commit()
+        print("Default discovery sections initialized")
+    except Exception as e:
+        print(f"Error committing discovery sections: {e}")
         db.session.rollback()
