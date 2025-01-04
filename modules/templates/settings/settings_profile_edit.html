@@ -1,10 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
+{% block head %}
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/css/settings/settings_profile_edit.css') == True %}
     <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/settings/settings_profile_edit.css') }}">
 {% else %}
     <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/settings/settings_profile_edit.css') }}">
 {% endif %}
+<script src="{{ url_for('static', filename='library/themes/default/js/settings_profile_edit.js') }}"></script>
+{% endblock %}
 
 <!-- Breadcrumb navigation -->
 <div class="breadcrumb-container glass-panel mb-4">
@@ -61,7 +64,7 @@
                     <div class="mb-4">
                         <div class="upload-zone">
                             <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                            {{ form.avatar(class="form-control") }}
+                            {{ form.avatar(class="form-control", style="display: none;") }}
                             <p class="upload-hint">Click to select or drag an image here</p>
                             <p class="upload-requirements">Supported formats: JPG, PNG, GIF (Max 5MB)</p>
                         </div>
