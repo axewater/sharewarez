@@ -205,12 +205,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${folder.library_name}</td>
                         <td>${folder.platform_name}</td>
                         <td>
-                            <form method="post" action="/update_unmatched_folder_status" data-csrf="${csrfToken}" style="display: inline;">
-                                <input type="hidden" name="csrf_token" value="${csrfToken}">
-                                <input type="hidden" name="folder_id" value="${folder.id}">
-                                <input type="hidden" name="new_status" value="Ignore">
-                                <input type="submit" class="btn btn-secondary btn-sm" value="Ignore">
-                            </form>
+                            <button 
+                                onclick="toggleIgnoreStatus('${folder.id}', this)" 
+                                class="btn ${folder.status === 'Ignore' ? 'btn-warning' : 'btn-secondary'} btn-sm"
+                            >
+                                ${folder.status === 'Ignore' ? 'Unignore' : 'Ignore'}
+                            </button>
                             <form class="delete-folder-form" style="display: inline;">
                                 <input type="hidden" name="csrf_token" value="${csrfToken}">
                                 <input type="hidden" name="folder_path" value="${folder.folder_path}">
@@ -242,6 +242,36 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateScanJobs, 5000);
     setInterval(updateUnmatchedFolders, 5000);
 });
+
+function toggleIgnoreStatus(folderId, button) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    fetch('/update_unmatched_folder_status', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-Token': csrfToken
+        },
+        body: `folder_id=${folderId}&csrf_token=${csrfToken}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Update button text and class based on new status
+            button.textContent = data.new_status === 'Ignore' ? 'Unignore' : 'Ignore';
+            button.classList.toggle('btn-warning', data.new_status === 'Ignore');
+            button.classList.toggle('btn-secondary', data.new_status !== 'Ignore');
+        } else {
+            console.error('Error:', data.message);
+            alert('Error updating status: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating status');
+    });
+}
 
 function setupFolderBrowse(browseButtonId, folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar) {
     // Store the initial library selection
@@ -339,8 +369,8 @@ function fetchFolders(path, folderContentsId, spinnerId, upButtonId, inputFieldI
 
 function formatFileSize(bytes) {
     if (bytes === 0) return '0 Bytes';
-    const k = 1024;
+    const kilobyte = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    const i = Math.floor(Math.log(bytes) / Math.log(kilobyte));
+    return parseFloat((bytes / Math.pow(kilobyte, i)).toFixed(2)) + ' ' + sizes[i];
 }
