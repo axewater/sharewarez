@@ -209,14 +209,15 @@ document.addEventListener('DOMContentLoaded', function() {
                             <button 
                                 onclick="toggleIgnoreStatus('${folder.id}', this)" 
                                 class="btn ${folder.status === 'Ignore' ? 'btn-warning' : 'btn-secondary'} btn-sm"
+                                title="Ignored folders are not scanned"
                             >
                                 ${folder.status === 'Ignore' ? 'Unignore' : 'Ignore'}
                             </button>
-                            <button onclick="clearEntry('${folder.id}')" class="btn btn-info btn-sm">Clear Entry</button>
+                            <button onclick="clearEntry('${folder.id}')" class="btn btn-info btn-sm" title="Remove from unmatched list">Clear Entry</button>
                             <form class="delete-folder-form" style="display: inline;">
                                 <input type="hidden" name="csrf_token" value="${csrfToken}">
                                 <input type="hidden" name="folder_path" value="${folder.folder_path}">
-                                <button type="submit" class="btn btn-danger btn-sm">Delete Folder</button>
+                                <button type="submit" class="btn btn-danger btn-sm" title="Delete the folder from disk">Delete Folder</button>
                             </form>
                             <form action="/add_game_manual" method="GET" style="display: inline;">
                                 <input type="hidden" name="full_disk_path" value="${folder.folder_path}">
@@ -224,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <input type="hidden" name="platform_name" value="${folder.platform_name}">
                                 <input type="hidden" name="platform_id" value="${folder.platform_id}">
                                 <input type="hidden" name="from_unmatched" value="true">
-                                <input type="submit" class="btn btn-primary btn-sm" value="Identify">
+                                <input type="submit" class="btn btn-primary btn-sm" value="Identify" title="Attempt manual IGDB search">
                             </form>
                         </td>
                     `;

@@ -244,12 +244,12 @@
                         <form action="" method="post">
                             {{ csrf_form.csrf_token }}
                             <input type="hidden" name="submit" value="DeleteAllUnmatched">
-                            <button type="submit" class="admin_manage_scanjobs-clearall-btn btn btn-danger" onclick="return confirm('Are you sure you want to delete all entries in the list? This cannot be undone.');">Clear All</button>
+                            <button type="submit" class="admin_manage_scanjobs-clearall-btn btn btn-danger"  title="Clear the entire table" onclick="return confirm('Are you sure you want to delete all entries in the list? This cannot be undone.');">Clear All</button>
                         </form>
                         <form action="" method="post">
                             {{ csrf_form.csrf_token }}
                             <input type="hidden" name="submit" value="DeleteOnlyUnmatched">
-                            <button type="submit" class="admin_manage_scanjobs-clearunmatched-btn btn btn-warning" onclick="return confirm('Are you sure you want to clear all unmatched folders? This cannot be undone.');">Clear Unmatched</button>
+                            <button type="submit" class="admin_manage_scanjobs-clearunmatched-btn btn btn-warning" title="Remove folders with statsus Unmatched" onclick="return confirm('Are you sure you want to clear all unmatched folders? This cannot be undone.');">Clear Unmatched</button>
                         </form>
                     </div>
                     <table class="admin_manage_scanjobs-unmatched-table table" style="border-radius: 15px;">
