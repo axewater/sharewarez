@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app
 from flask_login import login_required, current_user
 from modules.utils_auth import admin_required
-from modules.models import User, InviteToken, ReleaseGroup, AllowedFileType, GlobalSettings, SystemEvents, Library, LibraryPlatform
+from modules.models import User, InviteToken, ReleaseGroup, AllowedFileType, GlobalSettings, SystemEvents, Library, LibraryPlatform, DiscoverySection
 from modules import db, cache
 from modules.forms import ReleaseGroupForm, ThemeUploadForm, LibraryForm
 from modules.utils_processors import get_global_settings
@@ -333,3 +333,42 @@ def system_logs():
     
     logs = query.paginate(page=page, per_page=per_page)
     return render_template('admin/admin_server_logs.html', logs=logs)
+
+@admin2_bp.route('/admin/discovery_sections')
+@login_required
+@admin_required
+def discovery_sections():
+    sections = DiscoverySection.query.order_by(DiscoverySection.display_order).all()
+    return render_template('admin/admin_discovery_sections.html', sections=sections)
+
+@admin2_bp.route('/admin/api/discovery_sections/order', methods=['POST'])
+@login_required
+@admin_required
+def update_section_order():
+    try:
+        data = request.json
+        for section_data in data['sections']:
+            section = DiscoverySection.query.get(section_data['id'])
+            if section:
+                section.display_order = section_data['order']
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@admin2_bp.route('/admin/api/discovery_sections/visibility', methods=['POST'])
+@login_required
+@admin_required
+def update_section_visibility():
+    try:
+        data = request.json
+        section = DiscoverySection.query.get(data['section_id'])
+        if section:
+            section.is_visible = data['is_visible']
+            db.session.commit()
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'error': 'Section not found'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})

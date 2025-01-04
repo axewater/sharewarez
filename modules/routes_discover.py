@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, url_for
 from sqlalchemy import func
 from modules.utils_functions import format_size
 from modules.utils_processors import get_loc
-from modules.models import Game, Library, user_favorites
+from modules.models import Game, Library, user_favorites, DiscoverySection
 from modules import db
 from flask_login import login_required, current_user
 from modules.models import Image
@@ -30,6 +30,9 @@ def inject_current_theme():
 @login_required
 def discover():
     page_loc = get_loc("discover")
+    
+    # Get visible sections in correct order
+    sections = DiscoverySection.query.filter_by(is_visible=True).order_by(DiscoverySection.display_order).all()
     
     def fetch_game_details(games_query, limit=8):
         # Handle both query objects and lists
@@ -60,40 +63,25 @@ def discover():
             })
         return game_details
 
-    # Fetch libraries directly from the Library model
-    libraries_query = Library.query.all()
-    libraries = []
-    for lib in libraries_query:
-        libraries.append({
-            'uuid': lib.uuid,
-            'name': lib.name,
-            'image_url': lib.image_url if lib.image_url else url_for('static', filename='newstyle/default_library.jpg'),
-            # Include the platform if needed
-            'platform': lib.platform.name,
-        })
-
-    # Use the helper function to fetch games for each category
-    latest_games = fetch_game_details(Game.query.order_by(Game.date_created.desc()))
-    most_downloaded_games = fetch_game_details(Game.query.order_by(Game.times_downloaded.desc()))
-    highest_rated_games = fetch_game_details(Game.query.filter(Game.rating != None).order_by(Game.rating.desc()))
-    last_updated_games = fetch_game_details(Game.query.filter(Game.last_updated != None).order_by(Game.last_updated.desc()))
+    # Create a dictionary to store section data
+    section_data = {}
     
-    # Get most favorited games using a subquery to count favorites
-    most_favorited = db.session.query(
-        Game,
-        func.count(user_favorites.c.user_id).label('favorite_count')
-    ).join(user_favorites).group_by(Game).order_by(
-        func.count(user_favorites.c.user_id).desc()
-    )
-    
-    # Extract just the Game objects from the query results
-    most_favorited_games_list = [game[0] for game in most_favorited]
-    most_favorited_games = fetch_game_details(most_favorited_games_list)
+    for section in sections:
+        if section.identifier == 'libraries':
+            section_data['libraries'] = fetch_game_details(Game.query.order_by(Game.date_created.desc()))
+        elif section.identifier == 'latest_games':
+            section_data['latest_games'] = fetch_game_details(Game.query.order_by(Game.date_created.desc()))
+        elif section.identifier == 'most_downloaded':
+            section_data['most_downloaded'] = fetch_game_details(Game.query.order_by(Game.times_downloaded.desc()))
+        elif section.identifier == 'highest_rated':
+            section_data['highest_rated'] = fetch_game_details(Game.query.filter(Game.rating != None).order_by(Game.rating.desc()))
+        elif section.identifier == 'last_updated':
+            section_data['last_updated'] = fetch_game_details(Game.query.filter(Game.last_updated != None).order_by(Game.last_updated.desc()))
+        elif section.identifier == 'most_favorited':
+            most_favorited = db.session.query(Game, func.count(user_favorites.c.user_id).label('favorite_count')).join(user_favorites).group_by(Game).order_by(func.count(user_favorites.c.user_id).desc())
+            section_data['most_favorited'] = fetch_game_details([game[0] for game in most_favorited])
 
     return render_template('games/discover.html',
-                           most_favorited_games=most_favorited_games,
-                           latest_games=latest_games,
-                           most_downloaded_games=most_downloaded_games,
-                           highest_rated_games=highest_rated_games,
-                           libraries=libraries, loc=page_loc, last_updated_games=last_updated_games)
-
+                           sections=sections,
+                           section_data=section_data,
+                           loc=page_loc)

@@ -602,8 +602,21 @@ class GlobalSettings(db.Model):
     site_url = db.Column(db.String(255), default='http://127.0.0.1')
 
     def __repr__(self):
-        return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'    
+        return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'
+
+class DiscoverySection(db.Model):
+    __tablename__ = 'discovery_sections'
     
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    identifier = db.Column(db.String(50), unique=True, nullable=False)
+    is_visible = db.Column(db.Boolean, default=True)
+    display_order = db.Column(db.Integer, default=0)
+    
+    def __repr__(self):
+        return f"<DiscoverySection {self.name}>"
+
+
 class InviteToken(db.Model):
     __tablename__ = 'invite_tokens'
 

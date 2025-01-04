@@ -1,0 +1,59 @@
+.card {
+    background: rgba(30, 30, 30, 0.95);
+    border-radius: 15px;
+    margin-top: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-header {
+    background: rgba(20, 20, 20, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 15px 20px;
+    border-radius: 15px 15px 0 0;
+}
+
+.card-header h2 {
+    color: #fff;
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.card-header h2 i {
+    margin-right: 10px;
+    color: #0096ff;
+}
+
+.card-body {
+    padding: 20px;
+    color: #fff;
+}
+
+.alert-info {
+    background: rgba(0, 150, 255, 0.1);
+    border: 1px solid rgba(0, 150, 255, 0.3);
+    color: #fff;
+}
+
+.placeholder-content {
+    margin-top: 20px;
+}
+
+.placeholder-content h3 {
+    color: #0096ff;
+    margin-bottom: 15px;
+}
+
+.placeholder-content ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.placeholder-content ul li {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ccc;
+}
+
+.placeholder-content ul li:last-child {
+    border-bottom: none;
+}
