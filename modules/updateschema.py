@@ -204,25 +204,6 @@ class DatabaseManager:
                 connection.execute(text(add_columns_sql))
                 connection.commit()
             print("Columns and tables successfully added to the database.")
-            
-            # Initialize default values for allowed file types
-            try:
-                with self.engine.connect() as connection:
-                    # Check if allowed_file_types table is empty
-                    result = connection.execute(text("SELECT COUNT(*) FROM allowed_file_types")).scalar()
-                    if result == 0:
-                        # Insert default allowed file types from Config
-                        for file_type in Config.ALLOWED_FILE_TYPES:
-                            connection.execute(
-                                text("INSERT INTO allowed_file_types (value) VALUES (:value) ON CONFLICT DO NOTHING"),
-                                {"value": file_type}
-                            )
-                    
-                    connection.commit()
-                print("Default file types initialized successfully.")
-            except Exception as e:
-                print(f"An error occurred while initializing default file types: {e}")
-                raise
         except Exception as e:
             print(f"An error occurred: {e}")
             raise  # Re-raise the exception to propagate it

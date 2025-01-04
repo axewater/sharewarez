@@ -37,11 +37,8 @@ def create_app():
 
     with app.app_context():
         # Initialize library folders
-        from modules.init_data import initialize_library_folders
         from modules.utils_logging import log_system_event
         from . import routes, models
-        from modules.utils_auth import load_user
-        from modules.init_data import insert_default_filters, initialize_default_settings
         from modules.routes_site import site_bp
         from modules.routes_admin import admin_bp
         from modules.routes_library import library_bp
@@ -57,12 +54,15 @@ def create_app():
         from modules.routes_smtp import smtp_bp
         from modules.routes_info import info_bp
         from modules.routes_admin_more import admin2_bp
+        from modules.init_data import initialize_library_folders, insert_default_filters, initialize_default_settings, initialize_allowed_file_types  # Add this import
+
         initialize_library_folders()
 
         log_system_event(f"SharewareZ v{app_version} initializing database", event_type='system', event_level='startup', audit_user='system')
         db.create_all()
         insert_default_filters()
         initialize_default_settings()
+        initialize_allowed_file_types()  # Add this call
     app.register_blueprint(routes.bp)
     app.register_blueprint(site_bp)
     app.register_blueprint(admin_bp)
