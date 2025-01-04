@@ -204,7 +204,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${folder.status}</td>
                         <td>${folder.library_name}</td>
                         <td>${folder.platform_name}</td>
-                        <td>${folder.platform_id || 'N/A'}</td>
                         <td>
                             <form method="post" action="/update_unmatched_folder_status" data-csrf="${csrfToken}" style="display: inline;">
                                 <input type="hidden" name="csrf_token" value="${csrfToken}">
