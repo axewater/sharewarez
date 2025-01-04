@@ -30,6 +30,13 @@ def inject_current_theme():
         current_theme = 'default'
     return dict(current_theme=current_theme)
 
+@admin2_bp.route('/admin/help')
+@login_required
+@admin_required
+def admin_help():
+    """Display the administrator help page"""
+    return render_template('admin/admin_help.html')
+
 @admin2_bp.route('/admin/manage_invites', methods=['GET', 'POST'])
 @login_required
 @admin_required

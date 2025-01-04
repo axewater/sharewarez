@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + 'css/site/site_help.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + 'css/site/site_help.css') }}">
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/site/site_help.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/site/site_help.css') }}">
 {% else %}
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/site/site_help.css') }}">
 {% endif %}
@@ -18,34 +18,51 @@
 <div class="container-base">
     <div class="glass-panel help-content">
         <h1>Help / FAQ</h1>
-        <p class="intro">Thank you for participating in our closed beta phase. This guide will help you navigate and make the most of our platform.</p>
+        <p class="intro">Welcome to SharewareZ! This comprehensive guide will help you navigate and make the most of our platform's features.</p>
 
         <section class="user-tips">
-            <h2>User Guide</h2>
+            <h2>Getting Started</h2>
             <ul>
-                <li>Browse our extensive games library using filters or the search function.</li>
-                <li>Simply start typing to initiate a search.</li>
-                <li>Game downloads are queued for processing. Once selected, our server will prepare a ZIP file for you to download.</li>
+                <li>Navigate through our extensive game library using the sidebar menu</li>
+                <li>Use the search bar at the top to quickly find specific games</li>
+                <li>Apply filters to narrow down your search by genre, platform, or release date</li>
+                <li>Click on any game to view detailed information, screenshots, and download options</li>
             </ul>
         </section>
+
+        <section class="downloads-section">
+            <h2>Downloads</h2>
+            <ul>
+                <li>Click the download button on any game page to start the download process</li>
+                <li>Downloads are queued and processed automatically by our server</li>
+                <li>Track your download progress in the Downloads section</li>
+                <li>Downloaded files are available for 24 hours before being automatically removed</li>
+            </ul>
+        </section>
+
+        <section class="library-section">
+            <h2>Your Library</h2>
+            <ul>
+                <li>Add games to your favorites by clicking the heart icon</li>
+                <li>Access your favorite games quickly from the sidebar</li>
+                <li>View your download history in the Downloads section</li>
+                <li>Customize your experience through the user preferences panel</li>
+            </ul>
+        </section>
+
         <div class="help-image">
             <img src="{{ url_for('static', filename='newstyle/sharewarez_help.jpg') }}" alt="ShareWareZ Logo" class="help-logo">
         </div>
-        {% if current_user.is_authenticated and current_user.role == 'admin' %}
-        <section class="admin-tips">
-            <h2>Administrator Guide</h2>
+        
+        <section class="support-section">
+            <h2>Need Help?</h2>
+            <p>If you need additional assistance or encounter any issues:</p>
             <ul>
-                <li>Utilize the auto folder scanner to efficiently scan your game directories.</li>
-                <li>The folder scanner will process all subfolders within the specified path, attempting to add each as a game to the library.</li>
-                <li>Ensure each scanning job is completed before initiating another to avoid conflicts.</li>
-                <li>You have the flexibility to add any folder accessible by your server.</li>
-                <li>Game names are automatically sanitized for consistency.</li>
-                <li>After scanning, review the unmatched folder manager for any discrepancies.</li>
+                <li>Contact an administrator through the support system</li>
+                <li>Check our FAQ section for common questions</li>
+                <li>Report any technical issues you encounter</li>
             </ul>
         </section>
-        {% endif %}
-
-
     </div>
 </div>
 {% endblock %}
