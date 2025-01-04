@@ -397,20 +397,27 @@ def delete_download(download_id):
 def manage_downloads():
     print("Route: /admin/manage-downloads")
     form = ClearDownloadRequestsForm()
+    
     if form.validate_on_submit():
         print("Deleting all download requests")
         try:
             DownloadRequest.query.filter(DownloadRequest.status == 'processing').delete()
-            
             db.session.commit()
             flash('All processing downloads have been cleared.', 'success')
         except Exception as e:
             db.session.rollback()
             flash(f'An error occurred: {e}', 'danger')
         return redirect(url_for('download.manage_downloads'))
+        
+    # Modified query to return full objects
+    download_requests = db.session.query(
+        DownloadRequest, 
+        User.name.label('username')
+    ).join(
+        User, 
+        DownloadRequest.user_id == User.id
+    ).all()
 
-    download_requests = DownloadRequest.query.all()
-    # Get zip storage statistics
     zip_count, zip_size, total_size = get_zip_storage_stats()
     storage_stats = {
         'zip_count': zip_count,
