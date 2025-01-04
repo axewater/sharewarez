@@ -2,7 +2,7 @@ import os
 from PIL import Image as PILImage
 from werkzeug.utils import secure_filename
 from uuid import uuid4
-from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
+from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app, jsonify
 from flask_login import login_required, current_user
 from modules.forms import EditProfileForm, UserPasswordForm, UserPreferencesForm
 from modules.models import User, InviteToken, UserPreference
@@ -10,8 +10,6 @@ from modules.utils_functions import square_image
 from modules.utils_processors import get_global_settings
 from modules import cache
 from modules import db
-
-
 
 settings_bp = Blueprint('settings', __name__)
 
@@ -21,7 +19,6 @@ def inject_settings():
     """Context processor to inject global settings into templates"""
     return get_global_settings()
 
-
 @settings_bp.context_processor
 def inject_current_theme():
     if current_user.is_authenticated and current_user.preferences:
@@ -29,7 +26,6 @@ def inject_current_theme():
     else:
         current_theme = 'default'
     return dict(current_theme=current_theme)
-
 
 @settings_bp.route('/settings_profile_edit', methods=['GET', 'POST'])
 @login_required
@@ -154,7 +150,6 @@ def settings_profile_edit():
 
     return render_template('settings/settings_profile_edit.html', form=form, avatarpath=current_user.avatarpath)
 
-
 @settings_bp.route('/settings_profile_view', methods=['GET'])
 @login_required
 def settings_profile_view():
@@ -192,32 +187,33 @@ def account_pw():
 @settings_bp.route('/settings_panel', methods=['GET', 'POST'])
 @login_required
 def settings_panel():
-    print("Route: /settings_panel")
     form = UserPreferencesForm()
     
     if request.method == 'POST' and form.validate_on_submit():
-        # Ensure preferences exist
         if not current_user.preferences:
             current_user.preferences = UserPreference(user_id=current_user.id)
         
-        current_user.preferences.items_per_page = form.items_per_page.data or current_user.preferences.items_per_page
-        current_user.preferences.default_sort = form.default_sort.data or current_user.preferences.default_sort
-        current_user.preferences.default_sort_order = form.default_sort_order.data or current_user.preferences.default_sort_order
+        current_user.preferences.items_per_page = form.items_per_page.data
+        current_user.preferences.default_sort = form.default_sort.data
+        current_user.preferences.default_sort_order = form.default_sort_order.data
         current_user.preferences.theme = form.theme.data if form.theme.data != 'default' else None
-        db.session.add(current_user.preferences)
-        db.session.commit()
-        flash('Your settings have been updated.', 'success')
-        return redirect(url_for('discover.discover'))
-    elif request.method == 'GET':
-        # Ensure preferences exist
-        if not current_user.preferences:
-            current_user.preferences = UserPreference(user_id=current_user.id)
+        
+        try:
             db.session.add(current_user.preferences)
             db.session.commit()
-        
-        form.items_per_page.data = current_user.preferences.items_per_page
-        form.default_sort.data = current_user.preferences.default_sort
-        form.default_sort_order.data = current_user.preferences.default_sort_order
-        form.theme.data = current_user.preferences.theme or 'default'
-
-    return render_template('settings/settings_panel.html', form=form)
+            return jsonify({
+                'success': True,
+                'message': 'Preferences updated successfully!'
+            })
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'message': str(e)}), 500
+    
+    if request.method == 'GET':
+        return render_template('settings/modal_preferences.html', form=form)
+    
+    return jsonify({
+        'success': False,
+        'message': 'Form validation failed',
+        'errors': form.errors
+    }), 400
