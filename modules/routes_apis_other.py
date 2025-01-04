@@ -1,16 +1,15 @@
 import os
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, current_app
 from modules.utils_processors import get_global_settings
-from modules import cache
+from modules import cache, db
 from flask_login import login_required, current_user
 from modules.utils_auth import admin_required
 from modules.utils_igdb_api import make_igdb_api_request, get_cover_thumbnail_url
 from modules.utils_game_core import check_existing_game_by_igdb_id
 from modules.utils_functions import PLATFORM_IDS
-from modules.models import Library, Image, Game, User, AllowedFileType, IgnoredFileType, ScanJob, UnmatchedFolder
+from modules.models import Library, Image, Game, User, AllowedFileType, IgnoredFileType, ScanJob, UnmatchedFolder, DownloadRequest
 from sqlalchemy.exc import IntegrityError
 from flask import request, url_for
-from modules import db
 from sqlalchemy import func
 apis_other_bp = Blueprint('apis_other', __name__)
 
@@ -329,3 +328,43 @@ def check_igdb_id():
 
     game_exists = check_existing_game_by_igdb_id(igdb_id) is not None
     return jsonify({'available': not game_exists})
+
+@apis_other_bp.route('/api/delete_download/<int:request_id>', methods=['DELETE'])
+@login_required
+@admin_required
+def api_delete_download_request(request_id):
+    try:
+        download_request = DownloadRequest.query.get_or_404(request_id)
+        
+        # Check if zip file exists and is in the expected directory
+        if download_request.zip_file_path and os.path.exists(download_request.zip_file_path):
+            if download_request.zip_file_path.startswith(current_app.config['ZIP_SAVE_PATH']):
+                try:
+                    os.remove(download_request.zip_file_path)
+                except Exception as e:
+                    return jsonify({
+                        'status': 'error',
+                        'message': f'Error deleting ZIP file: {str(e)}'
+                    }), 500
+            else:
+                print(f"Deleting download request: {download_request}")
+                db.session.delete(download_request)
+                db.session.commit()
+                return jsonify({
+                    'status': 'success',
+                    'message': 'Download is not linked to a generated ZIP file. Only the download request has been removed.'
+                }), 200
+        print(f"Deleting download request: {download_request}")
+        db.session.delete(download_request)
+        db.session.commit()
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Download request deleted successfully'
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'status': 'error',
+            'message': f'Error deleting download request: {str(e)}'
+        }), 500

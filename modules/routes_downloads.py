@@ -358,7 +358,6 @@ def delete_download_request(request_id):
     flash('Download request deleted successfully.', 'success')
     return redirect(url_for('download.manage_downloads'))
 
-
 @download_bp.route('/delete_download/<int:download_id>', methods=['POST'])
 @login_required
 def delete_download(download_id):
@@ -395,28 +394,22 @@ def delete_download(download_id):
 @login_required
 @admin_required
 def manage_downloads():
-    print("Route: /admin/manage-downloads")
-    form = ClearDownloadRequestsForm()
-    if form.validate_on_submit():
-        print("Deleting all download requests")
-        try:
-            DownloadRequest.query.filter(DownloadRequest.status == 'processing').delete()
-            
-            db.session.commit()
-            flash('All processing downloads have been cleared.', 'success')
-        except Exception as e:
-            db.session.rollback()
-            flash(f'An error occurred: {e}', 'danger')
-        return redirect(url_for('download.manage_downloads'))
+    print("Route: /admin/manage-downloads")    
+    # Modified query to return full objects
+    download_requests = db.session.query(
+        DownloadRequest, 
+        User.name.label('username')
+    ).join(
+        User, 
+        DownloadRequest.user_id == User.id
+    ).all()
 
-    download_requests = DownloadRequest.query.all()
-    # Get zip storage statistics
     zip_count, zip_size, total_size = get_zip_storage_stats()
     storage_stats = {
         'zip_count': zip_count,
         'total_size': format_bytes(total_size)
     }
-    return render_template('admin/admin_manage_downloads.html', form=form, download_requests=download_requests, storage_stats=storage_stats)
+    return render_template('admin/admin_manage_downloads.html', download_requests=download_requests, storage_stats=storage_stats)
 
 @download_bp.route('/admin/statistics')
 @login_required
@@ -432,3 +425,25 @@ def statistics_data():
     """Return JSON data for the statistics charts"""
     stats = get_download_statistics()
     return jsonify(stats)
+
+@download_bp.route('/admin/clear-processing-downloads', methods=['POST'])
+@login_required
+@admin_required
+def clear_processing_downloads():
+    try:
+        # Find all download requests with 'processing' status
+        processing_downloads = DownloadRequest.query.filter_by(status='processing').all()
+        
+        # Update their status to 'failed'
+        for download in processing_downloads:
+            download.status = 'failed'
+            download.error_message = 'Cleared by administrator'
+        
+        db.session.commit()
+        flash('Successfully cleared all processing downloads.', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error clearing processing downloads: {str(e)}', 'error')
+    
+    return redirect(url_for('download.manage_downloads'))
