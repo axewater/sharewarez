@@ -26,7 +26,15 @@
 <div class="container-settings">
     <div class="container-serverstatus-version">
         <div>
-            <h1><i class="fas fa-server"></i> Server Status</h1>
+            <h1>
+                <i class="fas fa-server"></i> Server Status
+                <span class="status-indicator status-good" title="Server is running"></span>
+            </h1>
+        </div>
+        <div class="server-status-summary">
+            <span><i class="fas fa-clock"></i> System Uptime: {{ system_info['System Uptime'] }}</span>
+            <span><i class="fas fa-clock"></i> App Uptime: {{ system_info['Application Uptime'] }}</span>
+            <span><i class="fas fa-users"></i> Active Users: {{ active_users|default('N/A') }}</span>
         </div>
         <div>
             <p>SharewareZ server version: {{ app_version }}</p>
@@ -36,7 +44,8 @@
         <!-- System Resources -->
         <div class="info-block">
             <h3><i class="fas fa-microchip"></i> System Resources</h3>
-            <div class="row">
+            
+            <div class="row resource-cards">
                 <div class="col-md-4">
                     <h4><i class="fas fa-tachometer-alt"></i> CPU Usage</h4>
                     <div class="progress" style="height: 25px;">
@@ -62,42 +71,12 @@
                     <h4><i class="fas fa-hdd"></i> Disk Usage (Base Folder)</h4>
                     <canvas id="diskChart"></canvas>
                 </div>
-            </div>
-        </div>
-        
-        <!-- System Information -->
-        <div class="info-block">
-            <h3><i class="fas fa-info-circle"></i> System Information</h3>
-            <div class="row">
-                <div class="col-md-6">
-                    <h4><i class="fas fa-clock"></i> System Uptime</h4>
-                    <p>{{ system_info['System Uptime'] }}</p>
-                </div>
-                <div class="col-md-6">
-                    <h4><i class="fas fa-clock"></i> Application Uptime</h4>
-                    <p>{{ system_info['Application Uptime'] }}</p>
+                <div class="col-md-4">
+                    <h4><i class="fas fa-folder"></i> Warez Folder Usage</h4>
+                    <canvas id="warezDiskChart"></canvas>
                 </div>
             </div>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Key</th>
-                        <th>Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for key, value in system_info.items() %}
-                        {% if key not in ['System Uptime', 'Application Uptime'] %}
-                        <tr>
-                            <td>{{ key }}</td>
-                            <td>{{ value }}</td>
-                        </tr>
-                        {% endif %}
-                    {% endfor %}
-                </tbody>
-            </table>
         </div>
-        
         <!-- Application Configuration -->
         <div class="info-block">
             <h3><i class="fas fa-cogs"></i> Application Configuration</h3>
@@ -118,6 +97,31 @@
                 </tbody>
             </table>
         </div>
+        <!-- Configuraion Dump -->
+        <div class="info-block">
+            <h3><i class="fas fa-info-circle"></i> Configuration Parameters</h3>
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Key</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key, value in system_info.items() %}
+                        {% if key not in ['System Uptime', 'Application Uptime'] %}
+                        <tr>
+                            <td>{{ key }}</td>
+                            <td>{{ value }}</td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+
         
         <!-- Log Information -->
         <div class="info-block">
@@ -155,7 +159,8 @@
     initializeServerData({
         cpuUsage: {{ cpu_usage.percent|default(0) }},
         memoryUsage: {% if memory_usage %}{{ memory_usage|tojson }}{% else %}null{% endif %},
-        diskUsage: {% if disk_usage %}{{ disk_usage|tojson }}{% else %}null{% endif %}
+        diskUsage: {% if disk_usage %}{{ disk_usage|tojson }}{% else %}null{% endif %},
+        warezUsage: {% if warez_usage %}{{ warez_usage|tojson }}{% else %}null{% endif %}
     });
     
     // Initialize all charts and components
