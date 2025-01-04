@@ -6,9 +6,10 @@ from flask import copy_current_request_context
 from uuid import uuid4
 from sqlalchemy.exc import SQLAlchemyError
 from modules.forms import CsrfProtectForm, ClearDownloadRequestsForm
-from modules.models import Game, DownloadRequest, GameUpdate, GameExtra, GlobalSettings
+from modules.models import Game, DownloadRequest, GameUpdate, GameExtra, GlobalSettings, User
 from modules.utils_processors import get_global_settings
 from modules.utils_functions import get_folder_size_in_bytes, format_size
+from modules.utils_statistics import get_download_statistics
 from modules.utils_system_stats import format_bytes
 from modules.utils_download import zip_game, zip_folder, update_download_request, get_zip_storage_stats
 from modules.utils_game_core import get_game_by_uuid
@@ -416,3 +417,18 @@ def manage_downloads():
         'total_size': format_bytes(total_size)
     }
     return render_template('admin/admin_manage_downloads.html', form=form, download_requests=download_requests, storage_stats=storage_stats)
+
+@download_bp.route('/admin/statistics')
+@login_required
+@admin_required
+def statistics():
+    """Display the statistics page"""
+    return render_template('admin/admin_statistics.html')
+
+@download_bp.route('/admin/statistics/data')
+@login_required
+@admin_required
+def statistics_data():
+    """Return JSON data for the statistics charts"""
+    stats = get_download_statistics()
+    return jsonify(stats)

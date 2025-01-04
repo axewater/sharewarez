@@ -137,6 +137,12 @@
                     </a>
                     <span class="button-label">Downloads</span>
                 </div>
+                <div class="admin-button-item" data-toggle="tooltip" title="View download statistics">
+                    <a href="{{ url_for('download.statistics') }}" class="btn btn-circle">
+                        <i class="fas fa-chart-bar"></i>
+                    </a>
+                    <span class="button-label">Statistics</span>
+                </div>
 
                 <div class="admin-button-item" data-toggle="tooltip" title="Manage themes">
                     <a href="{{ url_for('admin2.manage_themes') }}" class="btn btn-circle">
