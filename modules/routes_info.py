@@ -2,14 +2,14 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from modules.utils_auth import admin_required
 from modules.utils_processors import get_global_settings
-from modules.utils_system_stats import format_bytes, get_cpu_usage, get_memory_usage, get_disk_usage, get_process_count, get_open_files
+from modules.utils_system_stats import format_bytes, get_cpu_usage, get_memory_usage, get_disk_usage, get_process_count, get_open_files, get_warez_folder_usage
 from modules.utils_uptime import get_formatted_system_uptime, get_formatted_app_uptime
 from modules import app_version, app_start_time
 from config import Config
 from modules.utils_igdb_api import make_igdb_api_request
-from modules.models import GlobalSettings, SystemEvents
+from modules.models import GlobalSettings, SystemEvents, User
 from modules import db, cache
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import func
 from modules.utils_logging import log_system_event
 import platform, socket
@@ -49,8 +49,8 @@ def admin_server_status():
         open_files = get_open_files()
         memory_usage = get_memory_usage()
         disk_usage = get_disk_usage()
+        warez_usage = get_warez_folder_usage()
         
-        # Format memory and disk usage for display
         if memory_usage:
             memory_usage['total_formatted'] = format_bytes(memory_usage['total'])
             memory_usage['used_formatted'] = format_bytes(memory_usage['used'])
@@ -60,6 +60,11 @@ def admin_server_status():
             disk_usage['total_formatted'] = format_bytes(disk_usage['total'])
             disk_usage['used_formatted'] = format_bytes(disk_usage['used'])
             disk_usage['free_formatted'] = format_bytes(disk_usage['free'])
+        
+        if warez_usage:
+            warez_usage['total_formatted'] = format_bytes(warez_usage['total'])
+            warez_usage['used_formatted'] = format_bytes(warez_usage['used'])
+            warez_usage['free_formatted'] = format_bytes(warez_usage['free'])
             
         # Get log statistics
         log_count = SystemEvents.query.count()
@@ -80,6 +85,11 @@ def admin_server_status():
         uptime = 'Unavailable'
         print(f"Error calculating uptime: {e}")
 
+    # Calculate active users (users who logged in within the last 24 hours)
+    active_users = User.query.filter(
+        User.lastlogin >= (datetime.utcnow() - timedelta(hours=24))
+    ).count()
+    
     # Define whitelist of configuration keys to display
     whitelist = {
         'BASE_FOLDER_WINDOWS',
@@ -128,6 +138,8 @@ def admin_server_status():
         cpu_usage=cpu_usage,
         memory_usage=memory_usage,
         disk_usage=disk_usage,
+        warez_usage=warez_usage,
         log_count=log_count,
+        active_users=active_users,
         latest_log=latest_log
     )

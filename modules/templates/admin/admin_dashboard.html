@@ -57,7 +57,7 @@
 
         <!-- Server Management Section -->
         <div class="admin-section">
-            <h3><i class="fas fa-server"></i> Server Management</h3>
+            <h3><i class="fas fa-server"></i> Settings Management</h3>
             <div class="admin-buttons">
                 <div class="admin-button-item" data-toggle="tooltip" title="Manage server settings">
                     <a href="{{ url_for('admin.manage_settings') }}" class="btn btn-circle">
@@ -93,18 +93,13 @@
                     <span class="button-label">Server Info</span>
                 </div>
                 {% endif %}
-                <div class="admin-button-item" data-toggle="tooltip" title="View system logs">
-                    <a href="{{ url_for('admin2.system_logs') }}" class="btn btn-circle">
-                        <i class="fas fa-clipboard-list"></i>
-                    </a>
-                    <span class="button-label">System Logs</span>
-                </div>
+
             </div>
         </div>
 
         <!-- User Management Section -->
         <div class="admin-section">
-            <h3><i class="fas fa-users"></i> User Management</h3>
+            <h3><i class="fas fa-users"></i> Access Management</h3>
             <div class="admin-buttons">
                 <div class="admin-button-item" data-toggle="tooltip" title="Manage user accounts">
                     <a href="{{ url_for('admin.manage_users') }}" class="btn btn-circle">
@@ -129,7 +124,7 @@
 
         <!-- Content Tools Section -->
         <div class="admin-section">
-            <h3><i class="fas fa-tools"></i> Other Tools</h3>
+            <h3><i class="fas fa-tools"></i> Admin Tools</h3>
             <div class="admin-buttons">
                 <div class="admin-button-item" data-toggle="tooltip" title="Manage user downloads">
                     <a href="{{ url_for('download.manage_downloads') }}" class="btn btn-circle">
@@ -159,6 +154,12 @@
                     <span class="button-label">Newsletter</span>
                 </div>
                 {% endif %}
+                <div class="admin-button-item" data-toggle="tooltip" title="View system logs">
+                    <a href="{{ url_for('admin2.system_logs') }}" class="btn btn-circle">
+                        <i class="fas fa-clipboard-list"></i>
+                    </a>
+                    <span class="button-label">System Logs</span>
+                </div>
             </div>
         </div>
 

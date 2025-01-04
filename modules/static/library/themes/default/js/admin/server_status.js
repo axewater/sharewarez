@@ -1,11 +1,12 @@
 // Initialize data from template
-let cpuUsage, memoryUsage, diskUsage;
+let cpuUsage, memoryUsage, diskUsage, warezUsage;
 
 // Function to initialize data passed from template
 function initializeServerData(data) {
     cpuUsage = data.cpuUsage;
     memoryUsage = data.memoryUsage;
     diskUsage = data.diskUsage;
+    warezUsage = data.warezUsage;
 }
 
 // Update CPU progress bar color based on usage
@@ -42,6 +43,12 @@ function initializeMemoryChart() {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: true,
+            width: 200,
+            height: 200,
+            plugins: {
+                legend: { position: 'bottom' }
+            },
             plugins: {
                 tooltip: {
                     callbacks: {
@@ -76,6 +83,12 @@ function initializeDiskChart() {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: true,
+            width: 200,
+            height: 200,
+            plugins: {
+                legend: { position: 'bottom' }
+            },
             plugins: {
                 tooltip: {
                     callbacks: {
@@ -90,9 +103,50 @@ function initializeDiskChart() {
     });
 }
 
+// Initialize Warez Folder Usage Chart
+function initializeWarezDiskChart() {
+    if (!warezUsage) return;
+    
+    const warezContext = document.getElementById('warezDiskChart').getContext('2d');
+    new Chart(warezContext, {
+        type: 'pie',
+        data: {
+            labels: ['Used', 'Free'],
+            datasets: [{
+                data: [warezUsage.used, warezUsage.free],
+                backgroundColor: [
+                    'rgba(255, 159, 64, 0.8)',
+                    'rgba(75, 192, 192, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            width: 200,
+            height: 200,
+            plugins: {
+                legend: { position: 'bottom' }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + 
+                                   (context.label === 'Used' ? warezUsage.used_formatted : warezUsage.free_formatted);
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
 // Initialize all charts and components
 function initializeServerStatus() {
     updateCpuBar();
     initializeMemoryChart();
     initializeDiskChart();
+    initializeWarezDiskChart();
 }

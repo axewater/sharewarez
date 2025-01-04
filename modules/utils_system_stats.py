@@ -50,6 +50,24 @@ def get_disk_usage():
         print(f"Error getting disk usage: {e}")
         return None
 
+def get_warez_folder_usage():
+    """Get disk usage for the warez folder"""
+    try:
+        warez_path = Config.DATA_FOLDER_WAREZ
+        if not os.path.exists(warez_path):
+            return None
+        
+        disk_usage = psutil.disk_usage(warez_path)
+        return {
+            'total': disk_usage.total,
+            'used': disk_usage.used,
+            'free': disk_usage.free,
+            'percent': disk_usage.percent
+        }
+    except Exception as e:
+        print(f"Error getting warez folder disk usage: {e}")
+        return None
+
 def format_bytes(bytes_value):
     """Convert bytes to human readable format"""
     if bytes_value is None:
