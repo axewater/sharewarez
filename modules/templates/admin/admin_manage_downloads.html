@@ -77,7 +77,7 @@
                 <thead class="admin_manage_downloads-table-header">
                     <tr class="admin_manage_downloads-tr-headings">
                         <th class="admin_manage_downloads-th-headings-1">ID</th>
-                        <th class="admin_manage_downloads-th-headings-2">User ID</th>
+                        <th class="admin_manage_downloads-th-headings-2">Username</th>
                         <th class="admin_manage_downloads-th-headings-3">Game UUID (Part)</th>
                         <th class="admin_manage_downloads-th-headings-4">Status</th>
                         <th class="admin_manage_downloads-th-headings-5">Zip File Path</th>
@@ -89,15 +89,15 @@
                 <tbody class="admin_manage_downloads-table-body">
                     {% for request in download_requests %}
                     <tr class="admin_manage_downloads-tr-data">
-                        <td class="admin_manage_downloads-td-data-1">{{ request.id }}</td>
-                        <td class="admin_manage_downloads-td-data-2">{{ request.user_id }}</td>
-                        <td class="admin_manage_downloads-td-data-3">{{ request.game_uuid[:8] }}</td>
-                        <td class="admin_manage_downloads-td-data-4">{{ request.status }}</td>
-                        <td class="admin_manage_downloads-td-data-5">{{ request.zip_file_path }}</td>
-                        <td class="admin_manage_downloads-td-data-6">{{ request.request_time.strftime('%Y-%m-%d %H:%M') if request.request_time else 'N/A' }}</td>
-                        <td class="admin_manage_downloads-td-data-7">{{ request.completion_time.strftime('%Y-%m-%d %H:%M') if request.completion_time else 'N/A' }}</td>
+                        <td class="admin_manage_downloads-td-data-1">{{ request[0].id }}</td>
+                        <td class="admin_manage_downloads-td-data-2">{{ request[1] }}</td>
+                        <td class="admin_manage_downloads-td-data-3">{{ request[0].game_uuid[:8] }}</td>
+                        <td class="admin_manage_downloads-td-data-4">{{ request[0].status }}</td>
+                        <td class="admin_manage_downloads-td-data-5">{{ request[0].zip_file_path }}</td>
+                        <td class="admin_manage_downloads-td-data-6">{{ request[0].request_time.strftime('%Y-%m-%d %H:%M') if request[0].request_time else 'N/A' }}</td>
+                        <td class="admin_manage_downloads-td-data-7">{{ request[0].completion_time.strftime('%Y-%m-%d %H:%M') if request[0].completion_time else 'N/A' }}</td>
                         <td>
-                            <form action="{{ url_for('download.delete_download_request', request_id=request.id) }}" method="post" style="display: inline;">
+                            <form action="{{ url_for('download.delete_download_request', request_id=request[0].id) }}" method="post" style="display: inline;">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                             </form>
