@@ -1,4 +1,30 @@
 document.addEventListener("DOMContentLoaded", function() {
+    // Easter egg click handler for the download banner
+    const downloadBanner = document.querySelector('.logo-download img');
+    if (downloadBanner) {
+        downloadBanner.addEventListener('click', function(e) {
+            // Get click coordinates relative to the image
+            const rect = this.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            console.log(x, y);
+            // Calculate center point
+            const centerX = this.width / 2;
+            const centerY = this.height / 2;
+            console.log(centerX, centerY);
+            // Check if click is within 25x25px area of center
+            if (Math.abs(x - centerX) <= 12.5 && Math.abs(y - centerY) <= 12.5) {
+                console.log('Easter egg activated!');
+                // Remove existing animation class if present
+                this.classList.remove('bounce-wiggle');
+                // Force reflow
+                void this.offsetWidth;
+                // Add animation class
+                this.classList.add('bounce-wiggle');
+            }
+        });
+    }
+
     // Auto-dismiss flash messages after 5 seconds
     const flashMessages = document.querySelectorAll('.flash');
     flashMessages.forEach(flash => {
@@ -12,9 +38,9 @@ document.addEventListener("DOMContentLoaded", function() {
     const downloads = document.querySelectorAll("tr[data-download-id]");
     
     downloads.forEach((download) => {
-		const download_id = download.getAttribute("data-download-id");
+        const download_id = download.getAttribute("data-download-id");
         const gameName = download.querySelector("td").textContent;
-		const fileName = download.querySelector(".file-name-cell").textContent;	
+        const fileName = download.querySelector(".file-name-cell").textContent;	
         
         // Add to processing downloads if status is 'processing'
         const statusCell = download.querySelector(".status-cell .status-value");
