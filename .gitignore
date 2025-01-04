@@ -11,8 +11,6 @@ app.db
 instance/app.db
 /logs/*
 /logs
-/modules/static/zips/
-/modules/static/zips/*
 modules/static/library/images
 /modules/static/images/*.jpg
 /venv
