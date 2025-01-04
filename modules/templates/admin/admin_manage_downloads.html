@@ -120,10 +120,10 @@ const statusData = {
     labels: ['Available', 'Processing', 'Failed', 'Pending'],
     datasets: [{
         data: [
-            {{ download_requests|selectattr('status', 'eq', 'available')|list|length }},
-            {{ download_requests|selectattr('status', 'eq', 'processing')|list|length }},
-            {{ download_requests|selectattr('status', 'eq', 'failed')|list|length }},
-            {{ download_requests|selectattr('status', 'eq', 'pending')|list|length }}
+            {{ download_requests|selectattr('0.status', 'equalto', 'available')|list|length }},
+            {{ download_requests|selectattr('0.status', 'equalto', 'processing')|list|length }},
+            {{ download_requests|selectattr('0.status', 'equalto', 'failed')|list|length }},
+            {{ download_requests|selectattr('0.status', 'equalto', 'pending')|list|length }}
         ],
         backgroundColor: ['#28a745', '#ffc107', '#dc3545', '#6c757d']
     }]
