@@ -1,6 +1,13 @@
 import os
 import zipfile
 from modules import db
+
+# Default allowed file types
+DEFAULT_ALLOWED_FILE_TYPES = [
+    'iso', 'bin', 'cue', 'mdf', 'nrg', 'gdi', 'cdi', 'img',
+    'zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz'
+]
+
 from modules.models import ReleaseGroup, GlobalSettings
 from modules.utils_logging import log_system_event
 
@@ -103,3 +110,27 @@ def insert_default_filters():
             new_group = ReleaseGroup(rlsgroup=group['rlsgroup'], rlsgroupcs=group['rlsgroupcs'])
             db.session.add(new_group)
     db.session.commit()
+
+def initialize_allowed_file_types():
+    """Initialize default allowed file types if they don't exist."""
+    from modules.models import AllowedFileType
+    
+    print("Initializing default allowed file types...")
+    existing_types = {ft.value for ft in AllowedFileType.query.all()}
+    
+    for file_type in DEFAULT_ALLOWED_FILE_TYPES:
+        if file_type not in existing_types:
+            try:
+                new_type = AllowedFileType(value=file_type)
+                db.session.add(new_type)
+            except Exception as e:
+                print(f"Error adding file type {file_type}: {e}")
+                db.session.rollback()
+                continue
+    
+    try:
+        db.session.commit()
+        print("Created default allowed file types")
+    except Exception as e:
+        print(f"Error committing default file types: {e}")
+        db.session.rollback()
