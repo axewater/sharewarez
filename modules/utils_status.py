@@ -1,6 +1,7 @@
 import psutil
 import platform
 import socket
+import os
 from datetime import datetime, timedelta
 from sqlalchemy import func
 from modules.models import User, SystemEvents, GlobalSettings
@@ -30,19 +31,24 @@ def get_system_info():
 def get_config_values():
     """Get safe configuration values."""
     whitelist = {
-        'BASE_FOLDER_WINDOWS',
-        'BASE_FOLDER_POSIX',
-        'DATA_FOLDER_WAREZ',
-        'IMAGE_SAVE_PATH',
-        'SQLALCHEMY_DATABASE_URI',
-        'SQLALCHEMY_TRACK_MODIFICATIONS',
-        'UPLOAD_FOLDER'
+        'BASE_FOLDER_WINDOWS': None,
+        'BASE_FOLDER_POSIX': None,
+        'DATA_FOLDER_WAREZ': None,
+        'IMAGE_SAVE_PATH': None,
+        'UPLOAD_FOLDER': None
     }
 
     safe_config_values = {}
-    for item in dir(Config):
-        if not item.startswith("__") and item in whitelist:
-            safe_config_values[item] = getattr(Config, item)
+    for item, _ in whitelist.items():
+        if hasattr(Config, item):
+            path = getattr(Config, item)
+            if path:
+                safe_config_values[item] = {
+                    'path': path,
+                    'read': os.access(path, os.R_OK) if os.path.exists(path) else False,
+                    'write': os.access(path, os.W_OK) if os.path.exists(path) else False,
+                    'exists': os.path.exists(path)
+                }
     
     return safe_config_values
 

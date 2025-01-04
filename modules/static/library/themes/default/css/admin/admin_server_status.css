@@ -141,3 +141,21 @@ canvas#warezDiskChart {
     justify-content: space-around;
     align-items: start;
 }
+
+/* Permission icons styling */
+.permission-icons {
+    float: right;
+    display: inline-flex;
+    gap: 12px;
+    margin-left: 15px;
+}
+
+.permission-icons i {
+    font-size: 1.1em;
+    width: 20px;
+    text-align: center;
+}
+
+.text-success { color: #28a745 !important; }
+.text-danger { color: #dc3545 !important; }
+.text-end { text-align: right !important; }

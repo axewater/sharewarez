@@ -90,14 +90,26 @@
                 <tbody>
                     {% for key, value in config_values.items() %}
                     <tr>
-                        <td>{{ key }}</td>
-                        <td>{{ value }}</td>
+                        <td>{{ key | replace('_', ' ') }}</td>
+                        <td>{{ value.path }}
+                            <div class="permission-icons text-end">
+                                <i class="fas fa-book{{ ' text-success' if value.read else ' text-danger' }}" 
+                                   data-bs-toggle="tooltip" 
+                                   title="Read {{ 'allowed' if value.read else 'denied' }}"></i>
+                                <i class="fas fa-pencil{{ ' text-success' if value.write else ' text-danger' }}" 
+                                   data-bs-toggle="tooltip" 
+                                   title="Write {{ 'allowed' if value.write else 'denied' }}"></i>
+                                <i class="fas fa-folder{{ ' text-success' if value.exists else ' text-danger' }}" 
+                                   data-bs-toggle="tooltip" 
+                                   title="Path {{ 'exists' if value.exists else 'does not exist' }}"></i>
+                            </div>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-        <!-- Configuraion Dump -->
+        <!-- Configuration Dump -->
         <div class="info-block">
             <h3><i class="fas fa-info-circle"></i> Configuration Parameters</h3>
 
@@ -155,6 +167,14 @@
 {% endif %}
 
 <script>
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+
     // Initialize server data
     initializeServerData({
         cpuUsage: {{ cpu_usage.percent|default(0) }},
