@@ -86,7 +86,7 @@
             <a href="{{ url_for('site.favorites') }}" class="sidebar-link"><i class="fas fa-heart"></i><span class="link-text">Favorites</span></a>
     
             {% if current_user.role == 'admin' %}
-                <a href="/admin/dashboard" class="sidebar-link"><i class="fas fa-cogs"></i><span class="link-text">Dashboard</span></a>
+                <a href="/admin/dashboard" class="sidebar-link"><i class="fas fa-cogs"></i><span class="link-text">Settings</span></a>
             {% endif %}
     
             {% if show_help_button %}
