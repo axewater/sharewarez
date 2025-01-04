@@ -379,11 +379,11 @@ function formatFileSize(bytes) {
 
 function clearEntry(folderId) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    
+    console.log("Clearing entry for folder ID:", folderId);
     if (!confirm('Are you sure you want to clear this entry? This will only remove the database entry.')) {
         return;
     }
-    
+    console.log("Confirmed, sending request.");
     fetch(`/clear_unmatched_entry/${folderId}`, {
         method: 'POST',
         headers: {
@@ -395,6 +395,7 @@ function clearEntry(folderId) {
     .then(data => {
         if (data.status === 'success') {
             // Remove the row from the table
+            console.log("Response success, removing row.");
             const row = document.querySelector(`tr[data-folder-id="${folderId}"]`);
             if (row) row.remove();
         } else {
