@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/settings/settings_library_order.css') == True %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/settings/settings_library_order.css') }}">
+{% else %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/settings/settings_library_order.css') }}">
+{% endif %}
+
+<div class="glass-panel">
+    <div class="container my-4">
+        <h2><i class="fas fa-sort"></i> Library Order Settings</h2>
+        
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> This feature will allow you to customize the order of your game libraries.
+            <br>
+            Coming soon!
+        </div>
+
+        <div class="placeholder-content">
+            <p>In the future, you'll be able to:</p>
+            <ul>
+                <li>Drag and drop libraries to reorder them</li>
+                <li>Set custom display order preferences</li>
+                <li>Group libraries by platform</li>
+                <li>Hide/show specific libraries</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
