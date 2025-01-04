@@ -64,9 +64,14 @@
                     <div class="mb-4">
                         <div class="upload-zone">
                             <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                            {{ form.avatar(class="form-control", style="display: none;") }}
+                            {{ form.avatar(class="form-control", style="display: none;", id="avatarInput") }}
                             <p class="upload-hint">Click to select or drag an image here</p>
                             <p class="upload-requirements">Supported formats: JPG, PNG, GIF (Max 5MB)</p>
+                        </div>
+                        <!-- Image Preview Section -->
+                        <div class="preview-section mt-3" style="display: none;">
+                            <h5>Preview:</h5>
+                            <img id="avatarPreview" src="#" alt="Avatar Preview" class="avatar-preview">
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary save-button">

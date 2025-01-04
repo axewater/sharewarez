@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     const dropZone = document.querySelector('.upload-zone');
-    const fileInput = document.getElementById('avatar');
+    const fileInput = document.getElementById('avatarInput');
+    const previewSection = document.querySelector('.preview-section');
+    const avatarPreview = document.getElementById('avatarPreview');
 
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         dropZone.addEventListener(eventName, preventDefaults, false);
@@ -53,10 +55,45 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle file selection via input
     fileInput.addEventListener('change', (e) => {
         if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
             const uploadHint = dropZone.querySelector('.upload-hint');
             if (uploadHint) {
-                uploadHint.textContent = `File selected: ${fileInput.files[0].name}`;
+                uploadHint.textContent = `File selected: ${file.name}`;
             }
+
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!validTypes.includes(file.type)) {
+                alert('Unsupported file type. Please select a JPG, PNG, or GIF image.');
+                fileInput.value = '';
+                uploadHint.textContent = 'Click to select or drag an image here';
+                previewSection.style.display = 'none';
+                return;
+            }
+
+            // Validate file size (Max 5MB)
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                alert('File size exceeds 5MB. Please select a smaller image.');
+                fileInput.value = '';
+                uploadHint.textContent = 'Click to select or drag an image here';
+                previewSection.style.display = 'none';
+                return;
+            }
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                avatarPreview.src = e.target.result;
+                previewSection.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        } else {
+            const uploadHint = dropZone.querySelector('.upload-hint');
+            if (uploadHint) {
+                uploadHint.textContent = 'Click to select or drag an image here';
+            }
+            previewSection.style.display = 'none';
         }
     });
 });
