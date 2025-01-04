@@ -175,14 +175,15 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('/api/scan_jobs_status', {cache: 'no-store'})
             .then(response => response.json())
             .then(data => {
-                const jobsTableBody = document.querySelector('#jobsTableBody');
-                jobsTableBody.innerHTML = '';
                 // Sort the data array to ensure the latest scan is at the top
                 data.sort((a, b) => new Date(b.last_run) - new Date(a.last_run));
+                
+                // Clear the table once before adding new data
+                scanJobsTable.clear();
+                
+                const isAnyJobRunning = data.some(j => j.status === 'Running');
+                
                 data.forEach(job => {
-                    const row = document.createElement('tr');
-                    const isAnyJobRunning = data.some(j => j.status === 'Running');
-                    scanJobsTable.clear();
                     scanJobsTable.row.add([
                         job.id.substring(0, 8),
                         job.library_name || 'N/A',
@@ -201,19 +202,22 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${job.status === 'Running' ? 
                                 `<form action="/cancel_scan_job/${job.id}" method="post" style="display: inline-block;">
                                     <input type="hidden" name="csrf_token" value="${csrfToken}">
-                                    <button type="submit" class="btn btn-warning btn-sm">Cancel Scan</button>
+                                    <button type="submit" class="btn btn-warning btn-sm" title="Cancel Scan"><i class="fas fa-stop"></i></button>
                                 </form>` : 
                                 `${isAnyJobRunning ? 
-                                    `<button class="btn btn-info btn-sm" disabled title="Cannot restart while another scan is running">Restart Scan</button>` :
+                                    `<button class="btn btn-info btn-sm" disabled title="Cannot restart while another scan is running"><i class="fas fa-sync"></i></button>` :
                                     `<form action="/restart_scan_job/${job.id}" method="post" style="display: inline-block;">
                                         <input type="hidden" name="csrf_token" value="${csrfToken}">
-                                        <button type="submit" class="btn btn-info btn-sm">Restart Scan</button>
+                                        <button type="submit" class="btn btn-info btn-sm" title="Restart Scan"><i class="fas fa-sync"></i></button>
                                     </form>`
                                 }`
                             }
                         `
-                    ]).draw();
+                    ]);
                 });
+                
+                // Draw the table after all rows have been added
+                scanJobsTable.draw();
             })
             .catch(error => console.error('Error fetching scan jobs status:', error));
     };
@@ -237,15 +241,14 @@ document.addEventListener('DOMContentLoaded', function() {
                             <button 
                                 onclick="toggleIgnoreStatus('${folder.id}', this)" 
                                 class="btn ${folder.status === 'Ignore' ? 'btn-warning' : 'btn-secondary'} btn-sm"
-                                title="Ignored folders are not scanned"
-                            >
-                                ${folder.status === 'Ignore' ? 'Unignore' : 'Ignore'}
+                                title="Ignored folders are not scanned">
+                                <i class="fas ${folder.status === 'Ignore' ? 'fa-eye' : 'fa-eye-slash'}"></i>
                             </button>
-                            <button onclick="clearEntry('${folder.id}')" class="btn btn-info btn-sm" title="Remove from unmatched list">Clear Entry</button>
+                            <button onclick="clearEntry('${folder.id}')" class="btn btn-info btn-sm" title="Remove from unmatched list"><i class="fas fa-eraser"></i></button>
                             <form class="delete-folder-form" style="display: inline;">
                                 <input type="hidden" name="csrf_token" value="${csrfToken}">
                                 <input type="hidden" name="folder_path" value="${folder.folder_path}">
-                                <button type="submit" class="btn btn-danger btn-sm" title="Delete the folder from disk">Delete Folder</button>
+                                <button type="submit" class="btn btn-danger btn-sm" title="Delete the folder from disk"><i class="fas fa-trash-alt"></i></button>
                             </form>
                             <form action="/add_game_manual" method="GET" style="display: inline;">
                                 <input type="hidden" name="full_disk_path" value="${folder.folder_path}">
@@ -253,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <input type="hidden" name="platform_name" value="${folder.platform_name}">
                                 <input type="hidden" name="platform_id" value="${folder.platform_id}">
                                 <input type="hidden" name="from_unmatched" value="true">
-                                <input type="submit" class="btn btn-primary btn-sm" value="Identify" title="Attempt manual IGDB search">
+                                <button type="submit" class="btn btn-primary btn-sm" title="Attempt manual IGDB search"><i class="fas fa-search"></i></button>
                             </form>
                         `
                     ]).draw();

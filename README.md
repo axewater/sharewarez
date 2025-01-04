@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.3.4 beta
+# 🎮 SharewareZ v2.3.5 beta
 
 ** ⚠️This is a BETA application⚠️ **
 
