@@ -153,3 +153,45 @@ th {
     font-size: 0.85em;
     padding-left: 15px;
 }
+
+/* DataTables Styling */
+.dataTables_wrapper {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+.dataTables_filter input {
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    margin-left: 10px;
+}
+
+.dataTables_length select {
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 5px;
+    padding: 5px;
+    margin: 0 5px;
+}
+
+.dataTables_info,
+.dataTables_paginate {
+    margin-top: 15px;
+    color: white;
+}
+
+.paginate_button {
+    padding: 5px 10px;
+    margin: 0 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.paginate_button.current {
+    background: rgba(255, 255, 255, 0.3);
+}
