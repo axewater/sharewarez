@@ -216,7 +216,7 @@
                         <div class="admin_manage_scanjobs-list-item list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                             {{ game['name'] }}
                             <!-- Identify Form for each game -->
-                            <form action="{{ url_for('main.add_game_manual') }}" method="GET">
+                            <form action="{{ url_for('games.add_game_manual') }}" method="GET">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                                 <input type="hidden" name="full_disk_path" value="{{ game['full_path'] }}">
