@@ -33,7 +33,7 @@
                 <div class="card-header">
                     <h3>Storage Overview</h3>
                 </div>
-                <div class="card-body">
+                <div class="card-body storage-overview">
                     <div class="row">
                         <div class="col-md-3">
                             <canvas id="storageChart"></canvas>
@@ -142,21 +142,16 @@ new Chart(document.getElementById('statusChart'), {
     options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
+        plugins: { 
             legend: {
-                position: 'right',
+                position: 'bottom',
                 labels: {
                     color: 'white'
                 }
             }
         },
         layout: {
-            padding: {
-                left: 10,
-                right: 10,
-                top: 10,
-                bottom: 10
-            }
+            padding: 20
         },
         height: 200  // Set a fixed height
     }

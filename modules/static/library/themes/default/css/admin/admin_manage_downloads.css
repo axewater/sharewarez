@@ -25,6 +25,11 @@
     font-size: 1.2rem;
 }
 
+.storage-overview {
+    min-height: 300px;
+    padding: 20px;
+}
+
 canvas {
     max-height: 250px !important;  /* Force smaller chart height */
     width: auto !important;
@@ -93,6 +98,20 @@ canvas {
     color: white !important;
 }
 
+.admin_manage_downloads-table-header {
+    background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+.admin_manage_downloads-tr-headings th {
+    color: white !important;
+    font-weight: bold;
+}
+
 .sorting, .sorting_asc, .sorting_desc {
     background-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+.admin_manage_downloads-th-headings-8 {
+    background-color: black !important;
+    color: white !important;
 }
