@@ -481,6 +481,25 @@ def update_unmatched_folder_status():
 
     return redirect(url_for('main.scan_management'))
 
+@bp.route('/clear_unmatched_entry/<folder_id>', methods=['POST'])
+@login_required
+@admin_required
+def clear_unmatched_entry(folder_id):
+    """Clear a single unmatched folder entry from the database."""
+    try:
+        folder = UnmatchedFolder.query.get_or_404(folder_id)
+        db.session.delete(folder)
+        db.session.commit()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'status': 'success', 'message': 'Entry cleared successfully'})
+        flash('Unmatched folder entry cleared successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'status': 'error', 'message': str(e)}), 500
+        flash(f'Error clearing unmatched folder entry: {str(e)}', 'error')
+    return redirect(url_for('main.scan_management'))
+
 
 @bp.route('/refresh_game_images/<game_uuid>', methods=['POST'])
 @login_required

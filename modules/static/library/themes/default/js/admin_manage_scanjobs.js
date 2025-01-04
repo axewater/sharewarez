@@ -197,6 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 unmatchedTableBody.innerHTML = '';
                 data.forEach(folder => {
                     const row = document.createElement('tr');
+                    row.setAttribute('data-folder-id', folder.id);
                     row.innerHTML = `
                         <td>
                             <i class="fas fa-folder"></i> ${folder.folder_path}
@@ -211,6 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             >
                                 ${folder.status === 'Ignore' ? 'Unignore' : 'Ignore'}
                             </button>
+                            <button onclick="clearEntry('${folder.id}')" class="btn btn-info btn-sm">Clear Entry</button>
                             <form class="delete-folder-form" style="display: inline;">
                                 <input type="hidden" name="csrf_token" value="${csrfToken}">
                                 <input type="hidden" name="folder_path" value="${folder.folder_path}">
@@ -373,4 +375,31 @@ function formatFileSize(bytes) {
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(kilobyte));
     return parseFloat((bytes / Math.pow(kilobyte, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function clearEntry(folderId) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    if (!confirm('Are you sure you want to clear this entry? This will only remove the database entry.')) {
+        return;
+    }
+    
+    fetch(`/clear_unmatched_entry/${folderId}`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-Token': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Remove the row from the table
+            const row = document.querySelector(`tr[data-folder-id="${folderId}"]`);
+            if (row) row.remove();
+        } else {
+            alert('Error clearing entry: ' + data.message);
+        }
+    })
+    .catch(error => console.error('Error:', error));
 }
