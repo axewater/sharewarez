@@ -115,6 +115,35 @@ function attachDeleteFolderFormListeners() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Document loaded. Setting up form submission handlers and tab activation based on activeTab.");
 
+    // Initialize DataTables
+    const scanJobsTable = $('#scanJobsTable').DataTable({
+        pageLength: 25,
+        order: [[5, 'desc']], // Sort by Last Run column by default
+        columnDefs: [
+            { targets: [13], orderable: false }, // Disable sorting on Actions column
+            { targets: '_all', searchable: true }
+        ],
+        dom: '<"top"lf>rt<"bottom"ip><"clear">',
+        language: {
+            search: "Search:",
+            lengthMenu: "Show _MENU_ entries"
+        }
+    });
+
+    const unmatchedTable = $('#unmatchedTable').DataTable({
+        pageLength: 25,
+        order: [[1, 'desc']], // Sort by Status column by default
+        columnDefs: [
+            { targets: [4], orderable: false }, // Disable sorting on Actions column
+            { targets: '_all', searchable: true }
+        ],
+        dom: '<"top"lf>rt<"bottom"ip><"clear">',
+        language: {
+            search: "Search:",
+            lengthMenu: "Show _MENU_ entries"
+        }
+    });
+
     const urlParams = new URLSearchParams(window.location.search);
     const activeTab = urlParams.get('active_tab') || document.querySelector('meta[name="active-tab"]').getAttribute('content');
     console.log("Active tab determined:", activeTab);
@@ -153,21 +182,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 data.forEach(job => {
                     const row = document.createElement('tr');
                     const isAnyJobRunning = data.some(j => j.status === 'Running');
-                    row.innerHTML = `
-                        <td>${job.id.substring(0, 8)}</td>
-                        <td>${job.library_name || 'N/A'}</td>
-                        <td>${Object.keys(job.folders).join(', ')}</td>
-                        <td>${job.status}</td>
-                        <td>${job.error_message}</td>
-                        <td>${job.last_run}</td>
-                        <td>${job.removed_count || 0}</td>
-                        <td>${job.scan_folder || 'N/A'}</td>
-                        <td>${job.total_folders}</td>
-                        <td>${job.folders_success}</td>
-                        <td>${job.folders_failed}</td>
-                        <td>${job.setting_remove ? 'On' : 'Off'}</td>
-                        <td>${job.setting_filefolder ? 'File' : 'Folder'}</td>
-                        <td>
+                    scanJobsTable.clear();
+                    scanJobsTable.row.add([
+                        job.id.substring(0, 8),
+                        job.library_name || 'N/A',
+                        Object.keys(job.folders).join(', '),
+                        job.status,
+                        job.error_message,
+                        job.last_run,
+                        job.removed_count || 0,
+                        job.scan_folder || 'N/A',
+                        job.total_folders,
+                        job.folders_success,
+                        job.folders_failed,
+                        job.setting_remove ? 'On' : 'Off',
+                        job.setting_filefolder ? 'File' : 'Folder',
+                        `
                             ${job.status === 'Running' ? 
                                 `<form action="/cancel_scan_job/${job.id}" method="post" style="display: inline-block;">
                                     <input type="hidden" name="csrf_token" value="${csrfToken}">
@@ -181,9 +211,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </form>`
                                 }`
                             }
-                        </td>
-                    `;
-                    jobsTableBody.appendChild(row);
+                        `
+                    ]).draw();
                 });
             })
             .catch(error => console.error('Error fetching scan jobs status:', error));
@@ -195,17 +224,16 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 const unmatchedTableBody = document.querySelector('#unmatchedFoldersTableBody');
                 unmatchedTableBody.innerHTML = '';
+                unmatchedTable.clear();
                 data.forEach(folder => {
-                    const row = document.createElement('tr');
-                    row.setAttribute('data-folder-id', folder.id);
-                    row.innerHTML = `
-                        <td>
+                    unmatchedTable.row.add([
+                        `
                             <i class="fas fa-folder"></i> ${folder.folder_path}
-                        </td>
-                        <td>${folder.status}</td>
-                        <td>${folder.library_name}</td>
-                        <td>${folder.platform_name}</td>
-                        <td>
+                        `,
+                        folder.status,
+                        folder.library_name,
+                        folder.platform_name,
+                        `
                             <button 
                                 onclick="toggleIgnoreStatus('${folder.id}', this)" 
                                 class="btn ${folder.status === 'Ignore' ? 'btn-warning' : 'btn-secondary'} btn-sm"
@@ -227,9 +255,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <input type="hidden" name="from_unmatched" value="true">
                                 <input type="submit" class="btn btn-primary btn-sm" value="Identify" title="Attempt manual IGDB search">
                             </form>
-                        </td>
-                    `;
-                    unmatchedTableBody.appendChild(row);
+                        `
+                    ]).draw();
                 });
                 // Attach event listeners to the new forms
                 attachDeleteFolderFormListeners();
