@@ -217,3 +217,9 @@ def settings_panel():
         'message': 'Form validation failed',
         'errors': form.errors
     }), 400
+
+@settings_bp.route('/library_order')
+@login_required
+def library_order():
+    """Placeholder for library order settings"""
+    return render_template('settings/settings_library_order.html')
