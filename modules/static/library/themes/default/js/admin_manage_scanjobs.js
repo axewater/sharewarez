@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const updateUnmatchedFolders = () => {
-        fetch('/api/unmatched_folders', {cache: 'no-store'})
+        return fetch('/api/unmatched_folders', {cache: 'no-store'})
             .then(response => response.json())
             .then(data => {
                 const unmatchedTableBody = document.querySelector('#unmatchedFoldersTableBody');
@@ -269,11 +269,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Run immediately on load
     updateScanJobs();
-    updateUnmatchedFolders();
+    
+    // Only load unmatched folders when its tab is activated
+    document.querySelector('#unmatchedFolders-tab').addEventListener('shown.bs.tab', function (e) {
+        console.log("Unmatched folders tab activated");
+        // Show loading spinner
+        document.getElementById('globalSpinner').style.display = 'block';
+        
+        // Load the data
+        updateUnmatchedFolders().then(() => {
+            // Hide spinner when done
+            document.getElementById('globalSpinner').style.display = 'none';
+        });
+    });
 
     // Then update every 5 seconds
     setInterval(updateScanJobs, 5000);
-    setInterval(updateUnmatchedFolders, 5000);
 });
 
 function toggleIgnoreStatus(folderId, button) {
