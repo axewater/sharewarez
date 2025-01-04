@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 onclick="toggleIgnoreStatus('${folder.id}', this)" 
                                 class="btn ${folder.status === 'Ignore' ? 'btn-warning' : 'btn-secondary'} btn-sm"
                                 title="Ignored folders are not scanned">
-                                <i class="fas ${folder.status === 'Ignore' ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                                <i class="fas ${folder.status === 'Ignore' ? 'fa-eye-slash' : 'fa-eye'}"></i>
                             </button>
                             <button onclick="clearEntry('${folder.id}')" class="btn btn-info btn-sm" title="Remove from unmatched list"><i class="fas fa-eraser"></i></button>
                             <form class="delete-folder-form" style="display: inline;">
@@ -302,8 +302,13 @@ function toggleIgnoreStatus(folderId, button) {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            // Update button text and class based on new status
-            button.textContent = data.new_status === 'Ignore' ? 'Unignore' : 'Ignore';
+            // Update button icon and class based on new status
+            const icon = button.querySelector('i') || document.createElement('i');
+            icon.className = `fas ${data.new_status === 'Ignore' ? 'fa-eye-slash' : 'fa-eye'}`;
+            if (!button.contains(icon)) {
+                button.innerHTML = '';
+                button.appendChild(icon);
+            }
             button.classList.toggle('btn-warning', data.new_status === 'Ignore');
             button.classList.toggle('btn-secondary', data.new_status !== 'Ignore');
         } else {
