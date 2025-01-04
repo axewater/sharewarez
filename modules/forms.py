@@ -85,7 +85,9 @@ class UserDetailForm(FlaskForm):
 
 
 class UserPasswordForm(FlaskForm):
-    password = PasswordField('Password', validators=[DataRequired()])
+    password = PasswordField('New Password', validators=[DataRequired(), Length(min=8)])
+    confirm_password = PasswordField('Confirm Password', validators=[
+        DataRequired(), EqualTo('password', message='Passwords must match')])
     submit = SubmitField('Save')
     cancel = SubmitField('Cancel')
 
