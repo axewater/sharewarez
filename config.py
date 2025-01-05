@@ -9,7 +9,7 @@ class Config(object):
     
     # OS-specific base folder paths
     if os.name == 'nt':  # Windows
-        BASE_FOLDER_WINDOWS = os.getenv('BASE_FOLDER_WINDOWS', 'Z:\\')
+        BASE_FOLDER_WINDOWS = os.getenv('BASE_FOLDER_WINDOWS', 'C:\\')
     else:  # POSIX (Linux, Unix, MacOS, etc.)
         BASE_FOLDER_POSIX = os.getenv('BASE_FOLDER_POSIX', '/')
 
