@@ -19,7 +19,7 @@ login_manager = LoginManager()
 mail = Mail()
 cache = Cache(config={'CACHE_TYPE': 'simple'})
 app_start_time = datetime.now()
-app_version = '2.4.0'
+app_version = '2.4.1'
 
 def create_app():
     global s    
@@ -60,7 +60,7 @@ def create_app():
         db.create_all()
         log_system_event(f"SharewareZ v{app_version} initializing database", event_type='system', event_level='startup', audit_user='system')
         initialize_library_folders()
-        # initialize_discovery_sections()
+        initialize_discovery_sections()
         insert_default_filters()
         initialize_default_settings()
         initialize_allowed_file_types()
