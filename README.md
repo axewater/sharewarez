@@ -8,7 +8,7 @@ Invite your friends securely and share your favorite games!
 ## 📢 Important Notes
 
 - 🔄 Updating from older versions: Automatic update supported - simply overwrite files and run 'pip install -r requirements.txt' again.
-- ⚠️ For versions below 1.2.1: Database reset required
+- ⚠️ For versions below 2.0: Database reset required
   - Run `app.py --force-setup` to recreate database and run setup wizard
 - ⚖️ SharewareZ promotes legal usage only
 
@@ -46,9 +46,9 @@ Invite your friends securely and share your favorite games!
 - Postgresql server
 
 #### 🪟 Windows Requirements
-- Python 3.11
-- pip
-- git ([Download Git for Windows](https://github.com/git-for-windows))
+- Python 3.11 ([Download Python for Windows](https://www.python.org/downloads/windows/))
+- pip (comes with Python these days)
+- git ([Download Git for Windows](https://gitforwindows.org/)))
 - Microsoft Visual C++ 14.0+ ([Download Visual Studio Tools](https://visualstudio.microsoft.com/downloads/))
 - Postgresql server  (https://www.postgresql.org/download/windows/)
 
@@ -69,9 +69,10 @@ source venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-##### 🪟 Windows
+##### 🪟 Windows (Powershell)
 ```bash
 python -m venv venv
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\venv\Scripts\Activate
 python -m pip install -r requirements.txt
 ```
