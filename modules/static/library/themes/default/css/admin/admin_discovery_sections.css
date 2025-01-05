@@ -57,3 +57,33 @@
 .placeholder-content ul li:last-child {
     border-bottom: none;
 }
+
+.section-item {
+    background: rgba(40, 40, 40, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin: 10px 0;
+    padding: 15px;
+    cursor: move;
+    transition: background-color 0.3s ease;
+}
+
+.section-item:hover {
+    background: rgba(60, 60, 60, 0.8);
+}
+
+.section-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.drag-handle {
+    color: #666;
+    cursor: move;
+    padding: 5px;
+}
+
+.drag-handle:hover {
+    color: #0096ff;
+}

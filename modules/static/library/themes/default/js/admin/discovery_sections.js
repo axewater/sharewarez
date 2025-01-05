@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', function() {
     new Sortable(sectionsList, {
         animation: 150,
         handle: '.drag-handle',
+        ghostClass: 'sortable-ghost',
+        dragClass: 'sortable-drag',
         onEnd: function(evt) {
             updateSectionOrder();
         }
@@ -35,17 +37,19 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({ sections: orderData })
         })
         .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                $.notify("Section order updated successfully", "success");
-            } else {
-                $.notify("Failed to update section order", "error");
-            }
-        })
+        .then(handleResponse)
         .catch(error => {
             console.error('Error:', error);
             $.notify("Error updating section order", "error");
         });
+    }
+
+    function handleResponse(data) {
+        if (data.success) {
+            $.notify("Section order updated successfully", "success");
+        } else {
+            $.notify("Failed to update section order: " + (data.error || "Unknown error"), "error");
+        }
     }
 
     // Update section visibility in database
