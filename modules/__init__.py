@@ -58,12 +58,12 @@ def create_app():
 
         initialize_library_folders()
         initialize_discovery_sections()
-
-        log_system_event(f"SharewareZ v{app_version} initializing database", event_type='system', event_level='startup', audit_user='system')
-        db.create_all()
         insert_default_filters()
         initialize_default_settings()
-        initialize_allowed_file_types()  # Add this call
+        initialize_allowed_file_types()
+        log_system_event(f"SharewareZ v{app_version} initializing database", event_type='system', event_level='startup', audit_user='system')
+        db.create_all()
+
     app.register_blueprint(routes.bp)
     app.register_blueprint(site_bp)
     app.register_blueprint(admin_bp)
