@@ -38,9 +38,9 @@
 		<p>{{ loc.heading }}</p>
 		</h1>
             <div class="discovery-libraries-container">
-                    <div class="discovery-library-label">{{ loc.label }}</div>
                     {% for section in visible_sections %}
                         {% if section.identifier == 'libraries' and section_data.libraries %}
+                        <div class="discovery-library-label">{{ loc.label }}</div>
                             <div class="libraries-list">
                                 {% for library in section_data.libraries %}
                                     <div class="library-item">
