@@ -42,6 +42,14 @@
     
 }
 
+.discovery-most-favorited-label {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
 .game-card {
     cursor: pointer;
     transition: transform 0.3s ease; 
