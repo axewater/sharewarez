@@ -48,7 +48,7 @@ Invite your friends securely and share your favorite games!
 #### 🪟 Windows Requirements
 - Python 3.11 ([Download Python for Windows](https://www.python.org/downloads/windows/))
 - pip (comes with Python these days)
-- git ([Download Git for Windows](https://github.com/git-for-windows))
+- git ([Download Git for Windows](https://gitforwindows.org/)))
 - Microsoft Visual C++ 14.0+ ([Download Visual Studio Tools](https://visualstudio.microsoft.com/downloads/))
 - Postgresql server  (https://www.postgresql.org/download/windows/)
 
