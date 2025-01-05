@@ -39,7 +39,12 @@
                 </div>
                 {{ form.submit(class="btn btn-primary") }}
             </form>
-           
+            
+            <form method="POST" action="{{ url_for('admin2.reset_default_themes') }}" 
+                  onsubmit="return confirm('Are you sure you want to reset all default themes? This will overwrite any modifications to default themes.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-warning">Reset Default Themes</button>
+            </form>
         </div>
 
         <div class="installed-themes-section">

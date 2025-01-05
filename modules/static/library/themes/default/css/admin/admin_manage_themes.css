@@ -134,3 +134,25 @@
     color: #721c24;
     border: 1px solid #f5c6cb;
 }
+
+.theme-actions {
+    text-align: center;
+    margin: 20px 0;
+    padding: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    color: #000;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+}
