@@ -32,7 +32,7 @@ def discover():
     page_loc = get_loc("discover")
     
     # Get visible sections in correct order
-    sections = DiscoverySection.query.filter_by(is_visible=True).order_by(DiscoverySection.display_order).all()
+    visible_sections = DiscoverySection.query.filter_by(is_visible=True).order_by(DiscoverySection.display_order).all()
     
     def fetch_game_details(games_query, limit=8):
         # Handle both query objects and lists
@@ -66,9 +66,14 @@ def discover():
     # Create a dictionary to store section data
     section_data = {}
     
-    for section in sections:
+    for section in visible_sections:
         if section.identifier == 'libraries':
-            section_data['libraries'] = fetch_game_details(Game.query.order_by(Game.date_created.desc()))
+            libraries = Library.query.all()
+            section_data['libraries'] = [{
+                'uuid': lib.uuid,
+                'name': lib.name,
+                'image_url': lib.image_url
+            } for lib in libraries]
         elif section.identifier == 'latest_games':
             section_data['latest_games'] = fetch_game_details(Game.query.order_by(Game.date_created.desc()))
         elif section.identifier == 'most_downloaded':
@@ -82,6 +87,6 @@ def discover():
             section_data['most_favorited'] = fetch_game_details([game[0] for game in most_favorited])
 
     return render_template('games/discover.html',
-                           sections=sections,
+                           visible_sections=visible_sections,
                            section_data=section_data,
                            loc=page_loc)
