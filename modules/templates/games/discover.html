@@ -157,7 +157,8 @@
                             </div>
                         {% endif %}
 
-                        {% if section.identifier == 'most_favorited' and section_data.most_favorited %}
+                        {% if section.identifier == 'most_favorited' %}
+                        {% if section_data.most_favorited %}
                             <div class="discovery-most-favorited-label">Most Favorited Games</div>
                             <div class="discovery-most-favorited-container">
                                 {% for game in section_data.most_favorited %}
@@ -185,6 +186,7 @@
                             <br>
                             <p>No favorited games yet!</p>
                         {% endif %}
+                    {% endif %}
                     {% endfor %}
                 </div>
 </body>

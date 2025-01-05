@@ -28,7 +28,9 @@
                         {% for section in sections %}
                         <div class="section-item" data-section-id="{{ section.id }}">
                             <div class="section-content">
+                                <div class="drag-handle-container">
                                 <i class="fas fa-grip-vertical drag-handle"></i>
+                                </div>
                                 <span class="section-name">{{ section.name }}</span>
                                 <div class="section-controls">
                                     <div class="form-check form-switch">
