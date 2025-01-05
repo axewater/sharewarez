@@ -134,6 +134,13 @@ def setup_igdb():
             session.pop('setup_step', None)  # Clear setup progress
             log_system_event("IGDB settings configured - Setup completed", event_type='setup', event_level='information')
             flash('Setup completed successfully! Please create your first game library.', 'success')
+            from modules.init_data import initialize_library_folders, insert_default_filters, initialize_default_settings, initialize_allowed_file_types, initialize_discovery_sections
+
+            initialize_library_folders()
+            initialize_discovery_sections()
+            insert_default_filters()
+            initialize_default_settings()
+            initialize_allowed_file_types()
             return redirect(url_for('library.libraries'))
         except Exception as e:
             db.session.rollback()
