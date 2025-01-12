@@ -1,7 +1,7 @@
 import os, secrets
 
 class Config(object):
-    # Set Database connection string here or in your .env file
+    # Set Database connection string here or in your .env file, when using docker set the hostname to 'db'
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/sharewarez')
     
     # Set the path to the folder where the game files are stored (ie: use c:\gamez for windows or /gamez for linux)
