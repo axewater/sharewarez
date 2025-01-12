@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         folder.platform_name,
                         `
                             <button 
-                                onclick="toggleIgnoreStatus('${folder.id}', this)" 
+                                onclick="window.toggleIgnoreStatus('${folder.id}', this)" 
                                 class="btn ${folder.status === 'Ignore' ? 'btn-warning' : 'btn-secondary'} btn-sm"
                                 title="Ignored folders are not scanned">
                                 <i class="fas ${folder.status === 'Ignore' ? 'fa-eye-slash' : 'fa-eye'}"></i>
@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateScanJobs, 5000);
 });
 
-function toggleIgnoreStatus(folderId, button) {
+window.toggleIgnoreStatus = function(folderId, button) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     
     fetch('/update_unmatched_folder_status', {
