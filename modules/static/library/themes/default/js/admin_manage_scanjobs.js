@@ -377,6 +377,7 @@ function formatFileSize(bytes) {
     return parseFloat((bytes / Math.pow(kilobyte, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
+window.clearEntry = clearEntry;
 function clearEntry(folderId) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     console.log("Clearing entry for folder ID:", folderId);
