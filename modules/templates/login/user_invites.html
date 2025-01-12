@@ -27,7 +27,7 @@
 {% endif %}
 
 <div class="glass-panel container py-4">
-    <h2 class="mb-3">Invite friends to your pirate crew!</h2>
+    <h2 class="mb-3">Invite friends to your gamer crew!</h2>
     <p>Invites expire automatically after 48 hours. If not used by then, the invite is returned to you.</p>
     {% if site_url == 'http://127.0.0.1' and current_user.role == 'admin' %}
     <div class="alert alert-warning" role="alert">
@@ -82,7 +82,7 @@
             <meta name="csrf-token" content="{{ csrf_token() }}">
         </div>
         {% else %}
-        <div class="list-group-item">You have no active invites. Invite some pirates onto your crew!</div>
+        <div class="list-group-item">You have no active invites. Invite some gamers onto your crew!</div>
         {% endfor %}
     </div>
 </div>
