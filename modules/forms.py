@@ -109,8 +109,8 @@ class EditUserForm(FlaskForm):
     
     
 class UserManagementForm(FlaskForm):
-    user_id = SelectField('Choose pirate', coerce=int)
-    name = StringField('Pirate Name', validators=[Length(max=64)])
+    user_id = SelectField('Choose handle', coerce=int)
+    name = StringField('User Name', validators=[Length(max=64)])
     email = StringField('Email', validators=[DataRequired(), Email(), Length(max=120)])
     role = StringField('Role', validators=[Length(max=64)])
     state = BooleanField('Account Enabled')

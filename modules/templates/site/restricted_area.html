@@ -3,9 +3,9 @@
 {% block content %}
 
 {% if verify_file('./modules/static/library/themes/' + current_theme + 'css/site/restricted_area.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + 'css/site/restricted_area.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + 'css/site/restricted_area.css') }}">
 {% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/site/restricted_area.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/site/restricted_area.css') }}">
 {% endif %}
 
 <div class="container-base">
@@ -22,20 +22,20 @@
 </div>
 {% if current_user.is_authenticated %}
 <div class="content-restricted">
-    <img src="{{ url_for('static', filename='newstyle/sharewarez_pirate.png') }}" alt="ShareWareZ Logo" class="login-logo">
+    <img src="{{ url_for('static', filename='newstyle/sharewarez_gamer.png') }}" alt="ShareWareZ Logo" class="login-logo">
 
     <div class="content-restricted-textblock">
-        Ahoy, {{ current_user.name }}, welcome to ShareWareZ!<br>
+        {{ current_user.name }}, welcome to ShareWareZ!<br>
         <br>
-        Set sail through vast digital seas where treasures abound in every corner. 
-        Here, ye can effortlessly chart yer course through libraries brimming with the finest games, each chest filled with images and lore. 
+        Step into a vast gaming universe where endless adventures await at every turn. 
+        Here, you can easily browse through extensive libraries packed with the best games, each complete with screenshots and detailed descriptions.
         <br><br>
-        Seek and ye shall find with our trusty maps (search and filters), uncovering the jewels of your liking. 
-        And fret not, for every treasure is yours for the taking, cracked and ready to embark upon your device. Aye, for we are pirates, and the horizon is ours to explore!<br>
+        Find exactly what you're looking for with our powerful search tools and filters, discovering games that match your style.
+        Every game is thoroughly tested and ready to play on your system. Join our gaming community and level up your gaming experience!<br>
     </div>
     {% else %}
     <div class="content-restricted">
-        <img src="{{ url_for('static', filename='newstyle/sharewarez_pirate.png') }}" alt="ShareWareZ Logo" class="login-logo">
+        <img src="{{ url_for('static', filename='newstyle/sharewarez_gamer.png') }}" alt="ShareWareZ Logo" class="login-logo">
         <div class="content-restricted-textblock">
         Welcome to ShareWareZ!<br>
         Please login or register.

@@ -2,7 +2,7 @@ import os
 
 class Config(object):
     # Set Database connection string here or in your .env file
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/sharewarez')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@db:5432/sharewarez')
     
     # Set the path to the folder where the game files are stored (ie: use c:\gamez for windows or /gamez for linux)
     DATA_FOLDER_WAREZ = os.getenv('DATA_FOLDER_WAREZ', '/')
