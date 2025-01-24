@@ -76,6 +76,9 @@ class DatabaseManager:
             audit_user INTEGER REFERENCES users(id),
             timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
+
+        ALTER TABLE scan_jobs
+        ADD COLUMN IF NOT EXISTS removed_count INTEGER DEFAULT 0;
         
         """
         print("Upgrading database to the latest schema")
