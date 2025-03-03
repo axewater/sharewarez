@@ -35,6 +35,16 @@
         <button type="button" class="menu-button trigger-delete-modal" data-game-uuid="{{ game_uuid }}">Delete Game on disk</button>
     </div>
     {% endif %}
+    <div class="menu-item move-library-container">
+        <button type="button" class="menu-button move-library" data-game-uuid="{{ game_uuid }}">Move Library</button>
+        <div class="submenu-libraries" style="display: none;">
+            <div class="loading-libraries">
+                <span>Loading libraries...</span>
+            </div>
+            <div class="libraries-list" style="display: none;">
+            </div>
+        </div>
+    </div>
     <div class="menu-item">
         {% if game.url %}
         <button type="submit" onclick="window.open('{{ game.url }}', 'target=_new')" class="menu-button">Open IGDB Page</button>
@@ -103,5 +113,3 @@
         });
     });
     </script>
-    
-    

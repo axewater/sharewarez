@@ -29,7 +29,7 @@ def browse_folders_ss():
             return ''
             
         # Additional security check - ensure the path only contains safe characters
-        if not re.match(r'^[a-zA-Z0-9_\-./\\]+$', normalized_path):
+        if not re.match(r'^[a-zA-Z0-9_\-./\\,]+$', normalized_path):
             log_message(f"Path contains potentially unsafe characters: {path}")
             return ''
             

@@ -1,5 +1,5 @@
 import os
-from flask import Blueprint, jsonify, current_app
+from flask import Blueprint, jsonify, current_app, request
 from modules.utils_processors import get_global_settings
 from modules import cache, db
 from flask_login import login_required, current_user
@@ -10,6 +10,7 @@ from modules.utils_functions import PLATFORM_IDS
 from modules.models import Library, Image, Game, User, AllowedFileType, IgnoredFileType, ScanJob, UnmatchedFolder, DownloadRequest
 from sqlalchemy.exc import IntegrityError
 from flask import request, url_for
+from modules.utils_logging import log_system_event
 from sqlalchemy import func
 apis_other_bp = Blueprint('apis_other', __name__)
 
@@ -368,3 +369,37 @@ def api_delete_download_request(request_id):
             'status': 'error',
             'message': f'Error deleting download request: {str(e)}'
         }), 500
+
+@apis_other_bp.route('/api/move_game_to_library', methods=['POST'])
+@login_required
+def move_game_to_library():
+    try:
+        data = request.get_json()
+        game_uuid = data.get('game_uuid')
+        target_library_uuid = data.get('target_library_uuid')
+        
+        if not game_uuid or not target_library_uuid:
+            return jsonify({
+                'success': False,
+                'message': 'Missing required parameters'
+            }), 400
+            
+        game = Game.query.filter_by(uuid=game_uuid).first()
+        target_library = Library.query.filter_by(uuid=target_library_uuid).first()
+        
+        if not game or not target_library:
+            return jsonify({
+                'success': False,
+                'message': 'Game or target library not found'
+            }), 404
+            
+        # Update the game's library
+        game.library_uuid = target_library_uuid
+        db.session.commit()
+        
+        log_system_event(f"Game {game.name} moved to library {target_library.name} by user {current_user.name}", event_type='game', event_level='information')
+        
+        return jsonify({'success': True, 'message': f'Game moved to {target_library.name}'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500

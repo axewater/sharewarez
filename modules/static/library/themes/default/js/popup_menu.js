@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     
+    let currentLibrariesSubmenu = null;
     var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
     // Adjusted for dynamic content using event delegation
@@ -75,10 +76,102 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Handle "Move Library" button click
+    document.body.addEventListener('click', function(event) {
+        if (event.target.classList.contains('move-library')) {
+            event.stopPropagation();
+            
+            const gameUuid = event.target.getAttribute('data-game-uuid');
+            const submenuContainer = event.target.closest('.move-library-container').querySelector('.submenu-libraries');
+            
+            // Close any other open libraries submenu
+            if (currentLibrariesSubmenu && currentLibrariesSubmenu !== submenuContainer) {
+                currentLibrariesSubmenu.style.display = 'none';
+            }
+            
+            // Toggle the submenu
+            if (submenuContainer.style.display === 'none') {
+                submenuContainer.style.display = 'block';
+                currentLibrariesSubmenu = submenuContainer;
+                
+                // Show loading indicator
+                const loadingElement = submenuContainer.querySelector('.loading-libraries');
+                const librariesList = submenuContainer.querySelector('.libraries-list');
+                loadingElement.style.display = 'block';
+                librariesList.style.display = 'none';
+                
+                // Fetch libraries
+                fetch('/api/get_libraries')
+                    .then(response => response.json())
+                    .then(libraries => {
+                        // Hide loading, show libraries list
+                        loadingElement.style.display = 'none';
+                        librariesList.style.display = 'block';
+                        
+                        // Clear previous libraries
+                        librariesList.innerHTML = '';
+                        
+                        // Add libraries to the submenu
+                        libraries.forEach(library => {
+                            const libraryItem = document.createElement('div');
+                            libraryItem.className = 'library-item';
+                            libraryItem.textContent = library.name;
+                            libraryItem.setAttribute('data-library-uuid', library.uuid);
+                            libraryItem.setAttribute('data-game-uuid', gameUuid);
+                            
+                            libraryItem.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                const targetLibraryUuid = this.getAttribute('data-library-uuid');
+                                const gameUuid = this.getAttribute('data-game-uuid');
+                                
+                                // Confirm with the user
+                                if (confirm(`Are you sure you want to move this game to the "${library.name}" library?`)) {
+                                    // Send request to move the game
+                                    fetch('/api/move_game_to_library', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-Token': csrfToken
+                                        },
+                                        body: JSON.stringify({
+                                            game_uuid: gameUuid,
+                                            target_library_uuid: targetLibraryUuid
+                                        })
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            window.location.reload();
+                                        } else {
+                                            alert('Error: ' + data.message);
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error moving game:', error);
+                                        alert('An error occurred while moving the game.');
+                                    });
+                                }
+                            });
+                            librariesList.appendChild(libraryItem);
+                        });
+                    });
+            } else {
+                submenuContainer.style.display = 'none';
+                currentLibrariesSubmenu = null;
+            }
+        }
+    });
+
     window.addEventListener('click', function() {
         document.querySelectorAll('.popup-menu').forEach(function(menu) {
             menu.style.display = 'none';
         });
+        
+        // Also close any open libraries submenu
+        if (currentLibrariesSubmenu) {
+            currentLibrariesSubmenu.style.display = 'none';
+            currentLibrariesSubmenu = null;
+        }
     });
 
     document.body.addEventListener('click', function(event) {
