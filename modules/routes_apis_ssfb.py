@@ -25,6 +25,13 @@ def browse_folders_ss():
     def log_message(message):
         print(f"SS folder browser: {message}", file=sys.stderr)
         
+    # Function to ensure path stays within base directory
+    def ensure_base_directory(path, base_dir):
+        # If path is empty or just '/', return the base directory
+        if not path or path == '/':
+            return ''
+        return path
+        
     # Function to safely get file/directory properties
     def safe_get_file_info(path, item):
         item_path = os.path.join(path, item)
@@ -36,13 +43,15 @@ def browse_folders_ss():
     # Attempt to get 'path' from request arguments; default to an empty string which signifies the base directory
     request_path = request.args.get('path', '')
     print(f'SS folder browser: Requested path: {request_path}', file=sys.stderr)
-    # Handle the default path case
     
     # Sanitize the requested path
     request_path = sanitize_path(request_path)
     
+    # Ensure the path stays within base directory
+    request_path = ensure_base_directory(request_path, base_directory)
+    
     if not request_path:
-        print(f'SS folder browser: No default path provided; using base directory: {base_directory}', file=sys.stderr)
+        print(f'SS folder browser: Using base directory: {base_directory}', file=sys.stderr)
         request_path = ''
         folder_path = base_directory
     else:
