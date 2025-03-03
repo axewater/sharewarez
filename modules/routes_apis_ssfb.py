@@ -22,17 +22,7 @@ def browse_folders_ss():
         # Remove any leading slashes or backslashes
         while normalized_path.startswith('/') or normalized_path.startswith('\\'):
             normalized_path = normalized_path[1:]
-            
-        # Remove any tilde characters (home directory references)
-        if '~' in normalized_path:
-            log_message(f"Home directory reference attempt detected: {path}")
-            return ''
-            
-        # Additional security check - ensure the path only contains safe characters
-        if not re.match(r'^[a-zA-Z0-9_\-./\\,]+$', normalized_path):
-            log_message(f"Path contains potentially unsafe characters: {path}")
-            return ''
-            
+           
         log_message(f"Sanitized path: {normalized_path}")
         return normalized_path
 
