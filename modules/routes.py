@@ -308,12 +308,12 @@ def upload_image(game_uuid):
         return jsonify({'error': 'No selected file'}), 400
 
     # Validate file extension and content type
-    allowed_extensions = {'jpg', 'jpeg', 'png'}
+    allowed_extensions = {'jpg', 'jpeg', 'png', 'gif'}
     filename = secure_filename(file.filename)
     file_extension = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
 
     if file_extension not in allowed_extensions:
-        return jsonify({'error': 'Only JPG and PNG files are allowed'}), 400
+        return jsonify({'error': 'Only JPG, PNG and GIF files are allowed'}), 400
 
     # Further validate the file's data to ensure it's a valid image
     try:

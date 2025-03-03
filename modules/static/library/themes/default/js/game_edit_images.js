@@ -53,17 +53,23 @@ function uploadFile(file, gameUuid, csrfToken, imageType = 'screenshot') {
             }
             if (data.flash) {
                 // Create and display flash message
-                const flashContainer = document.querySelector('.flashes');
+                let flashContainer = document.querySelector('.flashes');
                 if (!flashContainer) {
-                    const newFlashContainer = document.createElement('div');
-                    newFlashContainer.className = 'flashes';
-                    document.querySelector('.content-flash').appendChild(newFlashContainer);
+                    // Create the main flash container if it doesn't exist
+                    const mainContainer = document.createElement('div');
+                    mainContainer.className = 'content-flash';
+                    document.querySelector('.glass-panel').prepend(mainContainer);
+                    
+                    // Create the flashes container
+                    flashContainer = document.createElement('div');
+                    flashContainer.className = 'flashes';
+                    mainContainer.appendChild(flashContainer);
                 }
                 
                 const flashMessage = document.createElement('div');
                 flashMessage.className = 'flash';
                 flashMessage.textContent = data.flash;
-                document.querySelector('.flashes').appendChild(flashMessage);
+                flashContainer.appendChild(flashMessage);
 
                 // Remove the flash message after 3 seconds
                 setTimeout(() => {
