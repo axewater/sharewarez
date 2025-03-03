@@ -2,9 +2,9 @@
 {% block content %}
 
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_game_identify.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_game_identify.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_game_identify.css') }}">
 {% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_game_identify.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_game_identify.css') }}">
 {% endif %}
 
 {% with messages = get_flashed_messages() %}
@@ -76,7 +76,10 @@
                 {% endif %}
                 <small id="igdb_id_feedback" class="form-text-muted">Enter the IGDB ID of the game.</small>
             </div>
-            
+            <!-- Add Non-Existing Game Button -->
+            <button type="button" class="btn btn-secondary" id="add-non-existing-game">
+                Add Non-Existing Game
+            </button>
             <div class="game_edit-form-group-name">
                 <label for="name">Name</label>
                 {{ form.name(class="form-control") }}

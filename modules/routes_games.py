@@ -76,9 +76,12 @@ def add_game_manual():
             form.library_uuid.data = library_uuid
     
     if form.validate_on_submit():
-        if check_existing_game_by_igdb_id(form.igdb_id.data):
+        # Check if this is a custom IGDB ID (above 2,000,000,420)
+        is_custom_game = int(form.igdb_id.data) >= 2000000420
+        
+        # For custom games, skip IGDB ID check
+        if not is_custom_game and check_existing_game_by_igdb_id(form.igdb_id.data):
             flash('A game with this IGDB ID already exists.', 'error')
-            print(f"IGDB ID {form.igdb_id.data} already exists.")
             return render_template('admin/admin_game_identify.html', form=form, library_uuid=library_uuid, library_name=library_name, platform_name=platform_name, platform_id=platform_id)
         
         new_game = Game(
@@ -88,6 +91,8 @@ def add_game_manual():
             storyline=form.storyline.data,
             url=form.url.data,
             full_disk_path=form.full_disk_path.data,
+            # Set default cover for custom games
+            cover=url_for('static', filename='newstyle/default_cover.jpg') if is_custom_game else None,
             category=form.category.data,
             status=form.status.data,
             first_release_date=form.first_release_date.data,
@@ -118,7 +123,6 @@ def add_game_manual():
             new_game.publisher = publisher
         new_game.nfo_content = read_first_nfo_content(form.full_disk_path.data)
 
-        # print("New game:", new_game)
         try:
             db.session.add(new_game)
             db.session.commit()
