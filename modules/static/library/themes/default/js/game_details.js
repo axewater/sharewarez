@@ -1,8 +1,9 @@
 // Global variables for modal state
 let modalState = {
     originalScrollPosition: 0,
+    slideIndex: 1,
     modalOpen: false,
-    slideIndex: 1
+    bodyOverflowOriginal: ''
 };
 
 function openModal(clickedIndex) {
@@ -12,11 +13,12 @@ function openModal(clickedIndex) {
      
     const modal = document.getElementById("myModal");
     modal.style.display = "block";
+    document.body.classList.add('modal-open');
     
     // Prevent background scrolling
+    modalState.bodyOverflowOriginal = document.body.style.overflow;
     document.body.style.position = 'fixed';
     document.body.style.top = `-${modalState.originalScrollPosition}px`;
-    document.body.style.width = '100%';
      
     showSlides(modalState.slideIndex);
     
@@ -38,10 +40,11 @@ function cleanupModal() {
 function closeModal() {
     cleanupModal();
     document.getElementById("myModal").style.display = "none";
+    document.body.classList.remove('modal-open');
     
     // Restore body position and scrolling
     document.body.style.position = '';
-    document.body.style.top = '';
+    document.body.style.overflow = modalState.bodyOverflowOriginal;
     document.body.style.width = '';
     window.scrollTo(0, modalState.originalScrollPosition);
     
@@ -62,7 +65,7 @@ function showSlides(n) {
     }
  
     if (n > slides.length) {
-        modalState.slideIndex = 1;
+        modalState.slideIndex = 1; 
     }    
     if (n < 1) {
         modalState.slideIndex = slides.length;
@@ -75,13 +78,32 @@ function showSlides(n) {
 
     // Safely display the current slide
     if (slides[modalState.slideIndex - 1]) {
-        slides[modalState.slideIndex - 1].style.display = "block";
+        slides[modalState.slideIndex - 1].style.display = "flex";
     }
+    
+    // Add keyboard navigation
+    document.onkeydown = function(e) {
+        if (!modalState.modalOpen) return;
+        
+        if (e.key === "ArrowLeft") {
+            plusSlides(-1);
+        } else if (e.key === "ArrowRight") {
+            plusSlides(1);
+        }
+    };
 }
 
 
 // DOMContentLoaded event listener for "Read More" functionality
 document.addEventListener("DOMContentLoaded", function() {
+    // Ensure modal is not displayed on page load
+    const modal = document.getElementById("myModal");
+    if (modal) {
+        modal.style.display = "none";
+        modalState.modalOpen = false;
+    }
+    
+    // Read More functionality
     var readMoreLink = document.querySelector('.read-more-link');
     var summaryModal = document.getElementById('summaryModal');
 
