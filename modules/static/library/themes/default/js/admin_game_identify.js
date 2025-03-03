@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
-    
     var platformDisplay = document.querySelector('#platform_display');
     const platformId = document.querySelector('#platform_id').textContent; 
+    let nextCustomIgdbId = 2000000420;
     const igdbIdInput = document.querySelector('#igdb_id');
     const fullPathInput = document.querySelector('#full_disk_path');
     const nameInput = document.querySelector('#name');
@@ -9,9 +9,31 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitButton = document.querySelector('button[type="submit"]');
     const igdbIdFeedback = document.querySelector('#igdb_id_feedback');
     const fullPathFeedback = document.createElement('small');
-    const developerInput = document.querySelector('#developer');
-    const publisherInput = document.querySelector('#publisher');
-    const libraryUuidInput = document.querySelector('#library_uuid');
+
+    // Add Non-Existing Game button handler
+    document.querySelector('#add-non-existing-game').addEventListener('click', function() {
+        // Disable IGDB search functionality
+        document.querySelector('#search-igdb-btn').disabled = true;
+        document.querySelector('#search-igdb').disabled = true;
+
+        // Set the next available custom IGDB ID
+        igdbIdInput.value = nextCustomIgdbId++;
+        igdbIdInput.readOnly = true;
+
+        // Clear and enable name field
+        nameInput.value = '';
+        nameInput.readOnly = false;
+        nameInput.focus();
+
+        // Expand details section
+        const gameDetailsCollapse = document.querySelector('#gameDetails');
+        if (gameDetailsCollapse) {
+            const bootstrapCollapse = new bootstrap.Collapse(gameDetailsCollapse, {
+                show: true
+            });
+        }
+    });
+
     fullPathFeedback.id = 'full_disk_path_feedback';
     fullPathInput.parentNode.insertBefore(fullPathFeedback, fullPathInput.nextSibling);
 
@@ -335,45 +357,44 @@ document.addEventListener('DOMContentLoaded', function() {
     nameInput.addEventListener('input', checkFieldsAndToggleSubmit);
 
     igdbIdInput.addEventListener('blur', function() {
-        igdbIdInput.addEventListener('blur', function() {
-            const igdbId = this.value.trim();
-            if (igdbId.length > 0) {
-                fetch(`/api/check_igdb_id?igdb_id=${igdbId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        const isValid = data.available;
-                        showFeedback(igdbIdFeedback, isValid ? 'IGDB ID is available' : 'IGDB ID is already in the database', isValid);
-                        validateField(this, isValid);
-                        checkFieldsAndToggleSubmit();
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showFeedback(igdbIdFeedback, 'Error checking IGDB ID', false);
-                    });
+        const igdbId = this.value.trim();
+        if (igdbId.length > 0) {
+            // Skip validation for custom IDs
+            if (parseInt(igdbId) >= 2000000420) {
+                showFeedback(igdbIdFeedback, 'Custom game ID', true);
+                return;
             }
-        });
-        
+            fetch(`/api/check_igdb_id?igdb_id=${igdbId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const isValid = data.available;
+                    showFeedback(igdbIdFeedback, isValid ? 'IGDB ID is available' : 'IGDB ID is already in the database', isValid);
+                    validateField(this, isValid);
+                    checkFieldsAndToggleSubmit();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showFeedback(igdbIdFeedback, 'Error checking IGDB ID', false);
+                });
+        }
     });
 
     fullPathInput.addEventListener('blur', function() {
-        fullPathInput.addEventListener('blur', function() {
-            const fullPath = this.value;
-            if (fullPath.trim().length > 0) {
-                fetch(`/api/check_path_availability?full_disk_path=${encodeURIComponent(fullPath)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        const isValid = data.available;
-                        showFeedback(fullPathFeedback, isValid ? 'Path is accessible' : 'Path is not accessible', isValid);
-                        validateField(this, isValid);
-                        checkFieldsAndToggleSubmit();
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showFeedback(fullPathFeedback, 'Error checking path accessibility', false);
-                    });
-            }
-        });
-        
+        const fullPath = this.value;
+        if (fullPath.trim().length > 0) {
+            fetch(`/api/check_path_availability?full_disk_path=${encodeURIComponent(fullPath)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const isValid = data.available;
+                    showFeedback(fullPathFeedback, isValid ? 'Path is accessible' : 'Path is not accessible', isValid);
+                    validateField(this, isValid);
+                    checkFieldsAndToggleSubmit();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showFeedback(fullPathFeedback, 'Error checking path accessibility', false);
+                });
+        }
     });
 
     checkFieldsAndToggleSubmit();
