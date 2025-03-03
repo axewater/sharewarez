@@ -122,23 +122,28 @@ document.addEventListener('DOMContentLoaded', function() {
     // Prevent form submission on pressing Enter and trigger Browse Folders click (Auto Scan Tab)
     const autoScanForm = document.querySelector('#autoScan form');
     if (autoScanForm) {
-        autoScanForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const browseFoldersBtn = document.querySelector('#browseFoldersBtn');
-            if (browseFoldersBtn) {
-                browseFoldersBtn.click();
+        autoScanForm.addEventListener('keydown', function(event) {
+            // Only prevent default and trigger browse folders on Enter key press
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const browseFoldersBtn = document.querySelector('#browseFoldersBtn');
+                if (browseFoldersBtn) {
+                    browseFoldersBtn.click();
+                }
             }
         });
     }
 
-    // Prevent form submission on pressing Enter and trigger Browse Folders click (Manual Scan Tab)
+    // Same for manual scan form
     const manualScanForm = document.querySelector('#manualScan form');
     if (manualScanForm) {
-        manualScanForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const browseFoldersBtnManual = document.querySelector('#browseFoldersBtnManual');
-            if (browseFoldersBtnManual) {
-                browseFoldersBtnManual.click();
+        manualScanForm.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const browseFoldersBtnManual = document.querySelector('#browseFoldersBtnManual');
+                if (browseFoldersBtnManual) {
+                    browseFoldersBtnManual.click();
+                }
             }
         });
     }
