@@ -1,3 +1,4 @@
+let currentLibrariesSubmenu = null;
 function setCookie(name, value, days) {
     try {
         var expires = "";
@@ -374,6 +375,16 @@ $(document).ready(function() {
         </form>
         <div class="menu-item">
             <button type="button" class="menu-button delete-game" data-game-uuid="${game.uuid}">Remove Game</button>
+        </div>
+        <div class="menu-item move-library-container">
+            <button type="button" class="menu-button move-library" data-game-uuid="${game.uuid}">Move Library</button>
+            <div class="submenu-libraries" style="display: none;">
+                <div class="loading-libraries">
+                    <span>Loading libraries...</span>
+                </div>
+                <div class="libraries-list" style="display: none;">
+                </div>
+            </div>
         </div>`;
         if (enableDeleteGameOnDisk) {
             menuHtml += `
@@ -535,5 +546,106 @@ document.body.addEventListener('click', function(event) {
         .catch(error => {
             console.error('There has been a problem with your fetch operation:', error);
         });
+    }
+
+    if (event.target.classList.contains('move-library')) {
+        event.stopPropagation();
+        
+        const gameUuid = event.target.getAttribute('data-game-uuid');
+        const submenuContainer = event.target.closest('.move-library-container').querySelector('.submenu-libraries');
+        
+        // Close any other open libraries submenu
+        if (currentLibrariesSubmenu && currentLibrariesSubmenu !== submenuContainer) {
+            currentLibrariesSubmenu.style.display = 'none';
+        }
+        
+        // Toggle the submenu
+        if (submenuContainer.style.display === 'none') {
+            submenuContainer.style.display = 'block';
+            currentLibrariesSubmenu = submenuContainer;
+            
+            // Show loading indicator
+            const loadingElement = submenuContainer.querySelector('.loading-libraries');
+            const librariesList = submenuContainer.querySelector('.libraries-list');
+            loadingElement.style.display = 'block';
+            librariesList.style.display = 'none';
+            
+            // Fetch libraries
+            fetch('/api/get_libraries')
+                .then(response => response.json())
+                .then(libraries => {
+                    // Hide loading, show libraries list
+                    loadingElement.style.display = 'none';
+                    librariesList.style.display = 'block';
+                    
+                    // Clear previous libraries
+                    librariesList.innerHTML = '';
+                    
+                    // Add libraries to the submenu
+                    libraries.forEach(library => {
+                        const libraryItem = document.createElement('div');
+                        libraryItem.className = 'library-item';
+                        libraryItem.textContent = library.name;
+                        libraryItem.setAttribute('data-library-uuid', library.uuid);
+                        libraryItem.setAttribute('data-game-uuid', gameUuid);
+                        
+                        libraryItem.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const targetLibraryUuid = this.getAttribute('data-library-uuid');
+                            const gameUuid = this.getAttribute('data-game-uuid');
+                            
+                            // Confirm with the user
+                            if (confirm(`Are you sure you want to move this game to the "${library.name}" library?`)) {
+                                // Send request to move the game
+                                fetch('/api/move_game_to_library', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-Token': csrfToken
+                                    },
+                                    body: JSON.stringify({
+                                        game_uuid: gameUuid,
+                                        target_library_uuid: targetLibraryUuid
+                                    })
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        window.location.reload();
+                                    } else {
+                                        alert('Error: ' + data.message);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error moving game:', error);
+                                    alert('An error occurred while moving the game.');
+                                });
+                            }
+                        });
+                        librariesList.appendChild(libraryItem);
+                    });
+                });
+        } else {
+            submenuContainer.style.display = 'none';
+            currentLibrariesSubmenu = null;
+        }
+    }
+});
+
+window.addEventListener('click', function() {
+    document.querySelectorAll('.popup-menu').forEach(function(menu) {
+        menu.style.display = 'none';
+    });
+    
+    // Also close any open libraries submenu
+    if (currentLibrariesSubmenu) {
+        currentLibrariesSubmenu.style.display = 'none';
+        currentLibrariesSubmenu = null;
+    }
+});
+
+document.body.addEventListener('click', function(event) {
+    if (event.target.closest('.popup-menu')) {
+        event.stopPropagation();
     }
 });
