@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, current_app
-import os, sys
-from flask_login import login_required
+import os, sys, re
+from flask_login import login_required, current_user
 from modules.utils_auth import admin_required
 
 ssfb_bp = Blueprint('ssfb', __name__)
@@ -9,6 +9,27 @@ ssfb_bp = Blueprint('ssfb', __name__)
 @login_required
 @admin_required
 def browse_folders_ss():
+    # Function to sanitize path and prevent directory traversal
+    def sanitize_path(path):
+        # Remove any double dots to prevent directory traversal
+        path = re.sub(r'\.\.', '', path)
+        # Remove any tilde characters
+        path = path.replace('~', '')
+        # Remove any double slashes
+        path = re.sub(r'//+', '/', path)
+        # Remove any backslash characters (Windows)
+        path = path.replace('\\\\', '\\')
+        return path
+
+    # Log function for debugging
+    def log_message(message):
+        print(f"SS folder browser: {message}", file=sys.stderr)
+        
+    # Function to safely get file/directory properties
+    def safe_get_file_info(path, item):
+        item_path = os.path.join(path, item)
+        return {'exists': os.path.exists(item_path), 'path': item_path}
+
     # Select base by operating system
     base_directory = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
     print(f'SS folder browser: Base directory: {base_directory}', file=sys.stderr)
@@ -16,6 +37,10 @@ def browse_folders_ss():
     request_path = request.args.get('path', '')
     print(f'SS folder browser: Requested path: {request_path}', file=sys.stderr)
     # Handle the default path case
+    
+    # Sanitize the requested path
+    request_path = sanitize_path(request_path)
+    
     if not request_path:
         print(f'SS folder browser: No default path provided; using base directory: {base_directory}', file=sys.stderr)
         request_path = ''
@@ -30,13 +55,46 @@ def browse_folders_ss():
             return jsonify({'error': 'Access denied'}), 403
 
     if os.path.isdir(folder_path):
-        # List directory contents; distinguish between files and directories
-        contents = [{'name': item, 
-                     'isDir': os.path.isdir(os.path.join(folder_path, item)),
-                     'ext': os.path.splitext(item)[1][1:].lower() if not os.path.isdir(os.path.join(folder_path, item)) else None,
-                     'size': os.path.getsize(os.path.join(folder_path, item)) if not os.path.isdir(os.path.join(folder_path, item)) else None
-                     } 
-                    for item in sorted(os.listdir(folder_path))]
-        return jsonify(sorted(contents, key=lambda x: (not x['isDir'], x['name'].lower())))
+        try:
+            # Get directory listing
+            dir_items = sorted(os.listdir(folder_path))
+            contents = []
+            skipped_items = 0
+            
+            # Process each item with error handling
+            for item in dir_items:
+                try:
+                    item_path = os.path.join(folder_path, item)
+                    is_dir = os.path.isdir(item_path)
+                    
+                    # For files, get size safely
+                    size = None
+                    if not is_dir:
+                        try:
+                            size = os.path.getsize(item_path)
+                        except (FileNotFoundError, PermissionError, OSError) as e:
+                            log_message(f"Error getting size for {item_path}: {str(e)}")
+                    
+                    contents.append({
+                        'name': item,
+                        'isDir': is_dir,
+                        'ext': os.path.splitext(item)[1][1:].lower() if not is_dir else None,
+                        'size': size
+                    })
+                except (FileNotFoundError, PermissionError, OSError) as e:
+                    log_message(f"Error processing item {item}: {str(e)}")
+                    skipped_items += 1
+            
+            # Return the successfully processed items
+            response_data = {
+                'items': sorted(contents, key=lambda x: (not x['isDir'], x['name'].lower())),
+                'path': request_path,
+                'hasErrors': skipped_items > 0,
+                'skippedItems': skipped_items
+            }
+            return jsonify(response_data)
+        except (PermissionError, OSError) as e:
+            log_message(f"Error accessing directory {folder_path}: {str(e)}")
+            return jsonify({'error': f'Error accessing directory: {str(e)}'}), 500
     else:
         return jsonify({'error': 'SS folder browser: Folder not found'}), 404
