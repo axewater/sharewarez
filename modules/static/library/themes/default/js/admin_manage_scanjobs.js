@@ -119,6 +119,30 @@ document.addEventListener('DOMContentLoaded', function() {
             new bootstrap.Tab(document.querySelector('#autoScan-tab')).show();
     }
 
+    // Prevent form submission on pressing Enter and trigger Browse Folders click (Auto Scan Tab)
+    const autoScanForm = document.querySelector('#autoScan form');
+    if (autoScanForm) {
+        autoScanForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const browseFoldersBtn = document.querySelector('#browseFoldersBtn');
+            if (browseFoldersBtn) {
+                browseFoldersBtn.click();
+            }
+        });
+    }
+
+    // Prevent form submission on pressing Enter and trigger Browse Folders click (Manual Scan Tab)
+    const manualScanForm = document.querySelector('#manualScan form');
+    if (manualScanForm) {
+        manualScanForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const browseFoldersBtnManual = document.querySelector('#browseFoldersBtnManual');
+            if (browseFoldersBtnManual) {
+                browseFoldersBtnManual.click();
+            }
+        });
+    }
+
     setupFolderBrowse('#browseFoldersBtn', '#folderContents', '#loadingSpinner', '#upFolderBtn', '#folder_path', 'currentPathAuto');
     setupFolderBrowse('#browseFoldersBtnManual', '#folderContentsManual', '#loadingSpinnerManual', '#upFolderBtnManual', '#manualFolderPath', 'currentPathManual');
 

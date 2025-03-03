@@ -9,17 +9,32 @@ ssfb_bp = Blueprint('ssfb', __name__)
 @login_required
 @admin_required
 def browse_folders_ss():
-    # Function to sanitize path and prevent directory traversal
+    # Function to securely validate and normalize path
     def sanitize_path(path):
-        # Remove any double dots to prevent directory traversal
-        path = re.sub(r'\.\.', '', path)
-        # Remove any tilde characters
-        path = path.replace('~', '')
-        # Remove any double slashes
-        path = re.sub(r'//+', '/', path)
-        # Remove any backslash characters (Windows)
-        path = path.replace('\\\\', '\\')
-        return path
+        # First, normalize the path to handle different formats
+        normalized_path = os.path.normpath(path)
+        
+        # Check for path traversal attempts
+        if '..' in normalized_path.split(os.sep):
+            log_message(f"Path traversal attempt detected: {path}")
+            return ''
+        
+        # Remove any leading slashes or backslashes
+        while normalized_path.startswith('/') or normalized_path.startswith('\\'):
+            normalized_path = normalized_path[1:]
+            
+        # Remove any tilde characters (home directory references)
+        if '~' in normalized_path:
+            log_message(f"Home directory reference attempt detected: {path}")
+            return ''
+            
+        # Additional security check - ensure the path only contains safe characters
+        if not re.match(r'^[a-zA-Z0-9_\-./\\]+$', normalized_path):
+            log_message(f"Path contains potentially unsafe characters: {path}")
+            return ''
+            
+        log_message(f"Sanitized path: {normalized_path}")
+        return normalized_path
 
     # Log function for debugging
     def log_message(message):
@@ -30,9 +45,13 @@ def browse_folders_ss():
         # If path is empty or just '/', return the base directory
         if not path or path == '/':
             return ''
-        return path
+            
+        # Create the full path and resolve any symbolic links
+        full_path = os.path.realpath(os.path.join(base_dir, path))
+        # Ensure the path is within the base directory
+        return '' if not full_path.startswith(base_dir) else path
         
-    # Function to safely get file/directory properties
+    # Function to safely get file/directory info
     def safe_get_file_info(path, item):
         item_path = os.path.join(path, item)
         return {'exists': os.path.exists(item_path), 'path': item_path}
@@ -46,7 +65,8 @@ def browse_folders_ss():
     
     # Sanitize the requested path
     request_path = sanitize_path(request_path)
-    
+    if not request_path:  # If sanitization failed, return access denied
+        return jsonify({'error': 'Access denied - invalid path'}), 403
     # Ensure the path stays within base directory
     request_path = ensure_base_directory(request_path, base_directory)
     
@@ -56,7 +76,7 @@ def browse_folders_ss():
         folder_path = base_directory
     else:
         # Safely construct the folder path to prevent directory traversal vulnerabilities
-        folder_path = os.path.abspath(os.path.join(base_directory, request_path))
+        folder_path = os.path.realpath(os.path.join(base_directory, request_path))
         print(f'SS folder browser: Folder path: {folder_path}', file=sys.stderr)
         # Prevent directory traversal outside the base directory
         if not folder_path.startswith(base_directory):
