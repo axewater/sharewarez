@@ -21,6 +21,7 @@ function openModal(clickedIndex) {
     document.body.style.top = `-${modalState.originalScrollPosition}px`;
      
     showSlides(modalState.slideIndex);
+    addEscapeKeyListener();
     
     // Add click outside listener
     modal.addEventListener('click', handleModalClick);
@@ -43,12 +44,28 @@ function closeModal() {
     document.body.classList.remove('modal-open');
     
     // Restore body position and scrolling
+    removeEscapeKeyListener();
     document.body.style.position = '';
     document.body.style.overflow = modalState.bodyOverflowOriginal;
     document.body.style.width = '';
     window.scrollTo(0, modalState.originalScrollPosition);
     
     modalState.modalOpen = false;
+}
+
+function addEscapeKeyListener() {
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && modalState.modalOpen) {
+            closeModal();
+        }
+    });
+}
+
+function removeEscapeKeyListener() {
+    document.removeEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && modalState.modalOpen) {
+        }
+    });
 }
 
 function plusSlides(n) {
