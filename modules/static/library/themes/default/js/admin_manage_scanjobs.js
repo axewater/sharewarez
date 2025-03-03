@@ -321,7 +321,20 @@ function fetchFolders(path, folderContentsId, spinnerId, upButtonId, inputFieldI
         success: function(data) {
             $(spinnerId).hide();
             $(folderContentsId).empty();
-            data.forEach(function(item) {
+            
+            // Check if we're using the new response format or the old one
+            const items = data.items || data;
+            
+            // Display warning if there were errors
+            if (data.hasErrors) {
+                $(folderContentsId).append(
+                    $('<div class="alert alert-warning">').html(
+                        `<i class="fas fa-exclamation-triangle"></i> Some items (${data.skippedItems}) could not be accessed and were skipped.`
+                    )
+                );
+            }
+            
+            items.forEach(function(item) {
                 var itemElement;
                 if (item.isDir) {
                     itemElement = $('<div>').html('<i class="fas fa-folder text-warning"></i> ' + item.name);
