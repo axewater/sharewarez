@@ -169,6 +169,30 @@
     {% endif %}
 {% endwith %}
 
+
+{# Modals #}
+<div id="summaryModal" class="summary-modal">
+    <div class="summary-modal-content">
+        <span class="summary-close">&times;</span>
+        <p class="summary-modal-text"></p>
+    </div>
+</div>
+
+<div id="myModal" class="modal-details">
+    <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+    <a class="next" onclick="plusSlides(1)">&#10095;</a>
+    <span class="close cursor" onclick="closeModal()">&times;</span>
+    <div class="modal-content">
+        {% for image in game.images if 'cover' not in image.url %}
+            <div class="mySlides">
+                <img src="{{ url_for('static', filename='library/images/' + image.url) }}" 
+                        class="screenshot-browser-image">
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+
 {# Updates & Extras Modal #}
 {% if game.updates or game.extras %}
 <div class="modal fade" id="extrasModal" tabindex="-1" aria-labelledby="extrasModalLabel" aria-hidden="true">
@@ -387,28 +411,6 @@
                     {% endfor %}
                 </div>
             {% endif %}
-
-            {# Modals #}
-            <div id="summaryModal" class="summary-modal">
-                <div class="summary-modal-content">
-                    <span class="summary-close">&times;</span>
-                    <p class="summary-modal-text"></p>
-                </div>
-            </div>
-
-            <div id="myModal" class="modal-details">
-                <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
-                <a class="next" onclick="plusSlides(1)">&#10095;</a>
-                <span class="close cursor" onclick="closeModal()">&times;</span>
-                <div class="modal-content">
-                    {% for image in game.images if 'cover' not in image.url %}
-                        <div class="mySlides">
-                            <img src="{{ url_for('static', filename='library/images/' + image.url) }}" 
-                                 class="screenshot-browser-image">
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
         </body>
     </div>
 {% else %}
