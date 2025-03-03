@@ -7,7 +7,7 @@ body.modal-open {
 }
 
 .glass-panel-gamecard {
-    display: flex ;
+    display: flex;
     flex-direction: column;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
@@ -16,7 +16,7 @@ body.modal-open {
     margin: 20px auto;
     box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     width: 900px;
-    min-height: 80vh; 
+    min-height: 80vh;
 }
 
 .button-glass-hamburger {
@@ -30,16 +30,14 @@ body.modal-open {
     margin-bottom: 5px;
 }
 
-
 .button-glass-hamburger:hover {
     background-color: rgba(218, 217, 217, 0.9);
-
 }
 
 .game-card-topq {
     display: flex;
     flex-direction: row;
-    height: 730px; 
+    height: 730px;
 }
 
 .game-card-meta {
@@ -50,7 +48,7 @@ body.modal-open {
     text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
     padding: 20px;
     padding-right: 40px;
-    position: relative; 
+    position: relative;
 }
 
 .favorite-btn {
@@ -64,7 +62,7 @@ body.modal-open {
     border: 2px solid #000;
     cursor: pointer;
     transition: all 0.3s ease;
-    z-index: 10; 
+    z-index: 10;
 }
 
 .favorite-btn i {
@@ -91,8 +89,7 @@ body.modal-open {
     box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     border-radius: 15px;
     border: 1px solid #080707;
-    position: relative; 
-
+    position: relative;
 }
 
 .game-files {
@@ -109,8 +106,7 @@ body.modal-open {
     box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     border-radius: 15px;
     border: 1px solid #080707;
-    position: relative; 
-
+    position: relative;
 }
 
 .game-card-downloads {
@@ -125,11 +121,10 @@ body.modal-open {
     margin-bottom: 10px;
     box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     justify-content: space-between;
-
 }
 
 .nfo-icon-container {
-    margin-right: 10px; 
+    margin-right: 10px;
     text-align: center;
 }
 
@@ -137,12 +132,11 @@ body.modal-open {
     cursor: pointer;
     color: white;
     font-size: 24px;
-
     transition: color 0.9s ease, font-size 0.5s ease;
 }
 
 .nfo-icon:hover {
-    color: blue;    
+    color: blue;
 }
 
 .nfo-text {
@@ -161,7 +155,7 @@ body.modal-open {
     font-size: 1rem;
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    margin: 5px; 
+    margin: 5px;
     text-decoration: none;
     width: 100%;
 }
@@ -219,19 +213,16 @@ body.modal-open {
     background-color: white;
 }
 
-
 .game-card-links {
     position: absolute;
     top: 50%;
     right: 10px;
     transform: translateY(-50%);
     display: flex;
-    flex-direction: column; 
+    flex-direction: column;
     justify-content: flex-start;
-
     align-items: center;
     gap: 5px;
-
 }
 
 .game-link-icon-container {
@@ -249,38 +240,30 @@ body.modal-open {
 
 .game-link-icon-container .game-link-icon {
     color: #aaa;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); 
-    transition: color 0.2s ease; 
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    transition: color 0.2s ease;
 }
 
 .game-link-icon-container .game-link-icon:hover {
-    color: #fff; 
-
+    color: #fff;
 }
-
 
 pre {
     font-family: 'Consolas', 'Courier New', Courier, monospace;
-    white-space: pre-wrap;       
-    white-space: -moz-pre-wrap;  
-    white-space: -pre-wrap;      
-    white-space: -o-pre-wrap;    
-    word-wrap: break-word;       
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+    word-wrap: break-word;
 }
 
-.modal {
-    display: none;
+.modal-details {
     position: fixed;
     z-index: 1050;
-    left: 0;
-    top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
+    margin-top: 15px;;
     background-color: rgba(0,0,0,0.95);
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 #extrasModal {
@@ -294,28 +277,23 @@ pre {
 }
 
 .game-card-links:empty {
-    display: none; 
+    display: none;
 }
-
-
 
 .game-name {
     flex-grow: 1;
     margin-left: 15px;
 }
 
-
 .game-card-gamename {
     display: flex;
     text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.9);
     width: 800px;
-  }
-  
+}
 
 .game-card-size {
     border: 1px solid #ccc;
     font-size: small;
-
     border-radius: 10px;
 }
 
@@ -347,12 +325,9 @@ pre {
     height: 100%;
 }
 
-
-
 .game-card-text-summary {
     background-color: #bcb5b5;
     color: #000;
-    
     border-radius: 15px;
     padding-top: 20px;
     padding-bottom: 20px;
@@ -364,7 +339,6 @@ pre {
     box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     text-align: justify;
 }
-
 
 .game-card-labels {
     color: #efeaea;
@@ -383,12 +357,10 @@ pre {
     margin-top: 5px;
 }
 
-
-
 .summary-modal {
     display: none;
     position: fixed;
-    z-index: 2; 
+    z-index: 2;
     left: 0;
     top: 0;
     width: 100%;
@@ -407,8 +379,6 @@ pre {
     line-height: 1.3;
     font-size: larger;
     text-align: justify;
-
-
 }
 
 .summary-close {
@@ -425,8 +395,6 @@ pre {
     cursor: pointer;
 }
 
-
-
 .images {
     display: flex;
     flex-wrap: wrap;
@@ -442,32 +410,24 @@ pre {
 
 .game-card-coverimage {
     display: block;
-
     border-radius: 15px;
     width: 100%;
     margin-bottom: 10px;
-
 }
 
 .game-card-coverimage img {
     box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     border-radius: 15px;
     border: 1px solid #080707;
-
 }
-
-
-
 
 .rating-container {
     display: flex;
     flex-direction: row;
-    
     width: 100%;
     margin-bottom: 5px;
     border-radius: 5px;
-  }
-  
+}
 
 .rating-bar {
     height: 25px;
@@ -477,7 +437,7 @@ pre {
     margin-left: 10px;
     margin-right: 10px;
 }
-  
+
 .game-card-chips-list {
     list-style-type: none;
     padding: 0;
@@ -496,7 +456,7 @@ pre {
     text-decoration: none;
     color: white;
 }
-  
+
 .chip-size {
     display: inline-block;
     padding: 5px 10px;
@@ -509,19 +469,16 @@ pre {
     text-size: 100px;
     border: 1px solid black;
 }
-.flex-row-horiz {
 
+.flex-row-horiz {
     display: flex;
     flex-direction: row;
 }
 
-
 .flex-col-vertic {
-
     display: flex;
     flex-direction: column;
 }
-
 
 /* Screenshot Gallery */
 .screenshot-gallery {
@@ -559,20 +516,6 @@ pre {
 }
 
 
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1050;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.95);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 
 /* Ensure modal content is properly positioned */
 #extrasModal .modal-dialog {
@@ -581,26 +524,18 @@ pre {
     overflow-y: auto;
 }
 
-.mySlides {
-    display: none;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    max-height: 90vh;
-}
 
 .modal-content {
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
-    padding: 20px;
+    padding: 0;
     width: 95%;
     max-width: 1600px;
     height: auto;
     max-height: 95vh;
+    margin: auto;
     background-color: transparent;
     box-sizing: border-box;
     z-index: 1051;
@@ -609,7 +544,7 @@ pre {
 .close {
     color: white;
     position: absolute;
-    top: 10px;
+    top: 20px;
     right: 25px;
     font-size: 40px;
     font-weight: bold;
@@ -620,16 +555,12 @@ pre {
 
 .screenshot-browser-image {
     max-width: 100%;
-    max-height: 90vh;
-    object-fit: contain;
-    margin: auto;
-    display: block;
 }
 
 /* Next & previous buttons */
 .prev, .next {
     cursor: pointer;
-    position: absolute;
+    position: fixed;
     top: 50%;
     width: auto;
     height: auto;

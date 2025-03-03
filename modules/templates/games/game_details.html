@@ -396,7 +396,7 @@
                 </div>
             </div>
 
-            <div id="myModal" class="modal">
+            <div id="myModal" class="modal-details">
                 <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
                 <a class="next" onclick="plusSlides(1)">&#10095;</a>
                 <span class="close cursor" onclick="closeModal()">&times;</span>
@@ -404,8 +404,7 @@
                     {% for image in game.images if 'cover' not in image.url %}
                         <div class="mySlides">
                             <img src="{{ url_for('static', filename='library/images/' + image.url) }}" 
-                                 class="screenshot-browser-image" 
-                                 style="width:100%">
+                                 class="screenshot-browser-image">
                         </div>
                     {% endfor %}
                 </div>
