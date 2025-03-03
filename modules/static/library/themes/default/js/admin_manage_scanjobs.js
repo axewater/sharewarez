@@ -293,10 +293,15 @@ function setupFolderBrowse(browseButtonId, folderContentsId, spinnerId, upButton
     $(upButtonId).click(function() {
         var segments = window[currentPathVar].split('/').filter(Boolean);
         if (segments.length > 0) {
+            // Remove the last segment to go up one level
             segments.pop();
-            window[currentPathVar] = segments.join('/') + '/';
+            if (segments.length > 0) {
+                window[currentPathVar] = segments.join('/') + '/';
+            } else {
+                window[currentPathVar] = ''; // Reset to base directory if no segments left
+            }
         } else {
-            window[currentPathVar] = ''; // Reset to root if no segments left
+            window[currentPathVar] = ''; // Already at base directory
         }
 
         fetchFolders(window[currentPathVar], folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar);
