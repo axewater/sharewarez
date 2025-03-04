@@ -73,6 +73,30 @@ def admin_branding():
     print(f"Route: /admin/branding - {current_user.name} - {current_user.role} method: {request.method}")
     return render_template('admin/admin_branding.html')
 
+@site_bp.route('/admin/custom_site_name')
+@login_required
+@admin_required
+def admin_custom_site_name():
+    return render_template('admin/admin_custom_site_name.html')
+
+@site_bp.route('/admin/custom_logo')
+@login_required
+@admin_required
+def admin_custom_logo():
+    return render_template('admin/admin_custom_logo.html')
+
+@site_bp.route('/admin/custom_favicon')
+@login_required
+@admin_required
+def admin_custom_favicon():
+    return render_template('admin/admin_custom_favicon.html')
+
+@site_bp.route('/admin/custom_email_templates')
+@login_required
+@admin_required
+def admin_custom_email_templates():
+    return render_template('admin/admin_custom_email_templates.html')
+
 
 @site_bp.route('/favorites')
 @login_required
