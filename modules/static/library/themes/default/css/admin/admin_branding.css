@@ -1,0 +1,114 @@
+body {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.admin-section {
+    background: rgba(30, 30, 30, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 30px;
+    max-width: 1200px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.hackplanet_titles {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.hackplanet_titles h1 {
+    color: #fff;
+    font-size: 2.5em;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
+}
+
+.admin-section {
+    background: rgba(40, 40, 40, 0.5);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-section h3 {
+    color: #fff;
+    font-size: 1.3em;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+}
+
+.admin-section h3 i {
+    margin-right: 10px;
+    color: #0096ff;
+}
+
+.admin-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.admin-button-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100px;
+}
+
+.btn-circle {
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 24px;
+    line-height: 60px;
+    background: rgba(0, 150, 255, 0.2);
+    color: #fff;
+    border: 1px solid rgba(0, 150, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-circle:hover {
+    transform: translateY(-3px);
+    background: rgba(0, 150, 255, 0.4);
+    box-shadow: 0 0 20px rgba(0, 150, 255, 0.3);
+    color: #fff;
+}
+
+.button-label {
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: #fff;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .admin-panel {
+        padding: 15px;
+        margin: 10px;
+    }
+
+    .admin-buttons {
+        gap: 15px;
+    }
+
+    .admin-button-item {
+        width: 80px;
+    }
+
+    .btn-circle {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+        line-height: 50px;
+    }
+
+    .button-label {
+        font-size: 0.8em;
+    }
+}
