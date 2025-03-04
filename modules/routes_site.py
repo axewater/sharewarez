@@ -66,6 +66,13 @@ def admin_dashboard():
     print(f"Route: /admin/dashboard - {current_user.name} - {current_user.role} method: {request.method}")
     return render_template('admin/admin_dashboard.html')
 
+@site_bp.route('/admin/branding')
+@login_required
+@admin_required
+def admin_branding():
+    print(f"Route: /admin/branding - {current_user.name} - {current_user.role} method: {request.method}")
+    return render_template('admin/admin_branding.html')
+
 
 @site_bp.route('/favorites')
 @login_required
