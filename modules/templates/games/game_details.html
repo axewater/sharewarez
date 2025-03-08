@@ -372,7 +372,7 @@
                                 {{ form.csrf_token }}
                             </form>
                             <div class="download-buttons-spacer">
-                                <a href="http://127.0.0.1/">Play now!</a>                                    
+                                <a href="/static/vendor/webretro/index.html?guid={{ game.uuid }}&core=mupen64plus_next">Play now!</a>                                    
                             </div>
                             {% if (enable_game_updates and game.updates) or (enable_game_extras and game.extras) %}
                                 <button type="button" class="button-glass-extras" data-bs-toggle="modal" data-bs-target="#extrasModal">
