@@ -449,18 +449,26 @@ def clear_processing_downloads():
     return redirect(url_for('download.manage_downloads'))
 
 
-@download_bp.route('/api/playrom/<string:game_uuid>', methods=['GET'])
-# @login_required TODO!!!!
-def playrom(game_uuid):
-    game = Game.query.filter_by(uuid=game_uuid).first_or_404()
+@download_bp.route('/play_game/<game_uuid>', methods=['GET'])
+@login_required
+def play_game(game_uuid):
+    """Placeholder route for the play game functionality"""
+    flash("Play game functionality coming soon!", "info")
+    return redirect(url_for('games.game_details', game_uuid=game_uuid))
+
+@download_bp.route('/playromtest', methods=['GET'])
+@login_required
+def playromtest():
+    """Placeholder route for the play game functionality"""
+    flash("Play game functionality coming soon!", "info")
+    return render_template('games/playrom.html')
+
+# this api route will be used to download the roms from the server
+@download_bp.route('/api/downloadrom/<string:guid>', methods=['GET'])
+def downloadrom(guid):
+    """Placeholder route for the play game functionality"""
+    # retrieve game uuid from database
+    game = Game.query.filter_by(uuid=guid).first()
     
-    
-    
-    response = send_file(game.full_disk_path, as_attachment=False)
-    
-    # Add CORS headers to allow all origins
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-    
-    return response
+    flash("Play game functionality coming soon!", "info")
+    return send_file(game.full_disk_path, as_attachment=True)

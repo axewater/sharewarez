@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/games/playrom.css') == True %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/games/playrom.css') }}">
+{% else %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/games/playrom.css') }}">
+{% endif %}
+
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="alert alert-info" role="alert">
+        {% for message in messages %}
+            {{ message }}<br>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
+
+<div class="emulator-container">
+    
+</div>
+
+
+<script>
+function getquerystring() {
+    // read the arguments core and guid from the URL
+    var querystring = window.location.search.substring(1);
+    var args = querystring.split('&');
+    var argsObj = {};
+    for (var i = 0; i < args.length; i++) {
+        var arg = decodeURIComponent(args[i]);
+        if (arg.indexOf('=') == -1) {
+            argsObj[arg.trim()] = true;
+        } else {
+            var kvp = arg.split('=');
+            argsObj[kvp[0].trim()] = kvp[1].trim();
+        }
+    }
+    return argsObj;
+
+
+}
+const args = getquerystring();
+console.log (args);
+
+</script>
+
+{% endblock %}
