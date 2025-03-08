@@ -1,6 +1,7 @@
 import os
 from flask import Blueprint, jsonify, current_app, request
 from modules.utils_processors import get_global_settings
+from .platform import platform_emulator_mapping
 from modules import cache, db
 from flask_login import login_required, current_user
 from modules.utils_auth import admin_required
@@ -8,10 +9,12 @@ from modules.utils_igdb_api import make_igdb_api_request, get_cover_thumbnail_ur
 from modules.utils_game_core import check_existing_game_by_igdb_id
 from modules.utils_functions import PLATFORM_IDS
 from modules.models import Library, Image, Game, User, AllowedFileType, IgnoredFileType, ScanJob, UnmatchedFolder, DownloadRequest
+from modules.platform import Emulator, LibraryPlatform
 from sqlalchemy.exc import IntegrityError
 from flask import request, url_for
 from modules.utils_logging import log_system_event
 from sqlalchemy import func
+
 apis_other_bp = Blueprint('apis_other', __name__)
 
 @apis_other_bp.context_processor
@@ -404,4 +407,18 @@ def move_game_to_library():
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
 
-
+@apis_other_bp.route('/api/emulators', methods=['GET'])
+@apis_other_bp.route('/api/emulators/<platform>', methods=['GET'])
+@login_required
+def get_emulators(platform=None):
+    """Return emulators for a specific platform or all emulators if no platform specified"""
+    try:
+        if platform:
+            platform_enum = LibraryPlatform[platform]
+            emulators = [e.value for e in platform_emulator_mapping.get(platform_enum, [])]
+        else:
+            emulators = [e.value for e in Emulator]
+    except KeyError:
+        return jsonify({'error': f'Invalid platform: {platform}'}), 400
+        
+    return jsonify(emulators)

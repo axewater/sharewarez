@@ -1,0 +1,166 @@
+{
+    "OTHER": [
+        "mapping1",
+        "mapping2"
+    ],
+    "PCWIN": [
+        "mapping1",
+        "mapping2"
+    ],
+    "PCDOS": [
+        "mapping1",
+        "mapping2"
+    ],
+    "MAC": [
+        "mapping1",
+        "mapping2"
+    ],
+    "NES": [
+        "mapping1",
+        "mapping2"
+    ],
+    "SNES": [
+        "mapping1",
+        "mapping2"
+    ],
+    "NGC": [
+        "mapping1",
+        "mapping2"
+    ],
+    "N64": [
+        "mapping1",
+        "mapping2"
+    ],
+    "GB": [
+        "mapping1",
+        "mapping2"
+    ],
+    "GBA": [
+        "mapping1",
+        "mapping2"
+    ],
+    "NDS": [
+        "mapping1",
+        "mapping2"
+    ],
+    "VB": [
+        "mapping1",
+        "mapping2"
+    ],
+    "XBOX": [
+        "mapping1",
+        "mapping2"
+    ],
+    "X360": [
+        "mapping1",
+        "mapping2"
+    ],
+    "XONE": [
+        "mapping1",
+        "mapping2"
+    ],
+    "XSX": [
+        "mapping1",
+        "mapping2"
+    ],
+    "PSX": [
+        "mapping1",
+        "mapping2"
+    ],
+    "PS2": [
+        "mapping1",
+        "mapping2"
+    ],
+    "PS3": [
+        "mapping1",
+        "mapping2"
+    ],
+    "PS4": [
+        "mapping1",
+        "mapping2"
+    ],
+    "PS5": [
+        "mapping1",
+        "mapping2"
+    ],
+    "SEGA_MD": [
+        "mapping1",
+        "mapping2"
+    ],
+    "SEGA_MS": [
+        "mapping1",
+        "mapping2"
+    ],
+    "SEGA_CD": [
+        "mapping1",
+        "mapping2"
+    ],
+    "LYNX": [
+        "mapping1",
+        "mapping2"
+    ],
+    "SEGA_32X": [
+        "mapping1",
+        "mapping2"
+    ],
+    "JAGUAR": [
+        "mapping1",
+        "mapping2"
+    ],
+    "SEGA_GG": [
+        "mapping1",
+        "mapping2"
+    ],
+    "SEGA_SATURN": [
+        "mapping1",
+        "mapping2"
+    ],
+    "ATARI_7800": [
+        "mapping1",
+        "mapping2"
+    ],
+    "ATARI_2600": [
+        "mapping1",
+        "mapping2"
+    ],
+    "PCE": [
+        "mapping1",
+        "mapping2"
+    ],
+    "PCFX": [
+        "mapping1",
+        "mapping2"
+    ],
+    "NGP": [
+        "mapping1",
+        "mapping2"
+    ],
+    "WS": [
+        "mapping1",
+        "mapping2"
+    ],
+    "COLECO": [
+        "mapping1",
+        "mapping2"
+    ],
+    "VICE_X64SC": [
+        "mapping1",
+        "mapping2"
+    ],
+    "VICE_X128": [
+        "mapping1",
+        "mapping2"
+    ],
+    "VICE_XVIC": [
+        "mapping1",
+        "mapping2"
+    ],
+    "VICE_XPLUS4": [
+        "mapping1",
+        "mapping2"
+    ],
+    "VICE_XPET": [
+        "mapping1",
+        "mapping2"
+    ]   
+}
