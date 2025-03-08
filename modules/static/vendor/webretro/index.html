@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #webretro {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="webretro">
+    
+    </div>
+    <script src=./constants.js></script>
+    <script>
+        function webretroEmbed(node, path, queries) {
+            console.log (systems)
+            var frame = document.createElement("iframe");
+            frame.style = "border: none; display: block; width: 100%; height: 100%;";
+            
+            // change rom path to absolute if it isn't already
+            /*if (queries.rom) {
+                var link = document.createElement("a");
+                link.href = (/^(https?:)?\/\//i).test(queries.rom) ? queries.rom : "roms/" + queries.rom;
+                queries.rom = link.href;
+            }*/
+            
+            //frame.src = path + "?" + Object.entries(queries).map(i => i.map(i => i && encodeURIComponent(i))).map(i => i[1] ? i.join("=") : i[0]).join("&");
+
+            let apiUrl = "/api/downloadrom/";
+            // make absolute path
+            var link = document.createElement("a");
+            link.href = apiUrl;
+            apiUrl = link.href;
+            frame.src = `${path}?core=${queries.core}&rom=${apiUrl}${queries.guid}`;
+            
+            node.appendChild(frame);
+            
+            return frame;
+        }
+        
+        const path = `${location.protocol}//${location.host}/static/vendor/webretro/standalone.html`;
+
+        webretroEmbed(document.getElementById("webretro"), path, {
+            core: "mupen64plus_next",
+            guid: "3532be6b-e9b5-4c7a-b4f2-3541cabf60ce",
+        });
+
+    </script>
+</body>
+</html>

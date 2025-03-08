@@ -160,6 +160,21 @@ body.modal-open {
     width: 100%;
 }
 
+.button-glass-play {
+    padding: 10px 50px;
+    background: rgba(0, 123, 255, 0.999);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    font-size: 1rem;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 5px;
+    text-decoration: none;
+    width: 100%;
+}
+
 .button-glass-extras {
     padding: 10px 20px;
     background: rgba(64, 64, 64, 0.8);
