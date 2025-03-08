@@ -1,5 +1,5 @@
 import os
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, send_from_directory, current_app, send_file
 from flask_login import login_required, current_user
 from threading import Thread
 from flask import copy_current_request_context
@@ -447,3 +447,20 @@ def clear_processing_downloads():
         flash(f'Error clearing processing downloads: {str(e)}', 'error')
     
     return redirect(url_for('download.manage_downloads'))
+
+
+@download_bp.route('/api/playrom/<string:game_uuid>', methods=['GET'])
+# @login_required TODO!!!!
+def playrom(game_uuid):
+    game = Game.query.filter_by(uuid=game_uuid).first_or_404()
+    
+    
+    
+    response = send_file(game.full_disk_path, as_attachment=False)
+    
+    # Add CORS headers to allow all origins
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    
+    return response
