@@ -114,6 +114,10 @@ docker pull kapitanczarnobrod/sharewarez:latest
 - 🌐 Default port: `5001` (configurable in `app.py` or in docker-compose.yml for docker)
 - 👥 Go the admin dashboard for further configuration
 
+## 🔧 Supported platforms to play in browser 
+- Most 8, 16 and 32 bit retro consoles work, see webretro repo for more full list
+- PSX not working at the moment
+
 ## 💬 Support
 - 📝 Open an issue on GitHub
 - 💭 Join our Discord community https://discord.gg/WTwp236zU7
