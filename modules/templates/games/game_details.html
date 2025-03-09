@@ -372,11 +372,37 @@
                                 {{ form.csrf_token }}
                             </form>
 
-                            <!-- TODO: add selection of emulators based on platform -->
-                            <!-- TODO: add selected emulator in the core argument -->
-
                             <div class="download-buttons-spacer">
-                                <a href="/static/vendor/webretro/index.html?guid={{ game.uuid }}&core=mupen64plus_next">Play now!</a>                                    
+                                <script>
+                                // Function to get emulator core for the current platform
+                                async function getEmulatorCore() {
+                                    try {
+                                        // Get the platform from the library
+                                        const libraryUuid = "{{ library_uuid }}";
+                                        const response = await fetch(`/api/library/${libraryUuid}`);
+                                        const libraryData = await response.json();
+                                        
+                                        // Get emulators for this platform
+                                        const emulatorsResponse = await fetch(`/api/emulators/${libraryData.platform}`);
+                                        const emulators = await emulatorsResponse.json();
+                                        
+                                        // Return the first emulator or 'auto' if none found
+                                        return emulators.length > 0 ? emulators[0] : 'auto';
+                                    } catch (error) {
+                                        console.error('Error fetching emulator core:', error);
+                                        return 'auto'; // Default fallback
+                                    }
+                                }
+
+                                // Set up the Play Now button with the correct emulator core
+                                document.addEventListener('DOMContentLoaded', async () => {
+                                    const playButton = document.getElementById('play-now-button');
+                                    const emulatorCore = await getEmulatorCore();
+                                    playButton.href = `/static/vendor/webretro/index.html?guid={{ game.uuid }}&core=${emulatorCore}`;
+                                });
+                                </script>
+                                
+                                <a id="play-now-button" href="#" class="button-glass-play">Play Now!</a>                                    
                             </div>
                             
                             {% if (enable_game_updates and game.updates) or (enable_game_extras and game.extras) %}

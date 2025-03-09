@@ -173,6 +173,8 @@ body.modal-open {
     margin: 5px;
     text-decoration: none;
     width: 100%;
+    display: inline-block;
+    text-align: center;
 }
 
 .button-glass-extras {
