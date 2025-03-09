@@ -374,6 +374,14 @@
 
                             <div class="download-buttons-spacer">
                                 <script>
+                                // List of supported platforms for WebRetro emulation
+                                const supportedPlatforms = [
+                                    'PCDOS', 'NES', 'SNES', 'N64', 'GB', 'GBA', 'GBC', 'NDS', 
+                                    'PSX', 'SEGA_MD', 'SEGA_MS', 'SEGA_32X', 'SEGA_GG', 
+                                    'SEGA_SATURN', 'ATARI_7800', 'ATARI_5200', 'ATARI_2600', 
+                                    'LYNX', 'JAGUAR', 'WS', 'COLECO', 'VECTREX'
+                                ];
+                                
                                 // Function to get emulator core for the current platform
                                 async function getEmulatorCore() {
                                     try {
@@ -381,6 +389,16 @@
                                         const libraryUuid = "{{ library_uuid }}";
                                         const response = await fetch(`/api/library/${libraryUuid}`);
                                         const libraryData = await response.json();
+                                        
+                                        // Check if platform is supported
+                                        if (!supportedPlatforms.includes(libraryData.platform)) {
+                                            // Hide the play button if platform is not supported
+                                            const playButton = document.getElementById('play-now-button');
+                                            if (playButton) {
+                                                playButton.style.display = 'none';
+                                            }
+                                            return null;
+                                        }
                                         
                                         // Get emulators for this platform
                                         const emulatorsResponse = await fetch(`/api/emulators/${libraryData.platform}`);
@@ -397,8 +415,13 @@
                                 // Set up the Play Now button with the correct emulator core
                                 document.addEventListener('DOMContentLoaded', async () => {
                                     const playButton = document.getElementById('play-now-button');
+                                    if (!playButton) return;
+                                    
                                     const emulatorCore = await getEmulatorCore();
-                                    playButton.href = `/static/vendor/webretro/webretroFmodules\templates\games\game_details.html.html?guid={{ game.uuid }}&core=${emulatorCore}`;
+                                    // Only set up the button if we have a valid emulator core
+                                    if (emulatorCore) {
+                                        playButton.href = `/static/vendor/webretro/webretro.html?guid={{ game.uuid }}&core=${emulatorCore}`;
+                                    }
                                 });
                                 </script>
                                 
