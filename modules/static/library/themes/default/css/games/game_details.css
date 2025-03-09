@@ -161,7 +161,7 @@ body.modal-open {
 }
 
 .button-glass-play {
-    padding: 10px 50px;
+    padding: 1px 8px;
     background: rgba(0, 123, 255, 0.999);
     border: none;
     border-radius: 8px;
@@ -172,7 +172,6 @@ body.modal-open {
     border: 1px solid rgba(255, 255, 255, 0.2);
     margin: 5px;
     text-decoration: none;
-    width: 100%;
     display: inline-block;
     text-align: center;
 }
