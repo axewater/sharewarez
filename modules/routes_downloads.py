@@ -466,9 +466,9 @@ def playromtest():
 # this api route will be used to download the roms from the server
 @download_bp.route('/api/downloadrom/<string:guid>', methods=['GET'])
 def downloadrom(guid):
-    """Placeholder route for the play game functionality"""
     # retrieve game uuid from database
     game = Game.query.filter_by(uuid=guid).first()
-    
-    flash("Play game functionality coming soon!", "info")
+    # check if game exists
+    if game is None:
+        return jsonify({"error": "Game not found"}), 404
     return send_file(game.full_disk_path, as_attachment=True)

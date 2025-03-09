@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Playing ROM - WebRetro</title>
+    
     <style>
         html, body {
             margin: 0;
@@ -32,16 +33,6 @@
                 console.log (systems)
                 var frame = document.createElement("iframe");
                 frame.style = "border: none; display: block; width: 100%; height: 100%;";
-                
-                // change rom path to absolute if it isn't already
-                /*if (queries.rom) {
-                    var link = document.createElement("a");
-                    link.href = (/^(https?:)?\/\//i).test(queries.rom) ? queries.rom : "roms/" + queries.rom;
-                    queries.rom = link.href;
-                }*/
-                
-                //frame.src = path + "?" + Object.entries(queries).map(i => i.map(i => i && encodeURIComponent(i))).map(i => i[1] ? i.join("=") : i[0]).join("&");
-    
                 let apiUrl = "/api/downloadrom/";
                 // make absolute path
                 var link = document.createElement("a");
