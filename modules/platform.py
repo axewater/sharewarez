@@ -31,6 +31,7 @@ class LibraryPlatform(PyEnum):
     SEGA_GG = "Sega Game Gear (GG)"
     SEGA_SATURN = "Sega Saturn"
     ATARI_7800 = "Atari 7800"
+    ATARI_5200 = "Atari 5200"
     ATARI_2600 = "Atari 2600"
     PCE = "PC Engine"
     PCFX = "PC-FX"
@@ -56,8 +57,9 @@ class Emulator(PyEnum):
     MAME2003_PLUS = "mame2003_plus"
     STELLA = "stella"
     STELLA2014 = "stella2014"
-    ATARI800 = "atari800"
     A5200 = "a5200"
+    A2600 = "a2600"
+    A7800 = "a7800"
     PROSYSTEM = "prosystem"
     VIRTUALJAGUAR = "virtualjaguar"
     HANDY = "handy"
@@ -106,7 +108,7 @@ platform_emulator_mapping = {
     LibraryPlatform.PCWIN: [],
     LibraryPlatform.PCDOS: [Emulator.DOSBOX, Emulator.DOSBOX_PURE],
     LibraryPlatform.MAC: [],
-    LibraryPlatform.NES: [Emulator.FCEUMM, Emulator.NESTOPIA, Emulator.MESEN, Emulator.BNES, Emulator.QUICKNES],
+    LibraryPlatform.NES: [Emulator.NESTOPIA],
     LibraryPlatform.SNES: [Emulator.SNES9X],
     LibraryPlatform.NGC: [Emulator.DOLPHIN],
     LibraryPlatform.N64: [Emulator.MUPEN64PLUS_NEXT, Emulator.PARALLEL_N64],
@@ -132,7 +134,7 @@ platform_emulator_mapping = {
     LibraryPlatform.SEGA_GG: [Emulator.FBNEO],
     LibraryPlatform.SEGA_SATURN: [],
     LibraryPlatform.ATARI_7800: [Emulator.PROSYSTEM],
-    LibraryPlatform.ATARI_2600: [Emulator.STELLA, Emulator.STELLA2014],
+    LibraryPlatform.ATARI_2600: [Emulator.STELLA2014],
     LibraryPlatform.PCE: [Emulator.MEDNAFEN_PCE_FAST, Emulator.MEDNAFEN_SUPERGRAFX],
     LibraryPlatform.PCFX: [],
     LibraryPlatform.NGP: [Emulator.MEDNAFEN_NGP],

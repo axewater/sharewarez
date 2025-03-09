@@ -422,3 +422,17 @@ def get_emulators(platform=None):
         return jsonify({'error': f'Invalid platform: {platform}'}), 400
         
     return jsonify(emulators)
+
+@apis_other_bp.route('/api/library/<string:library_uuid>', methods=['GET'])
+@login_required
+def get_library(library_uuid):
+    """Return information about a specific library"""
+    library = Library.query.filter_by(uuid=library_uuid).first()
+    if not library:
+        return jsonify({'error': 'Library not found'}), 404
+        
+    return jsonify({
+        'uuid': library.uuid,
+        'name': library.name,
+        'platform': library.platform.name
+    })
