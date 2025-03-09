@@ -11,6 +11,7 @@ class LibraryPlatform(PyEnum):
     N64 = "Nintendo 64"
     GB = "Nintendo GameBoy"
     GBA = "Nintendo GameBoy Advance"
+    GBC = "Nintendo GameBoy Color"
     NDS = "Nintendo DS"
     VB = "Nintendo Virtual Boy"
     XBOX = "Xbox"
@@ -110,11 +111,12 @@ platform_emulator_mapping = {
     LibraryPlatform.MAC: [],
     LibraryPlatform.NES: [Emulator.NESTOPIA],
     LibraryPlatform.SNES: [Emulator.SNES9X],
-    LibraryPlatform.NGC: [Emulator.DOLPHIN],
+    LibraryPlatform.NGC: [],
     LibraryPlatform.N64: [Emulator.MUPEN64PLUS_NEXT, Emulator.PARALLEL_N64],
-    LibraryPlatform.GB: [Emulator.GAMBATTE, Emulator.SAMEBOY, Emulator.TGBDUAL, Emulator.GEARBOY],
-    LibraryPlatform.GBA: [Emulator.MGBA, Emulator.VBA_NEXT, Emulator.VBAM, Emulator.MEDNAFEN_GBA, Emulator.GPSP],
-    LibraryPlatform.NDS: [Emulator.DESMUME, Emulator.DESMUME2015, Emulator.MELODS],
+    LibraryPlatform.GB: [Emulator.MGBA],
+    LibraryPlatform.GBA: [Emulator.MGBA],
+    LibraryPlatform.GBC: [Emulator.MGBA],
+    LibraryPlatform.NDS: [Emulator.MELODS],
     LibraryPlatform.VB: [],
     LibraryPlatform.XBOX: [],
     LibraryPlatform.X360: [],
