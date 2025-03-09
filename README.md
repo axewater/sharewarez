@@ -116,7 +116,9 @@ docker pull kapitanczarnobrod/sharewarez:latest
 
 ## 🔧 Supported platforms to play in browser 
 - Most 8, 16 and 32 bit retro consoles work, see webretro repo for more full list
-- PSX not working at the moment
+- PSX, Sega MS, Sega 32x not working at the moment
+- Sega Saturn working on single file games and some audio issues
+- Files must be unzipped. ZIP, 7z and RAR are not (yet) supported. This is not a webretro issues, so it will be fixed in a future Sharewarez update.
 
 ## 💬 Support
 - 📝 Open an issue on GitHub
