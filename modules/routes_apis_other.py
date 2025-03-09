@@ -436,3 +436,19 @@ def get_library(library_uuid):
         'name': library.name,
         'platform': library.platform.name
     })
+
+@apis_other_bp.route('/api/get_next_custom_igdb_id', methods=['GET'])
+@login_required
+def get_next_custom_igdb_id():
+    """Return the next available custom IGDB ID (above 2000000420)"""
+    try:
+        # Find the highest custom IGDB ID currently in use
+        base_custom_id = 2000000420
+        highest_custom_id = db.session.query(func.max(Game.igdb_id)).filter(Game.igdb_id >= base_custom_id).scalar()
+        
+        # If no custom IDs exist yet, return the base value, otherwise return the next available ID
+        next_id = base_custom_id if highest_custom_id is None else highest_custom_id + 1
+        return jsonify({'next_id': next_id})
+    except Exception as e:
+        print(f"Error getting next custom IGDB ID: {e}")
+        return jsonify({'error': str(e)}), 500

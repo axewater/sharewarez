@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     var platformDisplay = document.querySelector('#platform_display');
     const platformId = document.querySelector('#platform_id').textContent; 
-    let nextCustomIgdbId = 2000000420;
     const igdbIdInput = document.querySelector('#igdb_id');
     const fullPathInput = document.querySelector('#full_disk_path');
     const nameInput = document.querySelector('#name');
@@ -10,14 +9,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const igdbIdFeedback = document.querySelector('#igdb_id_feedback');
     const fullPathFeedback = document.createElement('small');
 
+    // Function to fetch the next available custom IGDB ID
+    async function fetchNextCustomIgdbId() {
+        try {
+            const response = await fetch('/api/get_next_custom_igdb_id');
+            const data = await response.json();
+            if (data.error) {
+                console.error('Error fetching next custom IGDB ID:', data.error);
+                return 2000000420; // Fallback to base value if API fails
+            }
+            return data.next_id;
+        } catch (error) {
+            console.error('Error fetching next custom IGDB ID:', error);
+            return 2000000420; // Fallback to base value if API fails
+        }
+    }
+
     // Add Non-Existing Game button handler
-    document.querySelector('#add-non-existing-game').addEventListener('click', function() {
+    document.querySelector('#add-non-existing-game').addEventListener('click', async function() {
         // Disable IGDB search functionality
         document.querySelector('#search-igdb-btn').disabled = true;
         document.querySelector('#search-igdb').disabled = true;
-
-        // Set the next available custom IGDB ID
-        igdbIdInput.value = nextCustomIgdbId++;
+        igdbIdInput.value = await fetchNextCustomIgdbId();
         igdbIdInput.readOnly = true;
 
         // Clear and enable name field
