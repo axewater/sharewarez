@@ -398,7 +398,7 @@
                                 document.addEventListener('DOMContentLoaded', async () => {
                                     const playButton = document.getElementById('play-now-button');
                                     const emulatorCore = await getEmulatorCore();
-                                    playButton.href = `/static/vendor/webretro/index.html?guid={{ game.uuid }}&core=${emulatorCore}`;
+                                    playButton.href = `/static/vendor/webretro/webretro.html?guid={{ game.uuid }}&core=${emulatorCore}`;
                                 });
                                 </script>
                                 

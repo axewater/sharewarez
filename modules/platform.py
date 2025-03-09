@@ -134,6 +134,7 @@ platform_emulator_mapping = {
     LibraryPlatform.SEGA_GG: [Emulator.FBNEO],
     LibraryPlatform.SEGA_SATURN: [],
     LibraryPlatform.ATARI_7800: [Emulator.PROSYSTEM],
+    LibraryPlatform.ATARI_5200: [Emulator.A5200],
     LibraryPlatform.ATARI_2600: [Emulator.STELLA2014],
     LibraryPlatform.PCE: [Emulator.MEDNAFEN_PCE_FAST, Emulator.MEDNAFEN_SUPERGRAFX],
     LibraryPlatform.PCFX: [],
