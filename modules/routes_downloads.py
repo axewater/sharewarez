@@ -463,12 +463,30 @@ def playromtest():
     flash("Play game functionality coming soon!", "info")
     return render_template('games/playrom.html')
 
-# this api route will be used to download the roms from the server
+# This API route is used by WebRetro to download ROM files
 @download_bp.route('/api/downloadrom/<string:guid>', methods=['GET'])
 def downloadrom(guid):
-    # retrieve game uuid from database
+    """
+    Download a ROM file for WebRetro emulator.
+    Only serves individual files, not folders.
+    """
     game = Game.query.filter_by(uuid=guid).first()
-    # check if game exists
+    
     if game is None:
         return jsonify({"error": "Game not found"}), 404
+    
+    # Check if the game path exists
+    if not os.path.exists(game.full_disk_path):
+        return jsonify({"error": "ROM file not found on disk"}), 404
+    
+    # Check if the game is a folder (not supported by WebRetro)
+    if os.path.isdir(game.full_disk_path):
+        return jsonify({
+            "error": "This game is a folder and cannot be played directly. Please download it instead."
+        }), 400
+    
+    # Log the ROM download attempt
+    log_system_event(f"ROM file downloaded for WebRetro: {game.name}", event_type='game', event_level='information')
+    
+    # Serve the file
     return send_file(game.full_disk_path, as_attachment=True)
