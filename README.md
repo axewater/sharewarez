@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.4.4
+# 🎮 SharewareZ v2.5.0
 
 ** ⚠️This is a BETA application⚠️ **
 
@@ -24,6 +24,7 @@ Invite your friends securely and share your favorite games!
   - ⭐ Top downloads
   - ❤️ Most favorited
   - 🏆 Highly rated games
+- 🚀 Ability to play ROM files directly in browser
 - 💬 Discord webhook integration (bot posts in your channel when there is a new game)
 
 ### 💾 Download Features
@@ -116,3 +117,7 @@ docker pull kapitanczarnobrod/sharewarez:latest
 ## 💬 Support
 - 📝 Open an issue on GitHub
 - 💭 Join our Discord community https://discord.gg/WTwp236zU7
+
+## 📝 3rd party code
+- 💭 Thanks to BinBashBanana's webretro we can now run ROMs in the browser.
+- 🌐 Check out his project here: https://github.com/BinBashBanana/webretro
