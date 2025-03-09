@@ -103,6 +103,7 @@ class Emulator(PyEnum):
     MEDNAFEN_SUPERGRAFX = "mednafen_supergrafx"
     MEDNAFEN_WSWAN = "mednafen_wswan"
     SNES9X = "snes9x"
+    PSX = "mednafen_psx_hw"
 
 platform_emulator_mapping = {
     LibraryPlatform.OTHER: [],
@@ -122,7 +123,7 @@ platform_emulator_mapping = {
     LibraryPlatform.X360: [],
     LibraryPlatform.XONE: [],
     LibraryPlatform.XSX: [],
-    LibraryPlatform.PSX: [],
+    LibraryPlatform.PSX: [Emulator.PSX],
     LibraryPlatform.PS2: [],
     LibraryPlatform.PS3: [],
     LibraryPlatform.PS4: [],
