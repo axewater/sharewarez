@@ -67,7 +67,6 @@ class Emulator(PyEnum):
     LYNX = "handy"
     THREEDO = "opera"
     MEDNAFEN_GBA = "mednafen_gba"
-    GPSP = "gpsp"
     NEOCD = "neocd"
     NESTOPIA = "nestopia"
     MUPEN64PLUS_NEXT = "mupen64plus_next"
