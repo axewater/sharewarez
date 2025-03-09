@@ -117,7 +117,7 @@ platform_emulator_mapping = {
     LibraryPlatform.GBA: [Emulator.MGBA],
     LibraryPlatform.GBC: [Emulator.MGBA],
     LibraryPlatform.NDS: [Emulator.MELODS],
-    LibraryPlatform.VB: [],
+    LibraryPlatform.VB: [Emulator.VBA_NEXT],
     LibraryPlatform.XBOX: [],
     LibraryPlatform.X360: [],
     LibraryPlatform.XONE: [],
