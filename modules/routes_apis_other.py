@@ -186,11 +186,13 @@ def search_igdb_by_id():
     if not igdb_id:
         return jsonify({"error": "IGDB ID is required"}), 400
     endpoint_url = "https://api.igdb.com/v4/games"
+    # IGDB API V4 field name changes: category -> game_type, status -> game_status
+    # We need to expand these new fields to get their names.
     query_params = f"""
-        fields name, summary, cover.url, summary, url, release_dates.date, platforms.name, genres.name, themes.name, game_modes.name, 
+        fields name, summary, cover.url, url, release_dates.date, platforms.name, genres.name, themes.name, game_modes.name, 
                screenshots.url, videos.video_id, first_release_date, aggregated_rating, involved_companies, player_perspectives.name,
-               aggregated_rating_count, rating, rating_count, status, category, total_rating,
-               total_rating_count;
+               aggregated_rating_count, rating, rating_count, total_rating, total_rating_count, game_type.name, game_status.name;
+        expand game_type, game_status;
         where id = {igdb_id};
     """
     response = make_igdb_api_request(endpoint_url, query_params)
@@ -212,11 +214,13 @@ def search_igdb_by_name():
 
     if game_name:
         # Start with basic search and expand the query conditionally
+        # IGDB API V4 field name changes: category -> game_type, status -> game_status
         query = f"""
             fields id, name, cover.url, summary, url, release_dates.date, platforms.name, genres.name, themes.name, game_modes.name,
                    screenshots.url, videos.video_id, first_release_date, aggregated_rating, involved_companies, player_perspectives.name,
-                   aggregated_rating_count, rating, rating_count, slug, status, category, total_rating, 
-                   total_rating_count;
+                   aggregated_rating_count, rating, rating_count, slug, total_rating, total_rating_count,
+                   game_type.name, game_status.name;
+            expand game_type, game_status;
             search "{game_name}";"""
 
         # Check if a platform_id was provided and is valid

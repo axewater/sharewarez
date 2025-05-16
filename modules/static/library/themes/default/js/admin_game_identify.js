@@ -143,6 +143,30 @@ document.addEventListener('DOMContentLoaded', function() {
             checkbox.checked = isPerspectiveMatched;
         });
 
+        // Update Category select field
+        const categorySelect = document.querySelector('#category'); // Assuming #category is the ID of the select
+        if (gameData.game_type && gameData.game_type.name && categorySelect) {
+            const categoryNameFromApi = gameData.game_type.name;
+            for (let option of categorySelect.options) {
+                if (option.text === categoryNameFromApi) {
+                    categorySelect.value = option.value; // option.value is the Enum Name (e.g., MAIN_GAME), option.text is the Enum Value (e.g., "Main Game")
+                    break;
+                }
+            }
+        }
+
+        // Update Status select field
+        const statusSelect = document.querySelector('#status'); // Assuming #status is the ID of the select
+        if (gameData.game_status && gameData.game_status.name && statusSelect) {
+            const statusNameFromApi = gameData.game_status.name;
+            for (let option of statusSelect.options) {
+                if (option.text === statusNameFromApi) {
+                    statusSelect.value = option.value; // option.value is the Enum Name (e.g., RELEASED), option.text is the Enum Value (e.g., "Released")
+                    break;
+                }
+            }
+        }
+
         // Assuming gameData.involved_companies is an array of company IDs
         if (gameData.involved_companies && gameData.involved_companies.length > 0) {
             // Map each companyId to a fetch promise
