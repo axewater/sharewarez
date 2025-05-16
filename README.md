@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.5.1
+# 🎮 SharewareZ v2.5.2
 
 ** ⚠️This is a BETA application⚠️ **
 
@@ -9,8 +9,9 @@ Invite your friends securely and share your favorite games!
 
 - 🔄 Updating from older versions: Automatic update supported - simply overwrite files and run 'pip install -r requirements.txt' again.
 - ⚠️ For versions below 2.0: Database reset required
-  - Run `app.py --force-setup` to recreate database and run setup wizard
+- Run `app.py --force-setup` to recreate database and run setup wizard
 - ⚖️ SharewareZ promotes and encourages the legal use of software. We do not condone or support any unauthorized distribution or use of copyrighted material.
+- 📝 You must install version 2.5.2 before August 2025 or lose the ability to connect to IGDB for any lookups.
 
 ## ✨ Core Features
 
@@ -127,3 +128,6 @@ docker pull kapitanczarnobrod/sharewarez:latest
 ## 📝 3rd party code
 - 💭 Thanks to BinBashBanana's webretro we can now run ROMs in the browser.
 - 🌐 Check out his project here: https://github.com/BinBashBanana/webretro
+
+## 📝 Changelog
+2.5.3 - IGDB.com API update compatibility implemented (deadline aug 2025)
