@@ -116,26 +116,6 @@ class Library(db.Model):
 
 
 
-category_mapping = {
-    0: Category.MAIN_GAME,
-    1: Category.DLC_ADDON,
-    2: Category.EXPANSION,
-    3: Category.BUNDLE,
-    4: Category.STANDALONE_EXPANSION,
-    5: Category.MOD,
-    6: Category.EPISODE,
-    7: Category.SEASON,
-    8: Category.REMAKE,
-    9: Category.REMASTER,
-    10: Category.EXPANDED_GAME,
-    11: Category.PORT,
-    12: Category.PACK,
-    13: Category.UPDATE
-}
-
-
-
-
 class Status(PyEnum):
     RELEASED = "Released"
     ALPHA = "Alpha"
@@ -145,25 +125,10 @@ class Status(PyEnum):
     CANCELLED = "Cancelled"
     
     
-status_mapping = {
-    1: Status.RELEASED,
-    2: Status.ALPHA,
-    3: Status.BETA,
-    4: Status.EARLY_ACCESS,
-    6: Status.OFFLINE,
-    7: Status.CANCELLED
-}    
-
 class PlayerPerspective(PyEnum):
     FIRST_PERSON = "First Person"
     THIRD_PERSON = "Third Person"
     FIRST_THIRD = "First Person/Third Person"
-
-player_perspective_mapping = {
-    1: PlayerPerspective.FIRST_PERSON,
-    2: PlayerPerspective.THIRD_PERSON,
-    3: PlayerPerspective.FIRST_THIRD
-}
 
 user_favorites = db.Table('user_favorites',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
