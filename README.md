@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.5.2
+# 🎮 SharewareZ v2.5.3
 
 ** ⚠️This is a BETA application⚠️ **
 
@@ -130,4 +130,5 @@ docker pull kapitanczarnobrod/sharewarez:latest
 - 🌐 Check out his project here: https://github.com/BinBashBanana/webretro
 
 ## 📝 Changelog
-2.5.3 - IGDB.com API update compatibility implemented (deadline aug 2025)
+2.5.3 - Refreshed themes.zip with updated file
+2.5.2 - IGDB.com API update compatibility implemented (deadline aug 2025)
