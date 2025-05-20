@@ -2,14 +2,14 @@ import os
 
 class Config(object):
     # Set Database connection string here or in your .env file
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:!Piratingin2024!@theknox:5432/sharewarez_dev')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@db:5432/sharewarez')
     
     # Set the path to the folder where the game files are stored (ie: use c:\gamez for windows or /gamez for linux)
-    DATA_FOLDER_WAREZ = os.getenv('DATA_FOLDER_WAREZ', 'Z:\\')
+    DATA_FOLDER_WAREZ = os.getenv('DATA_FOLDER_WAREZ', 'C:\\')
     
     # OS-specific base folder paths
     if os.name == 'nt':  # Windows
-        BASE_FOLDER_WINDOWS = os.getenv('BASE_FOLDER_WINDOWS', 'Z:\\')
+        BASE_FOLDER_WINDOWS = os.getenv('BASE_FOLDER_WINDOWS', 'C:\\')
     else:  # POSIX (Linux, Unix, MacOS, etc.)
         BASE_FOLDER_POSIX = os.getenv('BASE_FOLDER_POSIX', '/')
 
