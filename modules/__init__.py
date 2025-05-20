@@ -10,7 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import Config
 from datetime import datetime
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 from flask_caching import Cache
 from modules.utils_db import check_postgres_port_open
 
@@ -19,7 +19,7 @@ login_manager = LoginManager()
 mail = Mail()
 cache = Cache(config={'CACHE_TYPE': 'simple'})
 app_start_time = datetime.now()
-app_version = '2.5.2'
+app_version = '2.5.3'
 
 def create_app():
     global s    
@@ -27,6 +27,21 @@ def create_app():
     app.config.from_object(Config)
     csrf = CSRFProtect(app)
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/library')
+
+    # --- BEGIN: Print masked PostgreSQL connection string ---
+    raw_db_uri = app.config['SQLALCHEMY_DATABASE_URI']
+    parsed_uri = urlparse(raw_db_uri)
+    if parsed_uri.password:
+        # Create a new netloc with the masked password
+        netloc_parts = parsed_uri.netloc.split('@')
+        auth_part = netloc_parts[0].replace(parsed_uri.password, '********')
+        masked_netloc = f"{auth_part}@{netloc_parts[1]}" if len(netloc_parts) > 1 else auth_part
+        masked_uri = urlunparse(parsed_uri._replace(netloc=masked_netloc))
+        print(f"Attempting to connect to PostgreSQL with URI: {masked_uri}")
+    else:
+        print(f"Attempting to connect to PostgreSQL with URI: {raw_db_uri}")
+    # --- END: Print masked PostgreSQL connection string ---
+
     parsed_url = urlparse(app.config['SQLALCHEMY_DATABASE_URI'])
     check_postgres_port_open(parsed_url.hostname, 5432, 60, 2)
     db.init_app(app)

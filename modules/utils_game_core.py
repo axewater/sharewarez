@@ -9,8 +9,7 @@ from modules import db
 from modules.models import (
     Game, Image, Library, GlobalSettings,
     Developer, Publisher, Genre, Theme, GameMode, Platform, 
-    PlayerPerspective, GameURL, ScanJob, 
-    category_mapping, status_mapping, player_perspective_mapping
+    PlayerPerspective, GameURL, ScanJob
 )
 from modules.utils_functions import (
     read_first_nfo_content, delete_associations_for_game,
@@ -26,6 +25,7 @@ from modules.utils_logging import log_system_event
 def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_uuid):
     global settings
     settings = GlobalSettings.query.first()
+    new_game = None  # Initialize new_game to None
     
     try:
         if not isinstance(game_data, dict):
@@ -295,7 +295,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
                     print(f"Sending Discord notification for new game '{new_game.name}'.")
                     discord_webhook(new_game.uuid)
                     
-            except IntegrityError as e:
+            except IntegrityError as e: 
                 db.session.rollback()
                 print(f"Failed to save game due to a database error: {e}")
                 flash("Failed to save game due to a duplicate entry.")
