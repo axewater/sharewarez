@@ -9,7 +9,7 @@ from modules import db
 from modules.models import (
     Game, Image, Library, GlobalSettings,
     Developer, Publisher, Genre, Theme, GameMode, Platform, 
-    PlayerPerspective, GameURL, ScanJob
+    PlayerPerspective, GameURL, ScanJob, Category, Status
 )
 from modules.utils_functions import (
     read_first_nfo_content, delete_associations_for_game,
@@ -21,6 +21,33 @@ from modules.utils_igdb_api import make_igdb_api_request
 from modules.utils_discord import discord_webhook
 from modules.utils_scanning import log_unmatched_folder, delete_game_images
 from modules.utils_logging import log_system_event
+
+# IGDB API mapping dictionaries for category, status, and player perspective
+category_mapping = {
+    0: Category.MAIN_GAME,
+    1: Category.DLC_ADDON,
+    2: Category.EXPANSION,
+    3: Category.BUNDLE,
+    4: Category.STANDALONE_EXPANSION,
+    5: Category.MOD,
+    6: Category.EPISODE,
+    7: Category.SEASON,
+    8: Category.REMAKE,
+    9: Category.REMASTER,
+    10: Category.EXPANDED_GAME,
+    11: Category.PORT,
+    12: Category.PACK,
+    13: Category.UPDATE
+}
+
+status_mapping = {
+    1: Status.RELEASED,
+    2: Status.ALPHA,
+    3: Status.BETA,
+    4: Status.EARLY_ACCESS,
+    6: Status.OFFLINE,
+    7: Status.CANCELLED
+}
 
 def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_uuid):
     global settings
@@ -41,8 +68,6 @@ def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_u
         category_enum = category_mapping.get(category_id, None)
         status_id = game_data.get('status')
         status_enum = status_mapping.get(status_id, None)
-        player_perspective_id = game_data.get('player_perspective')
-        player_perspective_enum = player_perspective_mapping.get(player_perspective_id, None)
         if 'videos' in game_data:
             video_urls = [f"https://www.youtube.com/watch?v={video['video_id']}" for video in game_data['videos']]
             videos_comma_separated = ','.join(video_urls)
@@ -209,6 +234,9 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
             print(f"Folder size for {full_disk_path}: {format_size(folder_size_bytes)}")
             new_game = create_game_instance(game_data=response_json[0], full_disk_path=full_disk_path, folder_size_bytes=folder_size_bytes, library_uuid=library.uuid)
             
+            if new_game is None:
+                print(f"Failed to create game instance for {game_name}. Skipping further processing.")
+                return None
                     
             if 'genres' in response_json[0]:
                 for genre_data in response_json[0]['genres']:
