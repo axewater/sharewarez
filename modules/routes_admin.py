@@ -592,3 +592,52 @@ def start_background_downloader():
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/turbo_download', methods=['POST'])
+@login_required
+@admin_required
+def turbo_download():
+    """TURBO MODE: Maximum speed parallel downloading with 5 threads."""
+    try:
+        data = request.json or {}
+        batch_size = data.get('batch_size', 100)
+        max_workers = data.get('max_workers', 5)
+        
+        from modules.utils_game_core import turbo_download_images
+        result = turbo_download_images(batch_size=batch_size, max_workers=max_workers, app=current_app)
+        
+        return jsonify({
+            'success': True,
+            'downloaded': result['downloaded'],
+            'failed': result['failed'],
+            'message': result['message']
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/start_turbo_downloader', methods=['POST'])
+@login_required
+@admin_required
+def start_turbo_downloader():
+    """Start the TURBO background downloader with parallel processing."""
+    try:
+        data = request.json or {}
+        max_workers = data.get('max_workers', 4)
+        batch_size = data.get('batch_size', 50)
+        interval = data.get('interval', 30)
+        
+        from modules.utils_game_core import start_turbo_background_downloader
+        thread = start_turbo_background_downloader(
+            interval_seconds=interval, 
+            max_workers=max_workers, 
+            batch_size=batch_size
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': f'TURBO background downloader started! {max_workers} workers, {batch_size} batch size, {interval}s interval'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500

@@ -23,6 +23,7 @@ from modules.utils_scanning import log_unmatched_folder, delete_game_images
 from modules.utils_logging import log_system_event
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # IGDB API mapping dictionaries for category, status, and player perspective
 category_mapping = {
@@ -668,3 +669,123 @@ def download_images_for_game(game_uuid, app=None):
         except:
             pass
         return 0
+
+
+def download_single_image_worker(image, app):
+    """Worker function to download a single image - designed for parallel execution."""
+    try:
+        if not image.download_url:
+            return {'success': False, 'image_id': image.id, 'error': 'No download URL'}
+        
+        save_path = os.path.join(app.config['IMAGE_SAVE_PATH'], image.url)
+        
+        from modules.utils_functions import download_image
+        download_image(image.download_url, save_path)
+        
+        return {
+            'success': True, 
+            'image_id': image.id, 
+            'game_uuid': image.game_uuid,
+            'image_type': image.image_type,
+            'url': image.url
+        }
+        
+    except Exception as e:
+        return {'success': False, 'image_id': image.id, 'error': str(e)}
+
+
+def turbo_download_images(batch_size=100, max_workers=5, app=None):
+    """MAXIMUM SPEED parallel image downloading with multiple threads."""
+    if app is None:
+        app = current_app._get_current_object()
+    
+    print(f"🚀 TURBO DOWNLOAD MODE ACTIVATED - {max_workers} threads, {batch_size} images, NO MERCY!")
+    
+    try:
+        with app.app_context():
+            # Get pending images
+            pending_images = Image.query.filter_by(is_downloaded=False).limit(batch_size).all()
+            
+            if not pending_images:
+                print("No pending images to download.")
+                return {'downloaded': 0, 'failed': 0, 'message': 'No pending images'}
+            
+            print(f"Found {len(pending_images)} pending images. UNLEASHING THE THREADS!")
+            
+            downloaded_count = 0
+            failed_count = 0
+            successful_images = []
+            
+            # Create thread pool and submit all download tasks
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                # Submit all download jobs
+                future_to_image = {
+                    executor.submit(download_single_image_worker, image, app): image 
+                    for image in pending_images
+                }
+                
+                # Process completed downloads as they finish
+                for future in as_completed(future_to_image):
+                    image = future_to_image[future]
+                    try:
+                        result = future.result()
+                        
+                        if result['success']:
+                            successful_images.append(image.id)
+                            downloaded_count += 1
+                            print(f"✅ Downloaded {result['image_type']} for game {result['game_uuid']}: {result['url']}")
+                        else:
+                            failed_count += 1
+                            print(f"❌ Failed to download image {result['image_id']}: {result['error']}")
+                            
+                    except Exception as e:
+                        failed_count += 1
+                        print(f"❌ Exception downloading image {image.id}: {e}")
+            
+            # Update database - mark successful downloads as completed
+            if successful_images:
+                print(f"Updating database for {len(successful_images)} successful downloads...")
+                Image.query.filter(Image.id.in_(successful_images)).update(
+                    {Image.is_downloaded: True}, 
+                    synchronize_session=False
+                )
+                db.session.commit()
+            
+            result_message = f"TURBO DOWNLOAD COMPLETE! ✅ {downloaded_count} downloaded, ❌ {failed_count} failed"
+            print(result_message)
+            
+            return {
+                'downloaded': downloaded_count,
+                'failed': failed_count,
+                'message': result_message
+            }
+            
+    except Exception as e:
+        print(f"Error in turbo download: {e}")
+        try:
+            db.session.rollback()
+        except:
+            pass
+        return {'downloaded': 0, 'failed': 0, 'message': f'Error: {str(e)}'}
+
+
+def start_turbo_background_downloader(interval_seconds=30, max_workers=4, batch_size=50):
+    """Start a HIGH SPEED background downloader with parallel processing."""
+    app = current_app._get_current_object()
+    
+    def turbo_background_worker():
+        print(f"🔥 TURBO BACKGROUND DOWNLOADER STARTED - {max_workers} workers, {batch_size} batch, {interval_seconds}s interval")
+        while True:
+            try:
+                result = turbo_download_images(batch_size=batch_size, max_workers=max_workers, app=app)
+                if result['downloaded'] > 0:
+                    print(f"🚀 Background turbo download: {result['message']}")
+                time.sleep(interval_seconds)
+            except Exception as e:
+                print(f"Turbo background downloader error: {e}")
+                time.sleep(interval_seconds)
+    
+    thread = threading.Thread(target=turbo_background_worker, daemon=True)
+    thread.start()
+    print(f"🔥 TURBO BACKGROUND DOWNLOADER LAUNCHED!")
+    return thread

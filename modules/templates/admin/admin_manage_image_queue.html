@@ -341,14 +341,27 @@
                 </button>
             </div>
             <div class="btn-group">
+                <button class="btn btn-danger" onclick="turboDownload(100, 5)" style="font-weight: bold;">
+                    <i class="fas fa-rocket"></i> 🚀 TURBO 100 (5 threads)
+                </button>
+                <button class="btn btn-danger" onclick="turboDownload(200, 8)" style="font-weight: bold;">
+                    <i class="fas fa-fire"></i> 🔥 INSANE 200 (8 threads)
+                </button>
+            </div>
+            <div class="btn-group">
                 <button class="btn btn-warning" onclick="retryFailed()">
                     <i class="fas fa-redo"></i> Retry Failed
                 </button>
                 <button class="btn btn-secondary" onclick="refreshStats()">
                     <i class="fas fa-sync"></i> Refresh Stats
                 </button>
+            </div>
+            <div class="btn-group">
                 <button class="btn btn-primary" onclick="startBackgroundDownloader()">
-                    <i class="fas fa-play"></i> Start Auto Downloader
+                    <i class="fas fa-play"></i> Auto Downloader (60s)
+                </button>
+                <button class="btn btn-danger" onclick="startTurboDownloader()" style="font-weight: bold;">
+                    <i class="fas fa-rocket"></i> 🚀 TURBO AUTO (30s, 4 threads)
                 </button>
             </div>
         </div>
@@ -875,7 +888,40 @@ function showMessage(message, type = 'info') {
     }, 5000);
 }
 
-// Start background downloader
+// TURBO DOWNLOAD - Maximum speed parallel downloading
+async function turboDownload(batchSize = 100, maxWorkers = 5) {
+    try {
+        showMessage(`🚀 TURBO MODE ACTIVATED! ${maxWorkers} threads downloading ${batchSize} images...`, 'success');
+        
+        const response = await fetch('/admin/api/turbo_download', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ 
+                batch_size: batchSize,
+                max_workers: maxWorkers
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showMessage(`🔥 ${result.message}`, 'success');
+            refreshStats();
+            loadImageQueue();
+        } else {
+            showMessage('Turbo download failed: ' + result.message, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error in turbo download:', error);
+        showMessage('Error in turbo download: ' + error.message, 'error');
+    }
+}
+
+// Start regular background downloader
 async function startBackgroundDownloader() {
     try {
         const response = await fetch('/admin/api/start_background_downloader', {
@@ -896,6 +942,38 @@ async function startBackgroundDownloader() {
     } catch (error) {
         console.error('Error starting background downloader:', error);
         showMessage('Error starting background downloader', 'error');
+    }
+}
+
+// Start TURBO background downloader
+async function startTurboDownloader() {
+    try {
+        showMessage('🚀 Starting TURBO background downloader...', 'success');
+        
+        const response = await fetch('/admin/api/start_turbo_downloader', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({
+                max_workers: 4,
+                batch_size: 50,
+                interval: 30
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showMessage(`🔥 ${result.message}`, 'success');
+        } else {
+            showMessage('Failed to start turbo downloader: ' + result.message, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error starting turbo downloader:', error);
+        showMessage('Error starting turbo downloader', 'error');
     }
 }
 
