@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from flask import flash, current_app, abort
 from flask_login import current_user
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -85,7 +85,7 @@ def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_u
             summary=game_data.get('summary'),
             storyline=game_data.get('storyline'),
             url=game_data.get('url'),
-            first_release_date=datetime.utcfromtimestamp(game_data.get('first_release_date', 0)) if game_data.get('first_release_date') else None,
+            first_release_date=datetime.fromtimestamp(game_data.get('first_release_date', 0), UTC) if game_data.get('first_release_date') else None,
             aggregated_rating=game_data.get('aggregated_rating'),
             aggregated_rating_count=game_data.get('aggregated_rating_count'),
             rating=game_data.get('rating'),
@@ -98,8 +98,8 @@ def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_u
             video_urls=videos_comma_separated,
             full_disk_path=full_disk_path,
             size=folder_size_bytes,
-            date_created=datetime.utcnow(),
-            date_identified=datetime.utcnow(),
+            date_created=datetime.now(UTC),
+            date_identified=datetime.now(UTC),
             steam_url='',
             times_downloaded=0
         )
