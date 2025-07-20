@@ -79,6 +79,16 @@ class DatabaseManager:
 
         ALTER TABLE scan_jobs
         ADD COLUMN IF NOT EXISTS removed_count INTEGER DEFAULT 0;
+
+        -- Add new columns to images table for optimized image downloading
+        ALTER TABLE images
+        ADD COLUMN IF NOT EXISTS igdb_image_id VARCHAR(255);
+
+        ALTER TABLE images
+        ADD COLUMN IF NOT EXISTS download_url VARCHAR(500);
+
+        ALTER TABLE images
+        ADD COLUMN IF NOT EXISTS is_downloaded BOOLEAN DEFAULT FALSE;
         
         """
         print("Upgrading database to the latest schema")
