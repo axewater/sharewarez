@@ -22,6 +22,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
         print("A scan is already in progress. Please wait for it to complete.")
         return
         
+    # Cache settings once at the start of scan
     settings = GlobalSettings.query.first()
     update_folder_name = settings.update_folder_name if settings else 'updates'
     extras_folder_name = settings.extras_folder_name if settings else 'extras'
@@ -123,17 +124,13 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
             success = process_game_with_fallback(game_name, full_disk_path, scan_job_entry.id, library_uuid)
             if success:
                 scan_job_entry.folders_success += 1
-                # Get settings from database
-                settings = GlobalSettings.query.first()
-                update_folder_name = settings.update_folder_name if settings else 'updates'  # Default fallback
-                extras_folder_name = settings.extras_folder_name if settings else 'extras'  # Default fallback
-                
-                # Check for updates folder using the database setting
+                # Use cached settings instead of querying database again
+                # Check for updates folder using the cached setting
                 updates_folder = os.path.join(full_disk_path, update_folder_name)
                 # print(f"Checking for updates folder: {updates_folder}")
                 if os.path.exists(updates_folder) and os.path.isdir(updates_folder):
                     print(f"Updates folder found for game: {game_name}")
-                    process_game_updates(game_name, full_disk_path, updates_folder, library_uuid)
+                    process_game_updates(game_name, full_disk_path, updates_folder, library_uuid, update_folder_name)
                 else:
                     print(f"No updates folder found for game: {game_name}")
                     
@@ -142,7 +139,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                 # print(f"Checking for extras folder: {extras_folder}")
                 if os.path.exists(extras_folder) and os.path.isdir(extras_folder):
                     print(f"Extras folder found for game: {game_name}")
-                    process_game_extras(game_name, full_disk_path, extras_folder, library_uuid)
+                    process_game_extras(game_name, full_disk_path, extras_folder, library_uuid, extras_folder_name)
                 else:
                     print(f"No extras folder found for game: {game_name}")
             else:
@@ -237,7 +234,6 @@ def handle_auto_scan(auto_form):
 
 
 def handle_manual_scan(manual_form):
-    settings = GlobalSettings.query.first()
     session['active_tab'] = 'manual'
     if manual_form.validate_on_submit():
         # check job status
