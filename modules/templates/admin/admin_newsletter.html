@@ -80,7 +80,7 @@
                            {% endif %}
                        </td>
                        <td>{{ newsletter.recipient_count }}</td>
-                       <td><a href="{{ url_for('admin.view_newsletter', newsletter_id=newsletter.id) }}" class="btn btn-sm btn-primary">View</a></td>
+                       <td><a href="{{ url_for('admin2.view_newsletter', newsletter_id=newsletter.id) }}" class="btn btn-sm btn-primary">View</a></td>
                    </tr>
                    {% endfor %}
                </tbody>
