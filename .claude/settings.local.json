@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(rg:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(source:*)",
+      "Bash(python -m pytest tests/test_core_functions.py -v)",
+      "Bash(python -m pytest tests/ -v)"
     ],
     "deny": []
   }
