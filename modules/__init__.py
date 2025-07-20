@@ -69,14 +69,12 @@ def create_app():
         from modules.routes_settings import settings_bp
         from modules.routes_login import login_bp
         from modules.routes_discover import discover_bp
-        from modules.routes_apis_filters import apis_filters_bp
-        from modules.routes_apis_other import apis_other_bp
         from modules.routes_downloads import download_bp
         from modules.routes_games import games_bp
-        from modules.routes_apis_ssfb import ssfb_bp
         from modules.routes_smtp import smtp_bp
         from modules.routes_info import info_bp
         from modules.routes_admin_ext import admin2_bp
+        from modules.routes_apis import apis_bp
         from modules.init_data import initialize_library_folders, insert_default_filters, initialize_default_settings, initialize_allowed_file_types, initialize_discovery_sections
 
 
@@ -104,12 +102,10 @@ def create_app():
     app.register_blueprint(settings_bp)
     app.register_blueprint(login_bp)
     app.register_blueprint(discover_bp)
-    app.register_blueprint(apis_filters_bp)
-    app.register_blueprint(apis_other_bp)
     app.register_blueprint(download_bp)
     app.register_blueprint(games_bp)
-    app.register_blueprint(ssfb_bp)
     app.register_blueprint(smtp_bp)
     app.register_blueprint(info_bp)
+    app.register_blueprint(apis_bp)
 
     return app
