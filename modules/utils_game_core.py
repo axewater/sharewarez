@@ -162,6 +162,98 @@ def store_image_url_for_download(game_uuid, image_data, image_type='cover'):
     except Exception as e:
         print(f"Error storing image URL for {image_type} {image_data}: {e}")
 
+
+def smart_process_images_for_game(game_uuid, cover_data=None, screenshots_data=None, app=None):
+    """Smart image processing that uses settings to determine single-thread vs turbo mode."""
+    if app is None:
+        app = current_app._get_current_object()
+    
+    try:
+        with app.app_context():
+            # Get settings to determine processing mode
+            from modules.models import GlobalSettings
+            settings = GlobalSettings.query.first()
+            
+            # Store image URLs first (always)
+            if cover_data:
+                store_image_url_for_download(game_uuid, cover_data, 'cover')
+            if screenshots_data:
+                for screenshot_id in screenshots_data:
+                    store_image_url_for_download(game_uuid, screenshot_id, 'screenshot')
+            db.session.commit()
+            
+            # Decide processing mode based on settings
+            if settings and settings.use_turbo_image_downloads:
+                # TURBO MODE - Download immediately with parallel processing
+                threads = settings.turbo_download_threads or 8
+                print(f"🚀 TURBO MODE: Processing images for game {game_uuid} with {threads} threads")
+                return download_images_for_game_turbo(game_uuid, app, max_workers=threads)
+            else:
+                # SINGLE THREAD MODE - Download one by one
+                print(f"🐌 SINGLE THREAD: Processing images for game {game_uuid}")
+                return download_images_for_game(game_uuid, app)
+                
+    except Exception as e:
+        print(f"Error in smart image processing for game {game_uuid}: {e}")
+        return 0
+
+
+def download_images_for_game_turbo(game_uuid, app=None, max_workers=5):
+    """Download all pending images for a specific game using turbo mode."""
+    if app is None:
+        app = current_app._get_current_object()
+        
+    try:
+        with app.app_context():
+            pending_images = Image.query.filter_by(game_uuid=game_uuid, is_downloaded=False).all()
+            
+            if not pending_images:
+                print(f"No pending images for game {game_uuid}.")
+                return 0
+            
+            print(f"🚀 TURBO downloading {len(pending_images)} images for game {game_uuid} with {max_workers} threads")
+            
+            downloaded_count = 0
+            successful_images = []
+            
+            # Use ThreadPoolExecutor for parallel downloads
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                future_to_image = {
+                    executor.submit(download_single_image_worker, image, app): image 
+                    for image in pending_images
+                }
+                
+                for future in as_completed(future_to_image):
+                    image = future_to_image[future]
+                    try:
+                        result = future.result()
+                        if result['success']:
+                            successful_images.append(image.id)
+                            downloaded_count += 1
+                            print(f"✅ Downloaded {result['image_type']}: {result['url']}")
+                    except Exception as e:
+                        print(f"❌ Failed downloading image {image.id}: {e}")
+            
+            # Update database
+            if successful_images:
+                Image.query.filter(Image.id.in_(successful_images)).update(
+                    {Image.is_downloaded: True}, 
+                    synchronize_session=False
+                )
+                db.session.commit()
+            
+            print(f"🔥 TURBO download complete for game {game_uuid}: {downloaded_count} images")
+            return downloaded_count
+            
+    except Exception as e:
+        print(f"Error in turbo download for game {game_uuid}: {e}")
+        try:
+            db.session.rollback()
+        except:
+            pass
+        return 0
+
+
 def process_and_save_image(game_uuid, image_data, image_type='cover'):
     url = None
     save_path = None
@@ -352,12 +444,11 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
                 new_game.video_urls = videos_comma_separated
             
             db.session.commit()
-            print(f"Storing image URLs for game: {new_game.name} (downloads deferred).")
-            if 'cover' in response_json[0]:
-                store_image_url_for_download(new_game.uuid, response_json[0]['cover'], 'cover')
-            for screenshot_id in response_json[0].get('screenshots', []):
-                store_image_url_for_download(new_game.uuid, screenshot_id, 'screenshot')
-            db.session.commit()
+            print(f"Processing images for game: {new_game.name}")
+            # Use smart image processing that respects turbo/single-thread settings
+            cover_data = response_json[0].get('cover') 
+            screenshots_data = response_json[0].get('screenshots', [])
+            smart_process_images_for_game(new_game.uuid, cover_data, screenshots_data)
             try:
                 new_game.nfo_content = nfo_content
                 for column in new_game.__table__.columns:

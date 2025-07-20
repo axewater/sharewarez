@@ -89,6 +89,16 @@ class DatabaseManager:
 
         ALTER TABLE images
         ADD COLUMN IF NOT EXISTS is_downloaded BOOLEAN DEFAULT FALSE;
+
+        -- Add image download settings to global_settings table
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS use_turbo_image_downloads BOOLEAN DEFAULT TRUE;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS turbo_download_threads INTEGER DEFAULT 8;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS turbo_download_batch_size INTEGER DEFAULT 200;
         
         """
         print("Upgrading database to the latest schema")

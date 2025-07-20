@@ -77,11 +77,20 @@ def create_app():
         from modules.routes_apis_ssfb import ssfb_bp
         from modules.routes_smtp import smtp_bp
         from modules.routes_info import info_bp
-        from modules.routes_admin_more import admin2_bp
+        from modules.routes_admin_ext import admin2_bp
         from modules.init_data import initialize_library_folders, insert_default_filters, initialize_default_settings, initialize_allowed_file_types, initialize_discovery_sections
 
 
         db.create_all()
+        
+        # Run database schema updates before initialization
+        try:
+            from modules.updateschema import DatabaseManager
+            db_manager = DatabaseManager()
+            db_manager.add_column_if_not_exists()
+        except Exception as e:
+            print(f"Warning: Database schema update failed: {e}")
+        
         log_system_event(f"SharewareZ v{app_version} initializing database", event_type='system', event_level='startup', audit_user='system')
         initialize_library_folders()
         initialize_discovery_sections()

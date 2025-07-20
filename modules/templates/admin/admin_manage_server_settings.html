@@ -135,6 +135,39 @@
                                         </div>
                                     </td>
                                 </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="useTurboImageDownloads" checked>
+                                            <label class="form-check-label" for="useTurboImageDownloads" data-toggle="tooltip" title="🚀 TURBO MODE: Use parallel multi-threaded downloading for game images (8 threads, 200 batch size). When disabled, uses single-thread sequential downloads. TURBO mode is 8-15x faster but uses more bandwidth.">
+                                                <i class="fas fa-rocket"></i> Enable TURBO Image Downloads
+                                                <span class="badge bg-success">🔥 FAST</span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label for="turboDownloadThreads" data-toggle="tooltip" title="Number of simultaneous download threads for TURBO mode. More threads = faster downloads but higher bandwidth usage. Recommended: 4-8 threads.">
+                                                TURBO Download Threads
+                                            </label>
+                                            <input type="number" class="form-control" id="turboDownloadThreads" name="turboDownloadThreads" 
+                                                min="1" max="16" value="8" placeholder="8">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label for="turboDownloadBatchSize" data-toggle="tooltip" title="Number of images to process in each TURBO download batch. Higher values = more aggressive downloading. Recommended: 100-200 images.">
+                                                TURBO Batch Size
+                                            </label>
+                                            <input type="number" class="form-control" id="turboDownloadBatchSize" name="turboDownloadBatchSize" 
+                                                min="10" max="500" value="200" placeholder="200">
+                                        </div>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>

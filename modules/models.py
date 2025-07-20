@@ -517,6 +517,10 @@ class GlobalSettings(db.Model):
     discord_notify_game_extras = db.Column(db.Boolean, default=False)
     discord_notify_downloads = db.Column(db.Boolean, default=False)
     site_url = db.Column(db.String(255), default='http://127.0.0.1')
+    # Image Download Settings
+    use_turbo_image_downloads = db.Column(db.Boolean, default=True)
+    turbo_download_threads = db.Column(db.Integer, default=8)
+    turbo_download_batch_size = db.Column(db.Integer, default=200)
 
     def __repr__(self):
         return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'
