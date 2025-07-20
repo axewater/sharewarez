@@ -82,123 +82,96 @@ $(document).ready(function() {
     sortOrder = userDefaultSortOrder || 'asc';
     $('#sortOrderToggle').text(sortOrder === 'asc' ? '^' : '~');
 
-    function populateLibraries(callback) {
-        $.ajax({
-            url: '/api/get_libraries',
+    function populateDropdown(options) {
+        const { apiUrl, elementId, defaultText, valueField, textField, paramName, callback } = options;
+        return $.ajax({
+            url: apiUrl,
             method: 'GET',
             success: function(response) {
-                var librarySelect = $('#libraryNameSelect');
-                librarySelect.empty().append($('<option>', { value: '', text: 'All Libraries' }));
-                response.forEach(function(library) {
-                    librarySelect.append($('<option>', {
-                        value: library.uuid, 
-                        text: library.name
+                const selectElement = $(elementId);
+                selectElement.empty().append($('<option>', { value: '', text: defaultText }));
+                response.forEach(function(item) {
+                    selectElement.append($('<option>', {
+                        value: item[valueField],
+                        text: item[textField]
                     }));
                 });
-                if (typeof callback === "function") callback();
+                if (typeof callback === "function") {
+                    callback();
+                }
             },
             error: function(xhr, status, error) {
-                console.error("Error fetching libraries:", error);
+                console.error(`Error fetching data for ${elementId}:`, error);
             }
         }).done(function() {
-            var initialParams = getUrlParams();
-            if (initialParams.library_uuid) {
-                $('#libraryNameSelect').val(initialParams.library_uuid);
+            if (paramName) {
+                const initialParams = getUrlParams();
+                if (initialParams[paramName]) {
+                    $(elementId).val(initialParams[paramName]);
+                }
             }
+        });
+    }
+
+    function populateLibraries(callback) {
+        populateDropdown({
+            apiUrl: '/api/get_libraries',
+            elementId: '#libraryNameSelect',
+            defaultText: 'All Libraries',
+            valueField: 'uuid',
+            textField: 'name',
+            paramName: 'library_uuid',
+            callback: callback
+        }).done(function() {
             fetchFilteredGames();
         });
     }
+
     function populateGenres(callback) {
-        $.ajax({
-            url: '/api/genres',
-            method: 'GET',
-            success: function(response) {
-                var genreSelect = $('#genreSelect');
-                genreSelect.empty().append($('<option>', { value: '', text: 'All Genres' }));
-                response.forEach(function(genre) {
-                    genreSelect.append($('<option>', {
-                        value: genre.name,
-                        text: genre.name
-                    }));
-                });
-                if (typeof callback === "function") callback();
-            },
-            error: function(xhr, status, error) {
-                console.error("Error fetching genres:", error);
-            }
-        }).done(function() {
-            var initialParams = getUrlParams();
-            if (initialParams.genre) {
-                $('#genreSelect').val(initialParams.genre);
-            }
+        populateDropdown({
+            apiUrl: '/api/genres',
+            elementId: '#genreSelect',
+            defaultText: 'All Genres',
+            valueField: 'name',
+            textField: 'name',
+            paramName: 'genre',
+            callback: callback
         });
     }
 
     function populateGameModes(callback) {
-        $.ajax({
-            url: '/api/game_modes',
-            method: 'GET',
-            success: function(response) {
-                var gameModeSelect = $('#gameModeSelect');
-                gameModeSelect.empty().append($('<option>', { value: '', text: 'All Game Modes' }));
-                response.forEach(function(gameMode) {
-                    gameModeSelect.append($('<option>', {
-                        value: gameMode.name,
-                        text: gameMode.name
-                    }));
-                });
-                if (typeof callback === "function") callback();
-            },
-            error: function(xhr, status, error) {
-                console.error("Error fetching game modes:", error);
-            }
-        }).done(function() {
-            var initialParams = getUrlParams();
-            if (initialParams.genre) {
-                $('#gameModeSelect').val(initialParams.gameMode);
-            }
+        populateDropdown({
+            apiUrl: '/api/game_modes',
+            elementId: '#gameModeSelect',
+            defaultText: 'All Game Modes',
+            valueField: 'name',
+            textField: 'name',
+            paramName: 'gameMode',
+            callback: callback
         });
     }
 
     function populatePlayerPerspectives(callback) {
-        $.ajax({
-            url: '/api/player_perspectives',
-            method: 'GET',
-            success: function(response) {
-                var perspectiveSelect = $('#playerPerspectiveSelect');
-                perspectiveSelect.empty().append($('<option>', { value: '', text: 'All Perspectives' }));
-                response.forEach(function(perspective) {
-                    perspectiveSelect.append($('<option>', {
-                        value: perspective.name,
-                        text: perspective.name
-                    }));
-                });
-                if (typeof callback === "function") callback();
-            },
-            error: function(xhr, status, error) {
-                console.error("Error fetching player perspectives:", error);
-            }
+        populateDropdown({
+            apiUrl: '/api/player_perspectives',
+            elementId: '#playerPerspectiveSelect',
+            defaultText: 'All Perspectives',
+            valueField: 'name',
+            textField: 'name',
+            paramName: 'playerPerspective',
+            callback: callback
         });
     }
 
     function populateThemes(callback) {
-        $.ajax({
-            url: '/api/themes',
-            method: 'GET',
-            success: function(response) {
-                var themeSelect = $('#themeSelect');
-                themeSelect.empty().append($('<option>', { value: '', text: 'All Themes' }));
-                response.forEach(function(theme) {
-                    themeSelect.append($('<option>', {
-                        value: theme.name,
-                        text: theme.name
-                    }));
-                });
-                if (typeof callback === "function") callback();
-            },
-            error: function(xhr, status, error) {
-                console.error("Error fetching themes:", error);
-            }
+        populateDropdown({
+            apiUrl: '/api/themes',
+            elementId: '#themeSelect',
+            defaultText: 'All Themes',
+            valueField: 'name',
+            textField: 'name',
+            paramName: 'theme',
+            callback: callback
         });
     }
 
@@ -463,23 +436,6 @@ $(document).ready(function() {
     $('#sortSelect').change(function() {
         fetchFilteredGames(1);
     });
-
-    var initialParams = getUrlParams();
-    if (initialParams.genre) {
-        $('#genreSelect').val(initialParams.genre);
-    }
-    var initialParams = getUrlParams();
-    if (initialParams.theme) {
-        $('#themeSelect').val(initialParams.theme);
-    }
-    var initialParams = getUrlParams();
-    if (initialParams.gameMode) {
-        $('#gameModeSelect').val(initialParams.gameMode);
-    }
-    var initialParams = getUrlParams();
-    if (initialParams.playerPerspective) {
-        $('#playerPerspectiveSelect').val(initialParams.playerPerspective);
-    }
 
     populateLibraries(function() {
         populateGenres(function() {
