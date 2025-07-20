@@ -7,16 +7,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_dashboard.css') }}">
 {% endif %}
 
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-    <div class="alert alert-info" role="alert">
-        {% for message in messages %}
-            {{ message }}<br>
-        {% endfor %}
-    </div>
-{% endif %}
-{% endwith %}
-
 <div class="container-settings-dashboard">
 
     <div class="hackplanet_titles">

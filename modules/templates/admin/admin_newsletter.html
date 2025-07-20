@@ -24,15 +24,6 @@
 <div class="container-settings">        
     <div class="card">        
         <h1>Newsletter</h1>
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="alert alert-info" role="alert">
-                {% for message in messages %}
-                    {{ message }}<br>
-                {% endfor %}
-            </div>
-        {% endif %}
-        {% endwith %}
         <form action="" method="post" novalidate>
             {{ form.hidden_tag() }}
             <div class="mb-3">

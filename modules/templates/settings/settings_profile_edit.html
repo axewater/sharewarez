@@ -19,20 +19,6 @@
     </nav>
 </div>
 
-<!-- Flash Messages -->
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-<div class="alert-container">
-    {% for message in messages %}
-    <div class="alert alert-info fade show" role="alert">
-        <i class="fas fa-info-circle"></i> {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
-{% endwith %}
-
 <!-- Main Content -->
 <div class="profile-edit-container glass-panel">
     <h2 class="section-title"><i class="fas fa-user-circle"></i> Change User Avatar</h2>

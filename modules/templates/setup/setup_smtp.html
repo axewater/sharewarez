@@ -14,16 +14,6 @@
         <h2>SharewareZ SMTP Setup</h2>
         <p class="setup-info">Configure your email settings to enable user registration and password reset functionality.</p>
 
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="alert alert-info" role="alert">
-                {% for message in messages %}
-                    {{ message }}<br>
-                {% endfor %}
-            </div>
-        {% endif %}
-        {% endwith %}
-
         <form method="POST" action="{{ url_for('setup.setup_smtp') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             

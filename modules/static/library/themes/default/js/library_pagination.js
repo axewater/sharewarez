@@ -335,7 +335,7 @@ $(document).ready(function() {
     <div class="game-card-container">
         <div class="game-card" onmouseover="showDetails(this, '${game.uuid}')" onmouseout="hideDetails()" data-name="${game.name}" data-size="${game.size}" data-genres="${genres}">
             <button id="menuButton-${game.uuid}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
-            <button class="favorite-btn" data-game-uuid="${game.uuid}">
+            <button class="favorite-btn" data-game-uuid="${game.uuid}" data-is-favorite="${game.is_favorite}">
                 <i class="fas fa-heart"></i>
             </button>
             ${popupMenuHtml}

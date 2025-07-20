@@ -21,15 +21,6 @@
 {% endif %}
 
 <body>
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <div class="alert alert-info" role="alert">
-            {% for message in messages %}
-                {{ message }}<br>
-            {% endfor %}
-        </div>
-    {% endif %}
-    {% endwith %}
     <div class="discovery-panel">
         <h1 class="discovery-header">    
             <p>My Favorites</p>
@@ -42,18 +33,20 @@
                         <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
                             {% with game_uuid=game.uuid, game_url=game.url %}
                             {% endwith %}
-                            {% if game.cover_url %}
-                                <a href="{{ url_for('games.game_details', game_uuid=game.uuid) }}">
-                                    <img src="{{ url_for('static', filename='library/images/' ~ game.cover_url) }}" alt="{{ game.name }}" class="game-cover">
-                                </a>
-                            {% else %}
-                                <a href="{{ url_for('games.game_details', game_uuid=game.uuid) }}">
-                                    <img src="{{ url_for('static', filename='newstyle/default_cover.jpg') }}" alt="Default Cover Image" class="game-cover">
-                                </a>
-                            {% endif %}
-                            <div class="favorite-count">
-                                <i class="fas fa-heart"></i>
-                                <span>{{ game.favorite_count }}</span>
+                            <div class="game-cover-container">
+                                {% if game.cover_url %}
+                                    <a href="{{ url_for('games.game_details', game_uuid=game.uuid) }}">
+                                        <img src="{{ url_for('static', filename='library/images/' ~ game.cover_url) }}" alt="{{ game.name }}" class="game-cover">
+                                    </a>
+                                {% else %}
+                                    <a href="{{ url_for('games.game_details', game_uuid=game.uuid) }}">
+                                        <img src="{{ url_for('static', filename='newstyle/default_cover.jpg') }}" alt="Default Cover Image" class="game-cover">
+                                    </a>
+                                {% endif %}
+                                <div class="favorite-count">
+                                    <i class="fas fa-heart"></i>
+                                    <span class="favorite-number">{{ game.favorite_count }}</span>
+                                </div>
                             </div>
                             <div id="details-{{ game.uuid }}" class="popup-game-details hidden">
                                 <!-- Details and screenshots will be injected here by JavaScript -->
