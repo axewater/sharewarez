@@ -74,13 +74,12 @@ def search_igdb_by_id():
     if not igdb_id:
         return jsonify({"error": "IGDB ID is required"}), 400
     endpoint_url = "https://api.igdb.com/v4/games"
-    # IGDB API V4 field name changes: category -> game_type, status -> game_status
-    # We need to expand these new fields to get their names.
+    # Use the same field format as working scanning code
     query_params = f"""
-        fields name, summary, cover.url, url, release_dates.date, platforms.name, genres.name, themes.name, game_modes.name, 
-               screenshots.url, videos.video_id, first_release_date, aggregated_rating, involved_companies, player_perspectives.name,
-               aggregated_rating_count, rating, rating_count, total_rating, total_rating_count, game_type.name, game_status.name;
-        expand game_type, game_status;
+        fields id, name, cover, summary, url, release_dates.date, platforms.name, genres.name, themes.name, game_modes.name,
+               screenshots, videos.video_id, first_release_date, aggregated_rating, involved_companies, player_perspectives.name,
+               aggregated_rating_count, rating, rating_count, slug, status, category, total_rating, 
+               total_rating_count, storyline;
         where id = {igdb_id};
     """
     response = make_igdb_api_request(endpoint_url, query_params)
@@ -101,23 +100,21 @@ def search_igdb_by_name():
     platform_id = request.args.get('platform_id')
 
     if game_name:
-        # Start with basic search and expand the query conditionally
-        # IGDB API V4 field name changes: category -> game_type, status -> game_status
-        query = f"""
-            fields id, name, cover.url, summary, url, release_dates.date, platforms.name, genres.name, themes.name, game_modes.name,
-                   screenshots.url, videos.video_id, first_release_date, aggregated_rating, involved_companies, player_perspectives.name,
-                   aggregated_rating_count, rating, rating_count, slug, total_rating, total_rating_count,
-                   game_type.name, game_status.name;
-            expand game_type, game_status;
-            search "{game_name}";"""
-
+        # Use the same field format as working scanning code  
+        query_fields = """fields id, name, cover, summary, url, release_dates.date, platforms.name, genres.name, themes.name, game_modes.name,
+                          screenshots, videos.video_id, first_release_date, aggregated_rating, involved_companies, player_perspectives.name,
+                          aggregated_rating_count, rating, rating_count, slug, status, category, total_rating, 
+                          total_rating_count, storyline;"""
+        
+        query_filter = f'search "{game_name}";'
+        
         # Check if a platform_id was provided and is valid
         if platform_id and platform_id.isdigit():
-            query += f" where platforms = ({platform_id});"
-        else:
-            query += ";"
+            query_filter += f' where platforms = ({platform_id});'
 
-        query += " limit 10;"  # limit results
+        query_filter += " limit 10;"  # limit results
+        query = query_fields + query_filter
+        
         results = make_igdb_api_request('https://api.igdb.com/v4/games', query)
 
         if 'error' not in results:
