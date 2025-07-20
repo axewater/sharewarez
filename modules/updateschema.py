@@ -14,7 +14,7 @@ class DatabaseManager:
         # SQL commands to add new columns and tables
         add_columns_sql = f"""       
         ALTER TABLE global_settings
-        ADD COLUMN IF NOT EXISTS site_url VARCHAR(255) DEFAULT 'http://127.0.0.1:5001';
+        ADD COLUMN IF NOT EXISTS site_url VARCHAR(255) DEFAULT 'http://127.0.0.1:5006';
 
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS discord_bot_name VARCHAR(255);

@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.5.4
+# 🎮 SharewareZ v2.6.0
 
 ** ⚠️This is a BETA application⚠️ **
 
@@ -11,7 +11,7 @@ Invite your friends securely and share your favorite games!
 - ⚠️ For versions below 2.0: Database reset required
 - Run `app.py --force-setup` to recreate database and run setup wizard
 - ⚖️ SharewareZ promotes and encourages the legal use of software. We do not condone or support any unauthorized distribution or use of copyrighted material.
-- 📝 You must install version 2.5.2 before August 2025 or lose the ability to connect to IGDB for any lookups.
+- 📝 You must install version >2.5.2 before August 2025 or lose the ability to connect to IGDB for any lookups.
 
 ## ✨ Core Features
 
@@ -112,7 +112,7 @@ docker pull kapitanczarnobrod/sharewarez:latest
 ```
 
 ## 🔧 Additional Settings
-- 🌐 Default port: `5001` (configurable in `app.py` or in docker-compose.yml for docker)
+- 🌐 Default port: `5006` (configurable in `app.py` or in docker-compose.yml for docker)
 - 👥 Go the admin dashboard for further configuration
 
 ## 🔧 Supported platforms to play in browser 
