@@ -16,8 +16,9 @@ from modules.utils_gamenames import get_game_names_from_folder, get_game_names_f
 from modules.utils_scanning import process_game_with_fallback, process_game_updates, process_game_extras, is_scan_job_running
 
 
-def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remove_missing=False):
-    if is_scan_job_running():
+def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remove_missing=False, existing_job=None):
+    # Only check for running jobs if we're not restarting an existing job
+    if not existing_job and is_scan_job_running():
         print("A scan is already in progress. Please wait for it to complete.")
         return
         
@@ -39,30 +40,36 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
 
     print(f"Starting auto scan for games in folder: {folder_path} with scan mode: {scan_mode} and library UUID: {library_uuid} for platform: {library.platform.name}")
     
-    # Create initial scan job
-    scan_job_entry = ScanJob(
-        folders={folder_path: True},
-        content_type='Games',
-        status='Running',
-        is_enabled=True,
-        last_run=datetime.now(),
-        library_uuid=library_uuid,
-        error_message='',
-        total_folders=0,
-        folders_success=0,
-        folders_failed=0,
-        removed_count=0,
-        scan_folder=folder_path,
-        setting_remove=remove_missing,
-        setting_filefolder=(scan_mode == 'files')
-    )
-    
-    db.session.add(scan_job_entry)
-    try:
-        db.session.commit()
-    except SQLAlchemyError as e:
-        print(f"Database error when adding ScanJob: {str(e)}")
-        return  # cannot proceed without ScanJob
+    # Use existing job or create new one
+    if existing_job:
+        # Re-query the job to ensure it's bound to the current session
+        scan_job_entry = ScanJob.query.get(existing_job.id)
+        print(f"Using existing scan job: {scan_job_entry.id}")
+    else:
+        # Create initial scan job
+        scan_job_entry = ScanJob(
+            folders={folder_path: True},
+            content_type='Games',
+            status='Running',
+            is_enabled=True,
+            last_run=datetime.now(),
+            library_uuid=library_uuid,
+            error_message='',
+            total_folders=0,
+            folders_success=0,
+            folders_failed=0,
+            removed_count=0,
+            scan_folder=folder_path,
+            setting_remove=remove_missing,
+            setting_filefolder=(scan_mode == 'files')
+        )
+        
+        db.session.add(scan_job_entry)
+        try:
+            db.session.commit()
+        except SQLAlchemyError as e:
+            print(f"Database error when adding ScanJob: {str(e)}")
+            return  # cannot proceed without ScanJob
 
     # Check access perm
     if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
