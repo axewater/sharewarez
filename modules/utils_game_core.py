@@ -21,6 +21,8 @@ from modules.utils_igdb_api import make_igdb_api_request
 from modules.utils_discord import discord_webhook
 from modules.utils_scanning import log_unmatched_folder, delete_game_images
 from modules.utils_logging import log_system_event
+import threading
+import time
 
 # IGDB API mapping dictionaries for category, status, and player perspective
 category_mapping = {
@@ -112,6 +114,52 @@ def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_u
     return new_game
 
 
+
+def store_image_url_for_download(game_uuid, image_data, image_type='cover'):
+    """Store image URL in database for later async download."""
+    try:
+        # Get the image URL from IGDB API
+        if image_type == 'cover':
+            cover_query = f'fields url; where id={image_data};'
+            cover_response = make_igdb_api_request('https://api.igdb.com/v4/covers', cover_query)
+            if cover_response and 'error' not in cover_response:
+                download_url = cover_response[0].get('url')
+                if download_url and not download_url.startswith(('http://', 'https://')):
+                    download_url = 'https:' + download_url
+                download_url = download_url.replace('/t_thumb/', '/t_original/')
+            else:
+                print(f"Failed to retrieve URL for cover ID {image_data}.")
+                return
+        
+        elif image_type == 'screenshot':
+            screenshot_query = f'fields url; where id={image_data};'
+            response = make_igdb_api_request('https://api.igdb.com/v4/screenshots', screenshot_query)
+            if response and 'error' not in response:
+                download_url = response[0].get('url')
+                if download_url and not download_url.startswith(('http://', 'https://')):
+                    download_url = 'https:' + download_url
+                download_url = download_url.replace('/t_thumb/', '/t_original/')
+            else:
+                print(f"Failed to retrieve URL for screenshot ID {image_data}.")
+                return
+        
+        # Generate filename for when it gets downloaded
+        file_name = secure_filename(f"{game_uuid}_{image_type}_{image_data}.jpg")
+        
+        # Store image metadata with URL for later download
+        image = Image(
+            game_uuid=game_uuid,
+            image_type=image_type,
+            url=file_name,  # Local filename when downloaded
+            igdb_image_id=str(image_data),
+            download_url=download_url,
+            is_downloaded=False
+        )
+        db.session.add(image)
+        print(f"Stored {image_type} URL for game {game_uuid}: {download_url}")
+        
+    except Exception as e:
+        print(f"Error storing image URL for {image_type} {image_data}: {e}")
 
 def process_and_save_image(game_uuid, image_data, image_type='cover'):
     url = None
@@ -303,12 +351,11 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
                 new_game.video_urls = videos_comma_separated
             
             db.session.commit()
-            print(f"Processing images for game: {new_game.name}.")
+            print(f"Storing image URLs for game: {new_game.name} (downloads deferred).")
             if 'cover' in response_json[0]:
-                process_and_save_image(new_game.uuid, response_json[0]['cover'], 'cover')
-            db.session.commit()
+                store_image_url_for_download(new_game.uuid, response_json[0]['cover'], 'cover')
             for screenshot_id in response_json[0].get('screenshots', []):
-                process_and_save_image(new_game.uuid, screenshot_id, 'screenshot')
+                store_image_url_for_download(new_game.uuid, screenshot_id, 'screenshot')
             db.session.commit()
             try:
                 new_game.nfo_content = nfo_content
@@ -502,3 +549,122 @@ def delete_game(game_identifier):
         db.session.rollback()
         print(f'Error deleting game with UUID {game_uuid_str}: {e}')
         flash(f'Error deleting game: {e}', 'error')
+
+
+def download_pending_images(batch_size=10, delay_between_downloads=1, app=None):
+    """Download images that are queued but not yet downloaded."""
+    if app is None:
+        app = current_app._get_current_object()
+        
+    try:
+        with app.app_context():
+            # Get pending images
+            pending_images = Image.query.filter_by(is_downloaded=False).limit(batch_size).all()
+            
+            if not pending_images:
+                print("No pending images to download.")
+                return 0
+            
+            downloaded_count = 0
+            for image in pending_images:
+                try:
+                    if not image.download_url:
+                        print(f"No download URL for image {image.id}, skipping.")
+                        continue
+                    
+                    # Download the image
+                    save_path = os.path.join(app.config['IMAGE_SAVE_PATH'], image.url)
+                    
+                    from modules.utils_functions import download_image
+                    download_image(image.download_url, save_path)
+                    
+                    # Mark as downloaded
+                    image.is_downloaded = True
+                    downloaded_count += 1
+                    
+                    print(f"Downloaded {image.image_type} for game {image.game_uuid}: {image.url}")
+                    
+                    # Small delay to avoid overwhelming the server
+                    if delay_between_downloads > 0:
+                        time.sleep(delay_between_downloads)
+                        
+                except Exception as e:
+                    print(f"Error downloading image {image.id}: {e}")
+                    continue
+            
+            # Commit all changes
+            db.session.commit()
+            print(f"Downloaded {downloaded_count} images.")
+            return downloaded_count
+            
+    except Exception as e:
+        print(f"Error in batch image download: {e}")
+        try:
+            db.session.rollback()
+        except:
+            pass
+        return 0
+
+
+def start_background_image_downloader(interval_seconds=60):
+    """Start a background thread that periodically downloads pending images."""
+    # Capture the current app instance
+    app = current_app._get_current_object()
+    
+    def background_worker():
+        while True:
+            try:
+                download_pending_images(batch_size=20, delay_between_downloads=0.5, app=app)
+                time.sleep(interval_seconds)
+            except Exception as e:
+                print(f"Background image downloader error: {e}")
+                time.sleep(interval_seconds)
+    
+    thread = threading.Thread(target=background_worker, daemon=True)
+    thread.start()
+    print(f"Background image downloader started (interval: {interval_seconds}s)")
+    return thread
+
+
+def download_images_for_game(game_uuid, app=None):
+    """Download all pending images for a specific game immediately."""
+    if app is None:
+        app = current_app._get_current_object()
+        
+    try:
+        with app.app_context():
+            pending_images = Image.query.filter_by(game_uuid=game_uuid, is_downloaded=False).all()
+            
+            if not pending_images:
+                print(f"No pending images for game {game_uuid}.")
+                return 0
+            
+            downloaded_count = 0
+            for image in pending_images:
+                try:
+                    if not image.download_url:
+                        continue
+                    
+                    save_path = os.path.join(app.config['IMAGE_SAVE_PATH'], image.url)
+                    
+                    from modules.utils_functions import download_image
+                    download_image(image.download_url, save_path)
+                    
+                    image.is_downloaded = True
+                    downloaded_count += 1
+                    
+                except Exception as e:
+                    print(f"Error downloading image {image.id}: {e}")
+                    continue
+            
+            db.session.commit()
+            print(f"Downloaded {downloaded_count} images for game {game_uuid}.")
+            return downloaded_count
+            
+    except Exception as e:
+        print(f"Error downloading images for game {game_uuid}: {e}")
+        try:
+            db.session.rollback()
+        except:
+            pass
+        return 0

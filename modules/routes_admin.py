@@ -7,7 +7,7 @@ from modules.utils_processors import get_global_settings
 from modules import app_version
 from config import Config
 from modules.utils_igdb_api import make_igdb_api_request
-from modules.models import Whitelist, User, Newsletter, GlobalSettings
+from modules.models import Whitelist, User, Newsletter, GlobalSettings, Image, Game
 from modules import db, mail, cache
 from modules.forms import WhitelistForm, NewsletterForm
 from sqlalchemy.exc import IntegrityError
@@ -344,3 +344,251 @@ def test_igdb():
             return jsonify({'status': 'error', 'message': 'Invalid API response'}), 500
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin_bp.route('/admin/image_queue')
+@login_required
+@admin_required
+def image_queue():
+    """Display the image queue management interface."""
+    return render_template('admin/admin_manage_image_queue.html')
+
+
+@admin_bp.route('/admin/api/image_queue_stats')
+@login_required
+@admin_required
+def image_queue_stats():
+    """Get statistics about the image queue."""
+    try:
+        total_images = Image.query.count()
+        pending_images = Image.query.filter_by(is_downloaded=False).count()
+        downloaded_images = Image.query.filter_by(is_downloaded=True).count()
+        
+        # Get breakdown by image type
+        pending_covers = Image.query.filter_by(is_downloaded=False, image_type='cover').count()
+        pending_screenshots = Image.query.filter_by(is_downloaded=False, image_type='screenshot').count()
+        
+        # Get recent activity
+        recent_downloads = Image.query.filter_by(is_downloaded=True).order_by(Image.created_at.desc()).limit(10).all()
+        
+        stats = {
+            'total_images': total_images,
+            'pending_images': pending_images,
+            'downloaded_images': downloaded_images,
+            'pending_covers': pending_covers,
+            'pending_screenshots': pending_screenshots,
+            'download_percentage': round((downloaded_images / total_images * 100) if total_images > 0 else 0, 1),
+            'recent_downloads': [
+                {
+                    'id': img.id,
+                    'game_name': img.game.name if img.game else 'Unknown',
+                    'image_type': img.image_type,
+                    'created_at': img.created_at.strftime('%Y-%m-%d %H:%M:%S')
+                } for img in recent_downloads
+            ]
+        }
+        
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/image_queue_list')
+@login_required
+@admin_required
+def image_queue_list():
+    """Get paginated list of images in queue."""
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    status_filter = request.args.get('status', 'all')  # all, pending, downloaded
+    type_filter = request.args.get('type', 'all')  # all, cover, screenshot
+    
+    query = Image.query.join(Game)
+    
+    # Apply filters
+    if status_filter == 'pending':
+        query = query.filter(Image.is_downloaded == False)
+    elif status_filter == 'downloaded':
+        query = query.filter(Image.is_downloaded == True)
+    
+    if type_filter != 'all':
+        query = query.filter(Image.image_type == type_filter)
+    
+    # Order by creation date, pending first
+    query = query.order_by(Image.is_downloaded.asc(), Image.created_at.desc())
+    
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    images = pagination.items
+    
+    image_list = []
+    for img in images:
+        image_list.append({
+            'id': img.id,
+            'game_uuid': img.game_uuid,
+            'game_name': img.game.name if img.game else 'Unknown',
+            'image_type': img.image_type,
+            'download_url': img.download_url,
+            'is_downloaded': img.is_downloaded,
+            'created_at': img.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'local_url': img.url if img.is_downloaded else None
+        })
+    
+    return jsonify({
+        'images': image_list,
+        'pagination': {
+            'page': page,
+            'pages': pagination.pages,
+            'per_page': per_page,
+            'total': pagination.total,
+            'has_next': pagination.has_next,
+            'has_prev': pagination.has_prev
+        }
+    })
+
+
+@admin_bp.route('/admin/api/download_images', methods=['POST'])
+@login_required
+@admin_required
+def download_images():
+    """Trigger download of specific images or batch download."""
+    data = request.json
+    
+    try:
+        if 'image_ids' in data:
+            # Download specific images
+            from modules.utils_game_core import download_pending_images
+            image_ids = data['image_ids']
+            
+            # Update the download function to accept specific IDs
+            downloaded = 0
+            for image_id in image_ids:
+                image = Image.query.get(image_id)
+                if image and not image.is_downloaded and image.download_url:
+                    try:
+                        import os
+                        from modules.utils_functions import download_image
+                        save_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], image.url)
+                        download_image(image.download_url, save_path)
+                        image.is_downloaded = True
+                        downloaded += 1
+                    except Exception as e:
+                        print(f"Failed to download image {image_id}: {e}")
+            
+            db.session.commit()
+            return jsonify({
+                'success': True, 
+                'downloaded': downloaded,
+                'message': f'Downloaded {downloaded} images'
+            })
+            
+        elif 'batch_size' in data:
+            # Batch download
+            from modules.utils_game_core import download_pending_images
+            batch_size = data.get('batch_size', 10)
+            downloaded = download_pending_images(batch_size=batch_size, delay_between_downloads=0.1, app=current_app)
+            
+            return jsonify({
+                'success': True,
+                'downloaded': downloaded,
+                'message': f'Downloaded {downloaded} images'
+            })
+        
+        else:
+            return jsonify({'success': False, 'message': 'No valid parameters provided'}), 400
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/delete_image/<int:image_id>', methods=['DELETE'])
+@login_required
+@admin_required
+def delete_image(image_id):
+    """Delete a specific image from queue."""
+    try:
+        image = Image.query.get_or_404(image_id)
+        
+        # Delete file if it exists
+        if image.is_downloaded and image.url:
+            import os
+            file_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], image.url)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        
+        db.session.delete(image)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Image deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/retry_failed_images', methods=['POST'])
+@login_required
+@admin_required
+def retry_failed_images():
+    """Retry downloading images that failed."""
+    try:
+        # Find images that should be downloaded but aren't
+        failed_images = Image.query.filter_by(is_downloaded=False).filter(Image.download_url.isnot(None)).all()
+        
+        retried = 0
+        for image in failed_images:
+            try:
+                import os
+                from modules.utils_functions import download_image
+                save_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], image.url)
+                download_image(image.download_url, save_path)
+                image.is_downloaded = True
+                retried += 1
+            except Exception as e:
+                print(f"Retry failed for image {image.id}: {e}")
+                continue
+        
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'retried': retried,
+            'message': f'Retried {retried} failed images'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/clear_downloaded_queue', methods=['POST'])
+@login_required
+@admin_required
+def clear_downloaded_queue():
+    """Remove all downloaded images from the queue view."""
+    try:
+        downloaded_count = Image.query.filter_by(is_downloaded=True).count()
+        # Note: We don't actually delete them, just for display purposes
+        # If you want to actually delete downloaded records, uncomment below:
+        # Image.query.filter_by(is_downloaded=True).delete()
+        # db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'{downloaded_count} downloaded images cleared from view'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@admin_bp.route('/admin/api/start_background_downloader', methods=['POST'])
+@login_required
+@admin_required
+def start_background_downloader():
+    """Start the background image downloader."""
+    try:
+        from modules.utils_game_core import start_background_image_downloader
+        thread = start_background_image_downloader(interval_seconds=60)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Background image downloader started successfully'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
