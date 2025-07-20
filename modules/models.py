@@ -124,12 +124,6 @@ class Status(PyEnum):
     OFFLINE = "Offline"
     CANCELLED = "Cancelled"
     
-    
-class PlayerPerspective(PyEnum):
-    FIRST_PERSON = "First Person"
-    THIRD_PERSON = "Third Person"
-    FIRST_THIRD = "First Person/Third Person"
-
 user_favorites = db.Table('user_favorites',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
     db.Column('game_uuid', db.String(36), db.ForeignKey('games.uuid'), primary_key=True),
