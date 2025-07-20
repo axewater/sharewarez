@@ -53,13 +53,15 @@ def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_u
     existing_unmatched_folder = UnmatchedFolder.query.filter_by(folder_path=full_disk_path).first()
     if existing_unmatched_folder:
         print(f"Skipping processing for already logged unmatched folder: {full_disk_path}")
+        # Update total count to maintain consistency even when skipping
+        scan_job.folders_failed += 1
         return False
 
     # Check if the game already exists in the database
     existing_game = Game.query.filter_by(full_disk_path=full_disk_path, library_uuid=library_uuid).first()
     if existing_game:
         print(f"Game already exists in database: {game_name} at {full_disk_path}")
-        scan_job.folders_success += 1
+        # Don't increment success counter for existing games to avoid inflated counts during rescans
         return True 
 
     print(f'Game does not exist in database: {game_name} at {full_disk_path}')
