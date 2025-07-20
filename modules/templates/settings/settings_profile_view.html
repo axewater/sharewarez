@@ -9,17 +9,6 @@
 {% endif %}
 
 <div class="container my-4">
-    <div class="mb-3">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="alert alert-info" role="alert">
-                {% for message in messages %}
-                    {{ message }}<br>
-                {% endfor %}
-            </div>
-        {% endif %}
-        {% endwith %}
-    </div>
 
     <div class="content-restricted-textblock">
         <h2><i class="fas fa-user-circle me-2"></i>User Profile</h2>

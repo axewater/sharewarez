@@ -35,6 +35,12 @@
 		<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/site/sidebar.css') }}">
 	{% endif %}
     
+	{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/components.css') == True %}
+		<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/components.css') }}">
+	{% else %}
+		<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/components.css') }}">
+	{% endif %}
+    
     {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/preferences_modal.js') %}
         <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/preferences_modal.js') }}"></script>
     {% else %}
@@ -112,6 +118,7 @@
     
 </div>
 <div id="content">
+    {% include 'partials/flash_messages.html' %}
     {% block content %}{% endblock %}
 </div>
 
@@ -202,6 +209,7 @@
 </script>
 
 <!-- Add this near the end of base.html -->
+{% include 'partials/delete_game_modal.html' %}
 <div id="preferencesModalContainer"></div>
 
 <script>

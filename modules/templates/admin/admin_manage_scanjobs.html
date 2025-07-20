@@ -19,18 +19,6 @@
 <meta name="active-tab" content="{{ active_tab }}">
 <meta name="selected-library-uuid" content="{{ selected_library_uuid }}">
 
-<div class="content-flash">
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <div class="alert alert-info" role="alert">
-            {% for message in messages %}
-                {{ message }}<br>
-            {% endfor %}
-        </div>
-    {% endif %}
-    {% endwith %}
-</div>
-
 <!-- Back to Dashboard Button -->
 <div class="container">
     <div class="glass-panel">
