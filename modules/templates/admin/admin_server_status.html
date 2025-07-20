@@ -158,6 +158,7 @@
 
 <!-- Add Chart.js library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='library/themes/default/js/chart-utils.js') }}"></script>
 
 <!-- Add our server status JavaScript -->
 {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin/server_status.js') == True %}

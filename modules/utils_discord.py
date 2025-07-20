@@ -4,7 +4,6 @@ from modules.models import GlobalSettings, Library, Game, GameURL, db
 import os
 import time
 from datetime import datetime
-from modules.utils_game_core import get_game_by_uuid
 from modules.utils_igdb_api import get_cover_url
 from modules.utils_functions import format_size
 
@@ -42,7 +41,7 @@ def discord_webhook(game_uuid):
         return
 
     # Retrieve the game by UUID
-    new_game = get_game_by_uuid(game_uuid)
+    new_game = Game.query.filter_by(uuid=game_uuid).first()
     if not new_game:
         print(f"Discord notifications: Game with UUID '{game_uuid}' could not be found. Exiting.")
         return
@@ -109,9 +108,10 @@ def get_game_name_by_uuid(uuid):
         return None
         
 def update_game_size(game_uuid, size):
-    game = get_game_by_uuid(game_uuid)
-    game.size = size
-    db.session.commit()
+    game = Game.query.filter_by(uuid=game_uuid).first()
+    if game:
+        game.size = size
+        db.session.commit()
     return None
 
 
