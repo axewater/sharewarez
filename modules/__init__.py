@@ -69,7 +69,7 @@ def create_app():
         from modules.routes_settings import settings_bp
         from modules.routes_login import login_bp
         from modules.routes_discover import discover_bp
-        from modules.routes_downloads import download_bp
+        from modules.routes_downloads_ext import download_bp
         from modules.routes_games import games_bp
         from modules.routes_smtp import smtp_bp
         from modules.routes_info import info_bp
