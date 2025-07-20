@@ -252,6 +252,10 @@ def manage_settings():
         settings_record.enable_game_extras = new_settings.get('enableGameExtras', False)
         settings_record.extras_folder_name = new_settings.get('extrasFolderName', 'extras')
         settings_record.site_url = new_settings.get('siteUrl', 'http://127.0.0.1')
+        # Image Download Settings  
+        settings_record.use_turbo_image_downloads = new_settings.get('useTurboImageDownloads', True)
+        settings_record.turbo_download_threads = new_settings.get('turboDownloadThreads', 8)
+        settings_record.turbo_download_batch_size = new_settings.get('turboDownloadBatchSize', 200)
         
         # Update the settings JSON field
         settings_record.settings = new_settings
