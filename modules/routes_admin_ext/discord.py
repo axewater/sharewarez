@@ -6,6 +6,12 @@ from modules import db
 from modules.discord_handler import DiscordWebhookHandler
 from . import admin2_bp
 
+@admin2_bp.route('/admin/discord_help')
+@login_required
+@admin_required
+def discord_help():
+    return render_template('admin/admin_manage_discord_readme.html')
+
 @admin2_bp.route('/admin/discord_settings', methods=['GET', 'POST'])
 @login_required
 @admin_required

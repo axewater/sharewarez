@@ -64,7 +64,6 @@ def create_app():
         from modules.utils_logging import log_system_event
         from . import routes, models
         from modules.routes_site import site_bp
-        from modules.routes_admin import admin_bp
         from modules.routes_library import library_bp
         from modules.routes_setup import setup_bp
         from modules.routes_settings import settings_bp
@@ -99,7 +98,6 @@ def create_app():
         initialize_allowed_file_types()
     app.register_blueprint(routes.bp)
     app.register_blueprint(site_bp)
-    app.register_blueprint(admin_bp)
     app.register_blueprint(admin2_bp)
     app.register_blueprint(library_bp)
     app.register_blueprint(setup_bp)
