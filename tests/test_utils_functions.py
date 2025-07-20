@@ -445,3 +445,188 @@ class TestDeleteAssociationsForGame:
         mock_game.themes.clear.assert_called_once()
         mock_game.player_perspectives.clear.assert_called_once()
         mock_game.multiplayer_modes.clear.assert_called_once()
+
+
+class TestGetFolderSizeErrorHandling:
+    """Test error handling in folder size calculation functions."""
+    
+    @patch('modules.utils_functions.os.walk')
+    @patch('modules.utils_functions.os.path.exists')
+    def test_get_folder_size_with_permission_error(self, mock_exists, mock_walk):
+        """Test folder size calculation with permission error."""
+        mock_exists.return_value = True
+        mock_walk.side_effect = PermissionError("Permission denied")
+        
+        # Should not raise exception, return 0 for errors
+        result = get_folder_size_in_bytes("/restricted/path")
+        assert result == 0
+    
+    @patch('modules.utils_functions.os.path.exists')
+    def test_get_folder_size_nonexistent_path(self, mock_exists):
+        """Test folder size calculation with nonexistent path."""
+        mock_exists.return_value = False
+        
+        result = get_folder_size_in_bytes("/nonexistent/path")
+        assert result == 0
+    
+    @patch('modules.utils_functions.os.walk')
+    @patch('modules.utils_functions.os.path.exists')
+    @patch('modules.utils_functions.os.access')
+    def test_get_folder_size_with_inaccessible_subdirs(self, mock_access, mock_exists, mock_walk):
+        """Test folder size calculation with inaccessible subdirectories."""
+        mock_exists.return_value = True
+        mock_access.side_effect = lambda path, mode: '/restricted' not in path
+        
+        # Mock os.walk to return some directories, including restricted ones
+        mock_walk.return_value = [
+            ('/test', ['subdir'], ['file1.txt']),
+            ('/test/restricted', [], ['file2.txt']),
+            ('/test/subdir', [], ['file3.txt'])
+        ]
+        
+        with patch('modules.utils_functions.os.path.getsize', return_value=100):
+            with patch('modules.utils_functions.os.path.islink', return_value=False):
+                with patch('modules.utils_functions.os.path.join', side_effect=lambda a, b: f"{a}/{b}"):
+                    result = get_folder_size_in_bytes("/test")
+                    # Should skip restricted directories but process accessible ones
+                    assert result > 0
+
+
+class TestGetFolderSizeUpdatesErrorHandling:
+    """Test error handling in get_folder_size_in_bytes_updates function."""
+    
+    @patch('modules.utils_functions.GlobalSettings')
+    @patch('modules.utils_functions.os.path.exists')
+    @patch('modules.utils_functions.os.access')
+    def test_get_folder_size_updates_no_permissions(self, mock_access, mock_exists, mock_settings):
+        """Test folder size calculation with no read permissions."""
+        mock_exists.return_value = True
+        mock_access.return_value = False
+        mock_settings.query.first.return_value = None
+        
+        result = get_folder_size_in_bytes_updates("/restricted/path")
+        assert result == 0
+    
+    @patch('modules.utils_functions.GlobalSettings')
+    @patch('modules.utils_functions.os.walk')
+    @patch('modules.utils_functions.os.path.exists')
+    @patch('modules.utils_functions.os.access')
+    def test_get_folder_size_updates_with_exclusions(self, mock_access, mock_exists, mock_walk, mock_settings):
+        """Test folder size calculation with update/extras exclusions."""
+        mock_exists.return_value = True
+        mock_access.return_value = True
+        
+        mock_settings_instance = Mock()
+        mock_settings_instance.update_folder_name = "Updates"
+        mock_settings_instance.extras_folder_name = "Extras"
+        mock_settings.query.first.return_value = mock_settings_instance
+        
+        # Mock directory structure with updates/extras folders
+        mock_walk.return_value = [
+            ('/game', ['Updates', 'Extras'], ['game.exe']),
+            ('/game/Updates', [], ['update1.patch']),
+            ('/game/Extras', [], ['soundtrack.mp3'])
+        ]
+        
+        with patch('modules.utils_functions.os.path.getsize', return_value=100):
+            with patch('modules.utils_functions.os.path.islink', return_value=False):
+                with patch('modules.utils_functions.os.path.join', side_effect=lambda a, b: f"{a}/{b}"):
+                    result = get_folder_size_in_bytes_updates("/game")
+                    # Should exclude Updates and Extras folders
+                    assert result == max(100, 1)  # Only game.exe counted
+
+
+class TestReadFirstNfoContentErrorHandling:
+    """Test error handling in read_first_nfo_content function."""
+    
+    @patch('modules.utils_functions.os.path.isfile')
+    def test_read_first_nfo_content_file_path(self, mock_isfile):
+        """Test NFO reading when path is a file."""
+        mock_isfile.return_value = True
+        
+        result = read_first_nfo_content("/path/to/file.exe")
+        assert result is None
+    
+    @patch('modules.utils_functions.os.walk')
+    @patch('modules.utils_functions.os.path.isfile')
+    def test_read_first_nfo_content_no_nfo_files(self, mock_isfile, mock_walk):
+        """Test NFO reading when no NFO files exist."""
+        mock_isfile.return_value = False
+        mock_walk.return_value = [
+            ('/game', [], ['game.exe', 'readme.txt'])
+        ]
+        
+        result = read_first_nfo_content("/game")
+        assert result is None
+    
+    @patch('modules.utils_functions.os.walk')
+    @patch('modules.utils_functions.os.path.isfile')
+    @patch('builtins.open', side_effect=PermissionError("Permission denied"))
+    def test_read_first_nfo_content_permission_error(self, mock_open, mock_isfile, mock_walk):
+        """Test NFO reading with permission error."""
+        mock_isfile.return_value = False
+        mock_walk.return_value = [
+            ('/game', [], ['game.nfo'])
+        ]
+        
+        result = read_first_nfo_content("/game")
+        assert result is None
+
+
+class TestDownloadImageErrorHandling:
+    """Test error handling in download_image function."""
+    
+    @patch('modules.utils_functions.requests.get')
+    def test_download_image_http_error(self, mock_get):
+        """Test image download with HTTP error."""
+        mock_response = Mock()
+        mock_response.status_code = 404
+        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("Not Found")
+        mock_get.return_value = mock_response
+        
+        result = download_image("http://example.com/notfound.jpg", "/tmp/test.jpg")
+        assert result is None
+    
+    @patch('modules.utils_functions.requests.get')
+    def test_download_image_connection_error(self, mock_get):
+        """Test image download with connection error."""
+        mock_get.side_effect = requests.exceptions.ConnectionError("Network error")
+        
+        result = download_image("http://example.com/image.jpg", "/tmp/test.jpg")
+        assert result is None
+    
+    @patch('modules.utils_functions.requests.get')
+    @patch('builtins.open', side_effect=PermissionError("Permission denied"))
+    def test_download_image_file_write_error(self, mock_open, mock_get):
+        """Test image download with file write error."""
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.content = b"fake image data"
+        mock_get.return_value = mock_response
+        
+        result = download_image("http://example.com/image.jpg", "/restricted/test.jpg")
+        assert result is None
+
+
+class TestFormatSizeEdgeCases:
+    """Test edge cases in format_size function."""
+    
+    def test_format_size_zero(self):
+        """Test formatting zero size."""
+        result = format_size(0)
+        assert "0" in result
+    
+    def test_format_size_negative(self):
+        """Test formatting negative size."""
+        result = format_size(-100)
+        assert "-" in result
+    
+    def test_format_size_very_large(self):
+        """Test formatting very large sizes."""
+        # Test TB range
+        result = format_size(1024**4)  # 1 TB
+        assert "TB" in result
+        
+        # Test PB range  
+        result = format_size(1024**5)  # 1 PB
+        assert "PB" in result

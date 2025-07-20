@@ -8,7 +8,9 @@ from modules.utils_game_core import (
     create_game_instance, store_image_url_for_download, 
     check_existing_game_by_path, check_existing_game_by_igdb_id,
     enumerate_companies, fetch_and_store_game_urls,
-    download_pending_images, category_mapping, status_mapping
+    download_pending_images, category_mapping, status_mapping,
+    retrieve_and_save_game, get_game_by_uuid, remove_from_lib,
+    delete_game, process_and_save_image, smart_process_images_for_game
 )
 
 
@@ -345,3 +347,300 @@ class TestGameInstanceMappings:
         assert status_mapping.get(1) is not None  # Released
         assert status_mapping.get(2) is not None  # Alpha
         assert status_mapping.get(3) is not None  # Beta
+
+
+class TestRetrieveAndSaveGame:
+    """Test the retrieve_and_save_game function."""
+    
+    @patch('modules.utils_game_core.get_folder_size_in_bytes_updates')
+    @patch('modules.utils_game_core.make_igdb_api_request')
+    @patch('modules.utils_game_core.create_game_instance')
+    @patch('modules.utils_game_core.log_unmatched_folder')
+    def test_retrieve_and_save_game_success(self, mock_log_unmatched, mock_create_game, mock_api, mock_size):
+        """Test successful game retrieval and saving."""
+        # Setup
+        mock_api.return_value = [{'id': 123, 'name': 'Test Game'}]
+        mock_create_game.return_value = Mock()
+        mock_size.return_value = 1024
+        
+        # Execute
+        result = retrieve_and_save_game("Test Game", "/path/to/game", library_uuid="lib-uuid")
+        
+        # Verify
+        assert result is not None
+        mock_api.assert_called_once()
+        mock_create_game.assert_called_once()
+        mock_log_unmatched.assert_not_called()
+    
+    @patch('modules.utils_game_core.get_folder_size_in_bytes_updates')
+    @patch('modules.utils_game_core.make_igdb_api_request')
+    @patch('modules.utils_game_core.log_unmatched_folder')
+    def test_retrieve_and_save_game_no_results(self, mock_log_unmatched, mock_api, mock_size):
+        """Test game retrieval with no API results."""
+        # Setup
+        mock_api.return_value = []
+        mock_size.return_value = 1024
+        
+        # Execute
+        result = retrieve_and_save_game("Unknown Game", "/path/to/game")
+        
+        # Verify
+        assert result is None
+        mock_log_unmatched.assert_called_once()
+    
+    @patch('modules.utils_game_core.get_folder_size_in_bytes_updates')
+    @patch('modules.utils_game_core.make_igdb_api_request')
+    @patch('modules.utils_game_core.log_unmatched_folder')
+    def test_retrieve_and_save_game_api_error(self, mock_log_unmatched, mock_api, mock_size):
+        """Test game retrieval with API error."""
+        # Setup
+        mock_api.side_effect = Exception("API Error")
+        mock_size.return_value = 1024
+        
+        # Execute
+        result = retrieve_and_save_game("Test Game", "/path/to/game")
+        
+        # Verify
+        assert result is None
+        mock_log_unmatched.assert_called_once()
+
+
+class TestGetGameByUuid:
+    """Test the get_game_by_uuid function."""
+    
+    @patch('modules.utils_game_core.Game')
+    def test_get_game_by_uuid_found(self, mock_game):
+        """Test successful game retrieval by UUID."""
+        # Setup
+        mock_game_instance = Mock()
+        mock_game.query.filter_by.return_value.first.return_value = mock_game_instance
+        
+        # Execute
+        result = get_game_by_uuid("test-uuid")
+        
+        # Verify
+        assert result == mock_game_instance
+        mock_game.query.filter_by.assert_called_once_with(uuid="test-uuid")
+    
+    @patch('modules.utils_game_core.Game')
+    def test_get_game_by_uuid_not_found(self, mock_game):
+        """Test game retrieval by UUID when not found."""
+        # Setup
+        mock_game.query.filter_by.return_value.first.return_value = None
+        
+        # Execute
+        result = get_game_by_uuid("nonexistent-uuid")
+        
+        # Verify
+        assert result is None
+
+
+class TestRemoveFromLib:
+    """Test the remove_from_lib function."""
+    
+    @patch('modules.utils_game_core.log_system_event')
+    @patch('modules.utils_game_core.delete_associations_for_game')
+    @patch('modules.utils_game_core.delete_game_images')
+    @patch('modules.utils_game_core.db')
+    @patch('modules.utils_game_core.Game')
+    def test_remove_from_lib_success(self, mock_game, mock_db, mock_delete_images, mock_delete_assoc, mock_log):
+        """Test successful game removal from library."""
+        # Setup
+        mock_game_instance = Mock()
+        mock_game.query.filter_by.return_value.first.return_value = mock_game_instance
+        
+        # Execute
+        result = remove_from_lib("test-uuid")
+        
+        # Verify
+        assert result is True
+        mock_delete_assoc.assert_called_once_with(mock_game_instance)
+        mock_delete_images.assert_called_once_with("test-uuid")
+        mock_db.session.delete.assert_called_once_with(mock_game_instance)
+        mock_db.session.commit.assert_called_once()
+    
+    @patch('modules.utils_game_core.Game')
+    def test_remove_from_lib_not_found(self, mock_game):
+        """Test game removal when game not found."""
+        # Setup
+        mock_game.query.filter_by.return_value.first.return_value = None
+        
+        # Execute
+        result = remove_from_lib("nonexistent-uuid")
+        
+        # Verify
+        assert result is False
+
+
+class TestDeleteGame:
+    """Test the delete_game function."""
+    
+    @patch('modules.utils_game_core.remove_from_lib')
+    @patch('modules.utils_game_core.get_game_by_uuid')
+    def test_delete_game_by_uuid_success(self, mock_get_game, mock_remove):
+        """Test successful game deletion by UUID."""
+        # Setup
+        mock_game = Mock()
+        mock_game.uuid = "test-uuid"
+        mock_get_game.return_value = mock_game
+        mock_remove.return_value = True
+        
+        # Execute
+        result = delete_game("test-uuid")
+        
+        # Verify
+        assert result is True
+        mock_remove.assert_called_once_with("test-uuid")
+    
+    @patch('modules.utils_game_core.remove_from_lib')
+    @patch('modules.utils_game_core.Game')
+    def test_delete_game_by_id_success(self, mock_game_class, mock_remove):
+        """Test successful game deletion by ID."""
+        # Setup
+        mock_game = Mock()
+        mock_game.uuid = "test-uuid"
+        mock_game_class.query.filter_by.return_value.first.return_value = mock_game
+        mock_remove.return_value = True
+        
+        # Execute
+        result = delete_game(123)
+        
+        # Verify
+        assert result is True
+        mock_remove.assert_called_once_with("test-uuid")
+    
+    @patch('modules.utils_game_core.get_game_by_uuid')
+    def test_delete_game_not_found(self, mock_get_game):
+        """Test game deletion when game not found."""
+        # Setup
+        mock_get_game.return_value = None
+        
+        # Execute
+        result = delete_game("nonexistent-uuid")
+        
+        # Verify
+        assert result is False
+
+
+class TestProcessAndSaveImage:
+    """Test the process_and_save_image function."""
+    
+    @patch('modules.utils_game_core.download_image')
+    @patch('modules.utils_game_core.db')
+    @patch('modules.utils_game_core.Image')
+    @patch('modules.utils_game_core.secure_filename')
+    @patch('modules.utils_game_core.current_app')
+    def test_process_and_save_image_success(self, mock_app, mock_secure, mock_image_class, mock_db, mock_download):
+        """Test successful image processing and saving."""
+        # Setup
+        mock_app.config = {'UPLOAD_FOLDER': '/test/upload'}
+        mock_secure.return_value = "safe_filename.jpg"
+        mock_download.return_value = True
+        mock_image_instance = Mock()
+        mock_image_class.return_value = mock_image_instance
+        
+        image_data = {
+            'id': 123,
+            'url': 'https://example.com/image.jpg',
+            'width': 1920,
+            'height': 1080
+        }
+        
+        # Execute
+        result = process_and_save_image("test-uuid", image_data, "cover")
+        
+        # Verify
+        assert result is True
+        mock_download.assert_called_once()
+        mock_db.session.add.assert_called_once_with(mock_image_instance)
+        mock_db.session.commit.assert_called_once()
+    
+    @patch('modules.utils_game_core.download_image')
+    @patch('modules.utils_game_core.current_app')
+    def test_process_and_save_image_download_fails(self, mock_app, mock_download):
+        """Test image processing when download fails."""
+        # Setup
+        mock_app.config = {'UPLOAD_FOLDER': '/test/upload'}
+        mock_download.return_value = False
+        
+        image_data = {
+            'id': 123,
+            'url': 'https://example.com/image.jpg'
+        }
+        
+        # Execute
+        result = process_and_save_image("test-uuid", image_data, "cover")
+        
+        # Verify
+        assert result is False
+
+
+class TestSmartProcessImagesForGame:
+    """Test the smart_process_images_for_game function."""
+    
+    @patch('modules.utils_game_core.process_and_save_image')
+    @patch('modules.utils_game_core.current_app')
+    def test_smart_process_images_cover_only(self, mock_app, mock_process):
+        """Test smart image processing with cover only."""
+        # Setup
+        mock_app._get_current_object.return_value = mock_app
+        mock_process.return_value = True
+        cover_data = [{'id': 123, 'url': 'https://example.com/cover.jpg'}]
+        
+        # Execute
+        result = smart_process_images_for_game("test-uuid", cover_data=cover_data, app=mock_app)
+        
+        # Verify
+        assert result is True
+        mock_process.assert_called_once()
+    
+    @patch('modules.utils_game_core.process_and_save_image')
+    @patch('modules.utils_game_core.current_app')
+    def test_smart_process_images_screenshots_only(self, mock_app, mock_process):
+        """Test smart image processing with screenshots only."""
+        # Setup
+        mock_app._get_current_object.return_value = mock_app
+        mock_process.return_value = True
+        screenshots_data = [
+            {'id': 124, 'url': 'https://example.com/screen1.jpg'},
+            {'id': 125, 'url': 'https://example.com/screen2.jpg'}
+        ]
+        
+        # Execute
+        result = smart_process_images_for_game("test-uuid", screenshots_data=screenshots_data, app=mock_app)
+        
+        # Verify
+        assert result is True
+        assert mock_process.call_count == 2
+    
+    @patch('modules.utils_game_core.process_and_save_image')
+    @patch('modules.utils_game_core.current_app')
+    def test_smart_process_images_both(self, mock_app, mock_process):
+        """Test smart image processing with both cover and screenshots."""
+        # Setup
+        mock_app._get_current_object.return_value = mock_app
+        mock_process.return_value = True
+        cover_data = [{'id': 123, 'url': 'https://example.com/cover.jpg'}]
+        screenshots_data = [{'id': 124, 'url': 'https://example.com/screen1.jpg'}]
+        
+        # Execute
+        result = smart_process_images_for_game("test-uuid", 
+                                             cover_data=cover_data, 
+                                             screenshots_data=screenshots_data,
+                                             app=mock_app)
+        
+        # Verify
+        assert result is True
+        assert mock_process.call_count == 2
+    
+    @patch('modules.utils_game_core.current_app')
+    def test_smart_process_images_no_data(self, mock_app):
+        """Test smart image processing with no image data."""
+        # Setup
+        mock_app._get_current_object.return_value = mock_app
+        
+        # Execute
+        result = smart_process_images_for_game("test-uuid", app=mock_app)
+        
+        # Verify
+        assert result is False
