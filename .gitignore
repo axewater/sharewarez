@@ -22,3 +22,5 @@ modules/static/library/images
 /.github
 /modules/static/library/zips/
 CLAUDE.md
+/.claude/*
+.claude/settings.local.json
