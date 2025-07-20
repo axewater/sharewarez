@@ -9,14 +9,6 @@ from modules.utils_logging import log_system_event
 
 setup_bp = Blueprint('setup', __name__)
 
-@setup_bp.context_processor
-def inject_current_theme():
-    if current_user.is_authenticated and current_user.preferences:
-        current_theme = current_user.preferences.theme or 'default'
-    else:
-        current_theme = 'default'
-    return dict(current_theme=current_theme)
-
 @setup_bp.route('/setup', methods=['GET'])
 def setup():    
     # Clear any existing session data when starting setup

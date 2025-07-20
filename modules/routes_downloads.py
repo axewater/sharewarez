@@ -27,14 +27,6 @@ def inject_settings():
     return get_global_settings()
 
 
-@download_bp.context_processor
-def inject_current_theme():
-    if current_user.is_authenticated and current_user.preferences:
-        current_theme = current_user.preferences.theme or 'default'
-    else:
-        current_theme = 'default'
-    return dict(current_theme=current_theme)
-
 @download_bp.route('/downloads')
 @login_required
 def downloads():

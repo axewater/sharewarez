@@ -23,14 +23,6 @@ def inject_settings():
     return get_global_settings()
 
 
-@games_bp.context_processor
-def inject_current_theme():
-    if current_user.is_authenticated and current_user.preferences:
-        current_theme = current_user.preferences.theme or 'default'
-    else:
-        current_theme = 'default'
-    return dict(current_theme=current_theme)
-
 @games_bp.route('/add_game_manual', methods=['GET', 'POST'])
 @login_required
 @admin_required

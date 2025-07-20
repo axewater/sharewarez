@@ -7,7 +7,7 @@ from flask_mail import Mail
 from flask import Flask
 from flask_wtf.csrf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from config import Config
 from datetime import datetime
 from urllib.parse import urlparse, urlunparse
@@ -49,6 +49,15 @@ def create_app():
     mail.init_app(app)
     login_manager.login_view = 'login.login'
     cache.init_app(app)
+
+    @app.context_processor
+    def inject_current_theme():
+        """Injects the current user's theme into all templates."""
+        if current_user.is_authenticated and hasattr(current_user, 'preferences') and current_user.preferences:
+            current_theme = current_user.preferences.theme or 'default'
+        else:
+            current_theme = 'default'
+        return dict(current_theme=current_theme)
 
     with app.app_context():
         # Initialize library folders

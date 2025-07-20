@@ -27,14 +27,6 @@ def inject_settings():
     """Context processor to inject global settings into templates"""
     return get_global_settings()
 
-@admin_bp.context_processor
-def inject_current_theme():
-    if current_user.is_authenticated and current_user.preferences:
-        current_theme = current_user.preferences.theme or 'default'
-    else:
-        current_theme = 'default'
-    return dict(current_theme=current_theme)
-
 
 @admin_bp.route('/admin/discord_help')
 @login_required
