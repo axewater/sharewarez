@@ -16,5 +16,5 @@ wait_for_postgres() {
 # Wait for PostgreSQL to come online
 wait_for_postgres
 
-echo "Running the Sharewarez Docker container\n"
-python /app/app.py
+echo "Running the Sharewarez Docker container with uvicorn\n"
+uvicorn asgi:asgi_app --host 0.0.0.0 --port 5006 --workers 4

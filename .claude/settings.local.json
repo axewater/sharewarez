@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rg:*)",
+      "Bash(grep:*)",
+      "Bash(source:*)",
+      "Bash(python -m pytest tests/test_core_functions.py -v)",
+      "Bash(python -m pytest tests/ -v)",
+      "Bash(python -m pytest tests/test_discord_handler.py -v)",
+      "Bash(python -m pytest tests/ --cov=modules --cov-report=term-missing)",
+      "Bash(python -m pytest tests/ --cov=modules --cov-report=html --cov-report=term)",
+      "Bash(python -m pytest tests/test_utils_functions.py -v)",
+      "Bash(python -m pytest tests/test_utils_functions.py::TestGetLibraryCount::test_get_library_count_success -v)",
+      "Bash(python -m pytest tests/ --cov=modules/utils_functions --cov-report=term-missing)",
+      "Bash(python -m pytest tests/ --cov=modules --cov-report=term)",
+      "Bash(python -m pytest tests/test_utils_game_core.py -v)",
+      "Bash(pytest:*)"
+    ],
+    "deny": []
+  }
+}

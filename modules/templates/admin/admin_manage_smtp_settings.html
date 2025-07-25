@@ -7,15 +7,6 @@
 {% else %}
     <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_smtp_settings.css') }}">
 {% endif %}
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-    <div class="alert alert-info" role="alert">
-        {% for message in messages %}
-            {{ message }}<br>
-        {% endfor %}
-    </div>
-{% endif %}
-{% endwith %}
 
 <div class="container">
     <div class="glass-panel">

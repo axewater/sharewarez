@@ -124,12 +124,6 @@ class Status(PyEnum):
     OFFLINE = "Offline"
     CANCELLED = "Cancelled"
     
-    
-class PlayerPerspective(PyEnum):
-    FIRST_PERSON = "First Person"
-    THIRD_PERSON = "Third Person"
-    FIRST_THIRD = "First Person/Third Person"
-
 user_favorites = db.Table('user_favorites',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
     db.Column('game_uuid', db.String(36), db.ForeignKey('games.uuid'), primary_key=True),
@@ -243,10 +237,13 @@ class Image(db.Model):
     game_uuid = db.Column(db.String(36), db.ForeignKey('games.uuid'), nullable=False)
     image_type = db.Column(db.String, nullable=False)
     url = db.Column(db.String, nullable=False)
+    igdb_image_id = db.Column(db.String, nullable=True)  # IGDB image ID for reference
+    download_url = db.Column(db.String, nullable=True)  # Full IGDB URL to download from
+    is_downloaded = db.Column(db.Boolean, default=False, nullable=False)  # Download status
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"<Image id={self.id}, game_uuid={self.game_uuid}, image_type={self.image_type}, url={self.url}>"
+        return f"<Image id={self.id}, game_uuid={self.game_uuid}, image_type={self.image_type}, url={self.url}, downloaded={self.is_downloaded}>"
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -520,6 +517,10 @@ class GlobalSettings(db.Model):
     discord_notify_game_extras = db.Column(db.Boolean, default=False)
     discord_notify_downloads = db.Column(db.Boolean, default=False)
     site_url = db.Column(db.String(255), default='http://127.0.0.1')
+    # Image Download Settings
+    use_turbo_image_downloads = db.Column(db.Boolean, default=True)
+    turbo_download_threads = db.Column(db.Integer, default=8)
+    turbo_download_batch_size = db.Column(db.Integer, default=200)
 
     def __repr__(self):
         return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'

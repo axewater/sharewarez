@@ -143,28 +143,18 @@ document.addEventListener('DOMContentLoaded', function() {
             checkbox.checked = isPerspectiveMatched;
         });
 
-        // Update Category select field
+        // Update Category select field - using original field names to match scanning code
         const categorySelect = document.querySelector('#category'); // Assuming #category is the ID of the select
-        if (gameData.game_type && gameData.game_type.name && categorySelect) {
-            const categoryNameFromApi = gameData.game_type.name;
-            for (let option of categorySelect.options) {
-                if (option.text === categoryNameFromApi) {
-                    categorySelect.value = option.value; // option.value is the Enum Name (e.g., MAIN_GAME), option.text is the Enum Value (e.g., "Main Game")
-                    break;
-                }
-            }
+        if (gameData.category !== undefined && categorySelect) {
+            // Map IGDB category ID to select option value
+            categorySelect.value = gameData.category; // Direct numeric mapping
         }
 
-        // Update Status select field
+        // Update Status select field - using original field names to match scanning code
         const statusSelect = document.querySelector('#status'); // Assuming #status is the ID of the select
-        if (gameData.game_status && gameData.game_status.name && statusSelect) {
-            const statusNameFromApi = gameData.game_status.name;
-            for (let option of statusSelect.options) {
-                if (option.text === statusNameFromApi) {
-                    statusSelect.value = option.value; // option.value is the Enum Name (e.g., RELEASED), option.text is the Enum Value (e.g., "Released")
-                    break;
-                }
-            }
+        if (gameData.status !== undefined && statusSelect) {
+            // Map IGDB status ID to select option value
+            statusSelect.value = gameData.status; // Direct numeric mapping
         }
 
         // Assuming gameData.involved_companies is an array of company IDs

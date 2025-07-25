@@ -50,37 +50,6 @@
     text-align: center;
 }
 
-.game-card {
-    cursor: pointer;
-    transition: transform 0.3s ease; 
-    position: relative;
-    margin: 5px;
-	max-width: 250px;
-	max-height: 332px;
-}
-
-
-.game-card:hover  {
-    transform: scale(1.2);
-    z-index: 6;
-    box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.7);
-}
-
-
-.game-cover {
-    display: flex;
-    position: relative;
-    width: 100%;
-    height: auto;
-    transition: transform 0.3s ease;
-    box-shadow: 5px 5px 9px rgba(0, 0, 0, 0.7);
-    transition: transform 0.3s ease, box-shadow 0.3s ease; 
-    border: 1px solid rgb(49, 49, 49);
-    border-radius: 5px;
-	max-width: 250px;
-	max-height: 332px;
-	
-}
 
 .libraries-list {
 	display: grid;
@@ -95,21 +64,6 @@
     display: block; /* If you want images to be block level elements */
     margin: 0 auto; /* This centers the image within its container */
 
-}
-
-.game-cover::before {
-    z-index: 12;
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.3) 50%, rgba(255, 255, 255, 0) 100%);
-    background-repeat: no-repeat;
-    background-size: 800px 100%;
-    visibility: hidden;
-    opacity: 1;
 }
 
 .library-item {
@@ -156,112 +110,39 @@
 }
 
 
-.game-card:hover .game-cover::before {
-    animation: shimmerAnimation 1s linear forwards;
-    visibility: visible;
-    opacity: 1;
-    pointer-events: none;
-}
-
-
-.game-card:hover .button-glass-hamburger {
-    opacity: 1; 
-}
-
-
-
-@keyframes shimmerAnimation {
-    0% {
-        background-position: -1000px 0;
-        opacity: 1;
-    }
-    99% {
-        opacity: 1;
-    }
-    100% {
-        background-position: 1000px 0;
-        opacity: 0;
-    }
-}
-
-
-.button-glass-hamburger {
+.favorite-count {
     position: absolute;
     top: 10px;
-    left: 10px;
-    z-index: 13;
-    background-color: rgba(128, 128, 128, 0.7);
-    border-radius: 50%;
-    padding: 1px 6px;
-    border: none;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-
-
-.button-glass-hamburger:hover {
-    background-color: rgba(213, 210, 210, 0.9);
-}
-
-.button-glass-hamburger i {
-    color: white;
-    
-}
-
-
-
-
-.game-info-box {
-
-    background: #2a2c35;
-    flex-grow: 1;
+    right: 10px;
+    z-index: 15;
     display: flex;
-    flex-direction: column;
-    animation: fadein 0.5s;
-    height: 95%;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
 }
 
-.game-name {
-    font-size: 1.2rem;
-    color: #ffffff;
-
+.favorite-count i {
+    color: #ff6b6b;
+    font-size: 18px;
+    position: absolute;
 }
 
-.game-name, .game-size, .game-genres {
-    margin-bottom: 5px;
-    margin-left: 0px;
+.favorite-number {
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 16;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
-.chip {
-    display: inline-block;
-    padding: 0 15px;
-    height: 25px;
-    font-size: 0.8rem;
-    line-height: 25px;
-    border-radius: 25px;
-    background-color: #4a4e69;
-    color: #ffffff;
-    margin: 2px;
-    white-space: nowrap;
-}
-
-.file-size-chip {
-    background-color: #6272a4;
-    max-width: 50%;
-    margin-bottom: 10px;
-
-}
-
-
-.hidden {
-    display: none;
-}
-
-@keyframes fadein {
-    from { opacity: 0; }
-    to { opacity: 1; }
+.favorite-count:hover {
+    transform: scale(1.1);
+    background-color: rgba(0, 0, 0, 0.8);
 }
 
 .discovery-header {
@@ -281,7 +162,9 @@
     justify-content: space-between;
     box-shadow: 0 9px 16px rgba(17, 2, 2, 2);
     padding-bottom: 50px;
+}
 
-
-
+.game-cover-container {
+    position: relative;
+    display: inline-block;
 }

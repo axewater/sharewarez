@@ -13,15 +13,6 @@
         
         <h2>SharewareZ Initial Setup</h2>
         <p class="setup-info">Welcome to SharewareZ! Please create your admin account to get started.</p>
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="alert alert-info" role="alert">
-                {% for message in messages %}
-                    {{ message }}<br>
-                {% endfor %}
-            </div>
-        {% endif %}
-        {% endwith %}
 
         <form method="POST" action="{{ url_for('setup.setup_submit') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

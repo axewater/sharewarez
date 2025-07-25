@@ -7,5 +7,7 @@ COPY . .
 RUN pip install -r requirements.txt
 RUN chmod a+x /app/entrypoint.sh
 
-EXPOSE 5001
+ENV PRODUCTION=true
+
+EXPOSE 5006
 ENTRYPOINT ["sh","/app/entrypoint.sh"]

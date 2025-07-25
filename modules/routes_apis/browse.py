@@ -1,11 +1,11 @@
-from flask import Blueprint, jsonify, request, current_app
+# /modules/routes_apis/browse.py
+from flask import jsonify, request, current_app
 import os, sys
 from flask_login import login_required
 from modules.utils_auth import admin_required
+from . import apis_bp
 
-ssfb_bp = Blueprint('ssfb', __name__)
-
-@ssfb_bp.route('/api/browse_folders_ss')
+@apis_bp.route('/browse_folders_ss')
 @login_required
 @admin_required
 def browse_folders_ss():

@@ -19,14 +19,6 @@ def inject_settings():
     """Context processor to inject global settings into templates"""
     return get_global_settings()
 
-@settings_bp.context_processor
-def inject_current_theme():
-    if current_user.is_authenticated and current_user.preferences:
-        current_theme = current_user.preferences.theme or 'default'
-    else:
-        current_theme = 'default'
-    return dict(current_theme=current_theme)
-
 @settings_bp.route('/settings_profile_edit', methods=['GET', 'POST'])
 @login_required
 def settings_profile_edit():
