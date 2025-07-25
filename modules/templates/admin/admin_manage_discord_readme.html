@@ -1,15 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-    <div class="alert alert-info" role="alert">
-        {% for message in messages %}
-            {{ message }}<br>
-        {% endfor %}
-    </div>
-{% endif %}
-{% endwith %}
 <div class="container">
     <div class="glass-panel">
         <a href="{{ url_for('admin2.discord_settings') }}" class="btn btn-secondary">Back</a>

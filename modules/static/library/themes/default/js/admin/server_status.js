@@ -27,120 +27,96 @@ function updateCpuBar() {
 function initializeMemoryChart() {
     if (!memoryUsage) return;
     
-    const memoryContext = document.getElementById('memoryChart').getContext('2d');
-    new Chart(memoryContext, {
-        type: 'pie',
-        data: {
-            labels: ['Used', 'Available'],
-            datasets: [{
-                data: [memoryUsage.used, memoryUsage.available],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(75, 192, 192, 0.8)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            width: 200,
-            height: 200,
-            plugins: {
-                legend: { position: 'bottom' }
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.label + ': ' + 
-                                   (context.label === 'Used' ? memoryUsage.used_formatted : memoryUsage.available_formatted);
-                        }
+    const chartData = {
+        labels: ['Used', 'Available'],
+        datasets: [{
+            data: [memoryUsage.used, memoryUsage.available],
+            backgroundColor: ['rgba(255, 99, 132, 0.8)', 'rgba(75, 192, 192, 0.8)'],
+            borderWidth: 1
+        }]
+    };
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': ' +
+                               (context.label === 'Used' ? memoryUsage.used_formatted : memoryUsage.available_formatted);
                     }
                 }
             }
         }
-    });
+    };
+
+    createChart('memoryChart', 'pie', chartData, chartOptions);
 }
 
 // Initialize Disk Usage Chart
 function initializeDiskChart() {
     if (!diskUsage) return;
     
-    const diskContext = document.getElementById('diskChart').getContext('2d');
-    new Chart(diskContext, {
-        type: 'pie',
-        data: {
-            labels: ['Used', 'Free'],
-            datasets: [{
-                data: [diskUsage.used, diskUsage.free],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(75, 192, 192, 0.8)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            width: 200,
-            height: 200,
-            plugins: {
-                legend: { position: 'bottom' }
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.label + ': ' + 
-                                   (context.label === 'Used' ? diskUsage.used_formatted : diskUsage.free_formatted);
-                        }
+    const chartData = {
+        labels: ['Used', 'Free'],
+        datasets: [{
+            data: [diskUsage.used, diskUsage.free],
+            backgroundColor: ['rgba(255, 99, 132, 0.8)', 'rgba(75, 192, 192, 0.8)'],
+            borderWidth: 1
+        }]
+    };
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': ' +
+                               (context.label === 'Used' ? diskUsage.used_formatted : diskUsage.free_formatted);
                     }
                 }
             }
         }
-    });
+    };
+
+    createChart('diskChart', 'pie', chartData, chartOptions);
 }
 
 // Initialize Warez Folder Usage Chart
 function initializeWarezDiskChart() {
     if (!warezUsage) return;
     
-    const warezContext = document.getElementById('warezDiskChart').getContext('2d');
-    new Chart(warezContext, {
-        type: 'pie',
-        data: {
-            labels: ['Used', 'Free'],
-            datasets: [{
-                data: [warezUsage.used, warezUsage.free],
-                backgroundColor: [
-                    'rgba(255, 159, 64, 0.8)',
-                    'rgba(75, 192, 192, 0.8)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            width: 200,
-            height: 200,
-            plugins: {
-                legend: { position: 'bottom' }
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.label + ': ' + 
-                                   (context.label === 'Used' ? warezUsage.used_formatted : warezUsage.free_formatted);
-                        }
+    const chartData = {
+        labels: ['Used', 'Free'],
+        datasets: [{
+            data: [warezUsage.used, warezUsage.free],
+            backgroundColor: ['rgba(255, 159, 64, 0.8)', 'rgba(75, 192, 192, 0.8)'],
+            borderWidth: 1
+        }]
+    };
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': ' +
+                               (context.label === 'Used' ? warezUsage.used_formatted : warezUsage.free_formatted);
                     }
                 }
             }
         }
-    });
+    };
+
+    createChart('warezDiskChart', 'pie', chartData, chartOptions);
 }
 
 // Initialize all charts and components

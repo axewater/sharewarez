@@ -28,6 +28,8 @@ body.modal-open {
     border: none;
     cursor: pointer;
     margin-bottom: 5px;
+    opacity: 1;
+    position: relative;
 }
 
 .button-glass-hamburger:hover {
