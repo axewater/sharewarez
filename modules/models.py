@@ -456,6 +456,7 @@ class ScanJob(db.Model):
     scan_folder = db.Column(db.String(512), nullable=True)
     setting_remove = db.Column(db.Boolean, default=False)
     setting_filefolder = db.Column(db.Boolean, default=False)
+    setting_download_missing_images = db.Column(db.Boolean, default=False)
 
 class UnmatchedFolder(db.Model):
     __tablename__ = 'unmatched_folders'

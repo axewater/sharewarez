@@ -269,12 +269,14 @@ def restart_scan_job(job_id):
             return
 
         scan_mode = 'files' if job.setting_filefolder else 'folders'
+        download_missing_images = getattr(job, 'setting_download_missing_images', False)
         scan_and_add_games(
             full_path,
             scan_mode=scan_mode,
             library_uuid=job.library_uuid,
             remove_missing=job.setting_remove,
-            existing_job=job
+            existing_job=job,
+            download_missing_images=download_missing_images
         )
 
     thread = Thread(target=start_scan)
