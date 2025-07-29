@@ -880,3 +880,193 @@ def start_turbo_background_downloader(interval_seconds=30, max_workers=4, batch_
     thread.start()
     print(f"🔥 TURBO BACKGROUND DOWNLOADER LAUNCHED!")
     return thread
+
+
+def find_missing_images_for_library(library_uuid=None, app=None):
+    """
+    Find all images that have URLs in the database but are missing from disk.
+    
+    Parameters:
+    - library_uuid: UUID of library to check (optional, checks all games if None)
+    - app: Flask app context (optional)
+    
+    Returns:
+    - Dictionary with statistics and list of missing images
+    """
+    if app is None:
+        app = current_app._get_current_object()
+    
+    try:
+        with app.app_context():
+            # Build query based on library filter
+            if library_uuid:
+                images_query = db.session.query(Image).join(Game).filter(Game.library_uuid == library_uuid)
+                print(f"🔍 Checking for missing images in library {library_uuid}")
+            else:
+                images_query = db.session.query(Image)
+                print(f"🔍 Checking for missing images across all libraries")
+            
+            # Get all images with download URLs
+            all_images = images_query.filter(Image.download_url.isnot(None)).all()
+            
+            if not all_images:
+                print("No images with download URLs found in database.")
+                return {
+                    'total_checked': 0,
+                    'missing_count': 0,
+                    'missing_images': [],
+                    'already_queued': 0
+                }
+            
+            print(f"📊 Found {len(all_images)} images to check")
+            
+            missing_images = []
+            already_queued_count = 0
+            
+            for image in all_images:
+                try:
+                    # Check if image is already marked as not downloaded (already in queue)
+                    if not image.is_downloaded:
+                        already_queued_count += 1
+                        continue
+                    
+                    # Build expected file path
+                    image_save_path = os.path.join(app.config['IMAGE_SAVE_PATH'], image.url)
+                    
+                    # Check if file exists on disk
+                    if not os.path.exists(image_save_path):
+                        missing_images.append({
+                            'id': image.id,
+                            'game_uuid': image.game_uuid,
+                            'image_type': image.image_type,
+                            'url': image.url,
+                            'download_url': image.download_url,
+                            'file_path': image_save_path
+                        })
+                        print(f"❌ Missing: {image.image_type} for game {image.game_uuid}: {image.url}")
+                    
+                except Exception as e:
+                    print(f"Error checking image {image.id}: {e}")
+                    continue
+            
+            result = {
+                'total_checked': len(all_images),
+                'missing_count': len(missing_images),
+                'missing_images': missing_images,
+                'already_queued': already_queued_count
+            }
+            
+            print(f"📈 Missing images summary: {len(missing_images)} missing, {already_queued_count} already queued, {len(all_images)} total checked")
+            return result
+            
+    except Exception as e:
+        print(f"Error in find_missing_images_for_library: {e}")
+        return {
+            'total_checked': 0,
+            'missing_count': 0,
+            'missing_images': [],
+            'already_queued': 0,
+            'error': str(e)
+        }
+
+
+def queue_missing_images_for_download(missing_images_list, app=None):
+    """
+    Mark missing images as not downloaded so they get picked up by the download queue.
+    
+    Parameters:
+    - missing_images_list: List of missing image dictionaries from find_missing_images_for_library
+    - app: Flask app context (optional)
+    
+    Returns:
+    - Number of images successfully queued
+    """
+    if app is None:
+        app = current_app._get_current_object()
+    
+    if not missing_images_list:
+        print("No missing images to queue.")
+        return 0
+    
+    try:
+        with app.app_context():
+            queued_count = 0
+            image_ids = [img['id'] for img in missing_images_list]
+            
+            # Update images to mark them as not downloaded (queued for download)
+            updated_count = Image.query.filter(Image.id.in_(image_ids)).update(
+                {Image.is_downloaded: False}, 
+                synchronize_session=False
+            )
+            
+            db.session.commit()
+            queued_count = updated_count
+            
+            print(f"📥 Successfully queued {queued_count} missing images for download")
+            
+            # Trigger immediate download if turbo mode is enabled
+            settings = GlobalSettings.query.first()
+            if settings and settings.use_turbo_image_downloads:
+                print(f"🚀 Turbo mode enabled - triggering immediate download")
+                # Run a small batch download to start processing immediately
+                download_result = turbo_download_images(
+                    batch_size=min(20, queued_count), 
+                    max_workers=settings.turbo_download_threads or 4, 
+                    app=app
+                )
+                print(f"⚡ Quick download result: {download_result.get('message', 'Download initiated')}")
+            
+            return queued_count
+            
+    except Exception as e:
+        print(f"Error queuing missing images: {e}")
+        try:
+            db.session.rollback()
+        except:
+            pass
+        return 0
+
+
+def process_missing_images_for_scan(library_uuid=None, app=None):
+    """
+    Complete workflow to find and queue missing images for download during scan.
+    
+    Parameters:
+    - library_uuid: UUID of library to process (optional, processes all if None)
+    - app: Flask app context (optional)
+    
+    Returns:
+    - Dictionary with results summary
+    """
+    if app is None:
+        app = current_app._get_current_object()
+    
+    print(f"🔍 Starting missing images processing for library: {library_uuid or 'ALL'}")
+    
+    # Step 1: Find missing images
+    missing_result = find_missing_images_for_library(library_uuid, app)
+    
+    if missing_result.get('error'):
+        return {
+            'success': False,
+            'error': missing_result['error'],
+            'found': 0,
+            'queued': 0
+        }
+    
+    # Step 2: Queue missing images if any found
+    queued_count = 0
+    if missing_result['missing_count'] > 0:
+        queued_count = queue_missing_images_for_download(missing_result['missing_images'], app)
+    
+    result = {
+        'success': True,
+        'total_checked': missing_result['total_checked'],
+        'found': missing_result['missing_count'],
+        'queued': queued_count,
+        'already_queued': missing_result['already_queued'],
+        'message': f"Found {missing_result['missing_count']} missing images, queued {queued_count} for download"
+    }
+    
+    print(f"✅ Missing images processing complete: {result['message']}")
+    return result

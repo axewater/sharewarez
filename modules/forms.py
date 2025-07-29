@@ -54,6 +54,7 @@ class AutoScanForm(FlaskForm):
     library_uuid = SelectField('Select Library', coerce=str, validators=[DataRequired()])
     scan_mode = RadioField('Select Scan Mode', choices=[('folders', 'My Games are Folders'), ('files', 'My Games are Files')], default='folders')
     remove_missing = BooleanField('Remove missing games')
+    download_missing_images = BooleanField('Download missing images')
     submit = SubmitField('AutoScan')
 
 

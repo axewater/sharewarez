@@ -16,7 +16,7 @@ from modules.utils_gamenames import get_game_names_from_folder, get_game_names_f
 from modules.utils_scanning import process_game_with_fallback, process_game_updates, process_game_extras, is_scan_job_running
 
 
-def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remove_missing=False, existing_job=None):
+def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remove_missing=False, existing_job=None, download_missing_images=False):
     # Only check for running jobs if we're not restarting an existing job
     if not existing_job and is_scan_job_running():
         print("A scan is already in progress. Please wait for it to complete.")
@@ -62,7 +62,8 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
             removed_count=0,
             scan_folder=folder_path,
             setting_remove=remove_missing,
-            setting_filefolder=(scan_mode == 'files')
+            setting_filefolder=(scan_mode == 'files'),
+            setting_download_missing_images=download_missing_images
         )
         
         db.session.add(scan_job_entry)
@@ -171,6 +172,33 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                 except Exception as e:
                     print(f"Error removing game {game.name}: {e}")
 
+    # If download_missing_images is enabled, check for and queue missing images
+    if download_missing_images:
+        print("🔍 Download missing images option enabled - checking for missing images...")
+        try:
+            from modules.utils_game_core import process_missing_images_for_scan
+            result = process_missing_images_for_scan(library_uuid, current_app._get_current_object())
+            
+            if result.get('success'):
+                message = f"Missing images scan: {result['message']}"
+                print(message)
+                
+                # Add to scan job status for user feedback
+                if scan_job_entry.error_message:
+                    scan_job_entry.error_message += f" | {message}"
+                else:
+                    scan_job_entry.error_message = message
+                    
+            else:
+                error_message = f"Missing images scan failed: {result.get('error', 'Unknown error')}"
+                print(error_message)
+                scan_job_entry.error_message += f" | {error_message}"
+                
+        except Exception as e:
+            error_message = f"Error during missing images processing: {str(e)}"
+            print(error_message)
+            scan_job_entry.error_message += f" | {error_message}"
+
     try:
         # Truncate error message if it's too long
         if scan_job_entry.error_message and len(scan_job_entry.error_message) > 500:
@@ -190,6 +218,7 @@ def handle_auto_scan(auto_form):
     if auto_form.validate_on_submit():
         library_uuid = auto_form.library_uuid.data
         remove_missing = auto_form.remove_missing.data
+        download_missing_images = auto_form.download_missing_images.data
         
         running_job = ScanJob.query.filter_by(status='Running').first()
         if running_job:
@@ -207,7 +236,7 @@ def handle_auto_scan(auto_form):
 
         folder_path = auto_form.folder_path.data
         scan_mode = auto_form.scan_mode.data        
-        print(f"Auto-scan form submitted. Library: {library.name}, Folder: {folder_path}, Scan mode: {scan_mode}")
+        print(f"Auto-scan form submitted. Library: {library.name}, Folder: {folder_path}, Scan mode: {scan_mode}, Download missing images: {download_missing_images}")
         # Prepend the base path
         base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
         full_path = os.path.join(base_dir, folder_path)
@@ -219,7 +248,7 @@ def handle_auto_scan(auto_form):
 
         @copy_current_request_context
         def start_scan():
-            scan_and_add_games(full_path, scan_mode, library_uuid, remove_missing)
+            scan_and_add_games(full_path, scan_mode, library_uuid, remove_missing, download_missing_images=download_missing_images)
 
         thread = Thread(target=start_scan)
         thread.start()
