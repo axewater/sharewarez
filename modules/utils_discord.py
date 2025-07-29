@@ -4,38 +4,8 @@ from modules.models import GlobalSettings, Library, Game, GameURL, db
 import os
 import time
 from datetime import datetime
-from modules.utils_game_core import get_folder_size_in_bytes_updates
 from modules.utils_igdb_api import get_cover_url
-
-
-def discord_get_game_by_uuid(game_uuid):
-    print(f"Searching for game UUID: {game_uuid}")
-    game = Game.query.filter_by(uuid=game_uuid).first()
-    if game:
-        print(f"Game ID {game.id} with name {game.name} and UUID {game.uuid} relating to IGDB ID {game.igdb_id} found")
-        return game
-    else:
-        print("Game not found")
-        return None
-
-def format_size(size_in_bytes):
-    try:
-        if size_in_bytes is None:
-            return '0 MB'  # Fallback value if size_in_bytes is None
-        else:
-            # Define size units
-            units = ['KB', 'MB', 'GB', 'TB', 'PB', 'EB']
-            size = size_in_bytes / 1024  # Start with KB
-            unit_index = 0
-            while size >= 1024 and unit_index < len(units) - 1:
-                size /= 1024
-                unit_index += 1
-            return f"{size:.2f} {units[unit_index]}"
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return '0 MB'  # Fallback value for any other errors
-
-
+from modules.utils_functions import format_size
 
 def get_folder_size_in_bytes(folder_path):
     if os.path.isfile(folder_path):
@@ -48,7 +18,6 @@ def get_folder_size_in_bytes(folder_path):
             if os.path.exists(fp):
                 total_size += os.path.getsize(fp)
     return max(total_size, 1)  # Ensure the size is at least 1 byte
-
 
 
 def discord_webhook(game_uuid):
@@ -72,7 +41,7 @@ def discord_webhook(game_uuid):
         return
 
     # Retrieve the game by UUID
-    new_game = discord_get_game_by_uuid(game_uuid)
+    new_game = Game.query.filter_by(uuid=game_uuid).first()
     if not new_game:
         print(f"Discord notifications: Game with UUID '{game_uuid}' could not be found. Exiting.")
         return
@@ -127,18 +96,6 @@ def get_library_by_uuid(uuid):
     else:
         print("Library not found")
         return None
-
-
-    
-def get_library_by_uuid(uuid):
-    print(f"Searching for Library UUID: {uuid}")
-    library = Library.query.filter_by(uuid=uuid).first()
-    if library:
-        print(f"Library with name {library.name} and UUID {library.uuid} found")
-        return library
-    else:
-        print("Library not found")
-        return None
         
 def get_game_name_by_uuid(uuid):
     print(f"Searching for game UUID: {uuid}")
@@ -151,9 +108,10 @@ def get_game_name_by_uuid(uuid):
         return None
         
 def update_game_size(game_uuid, size):
-    game = discord_get_game_by_uuid(game_uuid)
-    game.size = size
-    db.session.commit()
+    game = Game.query.filter_by(uuid=game_uuid).first()
+    if game:
+        game.size = size
+        db.session.commit()
     return None
 
 

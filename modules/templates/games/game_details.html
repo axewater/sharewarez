@@ -158,16 +158,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <script src="{{ theme_resource('/js/popup_menu.js') }}"></script>
 <script src="{{ theme_resource('/js/game_details.js') }}"></script>
-<script src="{{ theme_resource('/js/game_details_favorites.js') }}"></script>
-
-{# Flash Messages #}
-{% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <div class="alert alert-info" role="alert">
-            {% for message in messages %}{{ message }}<br>{% endfor %}
-        </div>
-    {% endif %}
-{% endwith %}
+<script src="{{ theme_resource('/js/favorites_manager.js') }}"></script>
 
 
 {# Modals #}
@@ -316,7 +307,7 @@
                         <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger">
                             <i class="fas fa-bars"></i>
                         </button>
-                        <button class="favorite-btn" data-game-uuid="{{ game.uuid }}">
+                        <button class="favorite-btn" data-game-uuid="{{ game.uuid }}" data-is-favorite="{{ is_favorite|lower }}">
                             <i class="fas fa-heart"></i>
                         </button>
                         {% with game_uuid=game.uuid, game_url=game.url %}

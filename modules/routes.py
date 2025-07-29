@@ -50,14 +50,6 @@ def inject_settings():
     return get_global_settings()
 
 
-@bp.context_processor
-def inject_current_theme():
-    if current_user.is_authenticated and current_user.preferences:
-        current_theme = current_user.preferences.theme or 'default'
-    else:
-        current_theme = 'default'
-    return dict(current_theme=current_theme)
-
 @bp.route('/browse_games')
 @login_required
 def browse_games():
@@ -234,6 +226,8 @@ def cancel_scan_job(job_id):
     job = ScanJob.query.get(job_id)
     if job and job.status == 'Running':
         job.is_enabled = False
+        job.status = 'Failed'
+        job.error_message = 'Scan cancelled by user'
         db.session.commit()
         flash(f"Scan job {job_id} has been canceled.")
         print(f"Scan job {job_id} has been canceled.")
@@ -251,7 +245,18 @@ def restart_scan_job(job_id):
         flash('Cannot restart a running scan.', 'error')
         return redirect(url_for('main.scan_management'))
 
-    # Start a new scan using the existing job's settings
+    # Reset the existing job's counters instead of creating a new job
+    job.status = 'Running'
+    job.total_folders = 0
+    job.folders_success = 0
+    job.folders_failed = 0
+    job.removed_count = 0
+    job.last_run = datetime.utcnow()
+    job.error_message = None
+    job.is_enabled = True
+    db.session.commit()
+
+    # Start scan using the existing job
     @copy_current_request_context
     def start_scan():
         base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
@@ -268,7 +273,8 @@ def restart_scan_job(job_id):
             full_path,
             scan_mode=scan_mode,
             library_uuid=job.library_uuid,
-            remove_missing=job.setting_remove
+            remove_missing=job.setting_remove,
+            existing_job=job
         )
 
     thread = Thread(target=start_scan)

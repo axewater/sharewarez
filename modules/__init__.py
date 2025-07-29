@@ -7,7 +7,7 @@ from flask_mail import Mail
 from flask import Flask
 from flask_wtf.csrf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from config import Config
 from datetime import datetime
 from urllib.parse import urlparse, urlunparse
@@ -50,29 +50,44 @@ def create_app():
     login_manager.login_view = 'login.login'
     cache.init_app(app)
 
+    @app.context_processor
+    def inject_current_theme():
+        """Injects the current user's theme into all templates."""
+        if current_user.is_authenticated and hasattr(current_user, 'preferences') and current_user.preferences:
+            current_theme = current_user.preferences.theme or 'default'
+        else:
+            current_theme = 'default'
+        return dict(current_theme=current_theme)
+
     with app.app_context():
         # Initialize library folders
         from modules.utils_logging import log_system_event
         from . import routes, models
         from modules.routes_site import site_bp
-        from modules.routes_admin import admin_bp
         from modules.routes_library import library_bp
         from modules.routes_setup import setup_bp
         from modules.routes_settings import settings_bp
         from modules.routes_login import login_bp
         from modules.routes_discover import discover_bp
-        from modules.routes_apis_filters import apis_filters_bp
-        from modules.routes_apis_other import apis_other_bp
-        from modules.routes_downloads import download_bp
-        from modules.routes_games import games_bp
-        from modules.routes_apis_ssfb import ssfb_bp
+        from modules.routes_downloads_ext import download_bp
+        from modules.routes_games_ext import games_bp
         from modules.routes_smtp import smtp_bp
         from modules.routes_info import info_bp
-        from modules.routes_admin_more import admin2_bp
+        from modules.routes_admin_ext import admin2_bp
+        from modules.routes_apis import apis_bp
         from modules.init_data import initialize_library_folders, insert_default_filters, initialize_default_settings, initialize_allowed_file_types, initialize_discovery_sections
 
 
         db.create_all()
+        
+        # Run database schema updates before initialization
+        try:
+            from modules.updateschema import DatabaseManager
+            db_manager = DatabaseManager()
+            db_manager.add_column_if_not_exists()
+        except Exception as e:
+            print(f"Warning: Database schema update failed: {e}")
+        
         log_system_event(f"SharewareZ v{app_version} initializing database", event_type='system', event_level='startup', audit_user='system')
         initialize_library_folders()
         initialize_discovery_sections()
@@ -81,19 +96,16 @@ def create_app():
         initialize_allowed_file_types()
     app.register_blueprint(routes.bp)
     app.register_blueprint(site_bp)
-    app.register_blueprint(admin_bp)
     app.register_blueprint(admin2_bp)
     app.register_blueprint(library_bp)
     app.register_blueprint(setup_bp)
     app.register_blueprint(settings_bp)
     app.register_blueprint(login_bp)
     app.register_blueprint(discover_bp)
-    app.register_blueprint(apis_filters_bp)
-    app.register_blueprint(apis_other_bp)
     app.register_blueprint(download_bp)
     app.register_blueprint(games_bp)
-    app.register_blueprint(ssfb_bp)
     app.register_blueprint(smtp_bp)
     app.register_blueprint(info_bp)
+    app.register_blueprint(apis_bp)
 
     return app

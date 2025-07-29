@@ -14,7 +14,7 @@ class DatabaseManager:
         # SQL commands to add new columns and tables
         add_columns_sql = f"""       
         ALTER TABLE global_settings
-        ADD COLUMN IF NOT EXISTS site_url VARCHAR(255) DEFAULT 'http://127.0.0.1:5001';
+        ADD COLUMN IF NOT EXISTS site_url VARCHAR(255) DEFAULT 'http://127.0.0.1:5006';
 
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS discord_bot_name VARCHAR(255);
@@ -79,6 +79,26 @@ class DatabaseManager:
 
         ALTER TABLE scan_jobs
         ADD COLUMN IF NOT EXISTS removed_count INTEGER DEFAULT 0;
+
+        -- Add new columns to images table for optimized image downloading
+        ALTER TABLE images
+        ADD COLUMN IF NOT EXISTS igdb_image_id VARCHAR(255);
+
+        ALTER TABLE images
+        ADD COLUMN IF NOT EXISTS download_url VARCHAR(500);
+
+        ALTER TABLE images
+        ADD COLUMN IF NOT EXISTS is_downloaded BOOLEAN DEFAULT FALSE;
+
+        -- Add image download settings to global_settings table
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS use_turbo_image_downloads BOOLEAN DEFAULT TRUE;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS turbo_download_threads INTEGER DEFAULT 8;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS turbo_download_batch_size INTEGER DEFAULT 200;
         
         """
         print("Upgrading database to the latest schema")

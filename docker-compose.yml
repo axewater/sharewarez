@@ -8,7 +8,7 @@ services:
     privileged: true
     image: kapitanczarnobrod/sharewarez:latest
     ports:
-      - "5001:5001"
+      - "5006:5006"
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - WAIT_HOSTS="db:5432"

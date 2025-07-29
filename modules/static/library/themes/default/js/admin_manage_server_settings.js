@@ -44,7 +44,10 @@ document.addEventListener('DOMContentLoaded', function() {
             discordNotifyDownloads: document.getElementById('discordNotifyDownloads').checked,
             updateFolderName: document.getElementById('updateFolderName').value,
             extrasFolderName: document.getElementById('extrasFolderName').value,
-            siteUrl: document.getElementById('siteUrl').value
+            siteUrl: document.getElementById('siteUrl').value,
+            useTurboImageDownloads: document.getElementById('useTurboImageDownloads').checked,
+            turboDownloadThreads: parseInt(document.getElementById('turboDownloadThreads').value),
+            turboDownloadBatchSize: parseInt(document.getElementById('turboDownloadBatchSize').value)
         };
         console.log("Settings to be saved:", settings);
 

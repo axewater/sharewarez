@@ -21,14 +21,6 @@ def inject_settings():
     return get_global_settings()
 
 
-@info_bp.context_processor
-def inject_current_theme():
-    if current_user.is_authenticated and current_user.preferences:
-        current_theme = current_user.preferences.theme or 'default'
-    else:
-        current_theme = 'default'
-    return dict(current_theme=current_theme)
-
 @info_bp.route('/admin/server_status_page')
 @login_required
 @admin_required

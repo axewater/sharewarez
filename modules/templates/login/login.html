@@ -13,15 +13,6 @@
         <div class="container">Welcome back, {{ current_user.name }}!</div>
         {% else %}
         <h1></h1>
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="alert alert-info" role="alert">
-                {% for message in messages %}
-                    {{ message }}<br>
-                {% endfor %}
-            </div>
-        {% endif %}
-        {% endwith %}
 
             <div class="container-base">
                 <div class="container">

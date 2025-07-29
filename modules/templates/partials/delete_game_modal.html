@@ -1,0 +1,68 @@
+<div id="deleteGameModal" class="modal delete-game-modal" style="display:none; z-index: 15;">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>Warning!</h2>
+        <p>This action will DELETE THE GAME FROM DISK! This action cannot be undone.</p>
+        <form action="#" method="post" id="deleteGameForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="game_uuid" id="deleteGameUuid">
+            <button type="submit" class="delete-confirm btn btn-danger">Delete Game</button>
+            <button type="button" class="delete-cancel btn btn-success">Cancel</button>
+        </form>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteModal = document.getElementById('deleteGameModal');
+    if (!deleteModal) return;
+
+    // Use event delegation for dynamically added buttons
+    document.body.addEventListener('click', function(event) {
+        if (event.target.matches('.trigger-delete-modal')) {
+            event.preventDefault();
+            const gameUuid = event.target.getAttribute('data-game-uuid');
+            document.getElementById('deleteGameUuid').value = gameUuid;
+            deleteModal.style.display = 'block';
+        }
+    });
+
+    deleteModal.querySelector('.close-button').addEventListener('click', () => {
+        deleteModal.style.display = 'none';
+    });
+
+    deleteModal.querySelector('.delete-cancel').addEventListener('click', () => {
+        deleteModal.style.display = 'none';
+    });
+
+    document.getElementById('deleteGameForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const gameUuid = document.getElementById('deleteGameUuid').value;
+        const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        fetch(`/delete_full_game`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({ game_uuid: gameUuid })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                $.notify(data.message, "success");
+                // Optionally remove the game card from the DOM or reload the page
+                window.location.reload();
+            } else {
+                $.notify(data.message, "error");
+            }
+            deleteModal.style.display = 'none';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            $.notify("An error occurred while deleting the game.", "error");
+            deleteModal.style.display = 'none';
+        });
+    });
+});
+</script>
