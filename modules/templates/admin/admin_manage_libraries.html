@@ -9,17 +9,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
 
-<div class="content-flash">
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <div class="alert alert-info" role="alert">
-            {% for message in messages %}
-                {{ message }}<br>
-            {% endfor %}
-        </div>
-    {% endif %}
-    {% endwith %}
-</div>
 <body data-base-delete-url="{{ url_for('main.delete_full_library', library_uuid='') }}">
     <!-- Loading Spinner -->
     <div id="deleteSpinner" class="spinner-overlay" style="display: none;">

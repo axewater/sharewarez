@@ -81,7 +81,11 @@ def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
     # Remove known release group patterns
     for pattern in insensitive_patterns:
         escaped_pattern = re.escape(pattern)
-        filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename, flags=re.IGNORECASE)
+        # Use word boundary only if pattern starts/ends with word characters
+        if pattern[0].isalnum() and pattern[-1].isalnum():
+            filename = re.sub(f"\\b{escaped_pattern}\\b", '', filename, flags=re.IGNORECASE)
+        else:
+            filename = re.sub(escaped_pattern, '', filename, flags=re.IGNORECASE)
 
     for pattern, is_case_sensitive in sensitive_patterns:
         escaped_pattern = re.escape(pattern)

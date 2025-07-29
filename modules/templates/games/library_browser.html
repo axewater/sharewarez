@@ -37,24 +37,15 @@
     <script src="{{ url_for('static', filename='library/themes/default/js/library_search.js') }}"></script>
 {% endif %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/libfavs.js') %}
-    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/libfavs.js') }}"></script>
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/favorites_manager.js') %}
+    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/favorites_manager.js') }}"></script>
 {% else %}
-    <script src="{{ url_for('static', filename='library/themes/default/js/libfavs.js') }}"></script>
+    <script src="{{ url_for('static', filename='library/themes/default/js/favorites_manager.js') }}"></script>
 {% endif %}
 </head>
 <body data-user-per-page="{{ user_per_page }}" data-user-default-sort="{{ user_default_sort }}" data-user-default-sort-order="{{ user_default_sort_order }}">
 
 
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <div class="alert alert-info" role="alert">
-            {% for message in messages %}
-                {{ message }}<br>
-            {% endfor %}
-        </div>
-    {% endif %}
-    {% endwith %}
     <div class="glass-panel">
         <select id="perPageSelect" class="dropdown-perpage">
             <option value="16" {% if user_per_page == 16 %}selected{% endif %}>16</option>
@@ -84,18 +75,8 @@
             </div>
         </div>
   
-        <div id="deleteGameModal"  class="modal delete-game-modal" style="display:none; z-index=15;">
-            <div class="modal-content">
-                <span class="close-button">&times;</span>
-                <h2>Warning!</h2>
-                <p>This action will DELETE THE GAME FROM DISK! This action cannot be undone.</p>
-                <form action="#" method="post" id="deleteGameForm">
-                    <input type="hidden" name="game_uuid" id="deleteGameUuid">
-                    <button type="submit" class="delete-confirm btn btn-danger">Delete Game</button>
-                    <button type="button" class="delete-cancel btn btn-success">Cancel</button>
-                </form>
-            </div>
-        </div>
+        <!-- The deleteGameModal is now included globally in base.html -->
+
         <!-- Pagination Controls -->
         <div class="container-pagination">
             <nav aria-label="Page navigation" class="text-center">
@@ -119,7 +100,7 @@
             <div class="game-card-container">
                 <div class="game-card" onmouseover="showDetails(this, '{{ game.uuid }}')" onmouseout="hideDetails()" data-name="{{ game.name }}" data-size="{{ game.size }}" data-genres="{{ game.genres|join(', ') }}">
                     <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
-                    <button class="favorite-button" data-game-uuid="{{ game.uuid }}"
+                    <button class="favorite-btn" data-game-uuid="{{ game.uuid }}"
                            data-is-favorite="{{ game.is_favorite|lower }}">
                         <i class="fas fa-heart"></i>
                     </button>
@@ -155,63 +136,7 @@
 		var gamesCount = Number("{{ games_count }}");
 
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // Trigger modal open
-            document.querySelectorAll('.delete-game-from-disk').forEach(button => {
-                
-                button.addEventListener('click', function(event) {
-                    console.log('delete-game-from-disk clicked');
-                    event.preventDefault(); // Stop the form from submitting immediately
-        
-                    document.getElementById('deleteGameUuid').value = button.getAttribute('data-game-uuid');
-                    document.getElementById('deleteGameModal').style.display = 'block';
-                });
-            });
-        
-            // Close modal
-            document.querySelector('.close-button').addEventListener('click', () => {
-                console.log('close-button clicked');
-                document.getElementById('deleteGameModal').style.display = 'none';
-            });
-        
-            // Cancel button in modal
-            document.querySelector('.delete-cancel').addEventListener('click', () => {
-                console.log('delete-cancel clicked');
-                document.getElementById('deleteGameModal').style.display = 'none';
-            });
-        
-            // Handle form submit
-            document.getElementById('deleteGameForm').addEventListener('submit', function(event) {
-                console.log('deleteGameForm submitted');
-                event.preventDefault();
-                const gameUuid = document.getElementById('deleteGameUuid').value;
-                const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                console.log('deleting gameUuid:', gameUuid);
-                fetch(`/delete_full_game`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrftoken,
-                    },
-                    body: JSON.stringify({ game_uuid: gameUuid })
-                })
-                .then(response => {
-                    if(response.ok) {
-                        return response.json();
-                    }
-                    throw new Error('Network response was not ok.');
-                })
-                .then(data => {
-                    // console.log(data); // Print out all response data
-                    window.location.href = '/library';
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-            });
-        });
-
-</script>
+    </script>
 
 </body>
 </html>
