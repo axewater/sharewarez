@@ -4,7 +4,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 from config import Config
 from modules import db
 from modules.models import User, InviteToken, GlobalSettings, Whitelist
-from modules.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, InviteForm, CsrfProtectForm
+from modules.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, InviteForm, CsrfProtectForm, UserPasswordForm
 from modules.utils_auth import _authenticate_and_redirect
 from modules.utils_smtp import send_email, send_password_reset_email, send_invite_email
 from modules.utils_processors import get_global_settings
@@ -218,15 +218,10 @@ def reset_password(token):
         flash('The password reset link is invalid or has expired.')
         return redirect(url_for('login.login'))
 
-    form = CsrfProtectForm()
+    form = UserPasswordForm()
 
     if form.validate_on_submit():
-        new_password = request.form['password']
-        confirm_password = request.form['confirm_password']
-        if new_password != confirm_password:
-            flash('Passwords do not match.')
-            return render_template('reset_password.html', form=form, token=token)
-        user.set_password(new_password)
+        user.set_password(form.password.data)
         user.password_reset_token = None
         db.session.commit()
         flash('Your password has been reset.')

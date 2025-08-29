@@ -53,9 +53,33 @@ def manage_file_types(type_category):
 @apis_bp.route('/check_path_availability', methods=['GET'])
 @login_required
 def check_path_availability():
-    full_disk_path = request.args.get('full_disk_path', '')
-    is_available = os.path.exists(full_disk_path)
-    return jsonify({'available': is_available})
+    full_disk_path = request.args.get('full_disk_path', '').strip()
+    
+    # Security: Validate the path is within allowed directories
+    if not full_disk_path:
+        return jsonify({'available': False, 'error': 'Path required'}), 400
+    
+    # Get allowed base directories from config
+    allowed_bases = []
+    if current_app.config.get('BASE_FOLDER_WINDOWS'):
+        allowed_bases.append(current_app.config.get('BASE_FOLDER_WINDOWS'))
+    if current_app.config.get('BASE_FOLDER_POSIX'):
+        allowed_bases.append(current_app.config.get('BASE_FOLDER_POSIX'))
+    if current_app.config.get('DATA_FOLDER_WAREZ'):
+        allowed_bases.append(current_app.config.get('DATA_FOLDER_WAREZ'))
+    
+    # Resolve the absolute path and check it's within allowed directories
+    try:
+        abs_path = os.path.abspath(full_disk_path)
+        path_allowed = any(abs_path.startswith(os.path.abspath(base)) for base in allowed_bases if base)
+        
+        if not path_allowed:
+            return jsonify({'available': False, 'error': 'Access denied'}), 403
+        
+        is_available = os.path.exists(abs_path)
+        return jsonify({'available': is_available})
+    except (OSError, ValueError):
+        return jsonify({'available': False, 'error': 'Invalid path'}), 400
 
 @apis_bp.route('/emulators', methods=['GET'])
 @apis_bp.route('/emulators/<platform>', methods=['GET'])
