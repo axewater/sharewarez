@@ -2,6 +2,8 @@
 # This file contains functions for interacting with the IGDB API extracted from routes.py
 
 import requests
+import time
+import threading
 from flask import current_app
 from modules.models import GlobalSettings
 
@@ -106,4 +108,44 @@ def get_cover_url(igdb_id):
 
     return None
 
+
+class IGDBRateLimiter:
+    """
+    Rate limiter for IGDB API scanning operations.
+    Ensures compliance with IGDB rate limits: 4 requests/second, max 8 concurrent requests.
+    """
+    def __init__(self, max_requests_per_second=4, max_concurrent_requests=8):
+        self.max_requests_per_second = max_requests_per_second
+        self.max_concurrent_requests = max_concurrent_requests
+        self.request_times = []
+        self.concurrent_requests = 0
+        self.lock = threading.Lock()
+        
+    def acquire(self):
+        """Acquire permission to make an IGDB API request."""
+        with self.lock:
+            current_time = time.time()
+            
+            # Remove request times older than 1 second
+            self.request_times = [req_time for req_time in self.request_times 
+                                if current_time - req_time < 1.0]
+            
+            # Wait if we're at the concurrent request limit
+            while self.concurrent_requests >= self.max_concurrent_requests:
+                time.sleep(0.1)
+            
+            # Wait if we've exceeded the rate limit
+            if len(self.request_times) >= self.max_requests_per_second:
+                sleep_time = 1.0 - (current_time - self.request_times[0])
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
+            
+            # Record this request and increment concurrent counter
+            self.request_times.append(current_time)
+            self.concurrent_requests += 1
+            
+    def release(self):
+        """Release a concurrent request slot."""
+        with self.lock:
+            self.concurrent_requests = max(0, self.concurrent_requests - 1)
 

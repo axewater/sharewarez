@@ -1,5 +1,5 @@
 from datetime import datetime, UTC
-from flask import flash, current_app, abort
+from flask import flash, current_app, abort, has_request_context
 from flask_login import current_user
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.utils import secure_filename
@@ -465,7 +465,10 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
             except IntegrityError as e: 
                 db.session.rollback()
                 print(f"Failed to save game due to a database error: {e}")
-                flash("Failed to save game due to a duplicate entry.")
+                if has_request_context():
+                    flash("Failed to save game due to a duplicate entry.")
+                else:
+                    print("Failed to save game due to a duplicate entry.")
             return new_game
     else:
         if 'error' in response_json:
@@ -484,7 +487,10 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
                 return None
             
         print(f"No match found: {game_name} in library {library.name} on platform {library.platform.name}.")
-        flash("No game data found for the given name.")
+        if has_request_context():
+            flash("No game data found for the given name.")
+        else:
+            print("No game data found for the given name.")
         return None
     
 def check_existing_game_by_path(full_disk_path):
@@ -640,7 +646,10 @@ def delete_game(game_identifier):
     except Exception as e:
         db.session.rollback()
         print(f'Error deleting game with UUID {game_uuid_str}: {e}')
-        flash(f'Error deleting game: {e}', 'error')
+        if has_request_context():
+            flash(f'Error deleting game: {e}', 'error')
+        else:
+            print(f'Error deleting game: {e}')
 
 
 def download_pending_images(batch_size=10, delay_between_downloads=1, app=None):

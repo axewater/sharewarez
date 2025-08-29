@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from flask import current_app, flash
+from flask import current_app, flash, has_request_context
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from modules import db
@@ -254,13 +254,22 @@ def refresh_images_in_background(game_uuid):
                     process_and_save_image(game.uuid, screenshot['id'], image_type='screenshot')
 
                 db.session.commit()
-                flash("Game images refreshed successfully.", "success")
+                if has_request_context():
+                    flash("Game images refreshed successfully.", "success")
+                else:
+                    print("Game images refreshed successfully.")
             else:
-                flash("Failed to retrieve game images from IGDB API.", "error")
+                if has_request_context():
+                    flash("Failed to retrieve game images from IGDB API.", "error")
+                else:
+                    print("Failed to retrieve game images from IGDB API.")
 
         except Exception as e:
             db.session.rollback()
-            flash(f"Failed to refresh game images: {str(e)}", "error")
+            if has_request_context():
+                flash(f"Failed to refresh game images: {str(e)}", "error")
+            else:
+                print(f"Failed to refresh game images: {str(e)}")
             
 def delete_game_images(game_uuid):
     with current_app.app_context():

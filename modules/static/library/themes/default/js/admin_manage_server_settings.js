@@ -47,7 +47,8 @@ document.addEventListener('DOMContentLoaded', function() {
             siteUrl: document.getElementById('siteUrl').value,
             useTurboImageDownloads: document.getElementById('useTurboImageDownloads').checked,
             turboDownloadThreads: parseInt(document.getElementById('turboDownloadThreads').value),
-            turboDownloadBatchSize: parseInt(document.getElementById('turboDownloadBatchSize').value)
+            turboDownloadBatchSize: parseInt(document.getElementById('turboDownloadBatchSize').value),
+            scanThreadCount: parseInt(document.getElementById('scanThreadCount').value)
         };
         console.log("Settings to be saved:", settings);
 

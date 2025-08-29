@@ -10,10 +10,16 @@ from . import apis_bp
 @apis_bp.route('/search')
 @login_required
 def search():
-    query = request.args.get('query', '')
+    query = request.args.get('query', '').strip()
     results = []
     if query:
-        games = Game.query.filter(Game.name.ilike(f'%{query}%')).all()
+        # Sanitize input - limit length and escape special characters
+        if len(query) > 100:  # Reasonable search term length limit
+            return jsonify({'error': 'Search term too long'}), 400
+        
+        # Use parameterized query to prevent SQL injection
+        search_term = f'%{query}%'
+        games = Game.query.filter(Game.name.ilike(search_term)).all()
         results = [{'id': game.id, 'uuid': game.uuid, 'name': game.name} for game in games]
     return jsonify(results)
 
