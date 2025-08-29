@@ -446,7 +446,7 @@ class ScanJob(db.Model):
     status = db.Column(db.Enum('Scheduled', 'Running', 'Completed', 'Failed', name='status_enum'))
     last_run = db.Column(db.DateTime, nullable=True)
     next_run = db.Column(db.DateTime, nullable=True)
-    error_message = db.Column(db.String(512))
+    error_message = db.Column(db.Text)
     total_folders = db.Column(db.Integer, default=0)
     folders_success = db.Column(db.Integer, default=0)
     folders_failed = db.Column(db.Integer, default=0)
@@ -522,6 +522,8 @@ class GlobalSettings(db.Model):
     use_turbo_image_downloads = db.Column(db.Boolean, default=True)
     turbo_download_threads = db.Column(db.Integer, default=8)
     turbo_download_batch_size = db.Column(db.Integer, default=200)
+    # Scan Thread Settings  
+    scan_thread_count = db.Column(db.Integer, default=1)
 
     def __repr__(self):
         return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'

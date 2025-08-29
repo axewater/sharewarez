@@ -100,9 +100,16 @@ class DatabaseManager:
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS turbo_download_batch_size INTEGER DEFAULT 200;
 
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS scan_thread_count INTEGER DEFAULT 1;
+
         -- Add setting_download_missing_images column to scan_jobs table
         ALTER TABLE scan_jobs
         ADD COLUMN IF NOT EXISTS setting_download_missing_images BOOLEAN DEFAULT FALSE;
+
+        -- Change error_message column from varchar(512) to text for longer error messages
+        ALTER TABLE scan_jobs
+        ALTER COLUMN error_message TYPE TEXT;
         
         """
         print("Upgrading database to the latest schema")

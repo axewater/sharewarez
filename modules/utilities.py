@@ -2,6 +2,7 @@
 import os
 from datetime import datetime
 from threading import Thread
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from flask import current_app, flash, redirect, url_for, session, copy_current_request_context
 from modules.utils_functions import (
@@ -14,6 +15,7 @@ from modules import db
 from modules.utils_game_core import remove_from_lib
 from modules.utils_gamenames import get_game_names_from_folder, get_game_names_from_files
 from modules.utils_scanning import process_game_with_fallback, process_game_updates, process_game_extras, is_scan_job_running
+from modules.utils_igdb_api import IGDBRateLimiter
 
 
 def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remove_missing=False, existing_job=None, download_missing_images=False):
@@ -26,6 +28,10 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
     settings = GlobalSettings.query.first()
     update_folder_name = settings.update_folder_name if settings else 'updates'
     extras_folder_name = settings.extras_folder_name if settings else 'extras'
+    scan_thread_count = settings.scan_thread_count if settings else 1
+    
+    # Initialize IGDB rate limiter for scanning operations
+    igdb_rate_limiter = IGDBRateLimiter()
     
     # First, find the library and its platform
     library = Library.query.filter_by(uuid=library_uuid).first()
@@ -110,50 +116,137 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
         print(f"Error during pattern loading or game name extraction: {str(e)}")
         return
 
-    for game_info in game_names_with_paths:
-        db.session.refresh(scan_job_entry)  # Check if the job is still enabled
-        if not scan_job_entry.is_enabled:
-            scan_job_entry.status = 'Failed'
-            scan_job_entry.error_message = 'Scan cancelled by the captain'
-            db.session.commit()
-            return  # Stop processing if cancelled
-        
+    def process_single_game(game_info, scan_job_id, library_uuid, update_folder_name, extras_folder_name, igdb_rate_limiter, app):
+        """Process a single game with rate limiting and thread-safe database operations."""
         game_name = game_info['name']
         full_disk_path = game_info['full_path']
+        result = {'game_name': game_name, 'success': False, 'error': None}
         
-        try:
-            success = process_game_with_fallback(game_name, full_disk_path, scan_job_entry.id, library_uuid)
-            if success:
-                scan_job_entry.folders_success += 1
-                # Use cached settings instead of querying database again
-                # Check for updates folder using the cached setting
-                updates_folder = os.path.join(full_disk_path, update_folder_name)
-                # print(f"Checking for updates folder: {updates_folder}")
-                if os.path.exists(updates_folder) and os.path.isdir(updates_folder):
-                    print(f"Updates folder found for game: {game_name}")
-                    process_game_updates(game_name, full_disk_path, updates_folder, library_uuid, update_folder_name)
-                else:
-                    print(f"No updates folder found for game: {game_name}")
+        # Ensure we have a Flask app context for database operations
+        with app.app_context():
+            try:
+                # Use rate limiter for IGDB API calls
+                igdb_rate_limiter.acquire()
+                try:
+                    success = process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_uuid)
+                    result['success'] = success
                     
-                # Check for extras folder
-                extras_folder = os.path.join(full_disk_path, extras_folder_name)
-                # print(f"Checking for extras folder: {extras_folder}")
-                if os.path.exists(extras_folder) and os.path.isdir(extras_folder):
-                    print(f"Extras folder found for game: {game_name}")
-                    process_game_extras(game_name, full_disk_path, extras_folder, library_uuid, extras_folder_name)
+                    if success:
+                        # Check for updates folder using the cached setting
+                        updates_folder = os.path.join(full_disk_path, update_folder_name)
+                        if os.path.exists(updates_folder) and os.path.isdir(updates_folder):
+                            print(f"Updates folder found for game: {game_name}")
+                            process_game_updates(game_name, full_disk_path, updates_folder, library_uuid, update_folder_name)
+                        else:
+                            print(f"No updates folder found for game: {game_name}")
+                            
+                        # Check for extras folder
+                        extras_folder = os.path.join(full_disk_path, extras_folder_name)
+                        if os.path.exists(extras_folder) and os.path.isdir(extras_folder):
+                            print(f"Extras folder found for game: {game_name}")
+                            process_game_extras(game_name, full_disk_path, extras_folder, library_uuid, extras_folder_name)
+                        else:
+                            print(f"No extras folder found for game: {game_name}")
+                    else:
+                        print(f"Failed to process game {game_name} after fallback attempts.")
+                        
+                finally:
+                    igdb_rate_limiter.release()
+                    
+            except Exception as e:
+                result['error'] = str(e)
+                print(f"Failed to process game {game_name}: {e}")
+                
+        return result
+    
+    # Process games either sequentially or in parallel based on thread count
+    if scan_thread_count > 1:
+        # Multithreaded processing
+        print(f"Using multithreaded scanning with {scan_thread_count} threads")
+        with ThreadPoolExecutor(max_workers=scan_thread_count) as executor:
+            # Submit all game processing tasks
+            future_to_game = {
+                executor.submit(process_single_game, game_info, scan_job_entry.id, library_uuid, 
+                              update_folder_name, extras_folder_name, igdb_rate_limiter, current_app._get_current_object()): game_info 
+                for game_info in game_names_with_paths
+            }
+            
+            # Process completed futures
+            for future in as_completed(future_to_game):
+                # Check if the job is still enabled
+                db.session.refresh(scan_job_entry)
+                if not scan_job_entry.is_enabled:
+                    # Cancel remaining tasks
+                    for f in future_to_game:
+                        f.cancel()
+                    scan_job_entry.status = 'Failed'
+                    scan_job_entry.error_message = 'Scan cancelled by the captain'
+                    db.session.commit()
+                    return
+                
+                game_info = future_to_game[future]
+                try:
+                    result = future.result()
+                    if result['success']:
+                        scan_job_entry.folders_success += 1
+                    else:
+                        scan_job_entry.folders_failed += 1
+                        
+                    if result['error']:
+                        scan_job_entry.error_message = (scan_job_entry.error_message or "") + f" Failed to process {result['game_name']}: {result['error']}; "
+                        
+                except Exception as e:
+                    scan_job_entry.folders_failed += 1
+                    scan_job_entry.error_message = (scan_job_entry.error_message or "") + f" Failed to process {game_info['name']}: {str(e)}; "
+                    
+                db.session.commit()
+    else:
+        # Sequential processing (original behavior)
+        print("Using single-threaded sequential scanning")
+        for game_info in game_names_with_paths:
+            db.session.refresh(scan_job_entry)  # Check if the job is still enabled
+            if not scan_job_entry.is_enabled:
+                scan_job_entry.status = 'Failed'
+                scan_job_entry.error_message = 'Scan cancelled by the captain'
+                db.session.commit()
+                return  # Stop processing if cancelled
+            
+            game_name = game_info['name']
+            full_disk_path = game_info['full_path']
+            
+            try:
+                success = process_game_with_fallback(game_name, full_disk_path, scan_job_entry.id, library_uuid)
+                if success:
+                    scan_job_entry.folders_success += 1
+                    # Use cached settings instead of querying database again
+                    # Check for updates folder using the cached setting
+                    updates_folder = os.path.join(full_disk_path, update_folder_name)
+                    # print(f"Checking for updates folder: {updates_folder}")
+                    if os.path.exists(updates_folder) and os.path.isdir(updates_folder):
+                        print(f"Updates folder found for game: {game_name}")
+                        process_game_updates(game_name, full_disk_path, updates_folder, library_uuid, update_folder_name)
+                    else:
+                        print(f"No updates folder found for game: {game_name}")
+                        
+                    # Check for extras folder
+                    extras_folder = os.path.join(full_disk_path, extras_folder_name)
+                    # print(f"Checking for extras folder: {extras_folder}")
+                    if os.path.exists(extras_folder) and os.path.isdir(extras_folder):
+                        print(f"Extras folder found for game: {game_name}")
+                        process_game_extras(game_name, full_disk_path, extras_folder, library_uuid, extras_folder_name)
+                    else:
+                        print(f"No extras folder found for game: {game_name}")
                 else:
-                    print(f"No extras folder found for game: {game_name}")
-            else:
-                scan_job_entry.folders_failed += 1
-                print(f"Failed to process game {game_name} after fallback attempts.")   
-            db.session.commit()
+                    scan_job_entry.folders_failed += 1
+                    print(f"Failed to process game {game_name} after fallback attempts.")   
+                db.session.commit()
 
-        except Exception as e:
-            print(f"Failed to process game {game_name}: {e}")
-            scan_job_entry.folders_failed += 1
-            scan_job_entry.status = 'Failed'
-            scan_job_entry.error_message += f" Failed to process {game_name}: {str(e)}; "
-            db.session.commit()
+            except Exception as e:
+                print(f"Failed to process game {game_name}: {e}")
+                scan_job_entry.folders_failed += 1
+                scan_job_entry.status = 'Failed'
+                scan_job_entry.error_message += f" Failed to process {game_name}: {str(e)}; "
+                db.session.commit()
 
     if scan_job_entry.status != 'Failed':
         scan_job_entry.status = 'Completed'

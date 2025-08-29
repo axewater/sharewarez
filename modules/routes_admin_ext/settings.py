@@ -37,6 +37,12 @@ def manage_settings():
         settings_record.use_turbo_image_downloads = new_settings.get('useTurboImageDownloads', True)
         settings_record.turbo_download_threads = new_settings.get('turboDownloadThreads', 8)
         settings_record.turbo_download_batch_size = new_settings.get('turboDownloadBatchSize', 200)
+        # Scan Thread Settings
+        scan_thread_count = new_settings.get('scanThreadCount', 1)
+        if 1 <= scan_thread_count <= 4:
+            settings_record.scan_thread_count = scan_thread_count
+        else:
+            settings_record.scan_thread_count = 1
         
         # Update the settings JSON field
         settings_record.settings = new_settings
@@ -82,4 +88,11 @@ def manage_settings():
         current_settings['updateFolderName'] = settings_record.update_folder_name if settings_record else 'updates'
         current_settings['enableGameExtras'] = settings_record.enable_game_extras if settings_record else True
         current_settings['extrasFolderName'] = settings_record.extras_folder_name if settings_record else 'extras'
+        current_settings['siteUrl'] = settings_record.site_url if settings_record else 'http://127.0.0.1'
+        # Image Download Settings
+        current_settings['useTurboImageDownloads'] = settings_record.use_turbo_image_downloads if settings_record else True
+        current_settings['turboDownloadThreads'] = settings_record.turbo_download_threads if settings_record else 8
+        current_settings['turboDownloadBatchSize'] = settings_record.turbo_download_batch_size if settings_record else 200
+        # Scan Thread Settings
+        current_settings['scanThreadCount'] = settings_record.scan_thread_count if settings_record else 1
         return render_template('admin/admin_manage_server_settings.html', current_settings=current_settings)
