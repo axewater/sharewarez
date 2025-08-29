@@ -24,3 +24,5 @@ modules/static/library/images
 CLAUDE.md
 /.claude/*
 .claude/settings.local.json
+letsrebuild.md
+.claude/settings.local.json

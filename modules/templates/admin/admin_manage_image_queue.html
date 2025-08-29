@@ -467,28 +467,53 @@ document.addEventListener('DOMContentLoaded', function() {
 // Refresh statistics
 async function refreshStats() {
     try {
+        console.log('Refreshing stats...');
         const response = await fetch('/admin/api/image_queue_stats');
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const stats = await response.json();
+        console.log('Received stats:', stats);
         
         if (stats.error) {
+            console.error('Server returned error:', stats.error);
             showMessage('Error loading stats: ' + stats.error, 'error');
             return;
         }
         
-        document.getElementById('total-images').textContent = stats.total_images;
-        document.getElementById('pending-images').textContent = stats.pending_images;
-        document.getElementById('downloaded-images').textContent = stats.downloaded_images;
-        document.getElementById('download-percentage').textContent = stats.download_percentage + '%';
-        document.getElementById('progress-fill').style.width = stats.download_percentage + '%';
+        // Update DOM elements with debug logging
+        console.log('Updating DOM elements...');
+        const totalEl = document.getElementById('total-images');
+        const pendingEl = document.getElementById('pending-images');
+        const downloadedEl = document.getElementById('downloaded-images');
+        const percentageEl = document.getElementById('download-percentage');
+        const progressEl = document.getElementById('progress-fill');
+        
+        if (!totalEl || !pendingEl || !downloadedEl || !percentageEl || !progressEl) {
+            console.error('One or more DOM elements not found');
+            showMessage('Error: DOM elements not found', 'error');
+            return;
+        }
+        
+        totalEl.textContent = stats.total_images || '0';
+        pendingEl.textContent = stats.pending_images || '0';
+        downloadedEl.textContent = stats.downloaded_images || '0';
+        percentageEl.textContent = (stats.download_percentage || 0) + '%';
+        progressEl.style.width = (stats.download_percentage || 0) + '%';
+        
+        console.log('Stats updated successfully');
         
         // Update recent activity
-        const activityHtml = stats.recent_downloads.map(item => `
+        const activityHtml = (stats.recent_downloads || []).map(item => `
             <div class="activity-item">
                 <div>
-                    <strong>${item.game_name}</strong> - 
-                    <span class="image-type-badge type-${item.image_type}">${item.image_type}</span>
+                    <strong>${item.game_name || 'Unknown'}</strong> - 
+                    <span class="image-type-badge type-${item.image_type || 'unknown'}">${item.image_type || 'unknown'}</span>
                 </div>
-                <div class="activity-time">${item.created_at}</div>
+                <div class="activity-time">${item.created_at || 'Unknown'}</div>
             </div>
         `).join('');
         
@@ -496,7 +521,7 @@ async function refreshStats() {
         
     } catch (error) {
         console.error('Error refreshing stats:', error);
-        showMessage('Error refreshing stats', 'error');
+        showMessage('Error refreshing stats: ' + error.message, 'error');
     }
 }
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 cd "$(dirname "$0")"
 
