@@ -2,6 +2,8 @@ import os
 from PIL import Image as PILImage
 import requests
 import re
+import html
+from urllib.parse import urlparse
 from wtforms.validators import ValidationError
 from modules import db
 from modules.models import ReleaseGroup, Library, Game
@@ -354,3 +356,98 @@ def delete_associations_for_game(game_to_delete):
     
     for association in associations:
         association.clear()
+
+# Discord Input Validation Functions
+
+def sanitize_string_input(input_str, max_length, allow_html=False):
+    """Sanitize string input to prevent XSS and ensure length limits."""
+    if not input_str:
+        return ''
+    
+    # Convert to string and strip whitespace
+    sanitized = str(input_str).strip()
+    
+    # HTML escape if not allowing HTML
+    if not allow_html:
+        sanitized = html.escape(sanitized)
+    
+    # Enforce length limit
+    if len(sanitized) > max_length:
+        sanitized = sanitized[:max_length]
+    
+    return sanitized
+
+def validate_discord_webhook_url(url, max_length=512):
+    """Validate Discord webhook URL format and length."""
+    if not url:
+        return False, "Webhook URL is required"
+    
+    # Sanitize input
+    sanitized_url = sanitize_string_input(url, max_length)
+    
+    # Check length
+    if len(sanitized_url) > max_length:
+        return False, f"Webhook URL must be {max_length} characters or less"
+    
+    # Check if it's a valid URL structure
+    try:
+        parsed = urlparse(sanitized_url)
+        if not parsed.scheme or not parsed.netloc:
+            return False, "Invalid URL format"
+    except Exception:
+        return False, "Invalid URL format"
+    
+    # Check HTTPS requirement
+    if not sanitized_url.startswith('https://'):
+        return False, "Webhook URL must use HTTPS"
+    
+    # Check Discord webhook URL format
+    if not ('discord.com/api/webhooks/' in sanitized_url or 'discordapp.com/api/webhooks/' in sanitized_url):
+        return False, "URL must be a valid Discord webhook URL"
+    
+    return True, sanitized_url
+
+def validate_discord_bot_name(name, max_length=100):
+    """Validate Discord bot name."""
+    if not name:
+        return False, "Bot name is required"
+    
+    # Sanitize input
+    sanitized_name = sanitize_string_input(name, max_length)
+    
+    # Check length
+    if len(sanitized_name) > max_length:
+        return False, f"Bot name must be {max_length} characters or less"
+    
+    # Check for valid characters (alphanumeric, spaces, basic punctuation)
+    allowed_pattern = re.compile(r'^[a-zA-Z0-9\s\-_\.]+$')
+    if not allowed_pattern.match(sanitized_name):
+        return False, "Bot name can only contain letters, numbers, spaces, hyphens, underscores, and periods"
+    
+    return True, sanitized_name
+
+def validate_discord_avatar_url(url, max_length=512):
+    """Validate Discord bot avatar URL (optional field)."""
+    if not url:
+        return True, ''  # Optional field, empty is valid
+    
+    # Sanitize input
+    sanitized_url = sanitize_string_input(url, max_length)
+    
+    # Check length
+    if len(sanitized_url) > max_length:
+        return False, f"Avatar URL must be {max_length} characters or less"
+    
+    # Check if it's a valid URL structure
+    try:
+        parsed = urlparse(sanitized_url)
+        if not parsed.scheme or not parsed.netloc:
+            return False, "Invalid URL format"
+    except Exception:
+        return False, "Invalid URL format"
+    
+    # Check HTTPS requirement
+    if not sanitized_url.startswith('https://'):
+        return False, "Avatar URL must use HTTPS"
+    
+    return True, sanitized_url

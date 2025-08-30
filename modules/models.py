@@ -491,7 +491,7 @@ class GlobalSettings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     settings = db.Column(JSONEncodedDict)  # Store all settings in a single JSON-encoded column
     last_updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    discord_webhook_url = db.Column(db.String(255), nullable=True)
+    discord_webhook_url = db.Column(db.String(512), nullable=True)
     # SMTP Settings
     smtp_server = db.Column(db.String(255), nullable=True)
     smtp_port = db.Column(db.Integer, nullable=True)
@@ -502,7 +502,7 @@ class GlobalSettings(db.Model):
     smtp_last_tested = db.Column(db.DateTime, nullable=True)
     smtp_enabled = db.Column(db.Boolean, default=False)
     discord_bot_name = db.Column(db.String(100), nullable=True)
-    discord_bot_avatar_url = db.Column(db.String(255), nullable=True)
+    discord_bot_avatar_url = db.Column(db.String(512), nullable=True)
     enable_delete_game_on_disk = db.Column(db.Boolean, default=True)
     enable_main_game_updates = db.Column(db.Boolean, default=False)
     # IGDB Settings
