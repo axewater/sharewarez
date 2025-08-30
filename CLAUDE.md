@@ -1,54 +1,15 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project Overview
 
 SharewareZ v2.5.4 is a Flask-based web application that transforms game folders into a searchable library with IGDB integration. It provides cover images, screenshots, metadata filtering, and user management for sharing game collections.
 
-## Development Commands
-
-### Running the Application
-```bash
-# Development mode
-python3 app.py
-
-# Using shell script (Linux) - Development
-./startweb.sh
-
-# Using shell script (Linux) - Production with uvicorn
-PRODUCTION=true ./startweb.sh
-
-# Production with uvicorn directly
-uvicorn app:app --host 0.0.0.0 --port 5006 --workers 4
-
-# Force setup wizard (resets database)
-python3 app.py --force-setup
-```
 
 ### Virtual Environment
+always activate the venv when performing any kind of code testing.
+
 ```bash
-# Linux
-python -m venv venv
 source venv/bin/activate
-python -m pip install -r requirements.txt
 
-# Windows
-python -m venv venv
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\venv\Scripts\Activate
-python -m pip install -r requirements.txt
 ```
-
-### Docker
-```bash
-# Using docker-compose
-docker-compose up
-
-# Pull official image
-docker pull kapitanczarnobrod/sharewarez:latest
-```
-
 ## Architecture
 
 ### Application Structure
@@ -113,7 +74,7 @@ docker pull kapitanczarnobrod/sharewarez:latest
 ## Development Notes
 
 ### Database Operations
-- Use `--force-setup` flag to reset database and run setup wizard
+- Use `--force-setup` flag to reset database and run setup wizard (claude is never allowed to run this, ask the user)
 - Schema updates handled automatically via `updateschema.py`
 - Foreign key relationships with cascade deletion
 
@@ -122,13 +83,8 @@ docker pull kapitanczarnobrod/sharewarez:latest
 - Admin-only areas protected with `@admin_required` decorator
 - CSRF protection enabled globally
 
-### Image Processing
-- PIL/Pillow for image manipulation
-- Automatic thumbnail generation
-- Support for cover art and screenshot galleries
-
 ### API Integration
-- IGDB API for game metadata (deadline August 2025 for v2.5.2+)
+- IGDB API for game metadata
 - Discord webhook integration for notifications
 - RESTful API endpoints for frontend
 
@@ -136,13 +92,3 @@ docker pull kapitanczarnobrod/sharewarez:latest
 - Threading for long-running scan operations
 - Queue management for image downloads
 - Status tracking for scan jobs
-
-### Security Considerations
-- CSRF protection on all forms
-- SQL injection protection via SQLAlchemy ORM
-- File upload security with secure_filename()
-- Password hashing with argon2-cffi
-
-## Testing and Quality
-
-The codebase does not include specific testing frameworks or linting configurations. When adding tests or quality checks, investigate the existing structure first.
