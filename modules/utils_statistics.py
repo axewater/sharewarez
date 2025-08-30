@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import func
 from modules.models import DownloadRequest, Game, User, user_favorites, InviteToken
 from modules import db
@@ -23,7 +23,7 @@ def get_download_statistics():
     ).limit(10).all()
 
     # Download trends (last 30 days)
-    thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+    thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
     download_trends = db.session.query(
         func.date(DownloadRequest.request_time),
         func.count(DownloadRequest.id)

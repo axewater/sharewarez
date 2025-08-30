@@ -2,7 +2,7 @@ import psutil
 import platform
 import socket
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import func
 from modules.models import User, SystemEvents, GlobalSettings
 from modules.utils_system_stats import format_bytes
@@ -55,7 +55,7 @@ def get_config_values():
 def get_active_users():
     """Get count of users active in the last 24 hours."""
     return User.query.filter(
-        User.lastlogin >= (datetime.utcnow() - timedelta(hours=24))
+        User.lastlogin >= (datetime.now(timezone.utc) - timedelta(hours=24))
     ).count()
 
 def get_log_info():

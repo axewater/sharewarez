@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import wraps
 from flask import request, redirect, url_for, flash
 from urllib.parse import urlparse as url_parse
@@ -20,7 +20,7 @@ def _authenticate_and_redirect(username, password):
             user.rehash_password(password)
             db.session.commit()
 
-        user.lastlogin = datetime.utcnow()
+        user.lastlogin = datetime.now(timezone.utc)
         db.session.commit()
         login_user(user, remember=True)
         

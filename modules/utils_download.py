@@ -1,6 +1,6 @@
 import os
 import zipfile
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Tuple
 from modules.utils_filename import sanitize_filename
 from modules.models import DownloadRequest, GlobalSettings, db
@@ -75,7 +75,7 @@ def update_download_request(download_request, status, file_path, file_size=None)
     download_request.zip_file_path = file_path
     if file_size:
         download_request.download_size = file_size
-    download_request.completion_time = datetime.now(datetime.UTC)
+    download_request.completion_time = datetime.now(timezone.utc)
     print(f"Download request updated: {download_request}")
     db.session.commit()    
      

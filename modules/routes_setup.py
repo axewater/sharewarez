@@ -4,7 +4,7 @@ from modules import db
 from modules.forms import SetupForm, IGDBSetupForm
 from modules.models import User, GlobalSettings
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timezone
 from modules.utils_logging import log_system_event
 
 setup_bp = Blueprint('setup', __name__)
@@ -40,7 +40,7 @@ def setup_submit():
             is_email_verified=True,
             user_id=str(uuid4()),
             invite_quota=10,
-            created=datetime.utcnow()
+            created=datetime.now(timezone.utc)
         )
         user.set_password(form.password.data)
         
