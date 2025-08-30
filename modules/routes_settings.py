@@ -160,7 +160,7 @@ def settings_profile_view():
 @login_required
 def account_pw():
     form = UserPasswordForm()
-    user = User.query.get(current_user.id)
+    user = db.session.get(User, current_user.id)
 
     if form.validate_on_submit():
         try:
