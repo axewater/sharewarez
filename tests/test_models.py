@@ -98,8 +98,8 @@ class TestUserModel:
     def test_create_user(self, db_session):
         """Test creating a basic user."""
         user = User(
-            name='testuser',
-            email='test@example.com',
+            name=f'testuser_{uuid4().hex[:8]}',
+            email=f'test_{uuid4().hex[:8]}@example.com',
             role='user',
             user_id=str(uuid4())
         )
@@ -109,8 +109,8 @@ class TestUserModel:
         db_session.flush()
         
         assert user.id is not None
-        assert user.name == 'testuser'
-        assert user.email == 'test@example.com'
+        assert user.name.startswith('testuser_')
+        assert user.email.startswith('test_')
         assert user.role == 'user'
         assert user.state is True  # Default value
         assert user.is_email_verified is False  # Default value
@@ -119,8 +119,8 @@ class TestUserModel:
     def test_user_password_hashing_argon2(self, db_session):
         """Test password hashing with Argon2."""
         user = User(
-            name='testuser',
-            email='test@example.com', 
+            name=f'testuser_{uuid4().hex[:8]}',
+            email=f'test_{uuid4().hex[:8]}@example.com', 
             role='user',
             user_id=str(uuid4())
         )
@@ -136,8 +136,8 @@ class TestUserModel:
         from werkzeug.security import generate_password_hash
         
         user = User(
-            name='testuser',
-            email='test@example.com',
+            name=f'testuser_{uuid4().hex[:8]}',
+            email=f'test_{uuid4().hex[:8]}@example.com',
             role='user', 
             user_id=str(uuid4())
         )
@@ -156,8 +156,8 @@ class TestUserModel:
         from werkzeug.security import generate_password_hash
         
         user = User(
-            name='testuser',
-            email='test@example.com',
+            name=f'testuser_{uuid4().hex[:8]}',
+            email=f'test_{uuid4().hex[:8]}@example.com',
             role='user',
             user_id=str(uuid4())
         )
@@ -173,8 +173,8 @@ class TestUserModel:
     def test_user_flask_login_properties(self, db_session):
         """Test Flask-Login required properties."""
         user = User(
-            name='testuser',
-            email='test@example.com',
+            name=f'testuser_{uuid4().hex[:8]}',
+            email=f'test_{uuid4().hex[:8]}@example.com',
             role='user',
             user_id=str(uuid4())
         )
@@ -201,8 +201,8 @@ class TestUserModel:
     def test_user_unique_constraints(self, db_session):
         """Test unique constraints on user fields."""
         user1 = User(
-            name='testuser',
-            email='test@example.com',
+            name=f'testuser_{uuid4().hex[:8]}',
+            email=f'test_{uuid4().hex[:8]}@example.com',
             role='user',
             user_id=str(uuid4())
         )
@@ -212,8 +212,8 @@ class TestUserModel:
         
         # Duplicate username should fail
         user2 = User(
-            name='testuser',
-            email='other@example.com', 
+            name=user1.name,  # Intentionally duplicate name for testing unique constraint
+            email=f'other_{uuid4().hex[:8]}@example.com', 
             role='user',
             user_id=str(uuid4())
         )
@@ -412,8 +412,8 @@ class TestGameRelationships:
         db_session.flush()
         
         user = User(
-            name='testuser',
-            email='test@example.com',
+            name=f'testuser_{uuid4().hex[:8]}',
+            email=f'test_{uuid4().hex[:8]}@example.com',
             role='user',
             user_id=str(uuid4())
         )
@@ -473,8 +473,8 @@ class TestDownloadRequestModel:
     def test_create_download_request(self, db_session):
         """Test creating a download request."""
         user = User(
-            name='testuser',
-            email='test@example.com',
+            name=f'testuser_{uuid4().hex[:8]}',
+            email=f'test_{uuid4().hex[:8]}@example.com',
             role='user',
             user_id=str(uuid4())
         )
@@ -602,8 +602,8 @@ class TestSystemEventsModel:
     def test_create_system_event(self, db_session):
         """Test creating a system event."""
         user = User(
-            name='testuser',
-            email='test@example.com',
+            name=f'testuser_{uuid4().hex[:8]}',
+            email=f'test_{uuid4().hex[:8]}@example.com',
             role='admin',
             user_id=str(uuid4())
         )
