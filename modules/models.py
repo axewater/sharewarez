@@ -11,7 +11,7 @@ from argon2.exceptions import VerifyMismatchError
 from datetime import datetime
 import uuid, json
 from uuid import uuid4
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum as PyEnum
 import re
 from wtforms.validators import ValidationError
@@ -127,7 +127,7 @@ class Status(PyEnum):
 user_favorites = db.Table('user_favorites',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
     db.Column('game_uuid', db.String(36), db.ForeignKey('games.uuid'), primary_key=True),
-    db.Column('created_at', db.DateTime, default=datetime.utcnow)
+    db.Column('created_at', db.DateTime, default=lambda: datetime.now(timezone.utc))
 )
 
 class Game(db.Model):
@@ -157,7 +157,7 @@ class Game(db.Model):
     url = db.Column(db.String)
     video_urls = db.Column(db.String, nullable=True)
     full_disk_path = db.Column(db.String, nullable=True)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    date_created = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     date_identified = db.Column(db.DateTime, nullable=True)
     steam_url = db.Column(db.String, nullable=True)
     times_downloaded = db.Column(db.Integer, default=0)
@@ -179,7 +179,7 @@ class Game(db.Model):
     library_name = db.Column(db.String(512), nullable=True)
     library_uuid = db.Column(db.String(36), db.ForeignKey('libraries.uuid'), nullable=False)
     size = db.Column(db.BigInteger, nullable=False, default=0)
-    last_updated = db.Column(db.DateTime, default=datetime.utcnow)
+    last_updated = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f"<Game id={self.id}, name={self.name}>"
@@ -193,7 +193,7 @@ class GameUpdate(db.Model):
     times_downloaded = db.Column(db.Integer, default=0)
     nfo_content = db.Column(db.Text, nullable=True)
     file_path = db.Column(db.String, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     game = db.relationship('Game', back_populates='updates')
 
@@ -209,7 +209,7 @@ class GameExtra(db.Model):
     times_downloaded = db.Column(db.Integer, default=0)
     nfo_content = db.Column(db.Text, nullable=True)
     file_path = db.Column(db.String, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     game = db.relationship('Game', back_populates='extras')
 
@@ -240,7 +240,7 @@ class Image(db.Model):
     igdb_image_id = db.Column(db.String, nullable=True)  # IGDB image ID for reference
     download_url = db.Column(db.String, nullable=True)  # Full IGDB URL to download from
     is_downloaded = db.Column(db.Boolean, default=False, nullable=False)  # Download status
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f"<Image id={self.id}, game_uuid={self.game_uuid}, image_type={self.image_type}, url={self.url}, downloaded={self.is_downloaded}>"
@@ -256,8 +256,8 @@ class User(db.Model):
     role = db.Column(db.String(64), nullable=False)
     state = db.Column(db.Boolean, default=True)
     about = db.Column(db.String(256), unique=True, nullable=True)
-    created = db.Column(db.DateTime, default=datetime.utcnow)
-    lastlogin = db.Column(db.DateTime, default=datetime.utcnow)
+    created = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    lastlogin = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     user_id = db.Column(db.String(36), unique=True, nullable=False, default=str(uuid4()))
     avatarpath = db.Column(db.String(256), default='newstyle/avatar_default.jpg')
     is_email_verified = db.Column(db.Boolean, default=False)
@@ -325,7 +325,7 @@ class DownloadRequest(db.Model):
     game_uuid = db.Column(db.String(36), db.ForeignKey('games.uuid', ondelete='CASCADE'), nullable=False)
     status = db.Column(db.String(50), default='pending')
     zip_file_path = db.Column(db.String, nullable=True)
-    request_time = db.Column(db.DateTime, default=datetime.utcnow)
+    request_time = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     completion_time = db.Column(db.DateTime, nullable=True)
     download_size = db.Column(db.Float, nullable=False, default=0.0)
     game = db.relationship('Game', foreign_keys=[game_uuid], back_populates='download_requests')
@@ -404,7 +404,7 @@ class Newsletter(db.Model):
     subject = db.Column(db.String(255), nullable=False)
     content = db.Column(db.Text, nullable=False)
     sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    sent_date = db.Column(db.DateTime, default=datetime.utcnow)
+    sent_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     recipient_count = db.Column(db.Integer, default=0)
     recipients = db.Column(JSON)
     status = db.Column(db.String(20), default='pending')  # pending, sent, failed
@@ -490,7 +490,7 @@ class GlobalSettings(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     settings = db.Column(JSONEncodedDict)  # Store all settings in a single JSON-encoded column
-    last_updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    last_updated = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     discord_webhook_url = db.Column(db.String(512), nullable=True)
     # SMTP Settings
     smtp_server = db.Column(db.String(255), nullable=True)
@@ -547,8 +547,8 @@ class InviteToken(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     token = db.Column(db.String(256), nullable=False, unique=True)
     creator_user_id = db.Column(db.String(36), db.ForeignKey('users.user_id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    expires_at = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(days=2), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    expires_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc) + timedelta(days=2), nullable=False)
     used = db.Column(db.Boolean, default=False, nullable=False)
     recipient_email = db.Column(db.String(120), nullable=True)
     used_by = db.Column(db.String(36), db.ForeignKey('users.user_id'), nullable=True)
@@ -587,7 +587,7 @@ class SystemEvents(db.Model):
     event_text = db.Column(db.String(256), nullable=False)
     event_level = db.Column(db.String(32), default='information')
     audit_user = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     user = db.relationship('User', backref='system_events')
 
