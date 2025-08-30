@@ -75,7 +75,7 @@ def update_download_request(download_request, status, file_path, file_size=None)
     download_request.zip_file_path = file_path
     if file_size:
         download_request.download_size = file_size
-    download_request.completion_time = datetime.utcnow()
+    download_request.completion_time = datetime.now(datetime.UTC)
     print(f"Download request updated: {download_request}")
     db.session.commit()    
      

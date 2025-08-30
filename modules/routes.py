@@ -251,7 +251,7 @@ def restart_scan_job(job_id):
     job.folders_success = 0
     job.folders_failed = 0
     job.removed_count = 0
-    job.last_run = datetime.utcnow()
+    job.last_run = datetime.now(datetime.UTC)
     job.error_message = None
     job.is_enabled = True
     db.session.commit()
