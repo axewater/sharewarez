@@ -1,5 +1,5 @@
 import uuid
-from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app
+from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app, abort
 from flask_login import current_user, login_user, logout_user, login_required
 from config import Config
 from modules import db
@@ -11,7 +11,7 @@ from modules.utils_processors import get_global_settings
 from modules.utils_logging import log_system_event
 from modules import cache
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import func
+from sqlalchemy import func, select
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from uuid import uuid4
 from sqlalchemy.exc import IntegrityError
@@ -22,7 +22,7 @@ s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 
 def is_smtp_configured():
     """Check if SMTP settings are properly configured."""
-    settings = GlobalSettings.query.first()
+    settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
     if not settings:
         return False
     return bool(settings.smtp_server and 
@@ -47,7 +47,7 @@ def login():
     if request.method == 'POST' and form.validate_on_submit():
         username = form.username.data
         password = form.password.data
-        user = User.query.filter_by(name=username).first()
+        user = db.session.execute(select(User).filter_by(name=username)).scalar_one_or_none()
 
         if user:
             if not user.is_email_verified:
@@ -82,7 +82,7 @@ def register():
     print(f"Invite token from URL: {invite_token_from_url}")
     invite = None
     if invite_token_from_url:
-        invite = InviteToken.query.filter_by(token=invite_token_from_url, used=False).first()
+        invite = db.session.execute(select(InviteToken).filter_by(token=invite_token_from_url, used=False)).scalar_one_or_none()
         print(f"Invite found: {invite}")
         if invite and invite.expires_at >= datetime.now(timezone.utc):
             # The invite is valid; skip the whitelist check later
@@ -95,26 +95,26 @@ def register():
     if form.validate_on_submit():
         try:
             email_address = form.email.data.lower()
-            existing_user_email = User.query.filter(func.lower(User.email) == email_address).first()
+            existing_user_email = db.session.execute(select(User).filter(func.lower(User.email) == email_address)).scalar_one_or_none()
             if existing_user_email:
                 print(f"/register: Email already in use - {email_address}")
                 flash('This email is already in use. Please use a different email or log in.')
                 return redirect(url_for('login.register'))
                     # Proceed with the whitelist check only if no valid invite token is provided
             if not invite:
-                whitelist = Whitelist.query.filter(func.lower(Whitelist.email) == email_address).first()
+                whitelist = db.session.execute(select(Whitelist).filter(func.lower(Whitelist.email) == email_address)).scalar_one_or_none()
                 if not whitelist:
                     flash('Your email is not whitelisted.')
                     return redirect(url_for('login.register'))
 
-            existing_user = User.query.filter_by(name=form.username.data).first()
+            existing_user = db.session.execute(select(User).filter_by(name=form.username.data)).scalar_one_or_none()
             if existing_user is not None:
                 print(f"/register: User already exists - {form.username.data}")
                 flash('User already exists. Please Log in.')
                 return redirect(url_for('login.register'))
 
             user_uuid = str(uuid4())
-            existing_uuid = User.query.filter_by(user_id=user_uuid).first()
+            existing_uuid = db.session.execute(select(User).filter_by(user_id=user_uuid)).scalar_one_or_none()
             if existing_uuid is not None:
                 print("/register: UUID collision detected.")
                 flash('An error occurred while registering. Please try again.')
@@ -167,7 +167,7 @@ def confirm_email(token):
     except BadSignature:
         return render_template('login/confirmation_invalid.html'), 400
 
-    user = User.query.filter_by(email=email).first_or_404()
+    user = db.session.execute(select(User).filter_by(email=email)).scalar_one_or_none() or abort(404)
     if user.is_email_verified:
         return render_template('login/registration_already_confirmed.html')
     else:
@@ -185,7 +185,7 @@ def reset_password_request():
     form = ResetPasswordRequestForm()
     if form.validate_on_submit():
         print(f'pwr form data: {form.data}')
-        user = User.query.filter_by(email=form.email.data.lower()).first()
+        user = db.session.execute(select(User).filter_by(email=form.email.data.lower())).scalar_one_or_none()
         print(f'pwr user: {user}')
         if user:
             # Generate a unique token
@@ -213,7 +213,7 @@ def reset_password(token):
     if current_user.is_authenticated:
         return redirect(url_for('login.login'))
 
-    user = User.query.filter_by(password_reset_token=token).first()
+    user = db.session.execute(select(User).filter_by(password_reset_token=token)).scalar_one_or_none()
     if not user or user.token_creation_time + timedelta(minutes=15) < datetime.now(timezone.utc):
         flash('The password reset link is invalid or has expired.')
         return redirect(url_for('login.login'))
@@ -233,7 +233,7 @@ def reset_password(token):
 @login_bp.route('/user/invites', methods=['GET', 'POST'])
 @login_required
 def invites():
-    settings = GlobalSettings.query.first()
+    settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
     site_url = settings.site_url if settings else 'http://127.0.0.1'
     smtp_enabled = is_smtp_configured()
     if site_url == 'http://127.0.0.1'and current_user.role == 'admin':
@@ -242,7 +242,7 @@ def invites():
     if form.validate_on_submit():
         email = request.form.get('email')
         # Ensure the user has invites left to send
-        current_invites = InviteToken.query.filter_by(creator_user_id=current_user.user_id, used=False).count()
+        current_invites = db.session.scalar(select(func.count(InviteToken.id)).filter_by(creator_user_id=current_user.user_id, used=False))
         if current_user.invite_quota > current_invites:
             token = str(uuid.uuid4())
             invite_token = InviteToken(
@@ -253,7 +253,7 @@ def invites():
             db.session.add(invite_token)
             db.session.commit()
 
-            settings = GlobalSettings.query.first()
+            settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
             site_url = settings.site_url if settings else 'http://127.0.0.1'
             
             # Build the invite URL using the configured site URL
@@ -266,7 +266,7 @@ def invites():
             flash('You have reached your invite limit.', 'danger')
         return redirect(url_for('login.invites'))
 
-    invites = InviteToken.query.filter_by(creator_user_id=current_user.user_id, used=False).all()
+    invites = db.session.execute(select(InviteToken).filter_by(creator_user_id=current_user.user_id, used=False)).scalars().all()
     current_invites_count = len(invites)
     remaining_invites = max(0, current_user.invite_quota - current_invites_count)
 
@@ -284,7 +284,7 @@ def invites():
 @login_required
 def delete_invite(token):
     try:
-        invite = InviteToken.query.filter_by(token=token, creator_user_id=current_user.user_id).first()
+        invite = db.session.execute(select(InviteToken).filter_by(token=token, creator_user_id=current_user.user_id)).scalar_one_or_none()
         if invite:
             db.session.delete(invite)
             db.session.commit()

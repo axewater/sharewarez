@@ -2,6 +2,7 @@ from datetime import datetime, UTC
 from flask import flash, current_app, abort, has_request_context
 from flask_login import current_user
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy import select, update, delete
 from werkzeug.utils import secure_filename
 import os, uuid
 
@@ -54,7 +55,7 @@ status_mapping = {
 
 def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_uuid):
     global settings
-    settings = GlobalSettings.query.first()
+    settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
     new_game = None  # Initialize new_game to None
     
     try:
@@ -62,7 +63,7 @@ def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_u
             raise ValueError("create_game_instance game_data is not a dictionary")
 
         # Fetch library details using library_uuid
-        library = Library.query.filter_by(uuid=library_uuid).first()
+        library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalar_one_or_none()
         if not library:
             print(f"Library with UUID {library_uuid} not found.")
             return None
@@ -172,7 +173,7 @@ def smart_process_images_for_game(game_uuid, cover_data=None, screenshots_data=N
         with app.app_context():
             # Get settings to determine processing mode
             from modules.models import GlobalSettings
-            settings = GlobalSettings.query.first()
+            settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
             
             # Store image URLs first (always)
             if cover_data:
@@ -205,7 +206,7 @@ def download_images_for_game_turbo(game_uuid, app=None, max_workers=5):
         
     try:
         with app.app_context():
-            pending_images = Image.query.filter_by(game_uuid=game_uuid, is_downloaded=False).all()
+            pending_images = db.session.execute(select(Image).filter_by(game_uuid=game_uuid, is_downloaded=False)).scalars().all()
             
             if not pending_images:
                 print(f"No pending images for game {game_uuid}.")
@@ -236,9 +237,8 @@ def download_images_for_game_turbo(game_uuid, app=None, max_workers=5):
             
             # Update database
             if successful_images:
-                Image.query.filter(Image.id.in_(successful_images)).update(
-                    {Image.is_downloaded: True}, 
-                    synchronize_session=False
+                db.session.execute(
+                    update(Image).filter(Image.id.in_(successful_images)).values(is_downloaded=True)
                 )
                 db.session.commit()
             
@@ -328,7 +328,7 @@ def fetch_and_store_game_urls(game_uuid, igdb_id):
     
 def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_uuid=None):
     # print(f"retrieve_and_save_game Retrieving and saving game: {game_name} on {full_disk_path} to library with UUID {library_uuid}.")
-    library = Library.query.filter_by(uuid=library_uuid).first()
+    library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalar_one_or_none()
     if not library:
         print(f"retrieve_and_save_game Library with UUID {library_uuid} not found.")
         return None
@@ -361,7 +361,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
         print(f"Found game {game_name} with IGDB ID {igdb_id}")
 
         # Check for existing game with the same IGDB ID but different folder path
-        existing_game_with_same_igdb_id = Game.query.filter(Game.igdb_id == igdb_id, Game.full_disk_path != full_disk_path).first()
+        existing_game_with_same_igdb_id = db.session.execute(select(Game).filter(Game.igdb_id == igdb_id, Game.full_disk_path != full_disk_path)).scalar_one_or_none()
         if existing_game_with_same_igdb_id:
             print(f"Duplicate game found with same IGDB ID {igdb_id} but different folder path. Logging as duplicate.")
             matched_status = 'Duplicate'
@@ -382,7 +382,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
             if 'genres' in response_json[0]:
                 for genre_data in response_json[0]['genres']:
                     genre_name = genre_data['name']
-                    genre = Genre.query.filter_by(name=genre_name).first()
+                    genre = db.session.execute(select(Genre).filter_by(name=genre_name)).scalar_one_or_none()
                     if not genre:
                         genre = Genre(name=genre_name)
                         db.session.add(genre)
@@ -399,7 +399,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
                 for theme_data in response_json[0]['themes']:
                     theme_name = theme_data['name']
                     
-                    theme = Theme.query.filter_by(name=theme_name).first()
+                    theme = db.session.execute(select(Theme).filter_by(name=theme_name)).scalar_one_or_none()
                     if not theme:
                         
                         theme = Theme(name=theme_name)
@@ -411,7 +411,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
                 for game_mode_data in response_json[0]['game_modes']:
                     game_mode_name = game_mode_data['name']
                     
-                    game_mode = GameMode.query.filter_by(name=game_mode_name).first()
+                    game_mode = db.session.execute(select(GameMode).filter_by(name=game_mode_name)).scalar_one_or_none()
                     if not game_mode:
                         
                         game_mode = GameMode(name=game_mode_name)
@@ -423,7 +423,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
             if 'platforms' in response_json[0]:
                 for platform_data in response_json[0]['platforms']:
                     platform_name = platform_data['name']
-                    platform = Platform.query.filter_by(name=platform_name).first()
+                    platform = db.session.execute(select(Platform).filter_by(name=platform_name)).scalar_one_or_none()
                     if not platform:
                         platform = Platform(name=platform_name)
                         db.session.add(platform)
@@ -432,7 +432,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
             if 'player_perspectives' in response_json[0]:
                 for perspective_data in response_json[0]['player_perspectives']:
                     perspective_name = perspective_data['name']
-                    perspective = PlayerPerspective.query.filter_by(name=perspective_name).first()
+                    perspective = db.session.execute(select(PlayerPerspective).filter_by(name=perspective_name)).scalar_one_or_none()
                     if not perspective:
                         perspective = PlayerPerspective(name=perspective_name)
                         db.session.add(perspective)
@@ -457,7 +457,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
                 print(f"Game and its images saved successfully : {new_game.name}.")
                 
                 # Move Discord notification here, after everything is saved successfully
-                settings = GlobalSettings.query.first()
+                settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
                 if settings and settings.discord_webhook_url and settings.discord_notify_new_games:
                     print(f"Sending Discord notification for new game '{new_game.name}'.")
                     discord_webhook(new_game.uuid)
@@ -476,7 +476,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
             if response_json.get('error') == 'Failed to retrieve access token':
                 error_msg = 'IGDB API Authentication Failed'
                 if scan_job_id:
-                    scan_job = ScanJob.query.get(scan_job_id)
+                    scan_job = db.session.get(ScanJob, scan_job_id)
                     if scan_job:
                         scan_job.error_message = error_msg
                         scan_job.status = 'Failed'
@@ -503,14 +503,14 @@ def check_existing_game_by_path(full_disk_path):
     Returns:
     - The existing Game object if found, None otherwise.
     """
-    existing_game_by_path = Game.query.filter_by(full_disk_path=full_disk_path).first()
+    existing_game_by_path = db.session.execute(select(Game).filter_by(full_disk_path=full_disk_path)).scalar_one_or_none()
     if existing_game_by_path:
         print(f"Skipping {existing_game_by_path.name} on {full_disk_path} (path already in library).")
         return existing_game_by_path 
     return None
 
 def check_existing_game_by_igdb_id(igdb_id):
-    return Game.query.filter_by(igdb_id=igdb_id).first()
+    return db.session.execute(select(Game).filter_by(igdb_id=igdb_id)).scalar_one_or_none()
 
 
 def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
@@ -546,7 +546,7 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
 
             if is_developer:
                 # print(f"Company {company_name} is a developer.")
-                developer = Developer.query.filter_by(name=company_name).first()
+                developer = db.session.execute(select(Developer).filter_by(name=company_name)).scalar_one_or_none()
                 if not developer:
                     print(f"Creating new developer: {company_name}")
                     developer = Developer(name=company_name)
@@ -557,7 +557,7 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
 
             if is_publisher:
                 # print(f"Company {company_name} is a publisher.")
-                publisher = Publisher.query.filter_by(name=company_name).first()
+                publisher = db.session.execute(select(Publisher).filter_by(name=company_name)).scalar_one_or_none()
                 if not publisher:
                     publisher = Publisher(name=company_name)
                     db.session.add(publisher)
@@ -574,7 +574,7 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
         
 def get_game_by_uuid(game_uuid):
     print(f"Searching for game UUID: {game_uuid}")
-    game = Game.query.filter_by(uuid=game_uuid).first()
+    game = db.session.execute(select(Game).filter_by(uuid=game_uuid)).scalar_one_or_none()
     if game:
         print(f"Game ID {game.id} with name {game.name} and UUID {game.uuid} relating to IGDB ID {game.igdb_id} found")
         return game
@@ -594,7 +594,7 @@ def remove_from_lib(game_uuid):
     """
     try:
         # Get the game
-        game = Game.query.filter_by(uuid=game_uuid).first()
+        game = db.session.execute(select(Game).filter_by(uuid=game_uuid)).scalar_one_or_none()
         if not game:
             print(f"Game with UUID {game_uuid} not found")
             return False
@@ -626,7 +626,7 @@ def delete_game(game_identifier):
         try:
             valid_uuid = uuid.UUID(game_identifier, version=4)
             game_uuid_str = str(valid_uuid)
-            game_to_delete = Game.query.filter_by(uuid=game_uuid_str).first_or_404()
+            game_to_delete = db.session.execute(select(Game).filter_by(uuid=game_uuid_str)).scalar_one_or_none() or abort(404)
         except ValueError:
             print(f"Invalid UUID format: {game_identifier}")
             abort(404)
@@ -636,7 +636,7 @@ def delete_game(game_identifier):
 
     try:
         print(f"Found game to delete: {game_to_delete}")
-        GameURL.query.filter_by(game_uuid=game_uuid_str).delete()
+        db.session.execute(delete(GameURL).filter_by(game_uuid=game_uuid_str))
         delete_associations_for_game(game_to_delete)        
         delete_game_images(game_uuid_str)
         db.session.delete(game_to_delete)
@@ -660,7 +660,7 @@ def download_pending_images(batch_size=10, delay_between_downloads=1, app=None):
     try:
         with app.app_context():
             # Get pending images
-            pending_images = Image.query.filter_by(is_downloaded=False).limit(batch_size).all()
+            pending_images = db.session.execute(select(Image).filter_by(is_downloaded=False).limit(batch_size)).scalars().all()
             
             if not pending_images:
                 print("No pending images to download.")
@@ -734,7 +734,7 @@ def download_images_for_game(game_uuid, app=None):
         
     try:
         with app.app_context():
-            pending_images = Image.query.filter_by(game_uuid=game_uuid, is_downloaded=False).all()
+            pending_images = db.session.execute(select(Image).filter_by(game_uuid=game_uuid, is_downloaded=False)).scalars().all()
             
             if not pending_images:
                 print(f"No pending images for game {game_uuid}.")
@@ -804,7 +804,7 @@ def turbo_download_images(batch_size=100, max_workers=5, app=None):
     try:
         with app.app_context():
             # Get pending images
-            pending_images = Image.query.filter_by(is_downloaded=False).limit(batch_size).all()
+            pending_images = db.session.execute(select(Image).filter_by(is_downloaded=False).limit(batch_size)).scalars().all()
             
             if not pending_images:
                 print("No pending images to download.")
@@ -845,9 +845,8 @@ def turbo_download_images(batch_size=100, max_workers=5, app=None):
             # Update database - mark successful downloads as completed
             if successful_images:
                 print(f"Updating database for {len(successful_images)} successful downloads...")
-                Image.query.filter(Image.id.in_(successful_images)).update(
-                    {Image.is_downloaded: True}, 
-                    synchronize_session=False
+                db.session.execute(
+                    update(Image).filter(Image.id.in_(successful_images)).values(is_downloaded=True)
                 )
                 db.session.commit()
             
@@ -1003,10 +1002,10 @@ def queue_missing_images_for_download(missing_images_list, app=None):
             image_ids = [img['id'] for img in missing_images_list]
             
             # Update images to mark them as not downloaded (queued for download)
-            updated_count = Image.query.filter(Image.id.in_(image_ids)).update(
-                {Image.is_downloaded: False}, 
-                synchronize_session=False
+            db.session.execute(
+                update(Image).filter(Image.id.in_(image_ids)).values(is_downloaded=False)
             )
+            updated_count = len(image_ids)
             
             db.session.commit()
             queued_count = updated_count
@@ -1014,7 +1013,7 @@ def queue_missing_images_for_download(missing_images_list, app=None):
             print(f"📥 Successfully queued {queued_count} missing images for download")
             
             # Trigger immediate download if turbo mode is enabled
-            settings = GlobalSettings.query.first()
+            settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
             if settings and settings.use_turbo_image_downloads:
                 print(f"🚀 Turbo mode enabled - triggering immediate download")
                 # Run a small batch download to start processing immediately

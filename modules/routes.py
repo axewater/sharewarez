@@ -10,7 +10,7 @@ from flask import (
 from flask_login import current_user, login_required
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import joinedload
-from sqlalchemy import func, case
+from sqlalchemy import func, case, select, delete
 from werkzeug.utils import secure_filename
 from modules import db, mail, cache
 from functools import wraps
@@ -65,7 +65,7 @@ def browse_games():
     theme = request.args.get('theme')
     sort_by = request.args.get('sort_by', 'name')
     sort_order = request.args.get('sort_order', 'asc')
-    query = Game.query.options(joinedload(Game.genres))
+    query = select(Game).options(joinedload(Game.genres))
     if library_uuid:
         query = query.filter(Game.library_uuid == library_uuid)
     if category:
@@ -92,13 +92,13 @@ def browse_games():
         query = query.order_by(Game.date_identified.asc() if sort_order == 'asc' else Game.date_identified.desc())
 
     # Pagination
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    pagination = db.paginate(query, page=page, per_page=per_page, error_out=False)
     games = pagination.items
     
     # Get game data
     game_data = []
     for game in games:
-        cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
+        cover_image = db.session.execute(select(Image).filter_by(game_uuid=game.uuid, image_type='cover')).scalar_one_or_none()
         cover_url = cover_image.url if cover_image else 'newstyle/default_cover.jpg'
         genres = [genre.name for genre in game.genres]
         game_size_formatted = format_size(game.size)
@@ -128,6 +128,11 @@ def browse_games():
 def scan_folder():
     ## to be fixed broken again after update
     form = ScanFolderForm()
+    
+    libraries = db.session.execute(select(Library)).scalars().all()
+    form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in libraries]
+    
+    csrf_form = CsrfProtectForm()
     game_names_with_ids = None
     
     if form.validate_on_submit():
@@ -148,7 +153,11 @@ def scan_folder():
             flash("Folder does not exist or cannot be accessed.", "error")
             print("Folder does not exist or cannot be accessed.")
             
-    return render_template('admin/admin_manage_scanjobs.html', form=form, game_names_with_ids=game_names_with_ids)
+    return render_template('admin/admin_manage_scanjobs.html', 
+                          form=form, 
+                          manual_form=form,
+                          csrf_form=csrf_form, 
+                          game_names_with_ids=game_names_with_ids)
 
 
 
@@ -159,7 +168,7 @@ def scan_management():
     auto_form = AutoScanForm()
     manual_form = ScanFolderForm()
 
-    libraries = Library.query.all()
+    libraries = db.session.execute(select(Library)).scalars().all()
     auto_form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in libraries]
     manual_form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in libraries]
 
@@ -168,7 +177,7 @@ def scan_management():
         auto_form.library_uuid.data = selected_library_uuid 
         manual_form.library_uuid.data = selected_library_uuid
 
-    jobs = ScanJob.query.order_by(ScanJob.last_run.desc()).all()
+    jobs = db.session.execute(select(ScanJob).order_by(ScanJob.last_run.desc())).scalars().all()
     csrf_form = CsrfProtectForm()
     unmatched_folders = UnmatchedFolder.query\
                         .join(Library)\
@@ -186,7 +195,7 @@ def scan_management():
             "platform_id": platform_id
         })
         
-    game_count = Game.query.count()  # Fetch the game count here
+    game_count = db.session.scalar(select(func.count(Game.id)))  # Fetch the game count here
 
     if request.method == 'POST':
         submit_action = request.form.get('submit')
@@ -223,7 +232,7 @@ def scan_management():
 @login_required
 @admin_required
 def cancel_scan_job(job_id):
-    job = ScanJob.query.get(job_id)
+    job = db.session.get(ScanJob, job_id)
     if job and job.status == 'Running':
         job.is_enabled = False
         job.status = 'Failed'
@@ -240,7 +249,7 @@ def cancel_scan_job(job_id):
 @admin_required
 def restart_scan_job(job_id):
     print(f"Request to restart scan job: {job_id}")
-    job = ScanJob.query.get_or_404(job_id)    
+    job = db.session.get(ScanJob, job_id) or abort(404)    
     if job.status == 'Running':
         flash('Cannot restart a running scan.', 'error')
         return redirect(url_for('main.scan_management'))
@@ -290,9 +299,9 @@ def restart_scan_job(job_id):
 def edit_game_images(game_uuid):
     if is_scan_job_running():
         flash('Image editing is restricted while a scan job is running. Please try again later.', 'warning')
-    game = Game.query.filter_by(uuid=game_uuid).first_or_404()
-    cover_image = Image.query.filter_by(game_uuid=game_uuid, image_type='cover').first()
-    screenshots = Image.query.filter_by(game_uuid=game_uuid, image_type='screenshot').all()
+    game = db.session.execute(select(Game).filter_by(uuid=game_uuid)).scalar_one_or_none() or abort(404)
+    cover_image = db.session.execute(select(Image).filter_by(game_uuid=game_uuid, image_type='cover')).scalar_one_or_none()
+    screenshots = db.session.execute(select(Image).filter_by(game_uuid=game_uuid, image_type='screenshot')).scalars().all()
     return render_template('games/game_edit_images.html', game=game, cover_image=cover_image, images=screenshots)
 
 
@@ -344,7 +353,7 @@ def upload_image(game_uuid):
     # Handle cover image logic
     if image_type == 'cover':
         # Check if a cover image already exists
-        existing_cover = Image.query.filter_by(game_uuid=game_uuid, image_type='cover').first()
+        existing_cover = db.session.execute(select(Image).filter_by(game_uuid=game_uuid, image_type='cover')).scalar_one_or_none()
         if existing_cover:
             # If exists, delete the old cover image file and record
             old_cover_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], existing_cover.url)
@@ -390,7 +399,7 @@ def delete_image():
         
         image_id = data['image_id']
         is_cover = data.get('is_cover', False)
-        image = Image.query.get(image_id)
+        image = db.session.get(Image, image_id)
         if not image:
             return jsonify({'error': 'Image not found'}), 404
 
@@ -419,7 +428,7 @@ def delete_image():
 @login_required
 @admin_required
 def delete_scan_job(job_id):
-    job = ScanJob.query.get_or_404(job_id)
+    job = db.session.get(ScanJob, job_id) or abort(404)
     db.session.delete(job)
     db.session.commit()
     flash('Scan job deleted successfully.', 'success')
@@ -441,7 +450,7 @@ def clear_all_scan_jobs():
 @admin_required
 def delete_all_unmatched_folders():
     try:
-        UnmatchedFolder.query.delete()
+        db.session.execute(delete(UnmatchedFolder))
         db.session.commit()
         flash('All unmatched folders deleted successfully.', 'success')
     except SQLAlchemyError as e:
@@ -464,7 +473,7 @@ def update_unmatched_folder_status():
     print("Route: /update_unmatched_folder_status")
     folder_id = request.form.get('folder_id')
     session['active_tab'] = 'unmatched'
-    folder = UnmatchedFolder.query.filter_by(id=folder_id).first()
+    folder = db.session.execute(select(UnmatchedFolder).filter_by(id=folder_id)).scalar_one_or_none()
     if folder:
         # Toggle between 'Ignore' and 'Unmatched'
         folder.status = 'Unmatched' if folder.status == 'Ignore' else 'Ignore'
@@ -495,7 +504,7 @@ def update_unmatched_folder_status():
 def clear_unmatched_entry(folder_id):
     """Clear a single unmatched folder entry from the database."""
     try:
-        folder = UnmatchedFolder.query.get_or_404(folder_id)
+        folder = db.session.get(UnmatchedFolder, folder_id) or abort(404)
         db.session.delete(folder)
         db.session.commit()
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -560,7 +569,7 @@ def delete_folder():
 
     full_path = os.path.abspath(folder_path)
 
-    folder_entry = UnmatchedFolder.query.filter_by(folder_path=folder_path).first()
+    folder_entry = db.session.execute(select(UnmatchedFolder).filter_by(folder_path=folder_path)).scalar_one_or_none()
 
     if not os.path.exists(full_path):
         if folder_entry:
@@ -601,7 +610,7 @@ def delete_full_game():
         print(f"Error: Attempt to delete full game UUID: {game_uuid} while scan job is running")
         return jsonify({'status': 'error', 'message': 'Cannot delete the game while a scan job is running. Please try again later.'}), 403
 
-    game_to_delete = Game.query.filter_by(uuid=game_uuid).first()
+    game_to_delete = db.session.execute(select(Game).filter_by(uuid=game_uuid)).scalar_one_or_none()
     print(f"Route: /delete_full_game - Game to delete: {game_to_delete}")
 
     if not game_to_delete:
@@ -636,10 +645,10 @@ def delete_full_library(library_uuid=None):
     print(f"Route: /delete_full_library - {current_user.name} - {current_user.role} method: {request.method} UUID: {library_uuid}")
     try:
         if library_uuid:
-            library = Library.query.filter_by(uuid=library_uuid).first()
+            library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalar_one_or_none()
             if library:
                 print(f"Deleting full library: {library}")
-                games_to_delete = Game.query.filter_by(library_uuid=library.uuid).all()
+                games_to_delete = db.session.execute(select(Game).filter_by(library_uuid=library.uuid)).scalars().all()
                 for game in games_to_delete:
                     try:
                         delete_game(game.uuid)

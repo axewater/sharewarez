@@ -6,6 +6,7 @@ from modules.utils_functions import format_size, get_library_count, get_games_co
 from modules.utils_auth import admin_required
 from modules.forms import CsrfForm, CsrfProtectForm
 from sqlalchemy.orm import joinedload
+from sqlalchemy import select, func
 from modules.utils_processors import get_global_settings
 from modules import cache
 
@@ -22,9 +23,9 @@ def inject_settings():
 @login_required
 @admin_required
 def libraries():
-    libraries = Library.query.order_by(Library.display_order.asc()).all()
+    libraries = db.session.execute(select(Library).order_by(Library.display_order.asc())).scalars().all()
     csrf_form = CsrfProtectForm()
-    game_count = Game.query.count()  # Fetch the game count here
+    game_count = db.session.execute(select(func.count(Game.id))).scalar()  # Fetch the game count here
     return render_template('admin/admin_manage_libraries.html', libraries=libraries, csrf_form=csrf_form, game_count=game_count)
 
 @library_bp.route('/library')
@@ -74,7 +75,7 @@ def library():
         filters['library_uuid'] = library_uuid
     elif library_name:
         print(f'filtering by library_name: {library_name}')
-        library = Library.query.filter_by(name=library_name).first()
+        library = db.session.execute(select(Library).filter_by(name=library_name)).scalars().first()
         if library:
             print(f'Library found: {library}')
             filters['library_uuid'] = library.uuid
@@ -130,12 +131,12 @@ def library():
 
 
 def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
-    query = Game.query.options(joinedload(Game.genres))
+    query = select(Game).options(joinedload(Game.genres))
     # Add current_user to the query to check favorite status
     current_user_id = current_user.id if current_user.is_authenticated else None
     # Resolve library_name to library_uuid if necessary
     if 'library_name' in filters and filters['library_name']:
-        library = Library.query.filter_by(name=filters['library_name']).first()
+        library = db.session.execute(select(Library).filter_by(name=filters['library_name'])).scalars().first()
         if library:
             filters['library_uuid'] = library.uuid
         else:
@@ -170,12 +171,12 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
     elif sort_by == 'date_identified':
         query = query.order_by(Game.date_identified.asc() if sort_order == 'asc' else Game.date_identified.desc())
     # Pagination
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    pagination = db.paginate(query, page=page, per_page=per_page, error_out=False)
     games = pagination.items
 
     game_data = []
     for game in games:
-        cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
+        cover_image = db.session.execute(select(Image).filter_by(game_uuid=game.uuid, image_type='cover')).scalars().first()
         cover_url = cover_image.url if cover_image else "newstyle/default_cover.jpg"
         genres = [genre.name for genre in game.genres]
         game_size_formatted = format_size(game.size)

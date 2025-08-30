@@ -2,6 +2,7 @@ import os
 from datetime import datetime, timezone
 from flask import current_app, flash, has_request_context
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy import select
 
 from modules import db
 from modules.models import (
@@ -26,13 +27,13 @@ def try_add_game(game_name, full_disk_path, scan_job_id, library_uuid, check_exi
     print(f"try_add_game: {game_name} at {full_disk_path} with scan job ID: {scan_job_id}, check_exists: {check_exists}, and library UUID: {library_uuid}")
     
     # Fetch the library details using the library_uuid, if necessary
-    library = Library.query.filter_by(uuid=library_uuid).first()
+    library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalar_one_or_none()
     if not library:
         print(f"Library with UUID {library_uuid} not found.")
         return False
 
     if check_exists:
-        existing_game = Game.query.filter_by(full_disk_path=full_disk_path).first()
+        existing_game = db.session.execute(select(Game).filter_by(full_disk_path=full_disk_path)).scalar_one_or_none()
         if existing_game:
             print(f"Game already exists in database: {game_name} at {full_disk_path}")
             return False
@@ -43,14 +44,14 @@ def try_add_game(game_name, full_disk_path, scan_job_id, library_uuid, check_exi
 
 def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_uuid):
     # Fetch library details based on library_uuid
-    library = Library.query.filter_by(uuid=library_uuid).first()
-    scan_job = ScanJob.query.get(scan_job_id)
+    library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalar_one_or_none()
+    scan_job = db.session.get(ScanJob, scan_job_id)
     if not library:
         print(f"Library with UUID {library_uuid} not found.")
         return False
 
     # Log skipping of processing for already matched or unmatched folders
-    existing_unmatched_folder = UnmatchedFolder.query.filter_by(folder_path=full_disk_path).first()
+    existing_unmatched_folder = db.session.execute(select(UnmatchedFolder).filter_by(folder_path=full_disk_path)).scalar_one_or_none()
     if existing_unmatched_folder:
         print(f"Skipping processing for already logged unmatched folder: {full_disk_path}")
         # Update total count to maintain consistency even when skipping
@@ -58,7 +59,7 @@ def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_u
         return False
 
     # Check if the game already exists in the database
-    existing_game = Game.query.filter_by(full_disk_path=full_disk_path, library_uuid=library_uuid).first()
+    existing_game = db.session.execute(select(Game).filter_by(full_disk_path=full_disk_path, library_uuid=library_uuid)).scalar_one_or_none()
     if existing_game:
         print(f"Game already exists in database: {game_name} at {full_disk_path}")
         # Don't increment success counter for existing games to avoid inflated counts during rescans
@@ -85,7 +86,7 @@ def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_u
 
 
 def log_unmatched_folder(scan_job_id, folder_path, matched_status, library_uuid=None):
-    existing_unmatched_folder = UnmatchedFolder.query.filter_by(folder_path=folder_path).first()
+    existing_unmatched_folder = db.session.execute(select(UnmatchedFolder).filter_by(folder_path=folder_path)).scalar_one_or_none()
 
     if existing_unmatched_folder is None:
         unmatched_folder = UnmatchedFolder(
@@ -111,7 +112,7 @@ def log_unmatched_folder(scan_job_id, folder_path, matched_status, library_uuid=
 def process_game_updates(game_name, full_disk_path, updates_folder, library_uuid, update_folder_name=None):
     # Use passed parameter or fallback to database query
     if update_folder_name is None:
-        settings = GlobalSettings.query.first()
+        settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
         if not settings or not settings.update_folder_name:
             print("No update folder configuration found in database")
             return
@@ -122,7 +123,7 @@ def process_game_updates(game_name, full_disk_path, updates_folder, library_uuid
     print(f"Updates folder: {updates_folder}")
     print(f"Library UUID: {library_uuid}")
 
-    game = Game.query.filter_by(full_disk_path=full_disk_path, library_uuid=library_uuid).first()
+    game = db.session.execute(select(Game).filter_by(full_disk_path=full_disk_path, library_uuid=library_uuid)).scalar_one_or_none()
     if not game:
         print(f"Game not found in database: {game_name}")
         return
@@ -147,7 +148,7 @@ def process_game_updates(game_name, full_disk_path, updates_folder, library_uuid
             print(f"Multiple files update, using folder path: {file_path}")
 
         # Create or update GameUpdate record
-        game_update = GameUpdate.query.filter_by(game_uuid=game.uuid, file_path=file_path).first()
+        game_update = db.session.execute(select(GameUpdate).filter_by(game_uuid=game.uuid, file_path=file_path)).scalar_one_or_none()
         if not game_update:
             print(f"Creating new GameUpdate record for {file_path}")
             game_update = GameUpdate(
@@ -175,7 +176,7 @@ def process_game_updates(game_name, full_disk_path, updates_folder, library_uuid
 def process_game_extras(game_name, full_disk_path, extras_folder, library_uuid, extras_folder_name=None):
     # Use passed parameter or fallback to database query
     if extras_folder_name is None:
-        settings = GlobalSettings.query.first()
+        settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
         if not settings or not settings.extras_folder_name:
             print("No extras folder configuration found in database")
             return
@@ -186,7 +187,7 @@ def process_game_extras(game_name, full_disk_path, extras_folder, library_uuid, 
     print(f"Extras folder: {extras_folder}")
     print(f"Library UUID: {library_uuid}")
 
-    game = Game.query.filter_by(full_disk_path=full_disk_path, library_uuid=library_uuid).first()
+    game = db.session.execute(select(Game).filter_by(full_disk_path=full_disk_path, library_uuid=library_uuid)).scalar_one_or_none()
     if not game:
         print(f"Game not found in database: {game_name}")
         return
@@ -205,7 +206,7 @@ def process_game_extras(game_name, full_disk_path, extras_folder, library_uuid, 
             continue
 
         # Create or update GameExtra record
-        game_extra = GameExtra.query.filter_by(game_uuid=game.uuid, file_path=extra_path).first()
+        game_extra = db.session.execute(select(GameExtra).filter_by(game_uuid=game.uuid, file_path=extra_path)).scalar_one_or_none()
         if not game_extra:
             print(f"Creating new GameExtra record for {extra_path}")
             game_extra = GameExtra(
@@ -234,7 +235,7 @@ def refresh_images_in_background(game_uuid):
         from modules.utils_game_core import (
             process_and_save_image
         )
-        game = Game.query.filter_by(uuid=game_uuid).first()
+        game = db.session.execute(select(Game).filter_by(uuid=game_uuid)).scalar_one_or_none()
         if not game:
             print("Game not found.")
             return
@@ -273,12 +274,12 @@ def refresh_images_in_background(game_uuid):
             
 def delete_game_images(game_uuid):
     with current_app.app_context():
-        game = Game.query.filter_by(uuid=game_uuid).first()
+        game = db.session.execute(select(Game).filter_by(uuid=game_uuid)).scalar_one_or_none()
         if not game:
             print("Game not found for image deletion.")
             return
 
-        images_to_delete = Image.query.filter_by(game_uuid=game_uuid).all()
+        images_to_delete = db.session.execute(select(Image).filter_by(game_uuid=game_uuid)).scalars().all()
 
         for image in images_to_delete:
             try:
@@ -315,5 +316,5 @@ def is_scan_job_running():
     Returns:
         bool: True if there is a running scan job, False otherwise.
     """
-    running_scan_job = ScanJob.query.filter_by(status='Running').first()
+    running_scan_job = db.session.execute(select(ScanJob).filter_by(status='Running')).scalar_one_or_none()
     return running_scan_job is not None

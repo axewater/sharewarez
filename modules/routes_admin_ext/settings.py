@@ -3,6 +3,7 @@ from flask import render_template, request, jsonify
 from flask_login import login_required, current_user
 from modules.models import GlobalSettings
 from modules import db, cache
+from sqlalchemy import select
 from datetime import datetime, timezone
 from . import admin2_bp
 from modules.utils_logging import log_system_event
@@ -16,7 +17,7 @@ def manage_settings():
         new_settings = request.json
         print(f"Received settings update: {new_settings}")
         
-        settings_record = GlobalSettings.query.first()
+        settings_record = db.session.execute(select(GlobalSettings)).scalars().first()
         if not settings_record:
             settings_record = GlobalSettings(settings={})
             db.session.add(settings_record)
@@ -54,7 +55,7 @@ def manage_settings():
         return jsonify({'message': 'Settings updated successfully'}), 200
 
     else:  # GET request
-        settings_record = GlobalSettings.query.first()
+        settings_record = db.session.execute(select(GlobalSettings)).scalars().first()
         if not settings_record:
             # Initialize default settings if no record exists
             current_settings = {

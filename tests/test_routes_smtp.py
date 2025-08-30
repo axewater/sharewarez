@@ -6,6 +6,7 @@ from uuid import uuid4
 from modules import create_app, db
 from modules.models import User, GlobalSettings
 from modules.utils_smtp_test import SMTPTester
+from sqlalchemy import select
 
 
 @pytest.fixture(scope='function')
@@ -226,7 +227,7 @@ class TestSmtpSettings:
         assert response_data['message'] == 'SMTP settings updated successfully'
         
         # Verify settings were created in database
-        settings = GlobalSettings.query.first()
+        settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
         assert settings is not None
         assert settings.smtp_enabled is False
         assert settings.smtp_server == 'smtp.example.com'
@@ -264,7 +265,7 @@ class TestSmtpSettings:
         assert response_data['message'] == 'SMTP settings updated successfully'
         
         # Verify settings were created in database
-        settings = GlobalSettings.query.first()
+        settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
         assert settings is not None
         assert settings.smtp_enabled is True
         assert settings.smtp_server == 'smtp.gmail.com'
@@ -302,7 +303,7 @@ class TestSmtpSettings:
         assert response_data['status'] == 'success'
         
         # Verify settings were updated by querying fresh from DB
-        updated_settings = GlobalSettings.query.first()
+        updated_settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
         assert updated_settings.smtp_server == 'smtp.updated.com'
         assert updated_settings.smtp_port == 465
         assert updated_settings.smtp_username == 'updated@example.com'
@@ -515,7 +516,7 @@ class TestSmtpSettings:
         assert response.status_code == 200
         
         # Verify default value
-        settings = GlobalSettings.query.first()
+        settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
         assert settings.smtp_use_tls is True
     
     def test_post_defaults_smtp_enabled_false(self, client, admin_user, db_session):
@@ -536,7 +537,7 @@ class TestSmtpSettings:
         assert response.status_code == 200
         
         # Verify default value
-        settings = GlobalSettings.query.first()
+        settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
         assert settings.smtp_enabled is False
 
 

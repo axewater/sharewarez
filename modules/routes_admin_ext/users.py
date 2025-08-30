@@ -3,6 +3,7 @@ from flask import render_template, request, jsonify
 from flask_login import login_required, current_user
 from modules.models import User
 from modules import db
+from sqlalchemy import select
 from . import admin2_bp
 from uuid import uuid4
 from modules.utils_logging import log_system_event
@@ -12,7 +13,7 @@ from modules.utils_auth import admin_required
 @login_required
 @admin_required
 def manage_users():
-    users = User.query.all()
+    users = db.session.execute(select(User)).scalars().all()
     return render_template('admin/admin_manage_users.html', users=users)
 
 @admin2_bp.route('/admin/api/user/<int:user_id>', methods=['GET', 'PUT', 'DELETE'])
@@ -39,7 +40,9 @@ def manage_user_api(user_id):
             db.session.rollback()
             return jsonify({'success': False, 'message': str(e)}), 500
 
-    user = User.query.get_or_404(user_id)
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({'success': False, 'message': 'User not found'}), 404
     
     if request.method == 'GET':
         return jsonify({

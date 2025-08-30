@@ -8,6 +8,7 @@ from modules.models import (
     Game, Library, DiscoverySection, Image, User
 )
 from modules.platform import LibraryPlatform
+from sqlalchemy import select
 
 
 @pytest.fixture(scope='function')
@@ -103,7 +104,7 @@ def test_libraries(db_session):
 def test_discovery_sections(db_session):
     """Get or create test discovery sections."""
     # Check if default sections already exist (from app initialization)
-    existing_sections = DiscoverySection.query.all()
+    existing_sections = db.session.execute(select(DiscoverySection)).scalars().all()
     
     if existing_sections:
         # Return existing sections if they exist
@@ -198,10 +199,10 @@ class TestDiscoverRoute:
                 assert callable(discover)
                 
                 # Test database queries work correctly
-                sections = DiscoverySection.query.filter_by(is_visible=True).all()
+                sections = db.session.execute(select(DiscoverySection).filter_by(is_visible=True)).scalars().all()
                 assert len(sections) > 0
                 
-                games = Game.query.order_by(Game.date_created.desc()).limit(8).all()
+                games = db.session.execute(select(Game).order_by(Game.date_created.desc()).limit(8)).scalars().all()
                 assert len(games) > 0
 
 
@@ -210,7 +211,7 @@ class TestDiscoverSectionQueries:
 
     def test_discovery_sections_query(self, db_session, test_discovery_sections):
         """Test that visible discovery sections are queried correctly."""
-        visible_sections = DiscoverySection.query.filter_by(is_visible=True).order_by(DiscoverySection.display_order).all()
+        visible_sections = db.session.execute(select(DiscoverySection).filter_by(is_visible=True).order_by(DiscoverySection.display_order)).scalars().all()
         
         assert len(visible_sections) >= 4  # At least 4 visible sections
         assert all(section.is_visible for section in visible_sections)
@@ -221,7 +222,7 @@ class TestDiscoverSectionQueries:
 
     def test_libraries_query(self, db_session, test_libraries):
         """Test that libraries are queried correctly."""
-        libraries = Library.query.all()
+        libraries = db.session.execute(select(Library)).scalars().all()
         
         assert len(libraries) >= 2  # At least our test libraries
         library_names = [lib.name for lib in libraries if 'Test Library' in lib.name]
@@ -230,7 +231,7 @@ class TestDiscoverSectionQueries:
 
     def test_latest_games_query(self, db_session, test_games):
         """Test latest games query."""
-        latest_games = Game.query.order_by(Game.date_created.desc()).limit(8).all()
+        latest_games = db.session.execute(select(Game).order_by(Game.date_created.desc()).limit(8)).scalars().all()
         
         assert len(latest_games) >= 5  # At least our test games
         
@@ -240,7 +241,7 @@ class TestDiscoverSectionQueries:
 
     def test_most_downloaded_query(self, db_session, test_games):
         """Test most downloaded games query."""
-        most_downloaded = Game.query.order_by(Game.times_downloaded.desc()).limit(8).all()
+        most_downloaded = db.session.execute(select(Game).order_by(Game.times_downloaded.desc()).limit(8)).scalars().all()
         
         assert len(most_downloaded) >= 5  # At least our test games
         
@@ -250,7 +251,7 @@ class TestDiscoverSectionQueries:
 
     def test_highest_rated_query(self, db_session, test_games):
         """Test highest rated games query."""
-        highest_rated = Game.query.filter(Game.rating != None).order_by(Game.rating.desc()).limit(8).all()
+        highest_rated = db.session.execute(select(Game).filter(Game.rating != None).order_by(Game.rating.desc()).limit(8)).scalars().all()
         
         assert len(highest_rated) >= 4  # 4 games with ratings in our fixture
         
@@ -271,12 +272,12 @@ class TestGameDetails:
         game_without_image = test_games[4]  # Last game has no image
         
         # Test game with cover image
-        cover_image = Image.query.filter_by(game_uuid=game_with_image.uuid, image_type='cover').first()
+        cover_image = db.session.execute(select(Image).filter_by(game_uuid=game_with_image.uuid, image_type='cover')).scalar_one_or_none()
         assert cover_image is not None
         assert '/static/covers/' in cover_image.url
         
         # Test game without cover image
-        no_cover = Image.query.filter_by(game_uuid=game_without_image.uuid, image_type='cover').first()
+        no_cover = db.session.execute(select(Image).filter_by(game_uuid=game_without_image.uuid, image_type='cover')).scalar_one_or_none()
         assert no_cover is None
 
     def test_game_attributes(self, test_games):
@@ -350,5 +351,5 @@ class TestErrorHandling:
         assert game.rating is None
         
         # Query should work properly with None ratings
-        games_with_ratings = Game.query.filter(Game.rating != None).all()
+        games_with_ratings = db.session.execute(select(Game).filter(Game.rating != None)).scalars().all()
         assert game not in games_with_ratings

@@ -50,7 +50,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
     # Use existing job or create new one
     if existing_job:
         # Re-query the job to ensure it's bound to the current session
-        scan_job_entry = ScanJob.query.get(existing_job.id)
+        scan_job_entry = db.session.get(ScanJob, existing_job.id)
         print(f"Using existing scan job: {scan_job_entry.id}")
     else:
         # Create initial scan job

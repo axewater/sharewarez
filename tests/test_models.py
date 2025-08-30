@@ -3,6 +3,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select, func
 
 from modules import create_app, db
 from modules.models import (
@@ -372,12 +373,12 @@ class TestGameRelationships:
             full_disk_path='/path/to/game'
         )
         # Use get_or_create pattern to avoid unique constraint violations
-        genre1 = Genre.query.filter_by(name='Action').first()
+        genre1 = db.session.execute(select(Genre).filter_by(name='Action')).scalar_one_or_none()
         if not genre1:
             genre1 = Genre(name='Action')
             db_session.add(genre1)
         
-        genre2 = Genre.query.filter_by(name='Adventure').first()
+        genre2 = db.session.execute(select(Genre).filter_by(name='Adventure')).scalar_one_or_none()
         if not genre2:
             genre2 = Genre(name='Adventure')
             db_session.add(genre2)
@@ -667,12 +668,12 @@ class TestModelChoiceFunctions:
         from modules.models import genre_choices
         
         # Use get_or_create pattern to avoid unique constraint violations
-        genre1 = Genre.query.filter_by(name='Action').first()
+        genre1 = db.session.execute(select(Genre).filter_by(name='Action')).scalar_one_or_none()
         if not genre1:
             genre1 = Genre(name='Action')
             db_session.add(genre1)
         
-        genre2 = Genre.query.filter_by(name='Adventure').first()
+        genre2 = db.session.execute(select(Genre).filter_by(name='Adventure')).scalar_one_or_none()
         if not genre2:
             genre2 = Genre(name='Adventure')
             db_session.add(genre2)
