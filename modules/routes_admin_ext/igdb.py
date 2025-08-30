@@ -3,7 +3,7 @@ from flask import render_template, request, jsonify
 from flask_login import login_required
 from modules.models import GlobalSettings
 from modules import db
-from datetime import datetime
+from datetime import datetime, timezone
 from . import admin2_bp
 from modules.utils_igdb_api import make_igdb_api_request
 from modules.utils_auth import admin_required
@@ -45,7 +45,7 @@ def test_igdb():
         response = make_igdb_api_request('https://api.igdb.com/v4/games', 'fields name; limit 1;')
         if isinstance(response, list):
             print("IGDB API test successful")
-            settings.igdb_last_tested = datetime.utcnow()
+            settings.igdb_last_tested = datetime.now(timezone.utc)
             db.session.commit()
             return jsonify({'status': 'success', 'message': 'IGDB API test successful'})
         else:

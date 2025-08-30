@@ -8,7 +8,7 @@ from modules.utils_scanning import is_scan_job_running, refresh_images_in_backgr
 from modules.utils_logging import log_system_event
 from modules import db
 from threading import Thread
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.exc import SQLAlchemyError
 
 from . import games_bp
@@ -95,7 +95,7 @@ def game_edit(game_uuid):
         print(f"New folder size for {game.full_disk_path}: {format_size(new_folder_size_bytes)}")
         game.size = new_folder_size_bytes
         game.nfo_content = read_first_nfo_content(game.full_disk_path)
-        game.date_identified = datetime.utcnow()
+        game.date_identified = datetime.now(timezone.utc)
                
         try:
             db.session.commit()

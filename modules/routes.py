@@ -14,7 +14,7 @@ from sqlalchemy import func, case
 from werkzeug.utils import secure_filename
 from modules import db, mail, cache
 from functools import wraps
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from PIL import Image as PILImage
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
@@ -251,7 +251,7 @@ def restart_scan_job(job_id):
     job.folders_success = 0
     job.folders_failed = 0
     job.removed_count = 0
-    job.last_run = datetime.now(datetime.UTC)
+    job.last_run = datetime.now(timezone.utc)
     job.error_message = None
     job.is_enabled = True
     db.session.commit()

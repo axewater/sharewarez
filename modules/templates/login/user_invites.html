@@ -54,7 +54,7 @@
                     Used on: <strong>{{ invite.used_at.strftime('%Y-%m-%d %H:%M:%S') }}</strong><br>
                 {% else %}
                     Expires in: 
-                    {% set seconds_remaining = (invite.expires_at - datetime.utcnow()).total_seconds() %}
+                    {% set seconds_remaining = (invite.expires_at - datetime).total_seconds() %}
                     {% if seconds_remaining > 0 %}
                         <strong>{{ seconds_remaining // 3600 }} hours</strong>
                     {% else %}

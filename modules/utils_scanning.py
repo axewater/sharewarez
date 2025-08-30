@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import current_app, flash, has_request_context
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
@@ -90,7 +90,7 @@ def log_unmatched_folder(scan_job_id, folder_path, matched_status, library_uuid=
     if existing_unmatched_folder is None:
         unmatched_folder = UnmatchedFolder(
             folder_path=folder_path,
-            failed_time=datetime.utcnow(),
+            failed_time=datetime.now(timezone.utc),
             content_type='Games',
             library_uuid=library_uuid,
             status=matched_status

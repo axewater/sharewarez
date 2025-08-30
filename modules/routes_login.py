@@ -10,7 +10,7 @@ from modules.utils_smtp import send_email, send_password_reset_email, send_invit
 from modules.utils_processors import get_global_settings
 from modules.utils_logging import log_system_event
 from modules import cache
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import func
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from uuid import uuid4
@@ -84,7 +84,7 @@ def register():
     if invite_token_from_url:
         invite = InviteToken.query.filter_by(token=invite_token_from_url, used=False).first()
         print(f"Invite found: {invite}")
-        if invite and invite.expires_at >= datetime.utcnow():
+        if invite and invite.expires_at >= datetime.now(timezone.utc):
             # The invite is valid; skip the whitelist check later
             pass
         else:
@@ -127,8 +127,8 @@ def register():
                 role='user',
                 is_email_verified=False,
                 email_verification_token=s.dumps(form.email.data, salt='email-confirm'),
-                token_creation_time=datetime.utcnow(),
-                created=datetime.utcnow()
+                token_creation_time=datetime.now(timezone.utc),
+                created=datetime.now(timezone.utc)
             )
             user.set_password(form.password.data)
             db.session.add(user)
@@ -191,7 +191,7 @@ def reset_password_request():
             # Generate a unique token
             token = s.dumps(user.email, salt='password-reset-salt')
             user.password_reset_token = token
-            user.token_creation_time = datetime.utcnow()
+            user.token_creation_time = datetime.now(timezone.utc)
             
             log_system_event(f"Password reset requested for user: {user.email}", event_type='password_reset', event_level='information')
             
@@ -214,7 +214,7 @@ def reset_password(token):
         return redirect(url_for('login.login'))
 
     user = User.query.filter_by(password_reset_token=token).first()
-    if not user or user.token_creation_time + timedelta(minutes=15) < datetime.utcnow():
+    if not user or user.token_creation_time + timedelta(minutes=15) < datetime.now(timezone.utc):
         flash('The password reset link is invalid or has expired.')
         return redirect(url_for('login.login'))
 
@@ -278,7 +278,7 @@ def invites():
                          smtp_enabled=smtp_enabled,
                          current_invites_count=current_invites_count, 
                          remaining_invites=remaining_invites, 
-                         datetime=datetime.utcnow())
+                         datetime=datetime.now(timezone.utc))
 
 @login_bp.route('/delete_invite/<token>', methods=['POST'])
 @login_required

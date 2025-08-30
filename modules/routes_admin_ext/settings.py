@@ -3,7 +3,7 @@ from flask import render_template, request, jsonify
 from flask_login import login_required, current_user
 from modules.models import GlobalSettings
 from modules import db, cache
-from datetime import datetime
+from datetime import datetime, timezone
 from . import admin2_bp
 from modules.utils_logging import log_system_event
 from modules.utils_auth import admin_required
@@ -46,7 +46,7 @@ def manage_settings():
         
         # Update the settings JSON field
         settings_record.settings = new_settings
-        settings_record.last_updated = datetime.utcnow()
+        settings_record.last_updated = datetime.now(timezone.utc)
         
         db.session.commit()
         log_system_event(f"Global settings updated by {current_user.name}", event_type='audit', event_level='information')
