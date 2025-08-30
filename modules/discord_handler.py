@@ -1,5 +1,6 @@
 import time
 from typing import Optional, Dict, Any
+from urllib.parse import urlparse
 from discord_webhook import DiscordWebhook, DiscordEmbed
 from requests.exceptions import RequestException, HTTPError, Timeout
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -13,13 +14,30 @@ class DiscordWebhookHandler:
         self.timeout = 10
 
     def validate_webhook_url(self) -> bool:
-        """Validate the webhook URL format."""
-        return (
-            self.webhook_url 
-            and isinstance(self.webhook_url, str) 
-            and ('discord.com/api/webhooks/' in self.webhook_url 
-                 or 'discordapp.com/api/webhooks/' in self.webhook_url)
-        )
+        """Validate the webhook URL format with proper domain validation to prevent SSRF attacks."""
+        if not self.webhook_url or not isinstance(self.webhook_url, str):
+            return False
+        
+        try:
+            parsed_url = urlparse(self.webhook_url)
+            
+            # Ensure HTTPS is used
+            if parsed_url.scheme != 'https':
+                return False
+            
+            # Validate that the hostname is exactly one of Discord's domains
+            allowed_domains = {'discord.com', 'discordapp.com'}
+            if parsed_url.hostname not in allowed_domains:
+                return False
+            
+            # Validate that the path starts with the webhook API endpoint
+            if not parsed_url.path.startswith('/api/webhooks/'):
+                return False
+            
+            return True
+            
+        except (ValueError, AttributeError):
+            return False
 
     @retry(
         stop=stop_after_attempt(3),

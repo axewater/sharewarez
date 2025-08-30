@@ -82,8 +82,15 @@ def discord_webhook(game_uuid):
     webhook.add_embed(embed)
     response = webhook.execute()
 
-    # Print the response for debugging/confirmation
-    print(f"Discord notifications: Webhook executed. Response: {response}")
+    # Print the response for debugging/confirmation (sanitized to prevent token exposure)
+    if response:
+        sanitized_response = str(response)
+        # Replace the full webhook URL to prevent token exposure
+        if discord_webhook_url:
+            sanitized_response = sanitized_response.replace(discord_webhook_url, "***WEBHOOK_URL_REDACTED***")
+        print(f"Discord notifications: Webhook executed. Response: {sanitized_response}")
+    else:
+        print("Discord notifications: Webhook executed. No response received.")
 
         
     
