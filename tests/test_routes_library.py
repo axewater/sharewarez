@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import patch, Mock, MagicMock
 from datetime import datetime, timezone
 from uuid import uuid4
+from sqlalchemy import select, func
 
 from modules import create_app, db
 from modules.models import (
@@ -115,7 +116,7 @@ def test_game(db_session, test_library):
 def test_genre(db_session):
     """Create a test genre."""
     # Check if genre already exists to avoid unique constraint violation
-    genre = Genre.query.filter_by(name='Action').first()
+    genre = db.session.execute(select(Genre).filter_by(name='Action')).scalar_one_or_none()
     if not genre:
         genre = Genre(name='Action')
         db_session.add(genre)

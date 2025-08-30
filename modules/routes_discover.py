@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, url_for
-from sqlalchemy import func
+from sqlalchemy import func, select
 from modules.utils_functions import format_size
 from modules.utils_processors import get_loc
 from modules.models import Game, Library, user_favorites, DiscoverySection
@@ -24,7 +24,7 @@ def discover():
     page_loc = get_loc("discover")
     
     # Get visible sections in correct order
-    visible_sections = DiscoverySection.query.filter_by(is_visible=True).order_by(DiscoverySection.display_order).all()
+    visible_sections = db.session.execute(select(DiscoverySection).filter_by(is_visible=True).order_by(DiscoverySection.display_order)).scalars().all()
     
     def fetch_game_details(games_query, limit=8):
         # Handle both query objects and lists
@@ -39,7 +39,7 @@ def discover():
             if isinstance(game, tuple):
                 game = game[0]
                 
-            cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
+            cover_image = db.session.execute(select(Image).filter_by(game_uuid=game.uuid, image_type='cover')).scalars().first()
             cover_url = cover_image.url if cover_image else url_for('static', filename='newstyle/default_cover.jpg')
             game_details.append({
                 'id': game.id,
@@ -60,20 +60,20 @@ def discover():
     
     for section in visible_sections:
         if section.identifier == 'libraries':
-            libraries = Library.query.all()
+            libraries = db.session.execute(select(Library)).scalars().all()
             section_data['libraries'] = [{
                 'uuid': lib.uuid,
                 'name': lib.name,
                 'image_url': lib.image_url
             } for lib in libraries]
         elif section.identifier == 'latest_games':
-            section_data['latest_games'] = fetch_game_details(Game.query.order_by(Game.date_created.desc()))
+            section_data['latest_games'] = fetch_game_details(db.session.execute(select(Game).order_by(Game.date_created.desc())).scalars())
         elif section.identifier == 'most_downloaded':
-            section_data['most_downloaded'] = fetch_game_details(Game.query.order_by(Game.times_downloaded.desc()))
+            section_data['most_downloaded'] = fetch_game_details(db.session.execute(select(Game).order_by(Game.times_downloaded.desc())).scalars())
         elif section.identifier == 'highest_rated':
-            section_data['highest_rated'] = fetch_game_details(Game.query.filter(Game.rating != None).order_by(Game.rating.desc()))
+            section_data['highest_rated'] = fetch_game_details(db.session.execute(select(Game).filter(Game.rating != None).order_by(Game.rating.desc())).scalars())
         elif section.identifier == 'last_updated':
-            section_data['last_updated'] = fetch_game_details(Game.query.filter(Game.last_updated != None).order_by(Game.last_updated.desc()))
+            section_data['last_updated'] = fetch_game_details(db.session.execute(select(Game).filter(Game.last_updated != None).order_by(Game.last_updated.desc())).scalars())
         elif section.identifier == 'most_favorited':
             most_favorited = db.session.query(Game, func.count(user_favorites.c.user_id).label('favorite_count')).join(user_favorites).group_by(Game).order_by(func.count(user_favorites.c.user_id).desc())
             section_data['most_favorited'] = fetch_game_details([game[0] for game in most_favorited])

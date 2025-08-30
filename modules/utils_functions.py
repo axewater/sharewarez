@@ -8,6 +8,7 @@ from wtforms.validators import ValidationError
 from modules import db
 from modules.models import ReleaseGroup, Library, Game
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import select
 from modules.models import GlobalSettings
 from flask import url_for
 
@@ -107,7 +108,7 @@ def get_folder_size_in_bytes_updates(folder_path, timeout=300):
             print(f"Error: No read permission for path: {folder_path}")
             return 0
 
-        settings = GlobalSettings.query.first()
+        settings = db.session.execute(select(GlobalSettings)).scalars().first()
         total_size = 0
         
         for dirpath, dirnames, filenames in os.walk(folder_path):
@@ -293,14 +294,14 @@ def load_release_group_patterns():
     try:
         # Fetching insensitive patterns (not case-sensitive)
         insensitive_patterns = [
-            "-" + rg.rlsgroup for rg in ReleaseGroup.query.filter(ReleaseGroup.rlsgroup != None).all()
+            "-" + rg.rlsgroup for rg in db.session.execute(select(ReleaseGroup).filter(ReleaseGroup.rlsgroup != None)).scalars().all()
         ] + [
-            "." + rg.rlsgroup for rg in ReleaseGroup.query.filter(ReleaseGroup.rlsgroup != None).all()
+            "." + rg.rlsgroup for rg in db.session.execute(select(ReleaseGroup).filter(ReleaseGroup.rlsgroup != None)).scalars().all()
         ]
         
         # Initializing list for sensitive patterns (case-sensitive)
         sensitive_patterns = []
-        for rg in ReleaseGroup.query.filter(ReleaseGroup.rlsgroupcs != None).all():
+        for rg in db.session.execute(select(ReleaseGroup).filter(ReleaseGroup.rlsgroupcs != None)).scalars().all():
             pattern = rg.rlsgroupcs
             is_case_sensitive = False
             if pattern.lower() == 'yes':
@@ -323,7 +324,7 @@ def load_release_group_patterns():
 
 def get_library_count():
     # Direct query to the Library model
-    libraries_query = Library.query.all()
+    libraries_query = db.session.execute(select(Library)).scalars().all()
     libraries = [
         {
             'uuid': lib.uuid,
@@ -338,7 +339,7 @@ def get_library_count():
 
 def get_games_count():
     # Direct query to the Games model
-    games_query = Game.query.all()
+    games_query = db.session.execute(select(Game)).scalars().all()
     games = [
         {
             'uuid': game.uuid,

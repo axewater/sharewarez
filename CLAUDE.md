@@ -92,3 +92,6 @@ source venv/bin/activate
 - Threading for long-running scan operations
 - Queue management for image downloads
 - Status tracking for scan jobs
+
+
+IMPORTANT: When creating unit tests, we always work against the actual Postgresql DB, we DO NOT work with any fake sqlite (in memory) db's

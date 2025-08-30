@@ -8,7 +8,7 @@ from modules.models import DownloadRequest, GlobalSettings, db
 def zip_game(download_request_id, app, zip_file_path):
     settings = GlobalSettings.query.first()
     with app.app_context():
-        download_request = DownloadRequest.query.get(download_request_id)
+        download_request = db.session.get(DownloadRequest, download_request_id)
         game = download_request.game
 
         if not game:
@@ -81,7 +81,7 @@ def update_download_request(download_request, status, file_path, file_size=None)
      
 def zip_folder(download_request_id, app, file_location, file_name):
     with app.app_context():
-        download_request = DownloadRequest.query.get(download_request_id)
+        download_request = db.session.get(DownloadRequest, download_request_id)
         game = download_request.game
 
         if not game:

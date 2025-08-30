@@ -4,12 +4,13 @@ from flask_login import login_required
 from modules import db
 from modules.models import Library
 from modules.utils_auth import admin_required
+from sqlalchemy import select
 from . import apis_bp
 
 @apis_bp.route('/get_libraries')
 def get_libraries():
     # Direct query to the Library model
-    libraries_query = Library.query.all()
+    libraries_query = db.session.execute(select(Library)).scalars().all()
     libraries = [
         {
             'uuid': lib.uuid,
@@ -27,7 +28,7 @@ def reorder_libraries():
     try:
         new_order = request.json.get('order', [])
         for index, library_uuid in enumerate(new_order):
-            library = Library.query.get(library_uuid)
+            library = db.session.get(Library, library_uuid)
             if library:
                 library.display_order = index
         db.session.commit()
@@ -40,7 +41,7 @@ def reorder_libraries():
 @login_required
 def get_library(library_uuid):
     """Return information about a specific library"""
-    library = Library.query.filter_by(uuid=library_uuid).first()
+    library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalars().first()
     if not library:
         return jsonify({'error': 'Library not found'}), 404
         

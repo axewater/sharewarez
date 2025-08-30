@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, request, session
 from flask_login import current_user
 from modules import db
+from sqlalchemy import select
 from modules.forms import SetupForm, IGDBSetupForm
 from modules.models import User, GlobalSettings
 from uuid import uuid4
@@ -15,7 +16,7 @@ def setup():
     session.clear()
     session['setup_step'] = 1
 
-    if User.query.first():
+    if db.session.execute(select(User)).scalars().first():
         flash('Setup has already been completed.', 'warning')
         return redirect(url_for('login.login'))
 
@@ -24,7 +25,7 @@ def setup():
 
 @setup_bp.route('/setup/submit', methods=['POST'])
 def setup_submit():
-    if User.query.first():
+    if db.session.execute(select(User)).scalars().first():
         flash('Setup has already been completed.', 'warning')
         return redirect(url_for('login.login'))
 
@@ -80,7 +81,7 @@ def setup_smtp():
             flash('SMTP setup skipped. Please configure your IGDB settings.', 'info')
             return redirect(url_for('setup.setup_igdb'))
 
-        settings = GlobalSettings.query.first()
+        settings = db.session.execute(select(GlobalSettings)).scalars().first()
         if not settings:
             settings = GlobalSettings()
             db.session.add(settings)
@@ -113,7 +114,7 @@ def setup_igdb():
 
     form = IGDBSetupForm()
     if form.validate_on_submit():
-        settings = GlobalSettings.query.first()
+        settings = db.session.execute(select(GlobalSettings)).scalars().first()
         if not settings:
             settings = GlobalSettings()
             db.session.add(settings)

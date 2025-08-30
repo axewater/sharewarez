@@ -45,7 +45,7 @@ def update_section_order():
     try:
         data = request.json
         for section_data in data['sections']:
-            section = DiscoverySection.query.get(section_data['id'])
+            section = db.session.get(DiscoverySection, section_data['id'])
             if section:
                 section.display_order = section_data['order']
         db.session.commit()
@@ -60,7 +60,7 @@ def update_section_order():
 def update_section_visibility():
     try:
         data = request.json
-        section = DiscoverySection.query.get(data['section_id'])
+        section = db.session.get(DiscoverySection, data['section_id'])
         if section:
             section.is_visible = data['is_visible']
             db.session.commit()

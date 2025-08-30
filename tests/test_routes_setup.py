@@ -5,8 +5,9 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 from modules import create_app, db
-from modules.models import User, GlobalSettings
+from modules.models import User, GlobalSettings, InviteToken
 from modules.forms import SetupForm, IGDBSetupForm
+from sqlalchemy import select, delete
 
 
 @pytest.fixture(scope='function')
@@ -93,8 +94,8 @@ class TestSetupRoute:
         # Ensure no users exist for this test
         # Delete invite tokens first to avoid foreign key constraint violations
         from modules.models import InviteToken
-        InviteToken.query.delete()
-        User.query.delete()
+        db.session.execute(delete(InviteToken))
+        db.session.execute(delete(User))
         db_session.commit()
         
         # Add some session data first
@@ -124,8 +125,8 @@ class TestSetupRoute:
         # Ensure no users exist for this test
         # Delete invite tokens first to avoid foreign key constraint violations
         from modules.models import InviteToken
-        InviteToken.query.delete()
-        User.query.delete()
+        db.session.execute(delete(InviteToken))
+        db.session.execute(delete(User))
         db_session.commit()
         
         mock_render.return_value = 'rendered setup template'
@@ -163,8 +164,8 @@ class TestSetupSubmitRoute:
         # Ensure no users exist for this test
         # Delete invite tokens first to avoid foreign key constraint violations
         from modules.models import InviteToken
-        InviteToken.query.delete()
-        User.query.delete()
+        db.session.execute(delete(InviteToken))
+        db.session.execute(delete(User))
         db_session.commit()
         """Test successful admin user creation."""
         # Mock the form
@@ -183,7 +184,7 @@ class TestSetupSubmitRoute:
             assert '/setup/smtp' in response.location
             
             # Verify admin user was created
-            user = User.query.filter_by(email='test@example.com').first()
+            user = db.session.execute(select(User).filter_by(email='test@example.com')).scalar_one_or_none()
             assert user is not None
             assert user.name == 'testadmin'
             assert user.email == 'test@example.com'  # Should be lowercase
@@ -204,8 +205,8 @@ class TestSetupSubmitRoute:
         # Ensure no users exist for this test
         # Delete invite tokens first to avoid foreign key constraint violations
         from modules.models import InviteToken
-        InviteToken.query.delete()
-        User.query.delete()
+        db.session.execute(delete(InviteToken))
+        db.session.execute(delete(User))
         db_session.commit()
         """Test database error during user creation."""
         mock_form = MagicMock()
@@ -231,8 +232,8 @@ class TestSetupSubmitRoute:
         # Ensure no users exist for this test
         # Delete invite tokens first to avoid foreign key constraint violations
         from modules.models import InviteToken
-        InviteToken.query.delete()
-        User.query.delete()
+        db.session.execute(delete(InviteToken))
+        db.session.execute(delete(User))
         db_session.commit()
         """Test form validation failure."""
         mock_form = MagicMock()
@@ -525,8 +526,8 @@ class TestSetupWorkflow:
         # Ensure no users exist for this test
         # Delete invite tokens first to avoid foreign key constraint violations
         from modules.models import InviteToken
-        InviteToken.query.delete()
-        User.query.delete()
+        db.session.execute(delete(InviteToken))
+        db.session.execute(delete(User))
         db_session.commit()
         """Test the complete setup process from start to finish."""
         # Step 1: GET /setup
@@ -587,13 +588,13 @@ class TestSetupWorkflow:
             assert 'setup_step' not in sess
         
         # Verify admin user was created
-        admin_user = User.query.filter_by(email='admin@test.com').first()
+        admin_user = db.session.execute(select(User).filter_by(email='admin@test.com')).scalars().first()
         assert admin_user is not None
         assert admin_user.role == 'admin'
         assert admin_user.is_email_verified is True
         
         # Verify IGDB settings were saved
-        settings = GlobalSettings.query.first()
+        settings = db.session.execute(select(GlobalSettings)).scalars().first()
         assert settings is not None
         assert settings.igdb_client_id == 'test_client_id_12345'
         assert settings.igdb_client_secret == 'test_client_secret_12345'
@@ -606,8 +607,8 @@ class TestSetupSessionHandling:
         # Ensure no users exist for this test
         # Delete invite tokens first to avoid foreign key constraint violations
         from modules.models import InviteToken
-        InviteToken.query.delete()
-        User.query.delete()
+        db.session.execute(delete(InviteToken))
+        db.session.execute(delete(User))
         db_session.commit()
         """Test that starting setup clears all existing session data."""
         with client.session_transaction() as sess:
@@ -628,8 +629,8 @@ class TestSetupSessionHandling:
         # Ensure no users exist for this test
         # Delete invite tokens first to avoid foreign key constraint violations
         from modules.models import InviteToken
-        InviteToken.query.delete()
-        User.query.delete()
+        db.session.execute(delete(InviteToken))
+        db.session.execute(delete(User))
         db_session.commit()
         """Test proper setup step progression."""
         # Start at step 1
@@ -686,8 +687,8 @@ class TestSetupFormIntegration:
         # Ensure no users exist for this test
         # Delete invite tokens first to avoid foreign key constraint violations
         from modules.models import InviteToken
-        InviteToken.query.delete()
-        User.query.delete()
+        db.session.execute(delete(InviteToken))
+        db.session.execute(delete(User))
         db_session.commit()
         """Test how setup handles real form validation errors."""
         # Submit invalid data that should trigger form validation errors

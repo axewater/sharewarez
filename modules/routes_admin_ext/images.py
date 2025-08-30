@@ -5,6 +5,7 @@ from modules.models import Image, Game
 from modules import db
 from . import admin2_bp
 from modules.utils_auth import admin_required
+from sqlalchemy import select, func
 
 @admin2_bp.route('/admin/image_queue')
 @login_required
@@ -20,16 +21,16 @@ def image_queue():
 def image_queue_stats():
     """Get statistics about the image queue."""
     try:
-        total_images = Image.query.count()
-        pending_images = Image.query.filter_by(is_downloaded=False).count()
-        downloaded_images = Image.query.filter_by(is_downloaded=True).count()
+        total_images = db.session.execute(select(func.count(Image.id))).scalar()
+        pending_images = db.session.execute(select(func.count(Image.id)).filter_by(is_downloaded=False)).scalar()
+        downloaded_images = db.session.execute(select(func.count(Image.id)).filter_by(is_downloaded=True)).scalar()
         
         # Get breakdown by image type
-        pending_covers = Image.query.filter_by(is_downloaded=False, image_type='cover').count()
-        pending_screenshots = Image.query.filter_by(is_downloaded=False, image_type='screenshot').count()
+        pending_covers = db.session.execute(select(func.count(Image.id)).filter_by(is_downloaded=False, image_type='cover')).scalar()
+        pending_screenshots = db.session.execute(select(func.count(Image.id)).filter_by(is_downloaded=False, image_type='screenshot')).scalar()
         
         # Get recent activity
-        recent_downloads = Image.query.filter_by(is_downloaded=True).order_by(Image.created_at.desc()).limit(10).all()
+        recent_downloads = db.session.execute(select(Image).filter_by(is_downloaded=True).order_by(Image.created_at.desc()).limit(10)).scalars().all()
         
         stats = {
             'total_images': total_images,
@@ -63,7 +64,7 @@ def image_queue_list():
     status_filter = request.args.get('status', 'all')  # all, pending, downloaded
     type_filter = request.args.get('type', 'all')  # all, cover, screenshot
     
-    query = Image.query.join(Game)
+    query = select(Image).join(Game)
     
     # Apply filters
     if status_filter == 'pending':
@@ -77,7 +78,7 @@ def image_queue_list():
     # Order by creation date, pending first
     query = query.order_by(Image.is_downloaded.asc(), Image.created_at.desc())
     
-    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    pagination = db.paginate(query, page=page, per_page=per_page, error_out=False)
     images = pagination.items
     
     image_list = []
@@ -122,7 +123,7 @@ def download_images():
             # Update the download function to accept specific IDs
             downloaded = 0
             for image_id in image_ids:
-                image = Image.query.get(image_id)
+                image = db.session.get(Image, image_id)
                 if image and not image.is_downloaded and image.download_url:
                     try:
                         import os
@@ -166,7 +167,9 @@ def download_images():
 def delete_image(image_id):
     """Delete a specific image from queue."""
     try:
-        image = Image.query.get_or_404(image_id)
+        image = db.session.get(Image, image_id)
+        if not image:
+            return jsonify({'success': False, 'message': 'Image not found'}), 404
         
         # Delete file if it exists
         if image.is_downloaded and image.url:
@@ -191,7 +194,7 @@ def retry_failed_images():
     """Retry downloading images that failed."""
     try:
         # Find images that should be downloaded but aren't
-        failed_images = Image.query.filter_by(is_downloaded=False).filter(Image.download_url.isnot(None)).all()
+        failed_images = db.session.execute(select(Image).filter_by(is_downloaded=False).filter(Image.download_url.isnot(None))).scalars().all()
         
         retried = 0
         for image in failed_images:
@@ -223,7 +226,7 @@ def retry_failed_images():
 def clear_downloaded_queue():
     """Remove all downloaded images from the queue view."""
     try:
-        downloaded_count = Image.query.filter_by(is_downloaded=True).count()
+        downloaded_count = db.session.execute(select(func.count(Image.id)).filter_by(is_downloaded=True)).scalar()
         # Note: We don't actually delete them, just for display purposes
         # If you want to actually delete downloaded records, uncomment below:
         # Image.query.filter_by(is_downloaded=True).delete()
