@@ -16,7 +16,8 @@
       "Bash(python -m pytest tests/test_utils_game_core.py -v)",
       "Bash(pytest:*)",
       "Bash(python3:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(python -m pytest tests/test_models.py -v)"
     ],
     "deny": []
   }
