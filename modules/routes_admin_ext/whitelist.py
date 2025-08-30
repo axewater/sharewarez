@@ -1,11 +1,11 @@
 # /modules/routes_admin_ext/whitelist.py
-from flask import render_template, redirect, url_for, jsonify, request, flash
+from flask import render_template, redirect, url_for, jsonify, request, flash, abort
 from flask_login import login_required, current_user
 from modules.models import Whitelist, User
 from modules import db
 from modules.forms import WhitelistForm
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import func
+from sqlalchemy import func, select
 from . import admin2_bp
 from modules.utils_logging import log_system_event
 from modules.utils_auth import admin_required
@@ -28,9 +28,9 @@ def whitelist():
         return redirect(url_for('admin2.whitelist'))
 
     # Get whitelist entries and check registration status
-    whitelist_entries = Whitelist.query.all()
+    whitelist_entries = db.session.execute(select(Whitelist)).scalars().all()
     for entry in whitelist_entries:
-        entry.is_registered = User.query.filter(func.lower(User.email) == entry.email.lower()).first() is not None
+        entry.is_registered = db.session.execute(select(User).filter(func.lower(User.email) == entry.email.lower())).scalars().first() is not None
 
     return render_template('admin/admin_manage_whitelist.html', 
                          title='Whitelist', 
@@ -42,7 +42,7 @@ def whitelist():
 @admin_required
 def delete_whitelist(whitelist_id):
     try:
-        whitelist_entry = Whitelist.query.get_or_404(whitelist_id)
+        whitelist_entry = db.session.get(Whitelist, whitelist_id) or abort(404)
         db.session.delete(whitelist_entry)
         log_system_event(f"Admin {current_user.name} deleted whitelist entry: {whitelist_entry.email}", event_type='audit', event_level='information')
         db.session.commit()

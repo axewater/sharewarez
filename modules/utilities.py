@@ -4,6 +4,7 @@ from datetime import datetime
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy import select, func
 from flask import current_app, flash, redirect, url_for, session, copy_current_request_context
 from modules.utils_functions import (
     load_release_group_patterns,
@@ -25,7 +26,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
         return
         
     # Cache settings once at the start of scan
-    settings = GlobalSettings.query.first()
+    settings = db.session.execute(select(GlobalSettings)).scalars().first()
     update_folder_name = settings.update_folder_name if settings else 'updates'
     extras_folder_name = settings.extras_folder_name if settings else 'extras'
     scan_thread_count = settings.scan_thread_count if settings else 1
@@ -34,13 +35,13 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
     igdb_rate_limiter = IGDBRateLimiter()
     
     # First, find the library and its platform
-    library = Library.query.filter_by(uuid=library_uuid).first()
+    library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalars().first()
     if not library:
         print(f"Library with UUID {library_uuid} not found.")
         return
 
     # Get allowed file types from database
-    allowed_extensions = [ext.value.lower() for ext in AllowedFileType.query.all()]
+    allowed_extensions = [ext.value.lower() for ext in db.session.execute(select(AllowedFileType)).scalars().all()]
     if not allowed_extensions:
         print("No allowed file types found in database. Please configure them in the admin panel.")
         return
@@ -254,7 +255,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
     # If remove_missing is enabled, check for games that no longer exist
     if remove_missing:
         print("Checking for missing games...")
-        games_in_library = Game.query.filter_by(library_uuid=library_uuid).all()
+        games_in_library = db.session.execute(select(Game).filter_by(library_uuid=library_uuid)).scalars().all()
         for game in games_in_library:
             if not os.path.exists(game.full_disk_path):
                 print(f"Game no longer found at path: {game.full_disk_path}")
@@ -313,7 +314,7 @@ def handle_auto_scan(auto_form):
         remove_missing = auto_form.remove_missing.data
         download_missing_images = auto_form.download_missing_images.data
         
-        running_job = ScanJob.query.filter_by(status='Running').first()
+        running_job = db.session.execute(select(ScanJob).filter_by(status='Running')).scalars().first()
         if running_job:
             print("A scan is already in progress. Please wait until the current scan completes.")
             flash('A scan is already in progress. Please wait until the current scan completes.', 'error')
@@ -321,7 +322,7 @@ def handle_auto_scan(auto_form):
             return redirect(url_for('main.scan_management', library_uuid=library_uuid, active_tab='auto'))
 
     
-        library = Library.query.filter_by(uuid=library_uuid).first()
+        library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalars().first()
         if not library:
             print(f"Selected library does not exist. Please select a valid library.")
             flash('Selected library does not exist. Please select a valid library.', 'error')
@@ -359,7 +360,7 @@ def handle_manual_scan(manual_form):
     session['active_tab'] = 'manual'
     if manual_form.validate_on_submit():
         # check job status
-        running_job = ScanJob.query.filter_by(status='Running').first()
+        running_job = db.session.execute(select(ScanJob).filter_by(status='Running')).scalars().first()
         if running_job:
             flash('A scan is already in progress. Please wait until the current scan completes.', 'error')
             session['active_tab'] = 'manual'
@@ -388,7 +389,7 @@ def handle_manual_scan(manual_form):
                 games_with_paths = get_game_names_from_folder(full_path, insensitive_patterns, sensitive_patterns)
             else:  # files mode
                 # Load allowed file types from database
-                allowed_file_types = AllowedFileType.query.all()
+                allowed_file_types = db.session.execute(select(AllowedFileType)).scalars().all()
                 supported_extensions = [file_type.value for file_type in allowed_file_types]
                 if not supported_extensions:
                     flash("No allowed file types defined in the database.", "error")

@@ -3,8 +3,9 @@ import platform
 import socket
 import os
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import func
+from sqlalchemy import func, select
 from modules.models import User, SystemEvents, GlobalSettings
+from modules import db
 from modules.utils_system_stats import format_bytes
 from modules import app_start_time
 from config import Config
@@ -54,20 +55,20 @@ def get_config_values():
 
 def get_active_users():
     """Get count of users active in the last 24 hours."""
-    return User.query.filter(
+    return db.session.execute(select(func.count(User.id)).filter(
         User.lastlogin >= (datetime.now(timezone.utc) - timedelta(hours=24))
-    ).count()
+    )).scalar()
 
 def get_log_info():
     """Get log statistics."""
     return {
-        'count': SystemEvents.query.count(),
-        'latest': SystemEvents.query.order_by(SystemEvents.timestamp.desc()).first()
+        'count': db.session.execute(select(func.count(SystemEvents.id))).scalar(),
+        'latest': db.session.execute(select(SystemEvents).order_by(SystemEvents.timestamp.desc())).scalars().first()
     }
 
 def check_server_settings():
     """Check if server settings are properly configured."""
-    settings_record = GlobalSettings.query.first()
+    settings_record = db.session.execute(select(GlobalSettings)).scalars().first()
     if not settings_record or not settings_record.settings:
         return False, "Server settings not configured."
     

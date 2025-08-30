@@ -6,6 +6,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_required, current_user
 from modules.forms import EditProfileForm, UserPasswordForm, UserPreferencesForm
 from modules.models import User, InviteToken, UserPreference
+from sqlalchemy import select, func
 from modules.utils_functions import square_image
 from modules.utils_processors import get_global_settings
 from modules import cache
@@ -146,10 +147,12 @@ def settings_profile_edit():
 @login_required
 def settings_profile_view():
     print("Route: Settings profile view")
-    unused_invites = InviteToken.query.filter_by(
-        creator_user_id=current_user.user_id, 
-        used=False
-    ).count()
+    unused_invites = db.session.execute(
+        select(func.count(InviteToken.id)).filter_by(
+            creator_user_id=current_user.user_id, 
+            used=False
+        )
+    ).scalar()
     remaining_invites = max(0, current_user.invite_quota - unused_invites)
     
     return render_template('settings/settings_profile_view.html', 

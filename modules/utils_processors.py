@@ -1,4 +1,6 @@
+from modules import db
 from modules.models import GlobalSettings
+from sqlalchemy import select
 from modules import app_version
 import json
 
@@ -10,7 +12,7 @@ def get_loc(page):
 
 def get_global_settings():
     """Helper function to get global settings with defaults"""
-    settings_record = GlobalSettings.query.first()
+    settings_record = db.session.execute(select(GlobalSettings)).scalars().first()
     default_settings = {
         'showSystemLogo': True,
         'showHelpButton': True,

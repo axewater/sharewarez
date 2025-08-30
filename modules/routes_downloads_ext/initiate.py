@@ -1,9 +1,10 @@
 import os
-from flask import redirect, url_for, flash, current_app, copy_current_request_context
+from flask import redirect, url_for, flash, current_app, copy_current_request_context, abort
 from flask_login import login_required, current_user
 from threading import Thread
 from uuid import uuid4
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import select
 from modules.models import Game, DownloadRequest, GameUpdate, GameExtra, GlobalSettings
 from modules.utils_download import zip_game, zip_folder, update_download_request
 from modules.utils_game_core import get_game_by_uuid
@@ -16,19 +17,19 @@ from . import download_bp
 @login_required
 def download_game(game_uuid):
     print(f"Downloading game with UUID: {game_uuid}")
-    game = Game.query.filter_by(uuid=game_uuid).first_or_404()
+    game = db.session.get(Game, game_uuid) or abort(404)
     print(f"Game found: {game}")
 
     log_system_event(f"User initiated download for game: {game.name}", event_type='game', event_level='information')
     # Check for any existing download request for the same game by the current user, regardless of status
-    existing_request = DownloadRequest.query.filter_by(user_id=current_user.id, file_location=game.full_disk_path).first()
+    existing_request = db.session.execute(select(DownloadRequest).filter_by(user_id=current_user.id, file_location=game.full_disk_path)).scalars().first()
     
     if existing_request:
         flash("You already have a download request for this game in your basket. Please check your downloads page.", "info")
         return redirect(url_for('download.downloads'))
     
     if os.path.isdir(game.full_disk_path):
-        settings = GlobalSettings.query.first()
+        settings = db.session.execute(select(GlobalSettings)).scalars().first()
         files_in_directory = []
         for f in os.listdir(game.full_disk_path):
             full_path = os.path.join(game.full_disk_path, f)
@@ -89,7 +90,7 @@ def download_other(file_type, game_uuid, file_id):
 
     FileModel = GameUpdate if file_type == 'update' else GameExtra
     # Fetch the file record
-    file_record = FileModel.query.filter_by(id=file_id, game_uuid=game_uuid).first()
+    file_record = db.session.execute(select(FileModel).filter_by(id=file_id, game_uuid=game_uuid)).scalars().first()
     
     if not file_record:
         flash(f"{file_type.capitalize()} file not found", "error")
@@ -102,10 +103,10 @@ def download_other(file_type, game_uuid, file_id):
         return redirect(url_for('games.game_details', game_uuid=game_uuid))
 
     # Check for an existing download request
-    existing_request = DownloadRequest.query.filter_by(
+    existing_request = db.session.execute(select(DownloadRequest).filter_by(
         user_id=current_user.id,
         file_location=file_record.file_path
-    ).first()
+    )).scalars().first()
     if existing_request:
         flash("You already have a download request for this file", "info")
         return redirect(url_for('download.downloads'))
@@ -183,12 +184,12 @@ def download_other(file_type, game_uuid, file_id):
 @download_bp.route('/download_file/<file_location>/<file_size>/<game_uuid>/<file_name>', methods=['GET'])
 @login_required
 def download_file(file_location, file_size, game_uuid, file_name):
-    settings = GlobalSettings.query.first()
+    settings = db.session.execute(select(GlobalSettings)).scalars().first()
     game = get_game_by_uuid(game_uuid)
     
     if file_location == "updates":
         # Query the update record directly
-        update = GameUpdate.query.filter_by(game_uuid=game_uuid, file_path=file_name).first()
+        update = db.session.execute(select(GameUpdate).filter_by(game_uuid=game_uuid, file_path=file_name)).scalars().first()
         if update:
             file_location = update.file_path
         else:
@@ -197,7 +198,7 @@ def download_file(file_location, file_size, game_uuid, file_name):
             return redirect(url_for('games.game_details', game_uuid=game_uuid))
     elif file_location == "extras":
         # Query the extra record directly
-        extra = GameExtra.query.filter_by(game_uuid=game_uuid, file_path=file_name).first()
+        extra = db.session.execute(select(GameExtra).filter_by(game_uuid=game_uuid, file_path=file_name)).scalars().first()
         if extra:
             file_location = extra.file_path
         else:
@@ -219,7 +220,7 @@ def download_file(file_location, file_size, game_uuid, file_name):
         zip_file_path = os.path.join(zip_save_path, f"{file_name}.zip")
         
     # Check for any existing download request for the same file by the current user, regardless of status
-    existing_request = DownloadRequest.query.filter_by(user_id=current_user.id, file_location=file_location).first()
+    existing_request = db.session.execute(select(DownloadRequest).filter_by(user_id=current_user.id, file_location=file_location)).scalars().first()
     
     if existing_request:
         flash("You already have a download request for this file in your basket. Please check your downloads page.", "info")

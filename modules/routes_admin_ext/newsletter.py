@@ -1,9 +1,10 @@
 # /modules/routes_admin_ext/newsletter.py
-from flask import render_template, redirect, url_for, request, flash
+from flask import render_template, redirect, url_for, request, flash, abort
 from flask_login import login_required, current_user
 from flask_mail import Message as MailMessage
 from modules.models import User, Newsletter, GlobalSettings
 from modules import db, mail
+from sqlalchemy import select
 from modules.forms import NewsletterForm
 from . import admin2_bp
 from modules.utils_auth import admin_required
@@ -12,7 +13,7 @@ from modules.utils_auth import admin_required
 @login_required
 @admin_required
 def newsletter():
-    settings_record = GlobalSettings.query.first()
+    settings_record = db.session.execute(select(GlobalSettings)).scalars().first()
     # Check if SMTP is configured and enabled
     if not settings_record or not settings_record.smtp_enabled:
         flash('SMTP is not configured or enabled. Please configure SMTP settings first.', 'warning')
@@ -32,7 +33,7 @@ def newsletter():
 
     print("ADMIN NEWSLETTER: Processing", request.method, "request")
     form = NewsletterForm()
-    users = User.query.all()
+    users = db.session.execute(select(User)).scalars().all()
     if form.validate_on_submit():
         # First create the newsletter record
         recipients = form.recipients.data.split(',')        
@@ -67,7 +68,7 @@ def newsletter():
         return redirect(url_for('admin2.newsletter'))
     
     # Get all sent newsletters for display
-    newsletters = Newsletter.query.order_by(Newsletter.sent_date.desc()).all()
+    newsletters = db.session.execute(select(Newsletter).order_by(Newsletter.sent_date.desc())).scalars().all()
     return render_template('admin/admin_newsletter.html', 
                          title='Newsletter', 
                          form=form, 
@@ -78,7 +79,7 @@ def newsletter():
 @login_required
 @admin_required
 def view_newsletter(newsletter_id):
-    newsletter = Newsletter.query.get_or_404(newsletter_id)
+    newsletter = db.session.get(Newsletter, newsletter_id) or abort(404)
     return render_template('admin/view_newsletter.html', 
                          title='View Newsletter',
                          newsletter=newsletter)

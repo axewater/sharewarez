@@ -1,8 +1,9 @@
-from flask import render_template, redirect, url_for, flash
+from flask import render_template, redirect, url_for, flash, abort
 from flask_login import login_required
 from modules.utils_auth import admin_required
 from modules.models import ReleaseGroup
 from modules import db
+from sqlalchemy import select
 from modules.forms import ReleaseGroupForm
 from . import admin2_bp
 
@@ -17,14 +18,14 @@ def edit_filters():
         db.session.commit()
         flash('New release group filter added.')
         return redirect(url_for('admin2.edit_filters'))
-    groups = ReleaseGroup.query.order_by(ReleaseGroup.rlsgroup.asc()).all()
+    groups = db.session.execute(select(ReleaseGroup).order_by(ReleaseGroup.rlsgroup.asc())).scalars().all()
     return render_template('admin/admin_manage_filters.html', form=form, groups=groups)
 
 @admin2_bp.route('/delete_filter/<int:id>', methods=['GET'])
 @login_required
 @admin_required
 def delete_filter(id):
-    group_to_delete = ReleaseGroup.query.get_or_404(id)
+    group_to_delete = db.session.get(ReleaseGroup, id) or abort(404)
     db.session.delete(group_to_delete)
     db.session.commit()
     flash('Release group filter removed.')

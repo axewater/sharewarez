@@ -1,7 +1,9 @@
 import os
 from flask import redirect, url_for, flash, jsonify, send_file, render_template
 from flask_login import login_required
+from modules import db
 from modules.models import Game
+from sqlalchemy import select
 from modules.utils_logging import log_system_event
 from . import download_bp
 
@@ -26,7 +28,7 @@ def downloadrom(guid):
     Download a ROM file for WebRetro emulator.
     Only serves individual files, not folders.
     """
-    game = Game.query.filter_by(uuid=guid).first()
+    game = db.session.execute(select(Game).filter_by(uuid=guid)).scalars().first()
     
     if game is None:
         return jsonify({"error": "Game not found"}), 404

@@ -3,6 +3,7 @@ from flask_login import login_required
 from modules.utils_auth import admin_required
 from modules.models import SystemEvents, DiscoverySection
 from modules import db
+from sqlalchemy import select
 from . import admin2_bp
 
 @admin2_bp.route('/admin/system_logs')
@@ -18,9 +19,7 @@ def system_logs():
     date_from = request.args.get('date_from')
     date_to = request.args.get('date_to')
     
-    query = SystemEvents.query\
-        .options(db.joinedload(SystemEvents.user))\
-        .order_by(SystemEvents.timestamp.desc())
+    query = select(SystemEvents).options(db.joinedload(SystemEvents.user)).order_by(SystemEvents.timestamp.desc())
     
     # Apply filters if they exist
     if event_type:
@@ -28,14 +27,14 @@ def system_logs():
     if event_level:
         query = query.filter(SystemEvents.event_level == event_level)
     
-    logs = query.paginate(page=page, per_page=per_page)
+    logs = db.paginate(query, page=page, per_page=per_page)
     return render_template('admin/admin_server_logs.html', logs=logs)
 
 @admin2_bp.route('/admin/discovery_sections')
 @login_required
 @admin_required
 def discovery_sections():
-    sections = DiscoverySection.query.order_by(DiscoverySection.display_order).all()
+    sections = db.session.execute(select(DiscoverySection).order_by(DiscoverySection.display_order)).scalars().all()
     return render_template('admin/admin_discovery_sections.html', sections=sections)
 
 @admin2_bp.route('/admin/api/discovery_sections/order', methods=['POST'])

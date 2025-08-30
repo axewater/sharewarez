@@ -2,6 +2,7 @@ import os
 from flask import render_template, redirect, url_for, flash, current_app
 from flask_login import login_required
 from modules.models import DownloadRequest, User
+from sqlalchemy import select
 from modules.utils_system_stats import format_bytes
 from modules.utils_download import get_zip_storage_stats
 from modules.utils_auth import admin_required
@@ -33,7 +34,10 @@ def manage_downloads():
 @login_required
 @admin_required
 def delete_download_request(request_id):
-    download_request = DownloadRequest.query.get_or_404(request_id)
+    download_request = db.session.get(DownloadRequest, request_id)
+    if not download_request:
+        flash('Download request not found.', 'error')
+        return redirect(url_for('download.manage_downloads'))
     
     if download_request.zip_file_path and os.path.exists(download_request.zip_file_path):
         if download_request.zip_file_path.startswith(current_app.config['ZIP_SAVE_PATH']):
@@ -59,7 +63,7 @@ def delete_download_request(request_id):
 def clear_processing_downloads():
     try:
         # Find all download requests with 'processing' status
-        processing_downloads = DownloadRequest.query.filter_by(status='processing').all()
+        processing_downloads = db.session.execute(select(DownloadRequest).filter_by(status='processing')).scalars().all()
         
         # Update their status to 'failed'
         for download in processing_downloads:

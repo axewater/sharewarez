@@ -4,6 +4,7 @@ from modules.utils_auth import admin_required
 from modules.utils_processors import get_global_settings
 from modules.models import GlobalSettings
 from modules import db
+from sqlalchemy import select
 from modules.utils_smtp_test import SMTPTester
 from modules import cache
 
@@ -20,7 +21,7 @@ def inject_settings():
 @login_required
 @admin_required
 def smtp_settings():
-    settings = GlobalSettings.query.first()
+    settings = db.session.execute(select(GlobalSettings)).scalars().first()
     if request.method == 'POST':
         data = request.json
         if not settings:
@@ -70,7 +71,7 @@ def smtp_settings():
 @login_required
 @admin_required
 def smtp_test():
-    settings = GlobalSettings.query.first()
+    settings = db.session.execute(select(GlobalSettings)).scalars().first()
     if not settings:
         return jsonify({
             'success': False,

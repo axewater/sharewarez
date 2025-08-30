@@ -11,6 +11,7 @@ from modules.utils_game_core import check_existing_game_by_igdb_id
 from modules import db
 from threading import Thread
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import select
 
 from . import games_bp
 
@@ -38,12 +39,12 @@ def add_game_manual():
     form = AddGameForm()
 
     # Populate the choices for the library_uuid field
-    form.library_uuid.choices = [(str(library.uuid), library.name) for library in Library.query.order_by(Library.name).all()]
+    form.library_uuid.choices = [(str(library.uuid), library.name) for library in db.session.execute(select(Library).order_by(Library.name)).scalars().all()]
     print(f'agm Library choices: {form.library_uuid.choices}')
     
     # Fetch library details for displaying on the form
     library_uuid = request.args.get('library_uuid')
-    library = Library.query.filter_by(uuid=library_uuid).first()
+    library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalars().first()
     if library:
         library_name = library.name
         platform_name = library.platform.name
@@ -91,7 +92,7 @@ def add_game_manual():
 
         # Handle developer
         if form.developer.data and form.developer.data != 'Not Found':
-            developer = Developer.query.filter_by(name=form.developer.data).first()
+            developer = db.session.execute(select(Developer).filter_by(name=form.developer.data)).scalars().first()
             if not developer:
                 developer = Developer(name=form.developer.data)
                 db.session.add(developer)
@@ -99,7 +100,7 @@ def add_game_manual():
             new_game.developer = developer
 
         if form.publisher.data and form.publisher.data != 'Not Found':
-            publisher = Publisher.query.filter_by(name=form.publisher.data).first()
+            publisher = db.session.execute(select(Publisher).filter_by(name=form.publisher.data)).scalars().first()
             if not publisher:
                 publisher = Publisher(name=form.publisher.data)
                 db.session.add(publisher)
@@ -114,7 +115,7 @@ def add_game_manual():
             log_system_event(f"Game {game_name} added manually by admin {current_user.name}",  event_type='game', event_level='information')
             
             if full_disk_path: 
-                unmatched_folder = UnmatchedFolder.query.filter_by(folder_path=full_disk_path).first()
+                unmatched_folder = db.session.execute(select(UnmatchedFolder).filter_by(folder_path=full_disk_path)).scalars().first()
                 if unmatched_folder:
                     db.session.delete(unmatched_folder)
                     print("Deleted unmatched folder:", unmatched_folder)

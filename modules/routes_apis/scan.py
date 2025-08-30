@@ -1,7 +1,9 @@
 # /modules/routes_apis/scan.py
 from flask import jsonify
 from flask_login import login_required
+from modules import db
 from modules.models import ScanJob, UnmatchedFolder, Library
+from sqlalchemy import select
 from modules.utils_auth import admin_required
 from modules.utils_functions import PLATFORM_IDS
 from . import apis_bp
@@ -10,7 +12,7 @@ from . import apis_bp
 @login_required
 @admin_required
 def scan_jobs_status():
-    jobs = ScanJob.query.all()
+    jobs = db.session.execute(select(ScanJob)).scalars().all()
     jobs_data = [{
         'id': job.id,
         'library_name': job.library.name if job.library else 'No Library Assigned',
@@ -33,9 +35,11 @@ def scan_jobs_status():
 @login_required
 @admin_required
 def unmatched_folders():
-    unmatched = UnmatchedFolder.query.join(Library).with_entities(
-        UnmatchedFolder, Library.name.label('library_name'), Library.platform
-    ).order_by(UnmatchedFolder.status.desc()).all()
+    unmatched = db.session.execute(
+        select(UnmatchedFolder, Library.name.label('library_name'), Library.platform)
+        .join(Library)
+        .order_by(UnmatchedFolder.status.desc())
+    ).all()
     
     unmatched_data = [{
         'id': folder.id,

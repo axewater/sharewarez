@@ -1,14 +1,17 @@
 import os
 from flask import redirect, url_for, flash, send_from_directory, current_app
 from flask_login import login_required, current_user
+from modules import db
 from modules.models import DownloadRequest
+from sqlalchemy import select
+from flask import abort
 from . import download_bp
 
 @download_bp.route('/download_zip/<download_id>')
 @login_required
 def download_zip(download_id):
     print(f"Downloading zip with ID: {download_id}")
-    download_request = DownloadRequest.query.filter_by(id=download_id, user_id=current_user.id).first_or_404()
+    download_request = db.session.execute(select(DownloadRequest).filter_by(id=download_id, user_id=current_user.id)).scalars().first() or abort(404)
     
     if download_request.status != 'available':
         flash("The requested download is not ready yet.")

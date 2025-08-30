@@ -1,6 +1,6 @@
 # /modules/routes_apis/download.py
 import os
-from flask import jsonify, current_app
+from flask import jsonify, current_app, abort
 from flask_login import login_required
 from modules import db
 from modules.utils_auth import admin_required
@@ -12,7 +12,7 @@ from . import apis_bp
 @admin_required
 def api_delete_download_request(request_id):
     try:
-        download_request = DownloadRequest.query.get_or_404(request_id)
+        download_request = db.session.get(DownloadRequest, request_id) or abort(404)
         
         # Check if zip file exists and is in the expected directory
         if download_request.zip_file_path and os.path.exists(download_request.zip_file_path):

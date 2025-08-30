@@ -5,13 +5,15 @@ import requests
 import time
 import threading
 from flask import current_app
+from modules import db
 from modules.models import GlobalSettings
+from sqlalchemy import select
 
 
 
 def make_igdb_api_request(endpoint_url, query_params):
     # Get IGDB settings from database
-    settings = GlobalSettings.query.first()
+    settings = db.session.execute(select(GlobalSettings)).scalars().first()
     if not settings or not settings.igdb_client_id or not settings.igdb_client_secret:
         return {"error": "IGDB settings not configured in database"}
 

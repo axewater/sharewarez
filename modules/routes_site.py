@@ -2,7 +2,8 @@
 from flask import Blueprint, render_template, redirect, url_for, current_app, send_from_directory, jsonify, request
 from flask_login import login_required, logout_user, current_user
 
-from sqlalchemy import func
+from sqlalchemy import func, select
+from modules import db
 from flask import flash
 import os
 from modules.models import User, Image
@@ -41,7 +42,7 @@ def logout():
 @site_bp.route('/index', methods=['GET', 'POST'])
 def index():
     # Check if setup is required
-    if not User.query.first():
+    if not db.session.execute(select(User)).scalars().first():
         return redirect(url_for('setup.setup'))
         
     # If not authenticated, redirect to login
@@ -65,7 +66,7 @@ def favorites():
     favorites = current_user.favorites
     game_data = []
     for game in favorites:
-        cover_image = Image.query.filter_by(game_uuid=game.uuid, image_type='cover').first()
+        cover_image = db.session.execute(select(Image).filter_by(game_uuid=game.uuid, image_type='cover')).scalars().first()
         cover_url = cover_image.url if cover_image else 'newstyle/default_cover.jpg'
         genres = [genre.name for genre in game.genres]
         game_size_formatted = format_size(game.size)
