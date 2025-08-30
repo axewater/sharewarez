@@ -1,257 +1,302 @@
-import pytest
+import unittest
 from unittest.mock import patch, MagicMock, Mock
-from requests.exceptions import RequestException, HTTPError, Timeout
+import sys
+import os
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
 from modules.discord_handler import DiscordWebhookHandler
+from discord_webhook import DiscordEmbed
+from requests.exceptions import RequestException, HTTPError, Timeout
+from tenacity import RetryError
 
 
-class TestDiscordWebhookHandler:
-    """Test Discord webhook handler functionality."""
+class TestDiscordWebhookHandler(unittest.TestCase):
     
-    def setup_method(self):
+    def setUp(self):
         """Set up test fixtures."""
-        self.valid_webhook_url = "https://discord.com/api/webhooks/123456789/test-webhook"
+        self.valid_webhook_url = "https://discord.com/api/webhooks/123456789/abcdef"
+        self.bot_name = "TestBot"
+        self.bot_avatar_url = "https://example.com/avatar.png"
         self.handler = DiscordWebhookHandler(
             webhook_url=self.valid_webhook_url,
-            bot_name="Test Bot",
-            bot_avatar_url="https://example.com/avatar.png"
+            bot_name=self.bot_name,
+            bot_avatar_url=self.bot_avatar_url
         )
     
-    def test_init_with_valid_params(self):
-        """Test handler initialization with valid parameters."""
-        handler = DiscordWebhookHandler(
-            webhook_url="https://discord.com/api/webhooks/123/test",
-            bot_name="Bot",
-            bot_avatar_url="https://example.com/avatar.png"
+    # Constructor Tests
+    def test_init_with_required_params(self):
+        """Test initialization with only required parameters."""
+        handler = DiscordWebhookHandler("https://discord.com/api/webhooks/123/abc")
+        self.assertEqual(handler.webhook_url, "https://discord.com/api/webhooks/123/abc")
+        self.assertIsNone(handler.bot_name)
+        self.assertIsNone(handler.bot_avatar_url)
+        self.assertEqual(handler.max_retries, 3)
+        self.assertEqual(handler.timeout, 10)
+    
+    def test_init_with_all_params(self):
+        """Test initialization with all parameters."""
+        self.assertEqual(self.handler.webhook_url, self.valid_webhook_url)
+        self.assertEqual(self.handler.bot_name, self.bot_name)
+        self.assertEqual(self.handler.bot_avatar_url, self.bot_avatar_url)
+        self.assertEqual(self.handler.max_retries, 3)
+        self.assertEqual(self.handler.timeout, 10)
+    
+    # URL Validation Tests
+    def test_validate_webhook_url_valid_discord_com(self):
+        """Test validation passes for valid discord.com webhook URL."""
+        handler = DiscordWebhookHandler("https://discord.com/api/webhooks/123456789/abcdef")
+        self.assertTrue(handler.validate_webhook_url())
+    
+    def test_validate_webhook_url_valid_discordapp_com(self):
+        """Test validation passes for valid discordapp.com webhook URL."""
+        handler = DiscordWebhookHandler("https://discordapp.com/api/webhooks/123456789/abcdef")
+        self.assertTrue(handler.validate_webhook_url())
+    
+    def test_validate_webhook_url_invalid_scheme_http(self):
+        """Test validation fails for HTTP (non-HTTPS) URL."""
+        handler = DiscordWebhookHandler("http://discord.com/api/webhooks/123456789/abcdef")
+        self.assertFalse(handler.validate_webhook_url())
+    
+    def test_validate_webhook_url_invalid_scheme_ftp(self):
+        """Test validation fails for non-HTTP schemes."""
+        handler = DiscordWebhookHandler("ftp://discord.com/api/webhooks/123456789/abcdef")
+        self.assertFalse(handler.validate_webhook_url())
+    
+    def test_validate_webhook_url_invalid_domain(self):
+        """Test validation fails for invalid domains (SSRF protection)."""
+        invalid_domains = [
+            "https://evil.com/api/webhooks/123456789/abcdef",
+            "https://localhost/api/webhooks/123456789/abcdef",
+            "https://127.0.0.1/api/webhooks/123456789/abcdef",
+            "https://10.0.0.1/api/webhooks/123456789/abcdef",
+            "https://discord.evil.com/api/webhooks/123456789/abcdef"
+        ]
+        for url in invalid_domains:
+            handler = DiscordWebhookHandler(url)
+            self.assertFalse(handler.validate_webhook_url(), f"Should reject {url}")
+    
+    def test_validate_webhook_url_invalid_path(self):
+        """Test validation fails for invalid webhook paths."""
+        invalid_paths = [
+            "https://discord.com/api/v9/webhooks/123456789/abcdef",
+            "https://discord.com/webhooks/123456789/abcdef", 
+            "https://discord.com/api/webhook/123456789/abcdef",
+            "https://discord.com/api/webhooks",
+            "https://discord.com/"
+        ]
+        for url in invalid_paths:
+            handler = DiscordWebhookHandler(url)
+            self.assertFalse(handler.validate_webhook_url(), f"Should reject {url}")
+    
+    def test_validate_webhook_url_empty_or_none(self):
+        """Test validation fails for empty or None URLs."""
+        for invalid_url in [None, "", " "]:
+            handler = DiscordWebhookHandler(invalid_url)
+            self.assertFalse(handler.validate_webhook_url())
+    
+    def test_validate_webhook_url_non_string(self):
+        """Test validation fails for non-string inputs."""
+        for invalid_url in [123, [], {}, True]:
+            handler = DiscordWebhookHandler(invalid_url)
+            self.assertFalse(handler.validate_webhook_url())
+    
+    def test_validate_webhook_url_malformed(self):
+        """Test validation fails for malformed URLs."""
+        malformed_urls = [
+            "not-a-url",
+            "https://",
+            "https:discord.com",
+            "discord.com/api/webhooks/123"
+        ]
+        for url in malformed_urls:
+            handler = DiscordWebhookHandler(url)
+            self.assertFalse(handler.validate_webhook_url(), f"Should reject {url}")
+    
+    # Embed Creation Tests
+    def test_create_embed_basic(self):
+        """Test creating a basic embed with title only."""
+        embed = self.handler.create_embed("Test Title")
+        
+        self.assertIsInstance(embed, DiscordEmbed)
+        self.assertEqual(embed.title, "Test Title")
+        self.assertEqual(embed.color, 242424)  # Default color converted to int
+    
+    def test_create_embed_with_all_params(self):
+        """Test creating embed with all parameters."""
+        embed = self.handler.create_embed(
+            title="Test Title",
+            description="Test Description", 
+            url="https://example.com",
+            color="ff0000"
         )
         
-        assert handler.webhook_url == "https://discord.com/api/webhooks/123/test"
-        assert handler.bot_name == "Bot"
-        assert handler.bot_avatar_url == "https://example.com/avatar.png"
-        assert handler.max_retries == 3
-        assert handler.timeout == 10
+        self.assertEqual(embed.title, "Test Title")
+        self.assertEqual(embed.description, "Test Description")
+        self.assertEqual(embed.url, "https://example.com")
+        self.assertEqual(embed.color, 16711680)  # ff0000 converted to int
     
-    def test_init_minimal_params(self):
-        """Test handler initialization with minimal parameters."""
-        handler = DiscordWebhookHandler(webhook_url="https://discord.com/api/webhooks/123/test")
+    def test_create_embed_with_fields(self):
+        """Test creating embed with custom fields."""
+        fields = {
+            "Field 1": "Value 1",
+            "Field 2": 123,
+            "Field 3": True
+        }
         
-        assert handler.webhook_url == "https://discord.com/api/webhooks/123/test"
-        assert handler.bot_name is None
-        assert handler.bot_avatar_url is None
+        with patch.object(DiscordEmbed, 'add_embed_field') as mock_add_field:
+            embed = self.handler.create_embed("Title", fields=fields)
+            
+            self.assertEqual(mock_add_field.call_count, 3)
+            mock_add_field.assert_any_call(name="Field 1", value="Value 1")
+            mock_add_field.assert_any_call(name="Field 2", value="123")
+            mock_add_field.assert_any_call(name="Field 3", value="True")
     
-    @pytest.mark.parametrize("webhook_url, expected", [
-        ("https://discord.com/api/webhooks/123/test", True),
-        ("https://discordapp.com/api/webhooks/123/test", True),
-        ("https://example.com/webhook", False),
-        ("", False),
-        (None, False),
-        (123, False)
-    ])
-    def test_validate_webhook_url(self, webhook_url, expected):
-        """Test webhook URL validation with various inputs."""
-        handler = DiscordWebhookHandler(webhook_url=webhook_url)
-        result = handler.validate_webhook_url()
-        # Handle cases where result might be the empty string or None
-        if expected is False:
-            assert result in [False, "", None]
-        else:
-            assert result == expected
+    def test_create_embed_with_bot_author(self):
+        """Test embed includes bot author when configured."""
+        with patch.object(DiscordEmbed, 'set_author') as mock_set_author:
+            embed = self.handler.create_embed("Title", url="https://example.com")
+            
+            mock_set_author.assert_called_once_with(
+                name=self.bot_name,
+                url="https://example.com",
+                icon_url=self.bot_avatar_url
+            )
     
+    def test_create_embed_without_bot_author(self):
+        """Test embed without bot author when not configured."""
+        handler = DiscordWebhookHandler(self.valid_webhook_url)  # No bot info
+        
+        with patch.object(DiscordEmbed, 'set_author') as mock_set_author:
+            embed = handler.create_embed("Title")
+            mock_set_author.assert_not_called()
+    
+    def test_create_embed_sets_timestamp(self):
+        """Test embed always sets timestamp."""
+        with patch.object(DiscordEmbed, 'set_timestamp') as mock_set_timestamp:
+            embed = self.handler.create_embed("Title")
+            mock_set_timestamp.assert_called_once()
+    
+    def test_create_embed_error_handling(self):
+        """Test error handling in embed creation."""
+        with patch('modules.discord_handler.DiscordEmbed') as mock_embed:
+            mock_embed.side_effect = Exception("Embed creation failed")
+            
+            with self.assertRaises(Exception):
+                self.handler.create_embed("Title")
+    
+    # Webhook Sending Tests
     @patch('modules.discord_handler.DiscordWebhook')
     def test_send_webhook_success(self, mock_webhook_class):
         """Test successful webhook sending."""
-        # Setup mock
-        mock_webhook = MagicMock()
-        mock_response = MagicMock()
+        # Setup mock response
+        mock_response = Mock()
         mock_response.status_code = 200
+        
+        mock_webhook = Mock()
         mock_webhook.execute.return_value = mock_response
         mock_webhook_class.return_value = mock_webhook
         
-        # Create mock embed
-        mock_embed = MagicMock()
+        # Create test embed
+        embed = DiscordEmbed(title="Test")
         
-        # Test
-        result = self.handler.send_webhook(mock_embed)
+        # Test successful send
+        result = self.handler.send_webhook(embed)
         
-        # Assertions
-        assert result is True
+        self.assertTrue(result)
         mock_webhook_class.assert_called_once_with(
             url=self.valid_webhook_url,
             rate_limit_retry=True,
             timeout=10
         )
-        mock_webhook.add_embed.assert_called_once_with(mock_embed)
+        mock_webhook.add_embed.assert_called_once_with(embed)
         mock_webhook.execute.assert_called_once()
+    
+    def test_send_webhook_invalid_url(self):
+        """Test webhook sending fails with invalid URL."""
+        handler = DiscordWebhookHandler("https://evil.com/webhook")
+        embed = DiscordEmbed(title="Test")
+        
+        # Test that invalid URL raises ValueError (with retry it becomes RetryError)
+        with self.assertRaises((ValueError, RetryError)):
+            result = handler.send_webhook(embed)
     
     @patch('modules.discord_handler.DiscordWebhook')
     def test_send_webhook_rate_limited(self, mock_webhook_class):
-        """Test webhook sending when rate limited."""
-        # Setup mock
-        mock_webhook = MagicMock()
-        mock_response = MagicMock()
+        """Test webhook sending handles rate limiting."""
+        mock_response = Mock()
         mock_response.status_code = 429
+        
+        mock_webhook = Mock()
         mock_webhook.execute.return_value = mock_response
         mock_webhook_class.return_value = mock_webhook
         
-        mock_embed = MagicMock()
+        embed = DiscordEmbed(title="Test")
         
-        # Test should return None due to retry mechanism consuming exceptions
-        result = self.handler.send_webhook(mock_embed)
-        assert result is None
-    
-    @patch('modules.discord_handler.DiscordWebhook')
-    def test_send_webhook_invalid_url(self, mock_webhook_class):
-        """Test webhook sending with invalid URL."""
-        handler = DiscordWebhookHandler(webhook_url="https://invalid.com/webhook")
-        mock_embed = MagicMock()
+        # Test with actual retry behavior
+        embed = DiscordEmbed(title="Test")
         
-        # Due to retry mechanism, this returns None instead of raising
-        result = handler.send_webhook(mock_embed)
-        assert result is None
-    
-    @patch('modules.discord_handler.DiscordWebhook')
-    def test_send_webhook_timeout(self, mock_webhook_class):
-        """Test webhook sending with timeout error."""
-        mock_webhook = MagicMock()
-        mock_webhook.execute.side_effect = Timeout("Request timed out")
-        mock_webhook_class.return_value = mock_webhook
-        
-        mock_embed = MagicMock()
-        
-        # Due to retry mechanism, this returns None instead of raising
-        result = self.handler.send_webhook(mock_embed)
-        assert result is None
+        with self.assertRaises(RetryError):
+            handler = DiscordWebhookHandler(self.valid_webhook_url)  
+            handler.send_webhook(embed)
     
     @patch('modules.discord_handler.DiscordWebhook')
     def test_send_webhook_http_error(self, mock_webhook_class):
-        """Test webhook sending with HTTP error."""
-        mock_webhook = MagicMock()
-        mock_webhook.execute.side_effect = HTTPError("HTTP 500 Error")
-        mock_webhook_class.return_value = mock_webhook
+        """Test webhook sending handles HTTP errors."""
+        mock_response = Mock()
+        mock_response.status_code = 404
         
-        mock_embed = MagicMock()
-        
-        # Due to retry mechanism, this returns None instead of raising
-        result = self.handler.send_webhook(mock_embed)
-        assert result is None
-    
-    @patch('modules.discord_handler.DiscordWebhook')
-    def test_send_webhook_request_exception(self, mock_webhook_class):
-        """Test webhook sending with general request exception."""
-        mock_webhook = MagicMock()
-        mock_webhook.execute.side_effect = RequestException("Connection error")
-        mock_webhook_class.return_value = mock_webhook
-        
-        mock_embed = MagicMock()
-        
-        # Due to retry mechanism, this returns None instead of raising
-        result = self.handler.send_webhook(mock_embed)
-        assert result is None
-    
-    @patch('modules.discord_handler.DiscordEmbed')
-    def test_create_embed_basic(self, mock_embed_class):
-        """Test basic embed creation."""
-        mock_embed = MagicMock()
-        mock_embed_class.return_value = mock_embed
-        
-        result = self.handler.create_embed(
-            title="Test Title",
-            description="Test Description",
-            url="https://example.com"
-        )
-        
-        assert result == mock_embed
-        mock_embed_class.assert_called_once_with(
-            title="Test Title",
-            description="Test Description",
-            url="https://example.com",
-            color="03b2f8"
-        )
-        mock_embed.set_author.assert_called_once_with(
-            name="Test Bot",
-            url="https://example.com",
-            icon_url="https://example.com/avatar.png"
-        )
-        mock_embed.set_timestamp.assert_called_once()
-    
-    @patch('modules.discord_handler.DiscordEmbed')
-    def test_create_embed_with_fields(self, mock_embed_class):
-        """Test embed creation with fields."""
-        mock_embed = MagicMock()
-        mock_embed_class.return_value = mock_embed
-        
-        fields = {
-            "Field 1": "Value 1",
-            "Field 2": 42,
-            "Field 3": "Value 3"
-        }
-        
-        result = self.handler.create_embed(
-            title="Test Title",
-            fields=fields
-        )
-        
-        assert result == mock_embed
-        # Check that add_embed_field was called for each field
-        expected_calls = [
-            (("Field 1", "Value 1"), {}),
-            (("Field 2", "42"), {}),
-            (("Field 3", "Value 3"), {})
-        ]
-        mock_embed.add_embed_field.assert_any_call(name="Field 1", value="Value 1")
-        mock_embed.add_embed_field.assert_any_call(name="Field 2", value="42")
-        mock_embed.add_embed_field.assert_any_call(name="Field 3", value="Value 3")
-        assert mock_embed.add_embed_field.call_count == 3
-    
-    @patch('modules.discord_handler.DiscordEmbed')
-    def test_create_embed_no_bot_info(self, mock_embed_class):
-        """Test embed creation without bot information."""
-        handler = DiscordWebhookHandler(webhook_url=self.valid_webhook_url)
-        mock_embed = MagicMock()
-        mock_embed_class.return_value = mock_embed
-        
-        result = handler.create_embed(title="Test Title")
-        
-        assert result == mock_embed
-        mock_embed.set_author.assert_not_called()
-        mock_embed.set_timestamp.assert_called_once()
-    
-    @patch('modules.discord_handler.DiscordEmbed')
-    def test_create_embed_exception(self, mock_embed_class):
-        """Test embed creation with exception."""
-        mock_embed_class.side_effect = Exception("Embed creation failed")
-        
-        with pytest.raises(Exception, match="Embed creation failed"):
-            self.handler.create_embed(title="Test Title")
-    
-    @patch('modules.discord_handler.DiscordEmbed')
-    def test_create_embed_custom_color(self, mock_embed_class):
-        """Test embed creation with custom color."""
-        mock_embed = MagicMock()
-        mock_embed_class.return_value = mock_embed
-        
-        result = self.handler.create_embed(
-            title="Test Title",
-            color="ff0000"
-        )
-        
-        mock_embed_class.assert_called_once_with(
-            title="Test Title",
-            description=None,
-            url=None,
-            color="ff0000"
-        )
-    
-    @patch('modules.discord_handler.DiscordWebhook')
-    def test_send_webhook_failed_status_code(self, mock_webhook_class):
-        """Test webhook sending with failed status code."""
-        mock_webhook = MagicMock()
-        mock_response = MagicMock()
-        mock_response.status_code = 400
+        mock_webhook = Mock()
         mock_webhook.execute.return_value = mock_response
         mock_webhook_class.return_value = mock_webhook
         
-        mock_embed = MagicMock()
+        embed = DiscordEmbed(title="Test")
         
-        # Due to retry mechanism, this returns None instead of raising
-        result = self.handler.send_webhook(mock_embed)
-        assert result is None
+        with self.assertRaises(RetryError):
+            handler = DiscordWebhookHandler(self.valid_webhook_url)
+            handler.send_webhook(embed)
+    
+    @patch('modules.discord_handler.DiscordWebhook')
+    def test_send_webhook_timeout(self, mock_webhook_class):
+        """Test webhook sending handles timeout."""
+        mock_webhook = Mock()
+        mock_webhook.execute.side_effect = Timeout("Request timed out")
+        mock_webhook_class.return_value = mock_webhook
+        
+        embed = DiscordEmbed(title="Test")
+        
+        with self.assertRaises(RetryError):
+            handler = DiscordWebhookHandler(self.valid_webhook_url)
+            handler.send_webhook(embed)
+    
+    @patch('modules.discord_handler.DiscordWebhook')
+    def test_send_webhook_request_exception(self, mock_webhook_class):
+        """Test webhook sending handles request exceptions."""
+        mock_webhook = Mock()
+        mock_webhook.execute.side_effect = RequestException("Network error")
+        mock_webhook_class.return_value = mock_webhook
+        
+        embed = DiscordEmbed(title="Test")
+        
+        with self.assertRaises(RetryError):
+            handler = DiscordWebhookHandler(self.valid_webhook_url)
+            handler.send_webhook(embed)
+    
+    @patch('modules.discord_handler.DiscordWebhook')
+    def test_send_webhook_status_204(self, mock_webhook_class):
+        """Test webhook sending accepts 204 status code."""
+        mock_response = Mock()
+        mock_response.status_code = 204
+        
+        mock_webhook = Mock()
+        mock_webhook.execute.return_value = mock_response
+        mock_webhook_class.return_value = mock_webhook
+        
+        embed = DiscordEmbed(title="Test")
+        result = self.handler.send_webhook(embed)
+        
+        self.assertTrue(result)
+
+
+if __name__ == '__main__':
+    unittest.main()

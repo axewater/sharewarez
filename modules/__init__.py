@@ -17,7 +17,7 @@ from modules.utils_db import check_postgres_port_open
 db = SQLAlchemy()
 login_manager = LoginManager()
 mail = Mail()
-cache = Cache(config={'CACHE_TYPE': 'simple'})
+cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 app_start_time = datetime.now()
 app_version = '2.5.4'
 

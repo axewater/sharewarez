@@ -1,6 +1,6 @@
 from modules import db
 from modules.models import SystemEvents
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Union
 from flask_login import current_user
 
@@ -40,7 +40,7 @@ def log_system_event(
             event_type=event_type,
             event_level=event_level,
             audit_user=audit_user if audit_user != 'system' else None,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone.utc)
         )
         
         # Add and commit to database

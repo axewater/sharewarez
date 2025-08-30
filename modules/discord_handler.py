@@ -41,8 +41,7 @@ class DiscordWebhookHandler:
 
     @retry(
         stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=4, max=10),
-        retry_error_callback=lambda state: None
+        wait=wait_exponential(multiplier=1, min=4, max=10)
     )
     def send_webhook(self, embed: DiscordEmbed) -> bool:
         """Send webhook with retry mechanism and error handling."""
