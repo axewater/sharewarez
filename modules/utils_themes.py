@@ -6,6 +6,7 @@ from flask import current_app, flash
 from werkzeug.utils import secure_filename
 from modules.models import UserPreference
 from modules import db
+from sqlalchemy import update
 
 class ThemeManager:
     def __init__(self, app):
@@ -106,5 +107,5 @@ class ThemeManager:
         except Exception as e:
             raise Exception(f"Error deleting theme: {str(e)}")
 
-        UserPreference.query.filter_by(theme=theme_name).update({'theme': 'default'})
+        db.session.execute(update(UserPreference).filter_by(theme=theme_name).values(theme='default'))
         db.session.commit()

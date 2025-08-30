@@ -1,7 +1,9 @@
 import os
 from flask import flash
 import re
+from modules import db
 from modules.models import Game
+from sqlalchemy import select
 
 def get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns):
     if not os.path.exists(folder_path) or not os.access(folder_path, os.R_OK):
@@ -45,7 +47,7 @@ def get_game_names_from_files(folder_path, extensions, insensitive_patterns, sen
 
 def get_game_name_by_uuid(uuid):
     print(f"Searching for game UUID: {uuid}")
-    game = Game.query.filter_by(uuid=uuid).first()
+    game = db.session.execute(select(Game).filter_by(uuid=uuid)).scalars().first()
     if game:
         print(f"Game with name {game.name} and UUID {game.uuid} found")
         return game.name

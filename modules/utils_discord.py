@@ -1,6 +1,7 @@
 from discord_webhook import DiscordWebhook, DiscordEmbed
 from flask import current_app
 from modules.models import GlobalSettings, Library, Game, GameURL, db
+from sqlalchemy import select
 import os
 import time
 from datetime import datetime
@@ -28,7 +29,7 @@ def discord_webhook(game_uuid):
     print(f"Discord notifications: Starting for game UUID '{game_uuid}'.")
 
     # Get global settings once
-    settings = GlobalSettings.query.first()
+    settings = db.session.execute(select(GlobalSettings)).scalars().first()
 
     # Return early if settings or webhook URL are not properly configured
     if not settings or not settings.discord_webhook_url:
@@ -41,7 +42,7 @@ def discord_webhook(game_uuid):
         return
 
     # Retrieve the game by UUID
-    new_game = Game.query.filter_by(uuid=game_uuid).first()
+    new_game = db.session.execute(select(Game).filter_by(uuid=game_uuid)).scalars().first()
     if not new_game:
         print(f"Discord notifications: Game with UUID '{game_uuid}' could not be found. Exiting.")
         return
@@ -96,7 +97,7 @@ def discord_webhook(game_uuid):
     
 def get_library_by_uuid(uuid):
     print(f"Searching for Library UUID: {uuid}")
-    library = Library.query.filter_by(uuid=uuid).first()
+    library = db.session.execute(select(Library).filter_by(uuid=uuid)).scalars().first()
     if library:
         print(f"Library with name {library.name} and UUID {library.uuid} found")
         return library
@@ -106,7 +107,7 @@ def get_library_by_uuid(uuid):
         
 def get_game_name_by_uuid(uuid):
     print(f"Searching for game UUID: {uuid}")
-    game = Game.query.filter_by(uuid=uuid).first()
+    game = db.session.execute(select(Game).filter_by(uuid=uuid)).scalars().first()
     if game:
         print(f"Game with name {game.name} and UUID {game.uuid} found")
         return game.name
@@ -115,7 +116,7 @@ def get_game_name_by_uuid(uuid):
         return None
         
 def update_game_size(game_uuid, size):
-    game = Game.query.filter_by(uuid=game_uuid).first()
+    game = db.session.execute(select(Game).filter_by(uuid=game_uuid)).scalars().first()
     if game:
         game.size = size
         db.session.commit()
@@ -135,14 +136,14 @@ def get_game_by_full_disk_path(game_path, file_path=None):
     """
     try:
         # First try exact match
-        game = Game.query.filter_by(full_disk_path=game_path).first()
+        game = db.session.execute(select(Game).filter_by(full_disk_path=game_path)).scalars().first()
         if game:
             return game
             
         # If no exact match and file_path provided, try parent directory
         if file_path:
             parent_path = os.path.dirname(file_path)
-            return Game.query.filter_by(full_disk_path=parent_path).first()
+            return db.session.execute(select(Game).filter_by(full_disk_path=parent_path)).scalars().first()
             
         return None
     except Exception as e:

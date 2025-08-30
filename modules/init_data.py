@@ -2,6 +2,7 @@ import os
 import zipfile
 from modules import db
 from modules.models import DiscoverySection
+from sqlalchemy import select
 
 # Default allowed file types
 DEFAULT_ALLOWED_FILE_TYPES = ['zip', 'rar', '7z', 'iso', 'nfo', 'nes', 'sfc', 'smc', 'sms', '32x', 'gen', 'gg', 'gba', 'gb', 'gbc', 'ndc', 'prg', 'dat', 'tap', 'z64', 'd64', 'dsk', 'img', 'bin', 'st', 'stx', 'j64', 'jag', 'lnx', 'adf', 'ngc', 'gz', 'm2v', 'ogg', 'fpt', 'fpl', 'vec', 'pce', 'a78', 'rom']
@@ -12,7 +13,7 @@ from modules.utils_logging import log_system_event
 def initialize_default_settings():
     """Initialize default global settings if they don't exist."""
     print("Initializing default global settings...")
-    settings_record = GlobalSettings.query.first()
+    settings_record = db.session.execute(select(GlobalSettings)).scalars().first()
     if not settings_record:
         try:
             default_settings = {
@@ -100,8 +101,8 @@ def insert_default_filters():
         {'rlsgroup': 'ZER0', 'rlsgroupcs': 'no'},
     ]
 
-    existing_groups = ReleaseGroup.query.with_entities(ReleaseGroup.rlsgroup).all()
-    existing_group_names = {group.rlsgroup for group in existing_groups}
+    existing_groups = db.session.execute(select(ReleaseGroup.rlsgroup)).scalars().all()
+    existing_group_names = set(existing_groups)
 
     for group in default_name_filters:
         if group['rlsgroup'] not in existing_group_names:
@@ -114,7 +115,7 @@ def initialize_allowed_file_types():
     from modules.models import AllowedFileType
     
     print("Initializing default allowed file types...")
-    existing_types = {ft.value for ft in AllowedFileType.query.all()}
+    existing_types = {ft.value for ft in db.session.execute(select(AllowedFileType)).scalars().all()}
     
     for file_type in DEFAULT_ALLOWED_FILE_TYPES:
         if file_type not in existing_types:
@@ -178,7 +179,7 @@ def initialize_discovery_sections():
     ]
 
     # Get existing section identifiers
-    existing_sections = {section.identifier for section in DiscoverySection.query.all()}
+    existing_sections = {section.identifier for section in db.session.execute(select(DiscoverySection)).scalars().all()}
 
     # Add any missing sections
     for section in default_sections:

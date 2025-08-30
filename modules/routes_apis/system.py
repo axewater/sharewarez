@@ -1,11 +1,12 @@
 # /modules/routes_apis/system.py
 import os
-from flask import jsonify, request
+from flask import jsonify, request, current_app, abort
 from flask_login import login_required
 from modules import db
 from modules.models import AllowedFileType, IgnoredFileType
 from modules.platform import Emulator, LibraryPlatform, platform_emulator_mapping
 from modules.utils_auth import admin_required
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from . import apis_bp
 
@@ -19,7 +20,7 @@ def manage_file_types(type_category):
     ModelClass = AllowedFileType if type_category == 'allowed' else IgnoredFileType
 
     if request.method == 'GET':
-        types = ModelClass.query.order_by(ModelClass.value.asc()).all()
+        types = db.session.execute(select(ModelClass).order_by(ModelClass.value.asc())).scalars().all()
         return jsonify([{'id': t.id, 'value': t.value} for t in types])
 
     elif request.method == 'POST':
@@ -35,7 +36,7 @@ def manage_file_types(type_category):
 
     elif request.method == 'PUT':
         data = request.get_json()
-        file_type = ModelClass.query.get_or_404(data['id'])
+        file_type = db.session.get(ModelClass, data['id']) or abort(404)
         file_type.value = data['value'].lower()
         try:
             db.session.commit()
@@ -45,7 +46,7 @@ def manage_file_types(type_category):
             return jsonify({'error': 'Type already exists'}), 400
 
     elif request.method == 'DELETE':
-        file_type = ModelClass.query.get_or_404(request.get_json()['id'])
+        file_type = db.session.get(ModelClass, request.get_json()['id']) or abort(404)
         db.session.delete(file_type)
         db.session.commit()
         return jsonify({'success': True})

@@ -3,6 +3,7 @@ from flask_login import login_required
 from modules.utils_auth import admin_required
 from modules.models import GlobalSettings
 from modules import db
+from sqlalchemy import select
 from modules.discord_handler import DiscordWebhookHandler
 from modules.utils_functions import validate_discord_webhook_url, validate_discord_bot_name, validate_discord_avatar_url
 from . import admin2_bp
@@ -17,7 +18,7 @@ def discord_help():
 @login_required
 @admin_required
 def discord_settings():
-    settings = GlobalSettings.query.first()
+    settings = db.session.execute(select(GlobalSettings)).scalars().first()
     
     if request.method == 'POST':
         if not settings:

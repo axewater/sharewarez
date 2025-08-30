@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, copy_current_request_context, request
+from flask import render_template, redirect, url_for, flash, copy_current_request_context, request, abort
 from flask_login import login_required, current_user
 from modules.forms import AddGameForm
 from modules.models import Game, Library, Category, Developer, Publisher
@@ -10,6 +10,7 @@ from modules import db
 from threading import Thread
 from datetime import datetime, timezone
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import select
 
 from . import games_bp
 
@@ -18,9 +19,9 @@ from . import games_bp
 @login_required
 @admin_required
 def game_edit(game_uuid):
-    game = Game.query.filter_by(uuid=game_uuid).first_or_404()
+    game = db.session.get(Game, game_uuid) or abort(404)
     form = AddGameForm(obj=game)
-    form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in Library.query.order_by(Library.name).all()]
+    form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in db.session.execute(select(Library).order_by(Library.name)).scalars().all()]
     platform_id = PLATFORM_IDS.get(game.library.platform.value.upper(), None)
     platform_name = game.library.platform.value
     library_name = game.library.name
@@ -33,10 +34,10 @@ def game_edit(game_uuid):
             return render_template('admin/admin_game_identify.html', form=form, game_uuid=game_uuid, action="edit")
 
         # Check if any other game has the same igdb_id and is not the current game
-        existing_game_with_igdb_id = Game.query.filter(
+        existing_game_with_igdb_id = db.session.execute(select(Game).filter(
             Game.igdb_id == form.igdb_id.data,
-            Game.id != game.id 
-        ).first()
+            Game.id != game.id
+        )).scalars().first()
         
         if existing_game_with_igdb_id is not None:
             flash(f'The IGDB ID {form.igdb_id.data} is already used by another game.', 'error')
@@ -65,7 +66,7 @@ def game_edit(game_uuid):
         # Handling Developer
         developer_name = form.developer.data
         if developer_name:
-            developer = Developer.query.filter_by(name=developer_name).first()
+            developer = db.session.execute(select(Developer).filter_by(name=developer_name)).scalars().first()
             if not developer:
                 developer = Developer(name=developer_name)
                 db.session.add(developer)
@@ -75,7 +76,7 @@ def game_edit(game_uuid):
         # Handling Publisher
         publisher_name = form.publisher.data
         if publisher_name:
-            publisher = Publisher.query.filter_by(name=publisher_name).first()
+            publisher = db.session.execute(select(Publisher).filter_by(name=publisher_name)).scalars().first()
             if not publisher:
                 publisher = Publisher(name=publisher_name)
                 db.session.add(publisher)

@@ -2,56 +2,6 @@
 
 ## Migration Status Overview
 
-**✅ COMPLETED (8 files):**
-- Core user routes: `routes_library.py`, `routes_discover.py`
-- Core utilities: `utils_functions.py`  
-- High-traffic admin: `routes_admin_ext/users.py`, `routes_admin_ext/settings.py`
-- Core APIs: `routes_apis/filters.py`, `routes_apis/user.py`, `routes_apis/library.py`
-
-**📊 Current State:**
-- **Migrated**: 43 patterns (~29% of total)
-- **Remaining**: 104 patterns across 38 files
-- **Status**: All tests passing, core functionality fully modernized
-
----
-
-## Remaining Files by Priority
-
-### 🔥 HIGH PRIORITY (28 patterns)
-**Impact**: Frequently used features, user-facing functionality
-
-#### Game Management Routes (12 patterns)
-- `modules/routes_games_ext/edit.py` (5 patterns) - Game editing interface
-- `modules/routes_games_ext/add.py` (5 patterns) - Add new games
-- `modules/routes_games_ext/details.py` (2 patterns) - Game details page
-
-#### Core Utilities (8 patterns) 
-- `modules/utilities.py` (8 patterns) - General utility functions
-
-#### Download System (8 patterns)
-- `modules/routes_downloads_ext/initiate.py` (9 patterns) - Download initiation
-- `modules/routes_downloads_ext/user.py` (3 patterns) - User downloads
-- `modules/routes_downloads_ext/admin.py` (2 patterns) - Admin download management
-
-### 🟡 MEDIUM PRIORITY (35 patterns)
-**Impact**: Admin features, system management
-
-#### Data Management (16 patterns)
-- `modules/utils_discord.py` (7 patterns) - Discord integration
-- `modules/models.py` (7 patterns) - Database model methods
-- `modules/routes_smtp.py` (2 patterns) - SMTP configuration
-
-#### Admin Extensions (19 patterns)
-- `modules/routes_admin_ext/newsletter.py` (4 patterns) - Newsletter management
-- `modules/routes_admin_ext/invites.py` (3 patterns) - Invite system
-- `modules/routes_admin_ext/whitelist.py` (3 patterns) - Whitelist management
-- `modules/routes_admin_ext/igdb.py` (2 patterns) - IGDB configuration
-- `modules/routes_admin_ext/filters.py` (2 patterns) - Content filters
-- `modules/routes_admin_ext/extensions.py` (1 pattern) - Extensions management
-- `modules/routes_admin_ext/system.py` (1 pattern) - System management
-- `modules/routes_admin_ext/discord.py` (1 pattern) - Discord admin
-- `modules/routes_admin_ext/libraries.py` (1 pattern) - Library management
-- `modules/routes_admin_ext/images.py` (1 pattern) - Remaining image patterns
 
 ### 🟢 LOW PRIORITY (41 patterns)
 **Impact**: Specialized features, less frequent usage

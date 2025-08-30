@@ -5,7 +5,7 @@ from modules.models import Image, Game
 from modules import db
 from . import admin2_bp
 from modules.utils_auth import admin_required
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete
 
 @admin2_bp.route('/admin/image_queue')
 @login_required
@@ -229,7 +229,7 @@ def clear_downloaded_queue():
         downloaded_count = db.session.execute(select(func.count(Image.id)).filter_by(is_downloaded=True)).scalar()
         # Note: We don't actually delete them, just for display purposes
         # If you want to actually delete downloaded records, uncomment below:
-        # Image.query.filter_by(is_downloaded=True).delete()
+        # db.session.execute(delete(Image).filter_by(is_downloaded=True))
         # db.session.commit()
         
         return jsonify({

@@ -1,12 +1,14 @@
 import smtplib, socket, traceback
 from email.message import EmailMessage
 from flask import flash, current_app, url_for, render_template
+from modules import db
 from modules.models import GlobalSettings
+from sqlalchemy import select
 from modules.utils_logging import log_system_event
 
 def get_smtp_settings():
     """Get SMTP settings from database."""
-    settings = GlobalSettings.query.first()
+    settings = db.session.execute(select(GlobalSettings)).scalars().first()
     
     if settings and settings.smtp_enabled:
         return {

@@ -4,9 +4,10 @@ from datetime import datetime, timezone
 from typing import Tuple
 from modules.utils_filename import sanitize_filename
 from modules.models import DownloadRequest, GlobalSettings, db
+from sqlalchemy import select
 
 def zip_game(download_request_id, app, zip_file_path):
-    settings = GlobalSettings.query.first()
+    settings = db.session.execute(select(GlobalSettings)).scalars().first()
     with app.app_context():
         download_request = db.session.get(DownloadRequest, download_request_id)
         game = download_request.game

@@ -3,6 +3,8 @@ from flask import render_template, jsonify, abort
 from flask_login import login_required
 from modules.forms import CsrfForm
 from modules.models import GameUpdate, GameExtra
+from modules import db
+from sqlalchemy import select
 from modules.utils_functions import format_size
 from modules.utils_game_core import get_game_by_uuid
 
@@ -24,8 +26,8 @@ def game_details(game_uuid):
 
     if game:
         # Explicitly load updates and extras
-        updates = GameUpdate.query.filter_by(game_uuid=game.uuid).all()
-        extras = GameExtra.query.filter_by(game_uuid=game.uuid).all()
+        updates = db.session.execute(select(GameUpdate).filter_by(game_uuid=game.uuid)).scalars().all()
+        extras = db.session.execute(select(GameExtra).filter_by(game_uuid=game.uuid)).scalars().all()
         print(f"Found {len(updates)} updates and {len(extras)} extras for game {game.name}")
         
         game_data = {

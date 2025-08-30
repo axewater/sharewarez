@@ -1,6 +1,6 @@
 # modules/models.py
 from modules import db
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, select
 from sqlalchemy.dialects.sqlite import TEXT as SQLite_TEXT, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import TypeDecorator, TEXT
@@ -413,25 +413,25 @@ class Newsletter(db.Model):
     sender = db.relationship('User', backref='sent_newsletters')
 
 def genre_choices():
-    return Genre.query.all()
+    return db.session.execute(select(Genre)).scalars().all()
 
 def game_mode_choices():
-    return GameMode.query.all()
+    return db.session.execute(select(GameMode)).scalars().all()
 
 def theme_choices():
-    return Theme.query.all()
+    return db.session.execute(select(Theme)).scalars().all()
 
 def platform_choices():
-    return Platform.query.all()
+    return db.session.execute(select(Platform)).scalars().all()
 
 def player_perspective_choices():
-    return PlayerPerspective.query.all()
+    return db.session.execute(select(PlayerPerspective)).scalars().all()
 
 def developer_choices():
-    return Developer.query.all()
+    return db.session.execute(select(Developer)).scalars().all()
 
 def publisher_choices():
-    return Publisher.query.all()
+    return db.session.execute(select(Publisher)).scalars().all()
 
 
 

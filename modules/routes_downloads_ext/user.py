@@ -1,8 +1,9 @@
 import os
-from flask import render_template, redirect, url_for, flash, jsonify, current_app
+from flask import render_template, redirect, url_for, flash, jsonify, current_app, abort
 from flask_login import login_required, current_user
 from modules.forms import CsrfProtectForm
 from modules.models import DownloadRequest
+from sqlalchemy import select
 from modules.utils_functions import format_size
 from . import download_bp
 from modules import db
@@ -12,7 +13,7 @@ from modules import db
 def downloads():
     user_id = current_user.id
     print(f"Route: /downloads user_id: {user_id}")
-    download_requests = DownloadRequest.query.filter_by(user_id=user_id).all()
+    download_requests = db.session.execute(select(DownloadRequest).filter_by(user_id=user_id)).scalars().all()
     for download_request in download_requests:
         download_request.formatted_size = format_size(download_request.download_size)
     form = CsrfProtectForm()
@@ -21,7 +22,7 @@ def downloads():
 @download_bp.route('/delete_download/<int:download_id>', methods=['POST'])
 @login_required
 def delete_download(download_id):
-    download_request = DownloadRequest.query.filter_by(id=download_id, user_id=current_user.id).first_or_404()
+    download_request = db.session.execute(select(DownloadRequest).filter_by(id=download_id, user_id=current_user.id)).scalars().first() or abort(404)
     zip_save_path = current_app.config['ZIP_SAVE_PATH']
     # Allow deletion regardless of status
     if download_request.zip_file_path and os.path.exists(download_request.zip_file_path):
@@ -52,7 +53,7 @@ def delete_download(download_id):
 @download_bp.route('/check_download_status/<download_id>')
 @login_required
 def check_download_status(download_id):
-    download_request = DownloadRequest.query.filter_by(id=download_id, user_id=current_user.id).first()
+    download_request = db.session.execute(select(DownloadRequest).filter_by(id=download_id, user_id=current_user.id)).scalars().first()
     
     if download_request:
         return jsonify({

@@ -3,7 +3,7 @@ from functools import wraps
 from flask import request, redirect, url_for, flash
 from urllib.parse import urlparse as url_parse
 from flask_login import current_user, login_user
-from sqlalchemy import func
+from sqlalchemy import func, select
 from modules.models import User, db
 from modules import login_manager
 
@@ -12,7 +12,7 @@ def load_user(user_id):
     return db.session.get(User, int(user_id))
 
 def _authenticate_and_redirect(username, password):
-    user = User.query.filter(func.lower(User.name) == func.lower(username)).first()
+    user = db.session.execute(select(User).filter(func.lower(User.name) == func.lower(username))).scalars().first()
     
     if user and user.check_password(password):
         # If the password is correct and is using bcrypt, rehash it with Argon2

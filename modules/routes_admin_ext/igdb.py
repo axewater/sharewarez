@@ -3,6 +3,7 @@ from flask import render_template, request, jsonify
 from flask_login import login_required
 from modules.models import GlobalSettings
 from modules import db
+from sqlalchemy import select
 from datetime import datetime, timezone
 from . import admin2_bp
 from modules.utils_igdb_api import make_igdb_api_request
@@ -12,7 +13,7 @@ from modules.utils_auth import admin_required
 @login_required
 @admin_required
 def igdb_settings():
-    settings = GlobalSettings.query.first()
+    settings = db.session.execute(select(GlobalSettings)).scalars().first()
     if request.method == 'POST':
         data = request.json
         if not settings:
@@ -36,7 +37,7 @@ def igdb_settings():
 @admin_required
 def test_igdb():
     print("Testing IGDB connection...")
-    settings = GlobalSettings.query.first()
+    settings = db.session.execute(select(GlobalSettings)).scalars().first()
     if not settings or not settings.igdb_client_id or not settings.igdb_client_secret:
         return jsonify({'status': 'error', 'message': 'IGDB settings not configured'}), 400
 

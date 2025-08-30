@@ -1,8 +1,9 @@
-from flask import render_template, request, redirect, url_for, flash, current_app
+from flask import render_template, request, redirect, url_for, flash, current_app, abort
 from flask_login import login_required
 from modules.utils_auth import admin_required
 from modules.models import Library, LibraryPlatform
 from modules import db
+from sqlalchemy import select
 from modules.forms import LibraryForm
 from modules.utils_logging import log_system_event
 from PIL import Image as PILImage
@@ -17,7 +18,7 @@ from . import admin2_bp
 @admin_required
 def add_edit_library(library_uuid=None):
     if library_uuid:
-        library = Library.query.filter_by(uuid=library_uuid).first_or_404()
+        library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalars().first() or abort(404)
         form = LibraryForm(obj=library)
         page_title = "Edit Library"
         print(f"Editing library: {library.name}, Platform: {library.platform.name}")

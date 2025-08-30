@@ -4,7 +4,7 @@ from flask_login import login_required, current_user
 from modules import db
 from modules.models import Image, Game, Library
 from modules.utils_logging import log_system_event
-from sqlalchemy import func
+from sqlalchemy import func, select
 from . import apis_bp
 
 @apis_bp.route('/search')
@@ -19,14 +19,14 @@ def search():
         
         # Use parameterized query to prevent SQL injection
         search_term = f'%{query}%'
-        games = Game.query.filter(Game.name.ilike(search_term)).all()
+        games = db.session.execute(select(Game).filter(Game.name.ilike(search_term))).scalars().all()
         results = [{'id': game.id, 'uuid': game.uuid, 'name': game.name} for game in games]
     return jsonify(results)
 
 @apis_bp.route('/game_screenshots/<game_uuid>')
 @login_required
 def game_screenshots(game_uuid):
-    screenshots = Image.query.filter_by(game_uuid=game_uuid, image_type='screenshot').all()
+    screenshots = db.session.execute(select(Image).filter_by(game_uuid=game_uuid, image_type='screenshot')).scalars().all()
     screenshot_urls = [url_for('static', filename=f'library/images/{screenshot.url}') for screenshot in screenshots]
     return jsonify(screenshot_urls)
 
@@ -44,8 +44,8 @@ def move_game_to_library():
                 'message': 'Missing required parameters'
             }), 400
             
-        game = Game.query.filter_by(uuid=game_uuid).first()
-        target_library = Library.query.filter_by(uuid=target_library_uuid).first()
+        game = db.session.execute(select(Game).filter_by(uuid=game_uuid)).scalars().first()
+        target_library = db.session.execute(select(Library).filter_by(uuid=target_library_uuid)).scalars().first()
         
         if not game or not target_library:
             return jsonify({
