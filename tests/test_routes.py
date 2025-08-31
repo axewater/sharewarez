@@ -17,43 +17,6 @@ from modules.models import (
 from modules.platform import LibraryPlatform
 
 
-@pytest.fixture(scope='function')
-def app():
-    """Create and configure a test app using the actual database."""
-    app = create_app()
-    app.config['TESTING'] = True
-    app.config['SECRET_KEY'] = 'test-secret-key'
-    app.config['WTF_CSRF_ENABLED'] = False  # Disable CSRF for testing
-    app.config['IMAGE_SAVE_PATH'] = '/tmp/test_images'
-    app.config['BASE_FOLDER_WINDOWS'] = 'C:\\Games'
-    app.config['BASE_FOLDER_POSIX'] = '/home/games'
-    
-    yield app
-
-
-@pytest.fixture(scope='function')  
-def db_session(app):
-    """Create a database session for testing with transaction rollback."""
-    with app.app_context():
-        # Start a transaction that will be rolled back after each test
-        connection = db.engine.connect()
-        transaction = connection.begin()
-        
-        # Bind the session to this transaction
-        db.session.configure(bind=connection)
-        
-        yield db.session
-        
-        # Rollback the transaction to clean up
-        transaction.rollback()
-        connection.close()
-        db.session.remove()
-
-
-@pytest.fixture
-def client(app):
-    """Create a test client for the Flask application."""
-    return app.test_client()
 
 
 @pytest.fixture

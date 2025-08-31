@@ -51,44 +51,6 @@ def safe_cleanup_database(db_session):
     db_session.commit()
 
 
-@pytest.fixture(scope='function')
-def app():
-    """Create and configure a test app using the actual database."""
-    app = create_app()
-    app.config['TESTING'] = True
-    app.config['SECRET_KEY'] = 'test-secret-key'
-    app.config['IMAGE_SAVE_PATH'] = '/tmp/test_images'
-    app.config['IGDB_API_ENDPOINT'] = 'https://api.igdb.com/v4/games'
-    
-    # Create test directory if it doesn't exist
-    os.makedirs(app.config['IMAGE_SAVE_PATH'], exist_ok=True)
-    
-    yield app
-    
-    # Cleanup test directory
-    import shutil
-    if os.path.exists(app.config['IMAGE_SAVE_PATH']):
-        shutil.rmtree(app.config['IMAGE_SAVE_PATH'])
-
-
-@pytest.fixture(scope='function')  
-def db_session(app):
-    """Create a database session for testing with transaction rollback."""
-    with app.app_context():
-        # Start a transaction that will be rolled back after each test
-        connection = db.engine.connect()
-        transaction = connection.begin()
-        
-        # Bind the session to this transaction
-        db.session.configure(bind=connection)
-        
-        yield db.session
-        
-        # Rollback the transaction to clean up
-        transaction.rollback()
-        connection.close()
-        db.session.remove()
-
 
 @pytest.fixture
 def sample_platform(db_session):

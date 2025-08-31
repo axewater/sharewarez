@@ -14,30 +14,6 @@ from modules.utilities import scan_and_add_games, handle_auto_scan, handle_manua
 from sqlalchemy import select
 
 
-@pytest.fixture(scope='function')
-def app():
-    """Create and configure a test app."""
-    app = create_app()
-    app.config['TESTING'] = True
-    app.config['SECRET_KEY'] = 'test-secret-key'
-    app.config['BASE_FOLDER_WINDOWS'] = 'C:\\Games'
-    app.config['BASE_FOLDER_POSIX'] = '/var/games'
-    yield app
-
-
-@pytest.fixture(scope='function')  
-def db_session(app):
-    """Create a database session with rollback."""
-    with app.app_context():
-        connection = db.engine.connect()
-        transaction = connection.begin()
-        db.session.configure(bind=connection)
-        
-        yield db.session
-        
-        transaction.rollback()
-        connection.close()
-        db.session.remove()
 
 
 class TestScanAndAddGamesCore:
