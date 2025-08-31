@@ -15,11 +15,6 @@ def _authenticate_and_redirect(username, password):
     user = db.session.execute(select(User).filter(func.lower(User.name) == func.lower(username))).scalars().first()
     
     if user and user.check_password(password):
-        # If the password is correct and is using bcrypt, rehash it with Argon2
-        if not user.password_hash.startswith('$argon2'):
-            user.rehash_password(password)
-            db.session.commit()
-
         user.lastlogin = datetime.now(timezone.utc)
         db.session.commit()
         login_user(user, remember=True)

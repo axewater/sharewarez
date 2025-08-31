@@ -168,45 +168,6 @@ class TestUserModel:
         assert user.check_password('password123') is True
         assert user.check_password('wrongpassword') is False
     
-    def test_user_password_bcrypt_fallback(self, db_session):
-        """Test password checking with bcrypt fallback."""
-        from werkzeug.security import generate_password_hash
-        
-        user = User(
-            name=f'testuser_{uuid4().hex[:8]}',
-            email=f'test_{uuid4().hex[:8]}@example.com',
-            role='user', 
-            user_id=str(uuid4())
-        )
-        # Simulate old bcrypt hash - use pbkdf2 method to avoid scrypt length issues
-        user.password_hash = generate_password_hash('password123', method='pbkdf2')
-        
-        db_session.add(user)
-        db_session.flush()
-        
-        # Should work with bcrypt fallback
-        assert user.check_password('password123') is True
-        assert user.check_password('wrongpassword') is False
-    
-    def test_user_rehash_password(self, db_session):
-        """Test password rehashing from bcrypt to Argon2."""
-        from werkzeug.security import generate_password_hash
-        
-        user = User(
-            name=f'testuser_{uuid4().hex[:8]}',
-            email=f'test_{uuid4().hex[:8]}@example.com',
-            role='user',
-            user_id=str(uuid4())
-        )
-        # Set old bcrypt hash
-        user.password_hash = generate_password_hash('password123')
-        original_hash = user.password_hash
-        
-        # Rehash should update to Argon2
-        user.rehash_password('password123')
-        assert user.password_hash != original_hash
-        assert user.password_hash.startswith('$argon2')
-    
     def test_user_flask_login_properties(self, db_session):
         """Test Flask-Login required properties."""
         user = User(
