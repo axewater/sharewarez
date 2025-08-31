@@ -521,6 +521,9 @@ class TestSetupWorkflow:
         # Ensure no users exist for this test
         # Clean up database safely respecting foreign key constraints
         safe_cleanup_users_and_related(db_session)
+        # Also clean up GlobalSettings to ensure test isolation
+        db_session.execute(delete(GlobalSettings))
+        db_session.commit()
         """Test the complete setup process from start to finish."""
         # Step 1: GET /setup
         response = client.get('/setup')
@@ -567,10 +570,11 @@ class TestSetupWorkflow:
             with patch('modules.init_data.initialize_library_folders'), \
                  patch('modules.init_data.initialize_discovery_sections'), \
                  patch('modules.init_data.insert_default_filters'), \
-                 patch('modules.init_data.initialize_default_settings'), \
                  patch('modules.init_data.initialize_allowed_file_types'), \
+                 patch('modules.init_data.initialize_default_settings'), \
                  patch('modules.routes_setup.log_system_event'):
-                
+                 
+                # Mock initialize_default_settings to prevent interference with test data
                 response = client.post('/setup/igdb', data={})
                 assert response.status_code == 302
                 assert '/libraries' in response.location

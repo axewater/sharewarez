@@ -32,6 +32,27 @@ def initialize_default_settings():
         except Exception as e:
             print(f"Error creating default settings: {e}")
             db.session.rollback()
+    else:
+        # Settings exist, update only if settings field is empty
+        if not settings_record.settings:
+            try:
+                default_settings = {
+                    'showSystemLogo': True,
+                    'showHelpButton': True,
+                    'allowUsersToInviteOthers': True,
+                    'enableWebLinksOnDetailsPage': True,
+                    'enableServerStatusFeature': True,
+                    'enableNewsletterFeature': True,
+                    'showVersion': True
+                }
+                settings_record.settings = default_settings
+                db.session.commit()
+                print("Updated existing global settings with default values")
+            except Exception as e:
+                print(f"Error updating default settings: {e}")
+                db.session.rollback()
+        else:
+            print("Global settings already exist with values, preserving them")
 
 def initialize_library_folders():
     """Initialize the required folders and theme files for the application."""
