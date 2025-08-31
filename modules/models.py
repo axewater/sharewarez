@@ -5,7 +5,6 @@ from sqlalchemy.dialects.sqlite import TEXT as SQLite_TEXT, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import TypeDecorator, TEXT
 from sqlalchemy.types import Enum as SQLEnum
-from werkzeug.security import generate_password_hash, check_password_hash
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from datetime import datetime
@@ -278,20 +277,12 @@ class User(db.Model):
         self.password_hash = ph.hash(password)
 
     def check_password(self, password):
-        # Checking if the password hash starts with Argon2's identifier
-        if self.password_hash.startswith('$argon2'):
-            try:
-                return ph.verify(self.password_hash, password)
-            except VerifyMismatchError:
-                return False
-        else:
-            # Fallback to the old bcrypt checking
-            return check_password_hash(self.password_hash, password)
+        # Only use Argon2 for password verification
+        try:
+            return ph.verify(self.password_hash, password)
+        except VerifyMismatchError:
+            return False
         
-    def rehash_password(self, password):
-        # Only rehash if the current hash is not using Argon2
-        if not self.password_hash.startswith('$argon2'):
-            self.password_hash = ph.hash(password)
 
     @property
     def is_authenticated(self):
