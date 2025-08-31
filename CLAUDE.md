@@ -94,4 +94,4 @@ source venv/bin/activate
 - Status tracking for scan jobs
 
 
-IMPORTANT: When creating unit tests, we always work against the actual Postgresql DB, we DO NOT work with any fake sqlite (in memory) db's
+IMPORTANT: When creating unit tests, we always work against the actual Postgresql TEST DB, we DO NOT work with any fake sqlite (in memory) db's. The URI to the DB is in the .env and config.py. variable name is TEST_DATABASE_URL

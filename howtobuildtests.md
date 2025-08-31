@@ -4,14 +4,49 @@ This guide provides comprehensive instructions for writing unit tests in the Sha
 
 ## Table of Contents
 
-1. [Testing Philosophy](#testing-philosophy)
-2. [Project Structure](#project-structure)
-3. [Database Testing Patterns](#database-testing-patterns)
-4. [Fixtures and Test Data](#fixtures-and-test-data)
-5. [Mocking and Patching](#mocking-and-patching)
-6. [Common Patterns](#common-patterns)
-7. [Best Practices](#best-practices)
-8. [Troubleshooting](#troubleshooting)
+1. [Database Configuration](#database-configuration)
+2. [Testing Philosophy](#testing-philosophy)
+3. [Project Structure](#project-structure)
+4. [Database Testing Patterns](#database-testing-patterns)
+5. [Fixtures and Test Data](#fixtures-and-test-data)
+6. [Mocking and Patching](#mocking-and-patching)
+7. [Common Patterns](#common-patterns)
+8. [Best Practices](#best-practices)
+9. [Troubleshooting](#troubleshooting)
+
+## Database Configuration
+
+**CRITICAL**: All tests use the PostgreSQL test database, NOT the production database.
+
+### Test Database Setup
+
+1. **Environment Variables**: The test database is configured via `TEST_DATABASE_URL` in your `.env` file:
+   ```
+   TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/sharewareztest
+   ```
+
+2. **Database Creation**: Ensure the test database exists:
+   ```bash
+   psql -U postgres -c "CREATE DATABASE sharewareztest;"
+   ```
+
+3. **Automatic Configuration**: 
+   - Tests automatically load the `.env` file via `conftest.py`
+   - The test database URL is enforced in fixtures to prevent accidental production DB usage
+   - Safety checks ensure you're never testing against the production database
+
+### Running Tests
+
+**Always activate the virtual environment first:**
+```bash
+source venv/bin/activate
+python -m pytest tests/
+```
+
+**Important**: Tests will FAIL if:
+- `TEST_DATABASE_URL` is not set in `.env`
+- The test database doesn't exist
+- The TEST_DATABASE_URL points to the production database (safety check)
 
 ## Testing Philosophy
 
