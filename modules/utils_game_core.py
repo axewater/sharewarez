@@ -908,14 +908,14 @@ def find_missing_images_for_library(library_uuid=None, app=None):
         with app.app_context():
             # Build query based on library filter
             if library_uuid:
-                images_query = db.session.query(Image).join(Game).filter(Game.library_uuid == library_uuid)
+                images_query = select(Image).join(Game).filter(Game.library_uuid == library_uuid)
                 print(f"🔍 Checking for missing images in library {library_uuid}")
             else:
-                images_query = db.session.query(Image)
+                images_query = select(Image)
                 print(f"🔍 Checking for missing images across all libraries")
             
             # Get all images with download URLs
-            all_images = images_query.filter(Image.download_url.isnot(None)).all()
+            all_images = db.session.execute(images_query.filter(Image.download_url.isnot(None))).scalars().all()
             
             if not all_images:
                 print("No images with download URLs found in database.")

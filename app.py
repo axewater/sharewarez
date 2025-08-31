@@ -4,6 +4,7 @@ import argparse
 import os
 from modules.updateschema import DatabaseManager
 from modules.models import User
+from sqlalchemy import select
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -28,7 +29,7 @@ def setup_database(app, force_setup=False):
             print("Database reset complete.")
             
             # Get all users and delete them individually to handle cascade deletion
-            users = User.query.all()
+            users = db.session.execute(select(User)).scalars().all()
             for user in users:
                 db.session.delete(user)
             db.session.commit()

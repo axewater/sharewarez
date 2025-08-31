@@ -439,7 +439,7 @@ def delete_scan_job(job_id):
 @admin_required
 def clear_all_scan_jobs():
     session['active_tab'] = 'auto'
-    db.session.query(ScanJob).delete()
+    db.session.execute(delete(ScanJob))
     db.session.commit()
     flash('All scan jobs cleared successfully.', 'success')
     return redirect(url_for('main.scan_management'))
