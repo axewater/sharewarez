@@ -451,7 +451,52 @@ def get_or_create_platform(db_session, name):
     return platform
 ```
 
-### 6. Test Both Positive and Negative Cases
+### 6. Handle Existing GlobalSettings
+
+**IMPORTANT**: The GlobalSettings table is automatically populated during database initialization, which means your tests will often find existing GlobalSettings records rather than starting with an empty table.
+
+**Problem**: Tests that create new GlobalSettings records may fail because the `get_smtp_settings()` function (and similar) returns the first record from the database, not necessarily the one your test created.
+
+**Solution**: Update existing GlobalSettings instead of creating new ones:
+
+```python
+@pytest.fixture
+def valid_smtp_settings():
+    """Create or update GlobalSettings record with valid SMTP configuration."""
+    def _create_settings(db_session, enabled=True):
+        from sqlalchemy import select
+        # Get existing settings or create new one
+        settings = db_session.execute(select(GlobalSettings)).scalars().first()
+        if not settings:
+            settings = GlobalSettings()
+            db_session.add(settings)
+        
+        # Update with test values
+        settings.smtp_enabled = enabled
+        settings.smtp_server = 'smtp.example.com'
+        settings.smtp_port = 587
+        settings.smtp_username = 'testuser@example.com'
+        settings.smtp_password = 'testpass123'
+        settings.smtp_use_tls = True
+        settings.smtp_default_sender = 'noreply@example.com'
+        
+        db_session.commit()  # Use commit here since GlobalSettings is singleton-like
+        return settings
+    return _create_settings
+```
+
+**Why this happens**: 
+- The application automatically creates GlobalSettings during startup/initialization
+- Functions like `get_smtp_settings()` use `.first()` to get the primary settings record
+- Creating additional GlobalSettings records doesn't affect which one gets returned
+
+**Best practices for GlobalSettings testing**:
+- Always check for existing records first with `select(GlobalSettings).scalars().first()`
+- Update the existing record rather than creating new ones
+- Use `db_session.commit()` for GlobalSettings changes since it's designed as a singleton
+- Test both enabled and disabled states by toggling the same record
+
+### 7. Test Both Positive and Negative Cases
 
 ```python
 def test_valid_input_succeeds(self):
@@ -476,6 +521,31 @@ def test_invalid_input_fails(self):
 **Solution**: Use "get or create" helper functions:
 ```python
 developer = get_or_create_developer(db_session, 'Test Developer')
+```
+
+#### 1a. GlobalSettings Already Exists
+
+**Problem**: Test failures when creating GlobalSettings fixtures due to existing records from database initialization
+
+**Symptoms**:
+- Functions like `get_smtp_settings()` return `None` when you expect configured settings
+- Tests fail with assertion errors about expected vs actual values
+- Creating new GlobalSettings records doesn't affect what the application functions return
+
+**Solution**: Update existing GlobalSettings instead of creating new ones:
+```python
+# Instead of this:
+settings = GlobalSettings(smtp_enabled=True, smtp_server='test.com')
+db_session.add(settings)
+
+# Do this:
+settings = db_session.execute(select(GlobalSettings)).scalars().first()
+if not settings:
+    settings = GlobalSettings()
+    db_session.add(settings)
+settings.smtp_enabled = True
+settings.smtp_server = 'test.com'
+db_session.commit()  # Use commit for GlobalSettings
 ```
 
 #### 2. Foreign Key Constraint Violations
