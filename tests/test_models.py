@@ -55,6 +55,18 @@ def get_or_create_genre(db_session, name):
     return genre
 
 
+def get_or_create_developer(db_session, name):
+    """Get existing developer or create new one with unique name."""
+    existing = db_session.query(Developer).filter_by(name=name).first()
+    if existing:
+        return existing
+    
+    developer = Developer(name=name)
+    db_session.add(developer)
+    db_session.flush()
+    return developer
+
+
 
 
 class TestJSONEncodedDict:
@@ -367,7 +379,7 @@ class TestGameRelationships:
         db_session.add(library)
         db_session.flush()
         
-        developer = Developer(name='Test Developer')
+        developer = get_or_create_developer(db_session, 'Test Developer')
         game = Game(
             name='Test Game',
             library_uuid=library.uuid,
@@ -375,7 +387,7 @@ class TestGameRelationships:
             full_disk_path='/path/to/game'
         )
         
-        db_session.add_all([developer, game])
+        db_session.add(game)
         db_session.flush()
         
         assert game.developer == developer
