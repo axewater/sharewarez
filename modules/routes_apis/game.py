@@ -71,7 +71,9 @@ def get_next_custom_igdb_id():
     try:
         # Find the highest custom IGDB ID currently in use
         base_custom_id = 2000000420
-        highest_custom_id = db.session.query(func.max(Game.igdb_id)).filter(Game.igdb_id >= base_custom_id).scalar()
+        highest_custom_id = db.session.execute(
+            select(func.max(Game.igdb_id)).filter(Game.igdb_id >= base_custom_id)
+        ).scalar()
         
         # If no custom IDs exist yet, return the base value, otherwise return the next available ID
         next_id = base_custom_id if highest_custom_id is None else highest_custom_id + 1

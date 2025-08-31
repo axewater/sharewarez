@@ -75,7 +75,12 @@ def discover():
         elif section.identifier == 'last_updated':
             section_data['last_updated'] = fetch_game_details(db.session.execute(select(Game).filter(Game.last_updated != None).order_by(Game.last_updated.desc())).scalars())
         elif section.identifier == 'most_favorited':
-            most_favorited = db.session.query(Game, func.count(user_favorites.c.user_id).label('favorite_count')).join(user_favorites).group_by(Game).order_by(func.count(user_favorites.c.user_id).desc())
+            most_favorited = db.session.execute(
+                select(Game, func.count(user_favorites.c.user_id).label('favorite_count'))
+                .join(user_favorites)
+                .group_by(Game)
+                .order_by(func.count(user_favorites.c.user_id).desc())
+            ).all()
             section_data['most_favorited'] = fetch_game_details([game[0] for game in most_favorited])
 
     return render_template('games/discover.html',

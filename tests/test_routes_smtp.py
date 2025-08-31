@@ -6,7 +6,7 @@ from uuid import uuid4
 from modules import create_app, db
 from modules.models import User, GlobalSettings
 from modules.utils_smtp_test import SMTPTester
-from sqlalchemy import select
+from sqlalchemy import select, delete
 
 
 @pytest.fixture(scope='function')
@@ -143,7 +143,7 @@ class TestSmtpSettings:
     def test_get_success_no_settings(self, mock_render, client, admin_user, db_session):
         """Test GET request with no existing settings."""
         # Delete any existing settings first
-        db_session.query(GlobalSettings).delete()
+        db_session.execute(delete(GlobalSettings))
         db_session.commit()
         
         mock_render.return_value = 'rendered template'
@@ -165,7 +165,7 @@ class TestSmtpSettings:
     def test_get_success_with_settings(self, mock_render, client, admin_user, db_session):
         """Test GET request with existing settings."""
         # Delete any default settings first, then use our test settings
-        db_session.query(GlobalSettings).delete()
+        db_session.execute(delete(GlobalSettings))
         db_session.commit()
         test_settings = create_test_settings(db_session)
         
@@ -202,7 +202,7 @@ class TestSmtpSettings:
     def test_post_create_new_settings_smtp_disabled(self, client, admin_user, db_session):
         """Test POST request creating new settings with SMTP disabled."""
         # Delete any existing settings first
-        db_session.query(GlobalSettings).delete()
+        db_session.execute(delete(GlobalSettings))
         db_session.commit()
         
         with client.session_transaction() as sess:
@@ -240,7 +240,7 @@ class TestSmtpSettings:
     def test_post_create_new_settings_smtp_enabled_valid(self, client, admin_user, db_session):
         """Test POST request creating new settings with SMTP enabled and valid data."""
         # Delete any existing settings first
-        db_session.query(GlobalSettings).delete()
+        db_session.execute(delete(GlobalSettings))
         db_session.commit()
         
         with client.session_transaction() as sess:
@@ -278,7 +278,7 @@ class TestSmtpSettings:
     def test_post_update_existing_settings(self, client, admin_user, db_session):
         """Test POST request updating existing settings."""
         # Delete any default settings and use only our test settings
-        db_session.query(GlobalSettings).delete()
+        db_session.execute(delete(GlobalSettings))
         db_session.commit()
         test_settings = create_test_settings(db_session)
         
@@ -522,7 +522,7 @@ class TestSmtpSettings:
     def test_post_defaults_smtp_enabled_false(self, client, admin_user, db_session):
         """Test POST request defaults smtp_enabled to False."""
         # Delete any existing settings first
-        db_session.query(GlobalSettings).delete()
+        db_session.execute(delete(GlobalSettings))
         db_session.commit()
         
         with client.session_transaction() as sess:
@@ -562,7 +562,7 @@ class TestSmtpTest:
     def test_post_no_settings(self, client, admin_user, db_session):
         """Test POST request with no SMTP settings configured."""
         # Delete any existing settings first
-        db_session.query(GlobalSettings).delete()
+        db_session.execute(delete(GlobalSettings))
         db_session.commit()
         
         with client.session_transaction() as sess:
@@ -580,7 +580,7 @@ class TestSmtpTest:
     def test_post_success(self, mock_smtp_tester_class, client, admin_user, db_session):
         """Test POST request with successful SMTP test."""
         # Delete any default settings and use only our test settings
-        db_session.query(GlobalSettings).delete()
+        db_session.execute(delete(GlobalSettings))
         db_session.commit()
         test_settings = create_test_settings(db_session)
         
@@ -615,7 +615,7 @@ class TestSmtpTest:
     def test_post_failure(self, mock_smtp_tester_class, client, admin_user, db_session):
         """Test POST request with failed SMTP test."""
         # Delete any default settings and use only our test settings
-        db_session.query(GlobalSettings).delete()
+        db_session.execute(delete(GlobalSettings))
         db_session.commit()
         test_settings = create_test_settings(db_session)
         
@@ -651,7 +651,7 @@ class TestSmtpTest:
     def test_post_debug_print(self, mock_print, mock_smtp_tester_class, client, admin_user, db_session):
         """Test POST request includes debug print statement."""
         # Delete any default settings and use only our test settings
-        db_session.query(GlobalSettings).delete()
+        db_session.execute(delete(GlobalSettings))
         db_session.commit()
         test_settings = create_test_settings(db_session)
         

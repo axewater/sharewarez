@@ -15,12 +15,9 @@ from . import download_bp
 def manage_downloads():
     print("Route: /admin/manage-downloads")    
     # Modified query to return full objects
-    download_requests = db.session.query(
-        DownloadRequest, 
-        User.name.label('username')
-    ).join(
-        User, 
-        DownloadRequest.user_id == User.id
+    download_requests = db.session.execute(
+        select(DownloadRequest, User.name.label('username'))
+        .join(User, DownloadRequest.user_id == User.id)
     ).all()
 
     zip_count, zip_size, total_size = get_zip_storage_stats()
