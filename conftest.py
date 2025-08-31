@@ -1,4 +1,5 @@
 import pytest
+import os
 from modules import create_app, db
 
 @pytest.fixture(scope='function')
