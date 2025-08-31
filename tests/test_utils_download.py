@@ -29,41 +29,6 @@ def safe_cleanup_database(db_session):
     db_session.commit()
 
 
-@pytest.fixture(scope='function')
-def app():
-    """Create and configure a test app using the actual database."""
-    app = create_app()
-    app.config['TESTING'] = True
-    app.config['SECRET_KEY'] = 'test-secret-key'
-    
-    # Create temporary directories for testing
-    temp_zip_dir = tempfile.mkdtemp()
-    app.config['ZIP_SAVE_PATH'] = temp_zip_dir
-    
-    yield app
-    
-    # Cleanup temporary directory
-    if os.path.exists(temp_zip_dir):
-        shutil.rmtree(temp_zip_dir)
-
-
-@pytest.fixture(scope='function')  
-def db_session(app):
-    """Create a database session for testing with transaction rollback."""
-    with app.app_context():
-        # Start a transaction that will be rolled back after each test
-        connection = db.engine.connect()
-        transaction = connection.begin()
-        
-        # Bind the session to this transaction
-        db.session.configure(bind=connection)
-        
-        yield db.session
-        
-        # Rollback the transaction to clean up
-        transaction.rollback()
-        connection.close()
-        db.session.remove()
 
 
 @pytest.fixture

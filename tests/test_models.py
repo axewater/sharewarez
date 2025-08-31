@@ -55,33 +55,6 @@ def get_or_create_genre(db_session, name):
     return genre
 
 
-@pytest.fixture(scope='function')
-def app():
-    """Create and configure a test app using the actual database."""
-    app = create_app()
-    app.config['TESTING'] = True
-    app.config['SECRET_KEY'] = 'test-secret-key'
-    
-    yield app
-
-
-@pytest.fixture(scope='function')  
-def db_session(app):
-    """Create a database session for testing with transaction rollback."""
-    with app.app_context():
-        # Start a transaction that will be rolled back after each test
-        connection = db.engine.connect()
-        transaction = connection.begin()
-        
-        # Bind the session to this transaction
-        db.session.configure(bind=connection)
-        
-        yield db.session
-        
-        # Rollback the transaction to clean up
-        transaction.rollback()
-        connection.close()
-        db.session.remove()
 
 
 class TestJSONEncodedDict:

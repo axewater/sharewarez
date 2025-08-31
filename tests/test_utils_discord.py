@@ -19,28 +19,6 @@ from modules.utils_discord import (
 from sqlalchemy import select, delete
 
 
-@pytest.fixture(scope='function')
-def app():
-    """Create and configure a test app."""
-    app = create_app()
-    app.config['TESTING'] = True
-    app.config['SECRET_KEY'] = 'test-secret-key'
-    yield app
-
-
-@pytest.fixture(scope='function')  
-def db_session(app):
-    """Create a database session with transaction rollback."""
-    with app.app_context():
-        connection = db.engine.connect()
-        transaction = connection.begin()
-        db.session.configure(bind=connection)
-        
-        yield db.session
-        
-        transaction.rollback()
-        connection.close()
-        db.session.remove()
 
 
 def create_test_library(db_session, name="Test Library"):
