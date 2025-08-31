@@ -19,6 +19,42 @@ from modules.models import (
 from modules.platform import LibraryPlatform
 
 
+def safe_cleanup_database(db_session):
+    """Safely clean up database records respecting foreign key constraints."""
+    from sqlalchemy import delete
+    
+    # Delete in proper order to respect foreign key constraints
+    # SystemEvents must be deleted before Users
+    db_session.execute(delete(SystemEvents))
+    db_session.execute(delete(InviteToken)) 
+    db_session.execute(delete(User))
+    db_session.commit()
+
+
+def get_or_create_platform(db_session, name):
+    """Get existing platform or create new one with unique name."""
+    existing = db_session.query(Platform).filter_by(name=name).first()
+    if existing:
+        return existing
+    
+    platform = Platform(name=name)
+    db_session.add(platform)
+    db_session.flush()
+    return platform
+
+
+def get_or_create_genre(db_session, name):
+    """Get existing genre or create new one with unique name.""" 
+    existing = db_session.query(Genre).filter_by(name=name).first()
+    if existing:
+        return existing
+    
+    genre = Genre(name=name)
+    db_session.add(genre)
+    db_session.flush()
+    return genre
+
+
 @pytest.fixture(scope='function')
 def app():
     """Create and configure a test app using the actual database."""
@@ -373,15 +409,10 @@ class TestGameRelationships:
             full_disk_path='/path/to/game'
         )
         # Use get_or_create pattern to avoid unique constraint violations
-        genre1 = db.session.execute(select(Genre).filter_by(name='Action')).scalar_one_or_none()
-        if not genre1:
-            genre1 = Genre(name='Action')
-            db_session.add(genre1)
-        
-        genre2 = db.session.execute(select(Genre).filter_by(name='Adventure')).scalar_one_or_none()
-        if not genre2:
-            genre2 = Genre(name='Adventure')
-            db_session.add(genre2)
+        # Use helper function to avoid unique constraint violations
+        test_id = str(uuid4())[:8]
+        genre1 = get_or_create_genre(db_session, f'Action_{test_id}')
+        genre2 = get_or_create_genre(db_session, f'Adventure_{test_id}')
         
         db_session.flush()  # Ensure genres are committed before adding to game
         
@@ -668,34 +699,31 @@ class TestModelChoiceFunctions:
         from modules.models import genre_choices
         
         # Use get_or_create pattern to avoid unique constraint violations
-        genre1 = db.session.execute(select(Genre).filter_by(name='Action')).scalar_one_or_none()
-        if not genre1:
-            genre1 = Genre(name='Action')
-            db_session.add(genre1)
-        
-        genre2 = db.session.execute(select(Genre).filter_by(name='Adventure')).scalar_one_or_none()
-        if not genre2:
-            genre2 = Genre(name='Adventure')
-            db_session.add(genre2)
+        # Use helper function to avoid unique constraint violations
+        test_id = str(uuid4())[:8]
+        genre1 = get_or_create_genre(db_session, f'Action_{test_id}')
+        genre2 = get_or_create_genre(db_session, f'Adventure_{test_id}')
         
         db_session.flush()
         
         choices = genre_choices()
         assert len(choices) >= 2  # At least our test genres should be there
         genre_names = [genre.name for genre in choices]
-        assert 'Action' in genre_names
-        assert 'Adventure' in genre_names
+        assert genre1.name in genre_names
+        assert genre2.name in genre_names
     
     def test_platform_choices(self, db_session):
         """Test platform_choices function."""
         from modules.models import platform_choices
         
-        platform1 = Platform(name='PC')
-        platform2 = Platform(name='PlayStation')
-        db_session.add_all([platform1, platform2])
-        db_session.flush()
+        # Use helper functions to avoid unique constraint violations
+        test_id = str(uuid4())[:8]
+        platform1 = get_or_create_platform(db_session, f'PC_{test_id}')
+        platform2 = get_or_create_platform(db_session, f'PlayStation_{test_id}')
         
         choices = platform_choices()
-        assert len(choices) == 2
-        assert platform1 in choices
-        assert platform2 in choices
+        # Verify our platforms are in the choices (there may be others from previous tests)
+        platform_names = [p.name for p in choices]
+        assert platform1.name in platform_names
+        assert platform2.name in platform_names
+        assert len(choices) >= 2
