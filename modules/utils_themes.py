@@ -84,8 +84,28 @@ class ThemeManager:
                 raise ValueError(f"Theme '{theme_name}' already exists")
 
             shutil.move(temp_dir, theme_path)
-
+            flash(f'Theme "{theme_data["name"]}" uploaded successfully.', 'success')
             return theme_data
+        except (zipfile.BadZipFile, zipfile.LargeZipFile) as e:
+            flash(f'Error: Invalid zip file - {str(e)}', 'error')
+            print(f"Zip file error during theme upload: {str(e)}")
+            return None
+        except json.JSONDecodeError as e:
+            flash('Error: Invalid theme.json file - not valid JSON.', 'error')
+            print(f"JSON decode error in theme upload: {str(e)}")
+            return None
+        except ValueError as e:
+            flash(f'Error: {str(e)}', 'error')
+            print(f"Validation error during theme upload: {str(e)}")
+            return None
+        except (OSError, IOError) as e:
+            flash(f'Error: File system error - {str(e)}', 'error')
+            print(f"File system error during theme upload: {str(e)}")
+            return None
+        except Exception as e:
+            flash(f'Error: Unexpected error during theme upload - {str(e)}', 'error')
+            print(f"Unexpected error during theme upload: {str(e)}")
+            return None
         finally:
             if os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
