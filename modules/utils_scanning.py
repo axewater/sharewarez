@@ -316,5 +316,5 @@ def is_scan_job_running():
     Returns:
         bool: True if there is a running scan job, False otherwise.
     """
-    running_scan_job = db.session.execute(select(ScanJob).filter_by(status='Running')).scalar_one_or_none()
+    running_scan_job = db.session.execute(select(ScanJob).filter_by(status='Running')).first()
     return running_scan_job is not None
