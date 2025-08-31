@@ -309,8 +309,8 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
 def handle_auto_scan(auto_form):
     print("handle_auto_scan: function running.")
     print(f"Auto-scan form data: {auto_form.data}")
+    library_uuid = auto_form.library_uuid.data
     if auto_form.validate_on_submit():
-        library_uuid = auto_form.library_uuid.data
         remove_missing = auto_form.remove_missing.data
         download_missing_images = auto_form.download_missing_images.data
         
@@ -358,6 +358,7 @@ def handle_auto_scan(auto_form):
 
 def handle_manual_scan(manual_form):
     session['active_tab'] = 'manual'
+    library_uuid = manual_form.library_uuid.data
     if manual_form.validate_on_submit():
         # check job status
         running_job = db.session.execute(select(ScanJob).filter_by(status='Running')).scalars().first()
@@ -368,7 +369,6 @@ def handle_manual_scan(manual_form):
         
         folder_path = manual_form.folder_path.data
         scan_mode = manual_form.scan_mode.data
-        library_uuid = manual_form.library_uuid.data
         
         if not library_uuid:
             flash('Please select a library.', 'error')

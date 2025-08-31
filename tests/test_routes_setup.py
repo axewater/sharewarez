@@ -5,9 +5,19 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 from modules import create_app, db
-from modules.models import User, GlobalSettings, InviteToken
+from modules.models import User, GlobalSettings, InviteToken, SystemEvents
 from modules.forms import SetupForm, IGDBSetupForm
 from sqlalchemy import select, delete
+
+
+def safe_cleanup_users_and_related(db_session):
+    """Safely clean up users and related data respecting foreign key constraints."""
+    # Delete in proper order to respect foreign key constraints
+    # SystemEvents must be deleted before Users
+    db_session.execute(delete(SystemEvents))
+    db_session.execute(delete(InviteToken))
+    db_session.execute(delete(User))
+    db_session.commit()
 
 
 @pytest.fixture(scope='function')
@@ -92,11 +102,8 @@ class TestSetupRoute:
     def test_setup_get_clears_session_and_sets_step(self, client, db_session):
         """Test GET /setup clears session and sets step to 1."""
         # Ensure no users exist for this test
-        # Delete invite tokens first to avoid foreign key constraint violations
-        from modules.models import InviteToken
-        db.session.execute(delete(InviteToken))
-        db.session.execute(delete(User))
-        db_session.commit()
+        # Clean up database safely respecting foreign key constraints
+        safe_cleanup_users_and_related(db_session)
         
         # Add some session data first
         with client.session_transaction() as sess:
@@ -123,11 +130,8 @@ class TestSetupRoute:
     def test_setup_get_renders_template_when_no_user(self, mock_render, client, db_session):
         """Test GET /setup renders template when no users exist."""
         # Ensure no users exist for this test
-        # Delete invite tokens first to avoid foreign key constraint violations
-        from modules.models import InviteToken
-        db.session.execute(delete(InviteToken))
-        db.session.execute(delete(User))
-        db_session.commit()
+        # Clean up database safely respecting foreign key constraints
+        safe_cleanup_users_and_related(db_session)
         
         mock_render.return_value = 'rendered setup template'
         
@@ -162,11 +166,8 @@ class TestSetupSubmitRoute:
     @patch('modules.routes_setup.log_system_event')
     def test_setup_submit_creates_admin_user_success(self, mock_log, mock_form_class, client, db_session):
         # Ensure no users exist for this test
-        # Delete invite tokens first to avoid foreign key constraint violations
-        from modules.models import InviteToken
-        db.session.execute(delete(InviteToken))
-        db.session.execute(delete(User))
-        db_session.commit()
+        # Clean up database safely respecting foreign key constraints
+        safe_cleanup_users_and_related(db_session)
         """Test successful admin user creation."""
         # Mock the form
         mock_form = MagicMock()
@@ -203,11 +204,8 @@ class TestSetupSubmitRoute:
     @patch('modules.routes_setup.SetupForm')
     def test_setup_submit_database_error(self, mock_form_class, client, db_session):
         # Ensure no users exist for this test
-        # Delete invite tokens first to avoid foreign key constraint violations
-        from modules.models import InviteToken
-        db.session.execute(delete(InviteToken))
-        db.session.execute(delete(User))
-        db_session.commit()
+        # Clean up database safely respecting foreign key constraints
+        safe_cleanup_users_and_related(db_session)
         """Test database error during user creation."""
         mock_form = MagicMock()
         mock_form.validate_on_submit.return_value = True
@@ -230,11 +228,8 @@ class TestSetupSubmitRoute:
     @patch('modules.routes_setup.SetupForm')
     def test_setup_submit_form_validation_failed(self, mock_form_class, client, db_session):
         # Ensure no users exist for this test
-        # Delete invite tokens first to avoid foreign key constraint violations
-        from modules.models import InviteToken
-        db.session.execute(delete(InviteToken))
-        db.session.execute(delete(User))
-        db_session.commit()
+        # Clean up database safely respecting foreign key constraints
+        safe_cleanup_users_and_related(db_session)
         """Test form validation failure."""
         mock_form = MagicMock()
         mock_form.validate_on_submit.return_value = False
@@ -524,11 +519,8 @@ class TestSetupWorkflow:
     
     def test_complete_setup_workflow(self, client, db_session):
         # Ensure no users exist for this test
-        # Delete invite tokens first to avoid foreign key constraint violations
-        from modules.models import InviteToken
-        db.session.execute(delete(InviteToken))
-        db.session.execute(delete(User))
-        db_session.commit()
+        # Clean up database safely respecting foreign key constraints
+        safe_cleanup_users_and_related(db_session)
         """Test the complete setup process from start to finish."""
         # Step 1: GET /setup
         response = client.get('/setup')
@@ -605,11 +597,8 @@ class TestSetupSessionHandling:
     
     def test_session_cleared_on_setup_start(self, client, db_session):
         # Ensure no users exist for this test
-        # Delete invite tokens first to avoid foreign key constraint violations
-        from modules.models import InviteToken
-        db.session.execute(delete(InviteToken))
-        db.session.execute(delete(User))
-        db_session.commit()
+        # Clean up database safely respecting foreign key constraints
+        safe_cleanup_users_and_related(db_session)
         """Test that starting setup clears all existing session data."""
         with client.session_transaction() as sess:
             sess['user_id'] = '12345'
@@ -627,11 +616,8 @@ class TestSetupSessionHandling:
     
     def test_setup_step_progression(self, client, db_session):
         # Ensure no users exist for this test
-        # Delete invite tokens first to avoid foreign key constraint violations
-        from modules.models import InviteToken
-        db.session.execute(delete(InviteToken))
-        db.session.execute(delete(User))
-        db_session.commit()
+        # Clean up database safely respecting foreign key constraints
+        safe_cleanup_users_and_related(db_session)
         """Test proper setup step progression."""
         # Start at step 1
         response = client.get('/setup')
@@ -685,11 +671,8 @@ class TestSetupFormIntegration:
     
     def test_setup_form_validation_error_handling(self, client, db_session):
         # Ensure no users exist for this test
-        # Delete invite tokens first to avoid foreign key constraint violations
-        from modules.models import InviteToken
-        db.session.execute(delete(InviteToken))
-        db.session.execute(delete(User))
-        db_session.commit()
+        # Clean up database safely respecting foreign key constraints
+        safe_cleanup_users_and_related(db_session)
         """Test how setup handles real form validation errors."""
         # Submit invalid data that should trigger form validation errors
         form_data = {
