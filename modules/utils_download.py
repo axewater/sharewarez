@@ -46,19 +46,18 @@ def zip_game(download_request_id, app, zip_file_path):
             
             with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_STORED) as zipf:
                 for root, dirs, files in os.walk(source_path):
-                    # Exclude the updates and extras folders
-                    if settings.update_folder_name in dirs:
-                        dirs.remove(settings.update_folder_name)
-                    if settings.update_folder_name.lower() in dirs:
-                        dirs.remove(settings.update_folder_name.lower())
-                    if settings.update_folder_name.capitalize() in dirs:
-                        dirs.remove(settings.update_folder_name.capitalize())
-                    if settings.extras_folder_name in dirs:
-                        dirs.remove(settings.extras_folder_name)
-                    if settings.extras_folder_name.lower() in dirs:
-                        dirs.remove(settings.extras_folder_name.lower())
-                    if settings.extras_folder_name.capitalize() in dirs:
-                        dirs.remove(settings.extras_folder_name.capitalize())
+                    # Exclude the updates and extras folders (case-insensitive)
+                    dirs_to_remove = []
+                    for dir_name in dirs:
+                        if dir_name.lower() == settings.update_folder_name.lower():
+                            dirs_to_remove.append(dir_name)
+                        elif dir_name.lower() == settings.extras_folder_name.lower():
+                            dirs_to_remove.append(dir_name)
+                    
+                    # Remove the directories (done separately to avoid modifying list while iterating)
+                    for dir_name in dirs_to_remove:
+                        dirs.remove(dir_name)
+                    
                     for file in files:
                         file_path = os.path.join(root, file)
                         # Ensure .NFO, .SFV, and file_id.diz files are still included in the zip
