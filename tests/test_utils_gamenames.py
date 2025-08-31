@@ -49,7 +49,7 @@ def sample_games(db_session):
     
     # First create a library that games can reference
     library = Library(
-        uuid='test-library',
+        uuid=str(uuid4()),
         name='Test Library',
         platform=LibraryPlatform.PCWIN  # Required enum field
     )
@@ -59,7 +59,7 @@ def sample_games(db_session):
     games = []
     for i in range(3):
         game = Game(
-            uuid=f'test-game-{i}',
+            uuid=str(uuid4()),
             name=f'Test Game {i}',
             full_disk_path=f'/test/path/game{i}',
             library_uuid=library.uuid  # Required foreign key
@@ -68,6 +68,17 @@ def sample_games(db_session):
         games.append(game)
     db_session.commit()
     return games
+
+
+@pytest.fixture(scope='session', autouse=True)
+def cleanup_database():
+    """Drop and recreate all tables after all tests complete."""
+    yield
+    # This runs after all tests are done
+    from modules import db
+    with create_app().app_context():
+        db.drop_all()
+        db.create_all()
 
 
 class TestGetGameNamesFromFolder:
