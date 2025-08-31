@@ -111,7 +111,8 @@ def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_u
         print(f"create_game_instance Finished processing game '{new_game.name}'. URLs (if any) have been fetched and stored.")
         
     except Exception as e:
-        print(f"create_game_instance Error during the game instance creation or URL fetching for game '{game_data.get('name')}'. Error: {e}")
+        game_name = game_data.get('name') if isinstance(game_data, dict) else str(game_data)
+        print(f"create_game_instance Error during the game instance creation or URL fetching for game '{game_name}'. Error: {e}")
     
     return new_game
 
