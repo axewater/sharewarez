@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 from modules import create_app, db
-from modules.models import User, GlobalSettings, InviteToken, SystemEvents
+from modules.models import User, GlobalSettings, InviteToken, SystemEvents, DownloadRequest, Newsletter
 from modules.forms import SetupForm, IGDBSetupForm
 from sqlalchemy import select, delete
 
@@ -13,9 +13,13 @@ from sqlalchemy import select, delete
 def safe_cleanup_users_and_related(db_session):
     """Safely clean up users and related data respecting foreign key constraints."""
     # Delete in proper order to respect foreign key constraints
-    # SystemEvents must be deleted before Users
+    # All tables with foreign keys to users must be deleted first
+    db_session.execute(delete(DownloadRequest))
+    db_session.execute(delete(Newsletter))
     db_session.execute(delete(SystemEvents))
     db_session.execute(delete(InviteToken))
+    # Delete from user_favorites junction table using raw SQL
+    db_session.execute(db.text("DELETE FROM user_favorites"))
     db_session.execute(delete(User))
     db_session.commit()
 
