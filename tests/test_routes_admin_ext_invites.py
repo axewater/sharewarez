@@ -151,7 +151,7 @@ class TestManageInvitesGet:
 
         response = client.get('/admin/manage_invites')
         
-        assert response.status_code == 200
+        assert response.status_code == 200  # Renders template after processing
         mock_render.assert_called_once()
         args, kwargs = mock_render.call_args
         assert args[0] == 'admin/admin_manage_invites.html'
@@ -171,7 +171,7 @@ class TestManageInvitesGet:
 
         response = client.get('/admin/manage_invites')
         
-        assert response.status_code == 200
+        assert response.status_code == 200  # Renders template after processing
         mock_render.assert_called_once()
         args, kwargs = mock_render.call_args
         assert len(kwargs['users']) == 2
@@ -189,7 +189,7 @@ class TestManageInvitesGet:
 
         response = client.get('/admin/manage_invites')
         
-        assert response.status_code == 200
+        assert response.status_code == 200  # Renders template after processing
         args, kwargs = mock_render.call_args
         # Regular user should have 1 unused invite (invite_token_used is used, invite_token_unused is not)
         assert kwargs['user_unused_invites'][regular_user.user_id] == 1
@@ -217,7 +217,7 @@ class TestManageInvitesGet:
 
         response = client.get('/admin/manage_invites')
         
-        assert response.status_code == 200
+        assert response.status_code == 200  # Renders template after processing
         args, kwargs = mock_render.call_args
         assert kwargs['user_unused_invites'][regular_user.user_id] == 3
 
@@ -238,7 +238,7 @@ class TestManageInvitesPost:
             'invites_number': '10'
         })
         
-        assert response.status_code == 200
+        assert response.status_code == 200  # Renders template after processing
         
         # Check that the user's invite quota was updated
         db_session.refresh(regular_user)
@@ -258,7 +258,7 @@ class TestManageInvitesPost:
             'invites_number': '-5'
         })
         
-        assert response.status_code == 200
+        assert response.status_code == 200  # Renders template after processing
         
         db_session.refresh(regular_user)
         assert regular_user.invite_quota == 15
@@ -276,7 +276,7 @@ class TestManageInvitesPost:
             'invites_number': '0'
         })
         
-        assert response.status_code == 200
+        assert response.status_code == 200  # Renders template after processing
         
         db_session.refresh(regular_user)
         assert regular_user.invite_quota == original_quota
@@ -294,10 +294,10 @@ class TestManageInvitesPost:
             'invites_number': '5'
         })
         
-        assert response.status_code == 200
+        assert response.status_code == 200  # Renders template with error message
 
     def test_admin_can_add_large_number_invites(self, client, admin_user, regular_user, db_session):
-        """Test admin can add large number of invites."""
+        """Test admin can add large number of invites up to limit."""
         original_quota = regular_user.invite_quota
         
         with client.session_transaction() as sess:
@@ -306,13 +306,55 @@ class TestManageInvitesPost:
 
         response = client.post('/admin/manage_invites', data={
             'user_id': regular_user.user_id,
-            'invites_number': '1000'
+            'invites_number': '1000'  # Maximum allowed
         })
         
-        assert response.status_code == 200
+        assert response.status_code == 200  # Renders template after processing
         
         db_session.refresh(regular_user)
         assert regular_user.invite_quota == original_quota + 1000
+
+    def test_admin_cannot_exceed_invite_limits(self, client, admin_user, regular_user):
+        """Test admin cannot add more than 1000 invites at once."""
+        with client.session_transaction() as sess:
+            sess['_user_id'] = str(admin_user.id)
+            sess['_fresh'] = True
+
+        response = client.post('/admin/manage_invites', data={
+            'user_id': regular_user.user_id,
+            'invites_number': '1001'  # Over the limit
+        })
+        
+        assert response.status_code == 302  # Redirect due to error
+        assert 'manage_invites' in response.location
+
+    def test_admin_cannot_reduce_invites_too_much(self, client, admin_user, regular_user):
+        """Test admin cannot reduce invites by more than 1000 at once."""
+        with client.session_transaction() as sess:
+            sess['_user_id'] = str(admin_user.id)
+            sess['_fresh'] = True
+
+        response = client.post('/admin/manage_invites', data={
+            'user_id': regular_user.user_id,
+            'invites_number': '-1001'  # Below the limit
+        })
+        
+        assert response.status_code == 302  # Redirect due to error
+        assert 'manage_invites' in response.location
+
+    def test_invalid_uuid_format_rejected(self, client, admin_user):
+        """Test that invalid UUID format for user_id is rejected."""
+        with client.session_transaction() as sess:
+            sess['_user_id'] = str(admin_user.id)
+            sess['_fresh'] = True
+
+        response = client.post('/admin/manage_invites', data={
+            'user_id': 'not-a-valid-uuid',
+            'invites_number': '5'
+        })
+        
+        assert response.status_code == 302  # Redirect due to error
+        assert 'manage_invites' in response.location
 
 
 class TestManageInvitesEdgeCases:
@@ -330,50 +372,66 @@ class TestManageInvitesEdgeCases:
             'invites_number': '5'
         })
         
-        # Should complete successfully but flash error for user not found
-        assert response.status_code == 200
+        # Missing user_id causes validation error and redirect
+        assert response.status_code == 302
 
     def test_missing_invites_number_field(self, client, admin_user, regular_user):
-        """Test POST request with missing invites_number field causes TypeError."""
+        """Test POST request with missing invites_number field defaults to 0."""
         with client.session_transaction() as sess:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
 
-        # This will cause TypeError: int() argument must be a string... not 'NoneType'
-        with pytest.raises(TypeError):
-            client.post('/admin/manage_invites', data={
-                'user_id': regular_user.user_id
-            })
+        original_quota = regular_user.invite_quota
+        
+        # Missing invites_number now defaults to 0, so no change expected
+        response = client.post('/admin/manage_invites', data={
+            'user_id': regular_user.user_id
+        })
+        
+        assert response.status_code == 200  # Renders template after processingful update
+        # User quota should remain unchanged (added 0)
+        from modules import db
+        db.session.refresh(regular_user)
+        assert regular_user.invite_quota == original_quota
 
     def test_non_numeric_invites_number(self, client, admin_user, regular_user):
-        """Test POST request with non-numeric invites_number causes ValueError."""
+        """Test POST request with non-numeric invites_number shows error and redirects."""
         with client.session_transaction() as sess:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
 
-        # This will cause ValueError: invalid literal for int() with base 10: 'not_a_number'
-        with pytest.raises(ValueError):
-            client.post('/admin/manage_invites', data={
-                'user_id': regular_user.user_id,
-                'invites_number': 'not_a_number'
-            })
+        # This will now be handled gracefully with error message and redirect
+        response = client.post('/admin/manage_invites', data={
+            'user_id': regular_user.user_id,
+            'invites_number': 'not_a_number'
+        })
+        
+        assert response.status_code == 302  # Redirect due to error
+        assert 'manage_invites' in response.location
 
     def test_empty_invites_number(self, client, admin_user, regular_user):
-        """Test POST request with empty invites_number causes ValueError."""
+        """Test POST request with empty invites_number defaults to 0."""
         with client.session_transaction() as sess:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
 
-        # This will cause ValueError: invalid literal for int() with base 10: ''
-        with pytest.raises(ValueError):
-            client.post('/admin/manage_invites', data={
-                'user_id': regular_user.user_id,
-                'invites_number': ''
-            })
+        original_quota = regular_user.invite_quota
+        
+        # Empty invites_number now defaults to 0
+        response = client.post('/admin/manage_invites', data={
+            'user_id': regular_user.user_id,
+            'invites_number': ''
+        })
+        
+        assert response.status_code == 200  # Renders template after processingful update
+        # User quota should remain unchanged (added 0)
+        from modules import db
+        db.session.refresh(regular_user)
+        assert regular_user.invite_quota == original_quota
 
     @patch('modules.routes_admin_ext.invites.render_template')
-    def test_database_error_handling(self, mock_render, client, admin_user, regular_user, monkeypatch):
-        """Test that database errors propagate as expected."""
+    def test_database_error_handling_get(self, mock_render, client, admin_user, regular_user, monkeypatch):
+        """Test that database errors in GET request are handled gracefully."""
         # Mock a database error
         def mock_execute_error(*args, **kwargs):
             raise Exception("Database connection failed")
@@ -388,6 +446,35 @@ class TestManageInvitesEdgeCases:
         from modules import db
         monkeypatch.setattr(db.session, 'execute', mock_execute_error)
 
-        # This should raise the database error since there's no error handling
-        with pytest.raises(Exception, match="Database connection failed"):
-            client.get('/admin/manage_invites')
+        # This should now handle the database error gracefully
+        response = client.get('/admin/manage_invites')
+        assert response.status_code == 200
+        
+        # Check that template was called with empty data due to error
+        mock_render.assert_called_once()
+        args, kwargs = mock_render.call_args
+        assert kwargs['users'] == []
+        assert kwargs['user_unused_invites'] == {}
+
+    def test_database_error_handling_post(self, client, admin_user, regular_user, monkeypatch):
+        """Test that database errors in POST request are handled gracefully."""
+        # Mock database error during user lookup
+        def mock_execute_error(*args, **kwargs):
+            raise Exception("Database connection failed")
+        
+        with client.session_transaction() as sess:
+            sess['_user_id'] = str(admin_user.id)
+            sess['_fresh'] = True
+
+        # Patch the db.session.execute method to raise an error
+        from modules import db
+        monkeypatch.setattr(db.session, 'execute', mock_execute_error)
+
+        # This should handle the database error and redirect
+        response = client.post('/admin/manage_invites', data={
+            'user_id': regular_user.user_id,
+            'invites_number': '5'
+        })
+        
+        assert response.status_code == 302  # Redirect due to error
+        assert 'manage_invites' in response.location
