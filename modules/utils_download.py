@@ -151,3 +151,32 @@ def get_zip_storage_stats() -> Tuple[int, int, int]:
             zip_folder_size_bytes += os.path.getsize(os.path.join(zip_save_path, file))
             
     return total_zip_count, zip_folder_size_bytes, zip_folder_size_bytes
+
+
+def delete_zip_file_safely(zip_file_path: str, zip_save_path: str) -> Tuple[bool, str]:
+    """
+    Safely delete a ZIP file if it exists and is within the expected directory.
+    
+    Args:
+        zip_file_path: Path to the ZIP file to delete
+        zip_save_path: Expected base directory for ZIP files
+        
+    Returns:
+        Tuple of (success: bool, message: str)
+    """
+    if not zip_file_path or not os.path.exists(zip_file_path):
+        return True, "No ZIP file to delete"
+        
+    # Resolve paths to handle symbolic links and relative paths
+    abs_zip_path = os.path.abspath(os.path.realpath(zip_file_path))
+    abs_zip_save_path = os.path.abspath(os.path.realpath(zip_save_path))
+    
+    # Security check: ensure file is within expected directory
+    if not abs_zip_path.startswith(abs_zip_save_path):
+        return False, "ZIP file is not in the expected directory"
+        
+    try:
+        os.remove(abs_zip_path)
+        return True, f"ZIP file deleted successfully: {zip_file_path}"
+    except OSError as e:
+        return False, f"Error deleting ZIP file: {str(e)}"

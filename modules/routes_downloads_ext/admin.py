@@ -4,8 +4,9 @@ from flask_login import login_required
 from modules.models import DownloadRequest, User
 from sqlalchemy import select
 from modules.utils_system_stats import format_bytes
-from modules.utils_download import get_zip_storage_stats
+from modules.utils_download import get_zip_storage_stats, delete_zip_file_safely
 from modules.utils_auth import admin_required
+from modules.utils_logging import log_system_event
 from modules import db
 from . import download_bp
 
@@ -31,23 +32,36 @@ def manage_downloads():
 @login_required
 @admin_required
 def delete_download_request(request_id):
+    """
+    Delete a download request and its associated ZIP file via admin interface.
+    """
     download_request = db.session.get(DownloadRequest, request_id)
     if not download_request:
         flash('Download request not found.', 'error')
         return redirect(url_for('download.manage_downloads'))
     
-    if download_request.zip_file_path and os.path.exists(download_request.zip_file_path):
-        if download_request.zip_file_path.startswith(current_app.config['ZIP_SAVE_PATH']):
-            try:
-                os.remove(download_request.zip_file_path)
-                print(f"Deleted ZIP file: {download_request.zip_file_path}")
-            except Exception as e:
-                print(f"Error deleting ZIP file: {e}")
-                flash(f"Error deleting ZIP file: {e}", 'error')
+    # Handle ZIP file deletion using the centralized utility function
+    if download_request.zip_file_path:
+        zip_save_path = current_app.config.get('ZIP_SAVE_PATH')
+        if zip_save_path:
+            zip_deletion_success, zip_deletion_message = delete_zip_file_safely(
+                download_request.zip_file_path, 
+                zip_save_path
+            )
+            
+            if zip_deletion_success:
+                log_system_event('admin_download', zip_deletion_message, 'info')
+                if 'not in the expected directory' in zip_deletion_message:
+                    flash("ZIP file was not in expected directory. Only download request removed.", 'warning')
+            else:
+                log_system_event('admin_download', f'ZIP deletion failed: {zip_deletion_message}', 'warning')
+                flash(f"Error deleting ZIP file: {zip_deletion_message}", 'error')
         else:
-            print(f"ZIP file is not in the expected directory: {download_request.zip_file_path}")
-            flash("ZIP file is not in the expected directory. Only the download request will be removed.", 'warning')
+            log_system_event('admin_download', 'ZIP_SAVE_PATH not configured', 'warning')
+            flash("ZIP save path not configured.", 'warning')
     
+    # Delete the download request from database
+    log_system_event('admin_download', f'Admin deleting download request {request_id}', 'info')
     db.session.delete(download_request)
     db.session.commit()
     
