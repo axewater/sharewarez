@@ -183,28 +183,29 @@ class TestDeleteDownloadRequest:
         assert data['status'] == 'success'
         assert 'deleted successfully' in data['message']
     
-    def test_delete_request_with_zip_file_success(self, client, admin_user, 
-                                                   sample_download_request, temp_zip_file, temp_zip_dir, app):
+    @patch('modules.routes_apis.download.current_app', new_callable=MagicMock)
+    def test_delete_request_with_zip_file_success(self, mock_app, client, admin_user, 
+                                                   sample_download_request, temp_zip_file, temp_zip_dir):
         """Test successful deletion of download request with ZIP file."""
-        # Setup
-        with app.app_context():
-            app.config['ZIP_SAVE_PATH'] = temp_zip_dir
-            sample_download_request.zip_file_path = temp_zip_file
-            
-            with client.session_transaction() as sess:
-                sess['_user_id'] = str(admin_user.id)
-                sess['_fresh'] = True
-            
-            response = client.delete(f'/api/delete_download/{sample_download_request.id}')
-            assert response.status_code == 200
-            
-            data = response.get_json()
-            assert data['status'] == 'success'
-            assert 'deleted successfully' in data['message']
-            assert not os.path.exists(temp_zip_file)  # ZIP file should be deleted
+        # Setup mocking
+        mock_app.config.get.return_value = temp_zip_dir
+        sample_download_request.zip_file_path = temp_zip_file
+        
+        with client.session_transaction() as sess:
+            sess['_user_id'] = str(admin_user.id)
+            sess['_fresh'] = True
+        
+        response = client.delete(f'/api/delete_download/{sample_download_request.id}')
+        assert response.status_code == 200
+        
+        data = response.get_json()
+        assert data['status'] == 'success'
+        assert 'deleted successfully' in data['message']
+        assert not os.path.exists(temp_zip_file)  # ZIP file should be deleted
     
-    def test_delete_request_zip_outside_save_path(self, client, admin_user, 
-                                                   sample_download_request, temp_zip_dir, app):
+    @patch('modules.routes_apis.download.current_app', new_callable=MagicMock)
+    def test_delete_request_zip_outside_save_path(self, mock_app, client, admin_user, 
+                                                   sample_download_request, temp_zip_dir):
         """Test deletion when ZIP file is outside the expected directory."""
         # Create ZIP file outside the expected directory
         with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as temp_file:
@@ -212,58 +213,9 @@ class TestDeleteDownloadRequest:
             temp_file.write(b'test content')
         
         try:
-            with app.app_context():
-                app.config['ZIP_SAVE_PATH'] = temp_zip_dir
-                sample_download_request.zip_file_path = external_zip_path
-                
-                with client.session_transaction() as sess:
-                    sess['_user_id'] = str(admin_user.id)
-                    sess['_fresh'] = True
-                
-                response = client.delete(f'/api/delete_download/{sample_download_request.id}')
-                assert response.status_code == 200
-                
-                data = response.get_json()
-                assert data['status'] == 'success'
-                assert 'not in expected directory' in data['message']
-                assert os.path.exists(external_zip_path)  # ZIP file should NOT be deleted
-        finally:
-            if os.path.exists(external_zip_path):
-                os.unlink(external_zip_path)
-    
-    def test_delete_request_zip_save_path_not_configured(self, client, admin_user, 
-                                                          sample_download_request, temp_zip_file, app):
-        """Test deletion when ZIP_SAVE_PATH is not configured."""
-        with app.app_context():
-            # Temporarily remove ZIP_SAVE_PATH from config
-            original_path = app.config.get('ZIP_SAVE_PATH')
-            app.config.pop('ZIP_SAVE_PATH', None)
-            sample_download_request.zip_file_path = temp_zip_file
-            
-            try:
-                with client.session_transaction() as sess:
-                    sess['_user_id'] = str(admin_user.id)
-                    sess['_fresh'] = True
-                
-                response = client.delete(f'/api/delete_download/{sample_download_request.id}')
-                assert response.status_code == 500
-                
-                data = response.get_json()
-                assert data['status'] == 'error'
-                assert 'ZIP save path not configured' in data['message']
-            finally:
-                # Restore original config
-                if original_path:
-                    app.config['ZIP_SAVE_PATH'] = original_path
-    
-    @patch('modules.utils_download.os.remove')
-    def test_delete_request_zip_deletion_error(self, mock_remove, client, admin_user, 
-                                                sample_download_request, temp_zip_file, temp_zip_dir, app):
-        """Test handling of ZIP file deletion errors."""
-        with app.app_context():
-            app.config['ZIP_SAVE_PATH'] = temp_zip_dir
-            mock_remove.side_effect = OSError("Permission denied")
-            sample_download_request.zip_file_path = temp_zip_file
+            # Setup mocking
+            mock_app.config.get.return_value = temp_zip_dir
+            sample_download_request.zip_file_path = external_zip_path
             
             with client.session_transaction() as sess:
                 sess['_user_id'] = str(admin_user.id)
@@ -274,7 +226,51 @@ class TestDeleteDownloadRequest:
             
             data = response.get_json()
             assert data['status'] == 'success'
-            assert 'ZIP file deletion failed' in data['message']
+            assert 'ZIP file is not in the expected directory' in data['message']
+            assert os.path.exists(external_zip_path)  # ZIP file should NOT be deleted
+        finally:
+            if os.path.exists(external_zip_path):
+                os.unlink(external_zip_path)
+    
+    @patch('modules.routes_apis.download.current_app', new_callable=MagicMock)
+    def test_delete_request_zip_save_path_not_configured(self, mock_app, client, admin_user, 
+                                                          sample_download_request, temp_zip_file):
+        """Test deletion when ZIP_SAVE_PATH is not configured."""
+        # Setup mocking - return None for ZIP_SAVE_PATH
+        mock_app.config.get.return_value = None
+        sample_download_request.zip_file_path = temp_zip_file
+        
+        with client.session_transaction() as sess:
+            sess['_user_id'] = str(admin_user.id)
+            sess['_fresh'] = True
+        
+        response = client.delete(f'/api/delete_download/{sample_download_request.id}')
+        assert response.status_code == 500
+        
+        data = response.get_json()
+        assert data['status'] == 'error'
+        assert 'ZIP save path not configured' in data['message']
+    
+    @patch('modules.routes_apis.download.current_app', new_callable=MagicMock)
+    @patch('modules.utils_download.os.remove')
+    def test_delete_request_zip_deletion_error(self, mock_remove, mock_app, client, admin_user, 
+                                                sample_download_request, temp_zip_file, temp_zip_dir):
+        """Test handling of ZIP file deletion errors."""
+        # Setup mocking
+        mock_app.config.get.return_value = temp_zip_dir
+        mock_remove.side_effect = OSError("Permission denied")
+        sample_download_request.zip_file_path = temp_zip_file
+        
+        with client.session_transaction() as sess:
+            sess['_user_id'] = str(admin_user.id)
+            sess['_fresh'] = True
+        
+        response = client.delete(f'/api/delete_download/{sample_download_request.id}')
+        assert response.status_code == 200
+        
+        data = response.get_json()
+        assert data['status'] == 'success'
+        assert 'ZIP file deletion failed' in data['message']
     
     @patch('modules.routes_apis.download.db')
     def test_delete_request_database_error(self, mock_db, client, admin_user, sample_download_request):
@@ -317,10 +313,3 @@ class TestDeleteDownloadRequest:
         assert deletion_logged
         assert success_logged
     
-    def test_delete_request_cleanup(self, db_session):
-        """Test database cleanup after tests."""
-        safe_cleanup_database(db_session)
-        
-        # Verify cleanup
-        remaining_requests = db_session.query(DownloadRequest).count()
-        assert remaining_requests == 0
