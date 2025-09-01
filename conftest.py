@@ -38,20 +38,9 @@ def app():
 
 @pytest.fixture(scope='function')  
 def db_session(app):
-    """Create a database session for testing with transaction rollback."""
+    """Create a database session for testing with simple cleanup."""
     with app.app_context():
-        # Start a transaction that will be rolled back after each test
-        connection = db.engine.connect()
-        transaction = connection.begin()
-        
-        # Configure the session to use this connection
-        db.session.configure(bind=connection, binds={})
-        
         yield db.session
-        
-        # Rollback the transaction to clean up after each test
-        transaction.rollback()
-        connection.close()
 
 @pytest.fixture(scope='function')
 def client(app):
