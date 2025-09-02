@@ -99,7 +99,7 @@ def regular_user(db_session):
 @pytest.fixture
 def sample_allowed_file_type(db_session):
     """Create a sample allowed file type."""
-    file_type = AllowedFileType(value='.exe')
+    file_type = AllowedFileType(value='exe')
     db_session.add(file_type)
     db_session.commit()
     return file_type
@@ -156,7 +156,7 @@ class TestFileTypeManagement:
         data = response.get_json()
         assert isinstance(data, list)
         assert len(data) >= 1
-        assert any(item['value'] == '.exe' for item in data)
+        assert any(item['value'] == 'exe' for item in data)
 
     def test_get_ignored_file_types(self, client, admin_user, sample_ignored_file_type):
         """Test retrieving ignored file types."""
@@ -184,7 +184,7 @@ class TestFileTypeManagement:
         
         assert response.status_code == 201
         data = response.get_json()
-        assert data['value'] == '.msi'
+        assert data['value'] == 'msi'
         assert 'id' in data
 
     def test_create_file_type_invalid_json(self, client, admin_user):
@@ -266,7 +266,7 @@ class TestFileTypeManagement:
         
         assert response.status_code == 200
         data = response.get_json()
-        assert data['value'] == '.msi'
+        assert data['value'] == 'msi'
 
     def test_update_file_type_missing_fields(self, client, admin_user):
         """Test updating file type with missing required fields."""
@@ -363,8 +363,8 @@ class TestFileTypeValidation:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        valid_extensions = ['.exe', 'msi', '.zip', 'tar.gz', '.7z', 'deb']
-        expected_results = ['.exe', '.msi', '.zip', '.tar.gz', '.7z', '.deb']
+        valid_extensions = ['.exe', 'msi', '.pkg', 'tar.gz', '.dmg', 'deb']
+        expected_results = ['exe', 'msi', 'pkg', 'tar.gz', 'dmg', 'deb']
         
         for i, ext in enumerate(valid_extensions):
             response = client.post('/api/file_types/allowed',
@@ -645,11 +645,11 @@ class TestSecurityHelperFunctions:
         from modules.routes_apis.system import validate_file_type_value
         
         valid_inputs = [
-            ('exe', '.exe'),
-            ('.msi', '.msi'),
-            ('ZIP', '.zip'),
-            ('.tar.gz', '.tar.gz'),
-            ('7z', '.7z'),
+            ('exe', 'exe'),
+            ('.msi', 'msi'),
+            ('ZIP', 'zip'),
+            ('.tar.gz', 'tar.gz'),
+            ('7z', '7z'),
         ]
         
         for input_val, expected in valid_inputs:
@@ -805,7 +805,7 @@ class TestSystemApiIntegration:
                                    content_type='application/json')
         assert update_response.status_code == 200
         updated_data = update_response.get_json()
-        assert updated_data['value'] == '.dmg'
+        assert updated_data['value'] == 'dmg'
         
         # Delete
         delete_response = client.delete('/api/file_types/allowed',
