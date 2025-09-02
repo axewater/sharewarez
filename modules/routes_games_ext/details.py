@@ -1,12 +1,14 @@
 import uuid
 from flask import render_template, jsonify, abort
-from flask_login import login_required
+from flask_login import login_required, current_user
 from modules.forms import CsrfForm
 from modules.models import GameUpdate, GameExtra
 from modules import db
 from sqlalchemy import select
-from modules.utils_functions import format_size
+from modules.utils_functions import format_size, sanitize_string_input
 from modules.utils_game_core import get_game_by_uuid
+from modules.utils_security import sanitize_path_for_logging
+from modules.utils_logging import log_system_event
 
 from . import games_bp
 
@@ -14,12 +16,20 @@ from . import games_bp
 @games_bp.route('/game_details/<string:game_uuid>')
 @login_required
 def game_details(game_uuid):
-    print(f"Fetching game details for UUID: {game_uuid}")
+    log_system_event(
+        f"User {current_user.name} requested game details for UUID: {game_uuid[:8]}...",
+        event_type='game',
+        event_level='debug'
+    )
     csrf_form = CsrfForm()
     try:
         valid_uuid = uuid.UUID(game_uuid, version=4)
     except ValueError:
-        print(f"Invalid UUID format: {game_uuid}")
+        log_system_event(
+            f"Invalid UUID format provided by user {current_user.name}: {game_uuid[:20]}...",
+            event_type='security',
+            event_level='warning'
+        )
         abort(404)
 
     game = get_game_by_uuid(str(valid_uuid))
@@ -28,7 +38,13 @@ def game_details(game_uuid):
         # Explicitly load updates and extras
         updates = db.session.execute(select(GameUpdate).filter_by(game_uuid=game.uuid)).scalars().all()
         extras = db.session.execute(select(GameExtra).filter_by(game_uuid=game.uuid)).scalars().all()
-        print(f"Found {len(updates)} updates and {len(extras)} extras for game {game.name}")
+        
+        # Log successful access for audit trail
+        log_system_event(
+            f"User {current_user.name} accessed game '{game.name}' with {len(updates)} updates and {len(extras)} extras",
+            event_type='game',
+            event_level='information'
+        )
         
         game_data = {
             "id": game.id,
@@ -65,7 +81,7 @@ def game_details(game_uuid):
             "url_igdb": game.url_igdb,
             "url": game.url,
             "video_urls": game.video_urls,
-            "full_disk_path": game.full_disk_path,
+            # full_disk_path removed for security - should not be exposed to client
             "images": [{"id": img.id, "type": img.image_type, "url": img.url} for img in game.images.all()],
             "genres": [genre.name for genre in game.genres],
             "game_modes": [mode.name for mode in game.game_modes],
@@ -75,18 +91,13 @@ def game_details(game_uuid):
             "developer": game.developer.name if game.developer else 'Not available',
             "publisher": game.publisher.name if game.publisher else 'Not available',
             "multiplayer_modes": [mode.name for mode in game.multiplayer_modes],
-            "nfo_content": game.nfo_content if game.nfo_content else 'none',
+            "nfo_content": sanitize_string_input(game.nfo_content, 10000) if game.nfo_content else 'none',
             "size": format_size(game.size),
             "date_identified": game.date_identified.strftime('%Y-%m-%d %H:%M:%S') if game.date_identified else 'Not available',
             "steam_url": game.steam_url if game.steam_url else 'Not available',
             "times_downloaded": game.times_downloaded,
-            "last_updated": game.last_updated.strftime('%Y-%m-%d') if game.last_updated else 'N/A',
-            "updates": [{
-                "id": update.id,
-                "file_path": update.file_path,
-                "times_downloaded": update.times_downloaded,
-                "created_at": update.created_at.strftime('%Y-%m-%d %H:%M:%S')
-            } for update in game.updates]
+            "last_updated": game.last_updated.strftime('%Y-%m-%d') if game.last_updated else 'N/A'
+            # Duplicate "updates" array removed - already included above
         }
         
         # URL Icons Mapping
@@ -117,4 +128,9 @@ def game_details(game_uuid):
         
         return render_template('games/game_details.html', game=game_data, form=csrf_form, library_uuid=library_uuid)
     else:
+        log_system_event(
+            f"User {current_user.name} attempted to access non-existent game UUID: {game_uuid[:8]}...",
+            event_type='security',
+            event_level='warning'
+        )
         return jsonify({"error": "Game not found"}), 404
