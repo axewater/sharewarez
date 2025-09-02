@@ -501,6 +501,14 @@ class TestGameDataFunctions:
     @patch('modules.utils_game_core.make_igdb_api_request')
     def test_enumerate_companies_success(self, mock_api, db_session, sample_game, mock_company_response, sample_global_settings):
         """Test successful company enumeration."""
+        from sqlalchemy import delete, update
+        
+        # Clean up any existing developer/publisher records by first removing foreign key references
+        db_session.execute(update(Game).values(developer_id=None, publisher_id=None))
+        db_session.execute(delete(Developer))
+        db_session.execute(delete(Publisher))
+        db_session.flush()
+        
         mock_api.return_value = mock_company_response
         
         enumerate_companies(sample_game, sample_game.igdb_id, [1, 2])
