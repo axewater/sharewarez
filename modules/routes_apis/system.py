@@ -26,9 +26,9 @@ def validate_file_type_value(value):
     if not re.match(r'^[a-z0-9.-]+$', value):
         return None
     
-    # Ensure it starts with a dot for file extensions
-    if not value.startswith('.'):
-        value = '.' + value
+    # Ensure it does NOT start with a dot for consistency
+    if value.startswith('.'):
+        value = value[1:]
     
     # Prevent excessively long values
     if len(value) > 10:

@@ -27,7 +27,7 @@ from modules.utils_game_core import (
     delete_game, download_pending_images, start_background_image_downloader,
     turbo_download_images, start_turbo_background_downloader,
     find_missing_images_for_library, queue_missing_images_for_download,
-    process_missing_images_for_scan
+    process_missing_images_for_scan, get_or_create_entity
 )
 
 
@@ -712,3 +712,115 @@ class TestMissingImageProcessing:
         # Check that the result is a dictionary with expected keys
         assert isinstance(result, dict)
         assert 'success' in result
+
+
+class TestGetOrCreateEntity:
+    """Test the get_or_create_entity helper function for thread safety."""
+
+    def test_get_or_create_entity_new_genre(self, app):
+        """Test creating a new genre when it doesn't exist."""
+        with app.app_context():
+            # Ensure no existing genre
+            existing_genre = db.session.execute(db.select(Genre).filter_by(name="TestGenre")).scalar_one_or_none()
+            if existing_genre:
+                db.session.delete(existing_genre)
+                db.session.commit()
+            
+            # Create new genre
+            genre = get_or_create_entity(Genre, name="TestGenre")
+            
+            assert genre is not None
+            assert genre.name == "TestGenre"
+            assert genre.id is not None
+            
+            # Clean up
+            db.session.delete(genre)
+            db.session.commit()
+    
+    def test_get_or_create_entity_existing_genre(self, app):
+        """Test getting an existing genre."""
+        with app.app_context():
+            # Create initial genre
+            existing_genre = Genre(name="ExistingGenre")
+            db.session.add(existing_genre)
+            db.session.commit()
+            existing_id = existing_genre.id
+            
+            # Get the same genre
+            genre = get_or_create_entity(Genre, name="ExistingGenre")
+            
+            assert genre is not None
+            assert genre.name == "ExistingGenre"
+            assert genre.id == existing_id
+            
+            # Clean up
+            db.session.delete(genre)
+            db.session.commit()
+    
+    def test_get_or_create_entity_handles_integrity_error(self, app):
+        """Test that get_or_create_entity handles IntegrityError correctly."""
+        with app.app_context():
+            # Ensure no existing genre
+            existing_genre = db.session.execute(db.select(Genre).filter_by(name="IntegrityTestGenre")).scalar_one_or_none()
+            if existing_genre:
+                db.session.delete(existing_genre)
+                db.session.commit()
+            
+            # First call should create the entity
+            genre1 = get_or_create_entity(Genre, name="IntegrityTestGenre")
+            assert genre1 is not None
+            assert genre1.name == "IntegrityTestGenre"
+            
+            # Second call should get the existing entity (not create a new one)
+            genre2 = get_or_create_entity(Genre, name="IntegrityTestGenre") 
+            assert genre2 is not None
+            assert genre2.name == "IntegrityTestGenre"
+            assert genre1.id == genre2.id  # Should be the same entity
+            
+            # Verify only one genre exists in database
+            all_genres = db.session.execute(db.select(Genre).filter_by(name="IntegrityTestGenre")).scalars().all()
+            assert len(all_genres) == 1
+            
+            # Clean up
+            db.session.delete(all_genres[0])
+            db.session.commit()
+    
+    def test_get_or_create_entity_with_multiple_models(self, app):
+        """Test get_or_create_entity works with different model types."""
+        test_cases = [
+            (Genre, "TestGenre2"),
+            (Theme, "TestTheme"),
+            (GameMode, "TestGameMode"), 
+            (Platform, "TestPlatform"),
+            (PlayerPerspective, "TestPerspective"),
+            (Developer, "TestDeveloper"),
+            (Publisher, "TestPublisher")
+        ]
+        
+        with app.app_context():
+            created_entities = []
+            
+            try:
+                for model_class, name in test_cases:
+                    # Clean up any existing entity first
+                    existing = db.session.execute(db.select(model_class).filter_by(name=name)).scalar_one_or_none()
+                    if existing:
+                        db.session.delete(existing)
+                        db.session.commit()
+                    
+                    # Create new entity
+                    entity = get_or_create_entity(model_class, name=name)
+                    created_entities.append(entity)
+                    
+                    assert entity is not None
+                    assert entity.name == name
+                    assert entity.id is not None
+            
+            finally:
+                # Clean up all created entities
+                for entity in created_entities:
+                    try:
+                        db.session.delete(entity)
+                        db.session.commit()
+                    except Exception:
+                        db.session.rollback()

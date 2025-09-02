@@ -53,6 +53,48 @@ status_mapping = {
     7: Status.CANCELLED
 }
 
+def get_or_create_entity(model_class, name_field="name", **kwargs):
+    """
+    Thread-safe helper to get an existing entity or create a new one.
+    Handles race conditions that occur during multithreaded scanning.
+    
+    Args:
+        model_class: The SQLAlchemy model class (Genre, Theme, etc.)
+        name_field: The field name to query by (default: "name")
+        **kwargs: The attributes to query and create with
+        
+    Returns:
+        The existing or newly created entity instance
+    """
+    filter_value = kwargs.get(name_field)
+    
+    # First attempt: try to get existing entity
+    entity = db.session.execute(
+        select(model_class).filter_by(**{name_field: filter_value})
+    ).scalar_one_or_none()
+    
+    if entity:
+        return entity
+    
+    # Entity doesn't exist, try to create it
+    try:
+        entity = model_class(**kwargs)
+        db.session.add(entity)
+        db.session.flush()  # Flush to check for constraint violations immediately
+        return entity
+    except IntegrityError:
+        # Handle race condition: another thread created the entity
+        db.session.rollback()
+        # Query again to get the entity created by the other thread
+        entity = db.session.execute(
+            select(model_class).filter_by(**{name_field: filter_value})
+        ).scalar_one_or_none()
+        if entity:
+            return entity
+        else:
+            # This should not happen, but raise an error if it does
+            raise RuntimeError(f"Failed to create or retrieve {model_class.__name__} with {name_field}='{filter_value}'")
+
 def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_uuid):
     global settings
     settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
@@ -383,10 +425,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
             if 'genres' in response_json[0]:
                 for genre_data in response_json[0]['genres']:
                     genre_name = genre_data['name']
-                    genre = db.session.execute(select(Genre).filter_by(name=genre_name)).scalar_one_or_none()
-                    if not genre:
-                        genre = Genre(name=genre_name)
-                        db.session.add(genre)
+                    genre = get_or_create_entity(Genre, name=genre_name)
                     new_game.genres.append(genre)
 
             if 'involved_companies' in response_json[0]:
@@ -399,44 +438,25 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
             if 'themes' in response_json[0]:
                 for theme_data in response_json[0]['themes']:
                     theme_name = theme_data['name']
-                    
-                    theme = db.session.execute(select(Theme).filter_by(name=theme_name)).scalar_one_or_none()
-                    if not theme:
-                        
-                        theme = Theme(name=theme_name)
-                        db.session.add(theme)
-                    
+                    theme = get_or_create_entity(Theme, name=theme_name)
                     new_game.themes.append(theme)
 
             if 'game_modes' in response_json[0]:
                 for game_mode_data in response_json[0]['game_modes']:
                     game_mode_name = game_mode_data['name']
-                    
-                    game_mode = db.session.execute(select(GameMode).filter_by(name=game_mode_name)).scalar_one_or_none()
-                    if not game_mode:
-                        
-                        game_mode = GameMode(name=game_mode_name)
-                        db.session.add(game_mode)
-                        db.session.flush()
-
+                    game_mode = get_or_create_entity(GameMode, name=game_mode_name)
                     new_game.game_modes.append(game_mode)
 
             if 'platforms' in response_json[0]:
                 for platform_data in response_json[0]['platforms']:
                     platform_name = platform_data['name']
-                    platform = db.session.execute(select(Platform).filter_by(name=platform_name)).scalar_one_or_none()
-                    if not platform:
-                        platform = Platform(name=platform_name)
-                        db.session.add(platform)
+                    platform = get_or_create_entity(Platform, name=platform_name)
                     new_game.platforms.append(platform)
                     
             if 'player_perspectives' in response_json[0]:
                 for perspective_data in response_json[0]['player_perspectives']:
                     perspective_name = perspective_data['name']
-                    perspective = db.session.execute(select(PlayerPerspective).filter_by(name=perspective_name)).scalar_one_or_none()
-                    if not perspective:
-                        perspective = PlayerPerspective(name=perspective_name)
-                        db.session.add(perspective)
+                    perspective = get_or_create_entity(PlayerPerspective, name=perspective_name)
                     new_game.player_perspectives.append(perspective)
                     
             if 'videos' in response_json[0]:
@@ -547,21 +567,15 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
 
             if is_developer:
                 # print(f"Company {company_name} is a developer.")
-                developer = db.session.execute(select(Developer).filter_by(name=company_name)).scalar_one_or_none()
-                if not developer:
-                    print(f"Creating new developer: {company_name}")
-                    developer = Developer(name=company_name)
-                    db.session.add(developer)
+                print(f"Creating or finding developer: {company_name}")
+                developer = get_or_create_entity(Developer, name=company_name)
 
                 print(f"Assigning developer {developer.name} to game {game_instance.name}.")
                 game_instance.developer = developer
 
             if is_publisher:
                 # print(f"Company {company_name} is a publisher.")
-                publisher = db.session.execute(select(Publisher).filter_by(name=company_name)).scalar_one_or_none()
-                if not publisher:
-                    publisher = Publisher(name=company_name)
-                    db.session.add(publisher)
+                publisher = get_or_create_entity(Publisher, name=company_name)
                 game_instance.publisher = publisher
     except Exception as e:
         print(f"Failed to enumerate companies due to an error: {e}")
