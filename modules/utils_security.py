@@ -53,3 +53,25 @@ def get_allowed_base_directories(app):
         if base_path:
             allowed_bases.append(base_path)
     return allowed_bases
+
+
+def sanitize_path_for_logging(path, max_length=100):
+    """Sanitize path for safe logging by truncating and masking sensitive parts."""
+    if not path or not isinstance(path, str):
+        return "[INVALID_PATH]"
+    
+    # Truncate very long paths
+    if len(path) > max_length:
+        # Keep first 30 chars, middle truncation indicator, and last 30 chars
+        truncated = f"{path[:30]}...{path[-(max_length-33):]}"
+    else:
+        truncated = path
+    
+    # Replace potentially sensitive directory names with placeholders
+    import re
+    # Mask common sensitive patterns
+    sanitized = re.sub(r'[Uu]sers?/[^/]+', 'Users/[USER]', truncated)
+    sanitized = re.sub(r'[Hh]ome/[^/]+', 'home/[USER]', sanitized)
+    sanitized = re.sub(r'\\\\[Uu]sers\\\\[^\\\\]+', r'\\Users\\[USER]', sanitized)
+    
+    return sanitized

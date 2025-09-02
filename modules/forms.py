@@ -14,6 +14,19 @@ from modules.utils_functions import comma_separated_urls
 from modules.utils_themes import ThemeManager
 from flask import current_app
 
+
+def safe_url_validator(form, field):
+    """Validate URL scheme is http or https only."""
+    if field.data and field.data.strip():
+        try:
+            parsed = urlparse(field.data.strip())
+            if parsed.scheme and parsed.scheme.lower() not in ['http', 'https']:
+                raise ValidationError('Only HTTP and HTTPS URLs are allowed.')
+            elif parsed.scheme and parsed.scheme.lower() in ['javascript', 'file', 'ftp', 'data']:
+                raise ValidationError('Only HTTP and HTTPS URLs are allowed.')
+        except Exception:
+            raise ValidationError('Invalid URL format.')
+
 class UpdateUnmatchedFolderForm(FlaskForm):
     folder_id = HiddenField('Folder ID', validators=[DataRequired()])
     new_status = HiddenField('New Status', default='Ignore')
@@ -159,11 +172,11 @@ class IGDBApiForm(FlaskForm):
 
 class AddGameForm(FlaskForm):
     # Existing fields
-    igdb_id = IntegerField('IGDB ID', validators=[DataRequired(), NumberRange()], widget=TextInput())
+    igdb_id = IntegerField('IGDB ID', validators=[DataRequired(), NumberRange(min=1, max=9999999999)], widget=TextInput())
     name = StringField('Name', validators=[DataRequired()])
     summary = TextAreaField('Summary', validators=[Optional()])
     storyline = TextAreaField('Storyline', validators=[Optional()])
-    url = StringField('URL', validators=[Optional(), URL()])
+    url = StringField('URL', validators=[Optional(), URL(), safe_url_validator])
     full_disk_path = StringField('Full Disk Path', validators=[DataRequired()], widget=TextInput())
     video_urls = StringField('Video URLs', validators=[Optional(), comma_separated_urls])
     aggregated_rating = FloatField('Aggregated Rating', validators=[Optional()])
