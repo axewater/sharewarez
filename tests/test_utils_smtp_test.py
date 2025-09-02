@@ -25,6 +25,72 @@ class TestSMTPTesterInit:
         assert tester.debug is False
 
 
+class TestSMTPTesterValidation:
+    """Test SMTPTester input validation."""
+    
+    @pytest.fixture
+    def tester(self):
+        """Create SMTPTester instance for testing."""
+        return SMTPTester()
+    
+    def test_validate_inputs_valid_hostname_and_port(self, tester):
+        """Test validation with valid hostname and port."""
+        is_valid, error = tester._validate_inputs('smtp.example.com', 587)
+        assert is_valid is True
+        assert error == ""
+    
+    def test_validate_inputs_valid_ip_address(self, tester):
+        """Test validation with valid IP address."""
+        is_valid, error = tester._validate_inputs('192.168.1.1', 25)
+        assert is_valid is True
+        assert error == ""
+    
+    def test_validate_inputs_invalid_port_zero(self, tester):
+        """Test validation with invalid port 0."""
+        is_valid, error = tester._validate_inputs('smtp.example.com', 0)
+        assert is_valid is False
+        assert "Invalid port number" in error
+    
+    def test_validate_inputs_invalid_port_too_high(self, tester):
+        """Test validation with invalid port > 65535."""
+        is_valid, error = tester._validate_inputs('smtp.example.com', 65536)
+        assert is_valid is False
+        assert "Invalid port number" in error
+    
+    def test_validate_inputs_invalid_hostname_empty(self, tester):
+        """Test validation with empty hostname."""
+        is_valid, error = tester._validate_inputs('', 587)
+        assert is_valid is False
+        assert "Invalid hostname" in error
+    
+    def test_validate_inputs_invalid_hostname_dangerous_chars(self, tester):
+        """Test validation with hostname containing dangerous characters."""
+        dangerous_hosts = ['smtp;rm -rf /', 'smtp$(whoami)', 'smtp<script>', 'smtp|ls']
+        for host in dangerous_hosts:
+            is_valid, error = tester._validate_inputs(host, 587)
+            assert is_valid is False
+            assert "invalid characters" in error
+    
+    def test_validate_inputs_hostname_too_long(self, tester):
+        """Test validation with hostname longer than 255 characters."""
+        long_hostname = 'a' * 256
+        is_valid, error = tester._validate_inputs(long_hostname, 587)
+        assert is_valid is False
+        assert "Invalid hostname format" in error
+    
+    def test_connection_fails_with_invalid_input(self, tester):
+        """Test that test_connection fails with invalid inputs before attempting connection."""
+        # Test with invalid port
+        success, result = tester.test_connection('smtp.example.com', 0)
+        assert success is False
+        assert "Invalid port number" in result
+        
+        # Test with invalid hostname
+        success, result = tester.test_connection('smtp;evil', 587)
+        assert success is False
+        assert "invalid characters" in result
+
+
 class TestSMTPTesterConnection:
     """Test SMTPTester test_connection method."""
     
@@ -78,7 +144,7 @@ class TestSMTPTesterConnection:
         
         # Verify logging
         mock_log.assert_called_once_with(
-            'SMTP test successful for smtp.example.com:587',
+            'SMTP connection test completed successfully',
             event_type='test',
             event_level='information'
         )
@@ -239,7 +305,7 @@ class TestSMTPTesterConnection:
         
         # Verify failure logging
         mock_log.assert_called_once_with(
-            'SMTP test failed for smtp.example.com:587',
+            'SMTP connection test failed',
             event_type='test',
             event_level='information'
         )
@@ -383,11 +449,12 @@ class TestMainFunction:
         mock_print.assert_any_call("\n✅ SMTP Configuration Test Successful!")
 
     @patch('modules.utils_smtp_test.SMTPTester')
+    @patch('modules.utils_smtp_test.getpass', return_value='testpass')
     @patch('modules.utils_smtp_test.sys.argv', [
         'smtp_test.py', '--host', 'smtp.example.com', '--port', '587',
-        '--username', 'testuser', '--password', 'testpass', '--debug', '--no-tls'
+        '--username', 'testuser', '--debug', '--no-tls'
     ])
-    def test_main_with_all_options(self, mock_tester_class):
+    def test_main_with_all_options(self, mock_getpass, mock_tester_class):
         """Test main function with all command line options."""
         # Setup mocks
         mock_tester = MagicMock()
