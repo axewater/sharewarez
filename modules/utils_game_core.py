@@ -574,13 +574,25 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
         print(f"Failed to enumerate companies due to a database error: {e}")
         
 def get_game_by_uuid(game_uuid):
-    print(f"Searching for game UUID: {game_uuid}")
+    log_system_event(
+        f"Searching for game UUID: {game_uuid[:8]}...",
+        event_type='game',
+        event_level='debug'
+    )
     game = db.session.execute(select(Game).filter_by(uuid=game_uuid)).scalar_one_or_none()
     if game:
-        print(f"Game ID {game.id} with name {game.name} and UUID {game.uuid} relating to IGDB ID {game.igdb_id} found")
+        log_system_event(
+            f"Game '{game.name}' (ID: {game.id}, IGDB: {game.igdb_id}) found for UUID search",
+            event_type='game',
+            event_level='debug'
+        )
         return game
     else:
-        print("Game not found")
+        log_system_event(
+            f"Game not found for UUID: {game_uuid[:8]}...",
+            event_type='game',
+            event_level='debug'
+        )
         return None
     
 def remove_from_lib(game_uuid):
