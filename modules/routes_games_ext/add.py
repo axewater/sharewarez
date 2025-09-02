@@ -1,5 +1,5 @@
 import os
-from flask import render_template, redirect, url_for, flash, copy_current_request_context, session, request
+from flask import render_template, redirect, url_for, flash, copy_current_request_context, session, request, current_app
 from flask_login import login_required, current_user
 from modules.forms import AddGameForm
 from modules.models import Game, Library, UnmatchedFolder, Category, Developer, Publisher
@@ -7,6 +7,7 @@ from modules.utils_functions import read_first_nfo_content, PLATFORM_IDS
 from modules.utils_auth import admin_required
 from modules.utils_scanning import is_scan_job_running, refresh_images_in_background
 from modules.utils_logging import log_system_event
+from modules.utils_security import is_safe_path, get_allowed_base_directories
 from modules.utils_game_core import check_existing_game_by_igdb_id
 from modules import db
 from threading import Thread
@@ -61,6 +62,18 @@ def add_game_manual():
             form.library_uuid.data = library_uuid
     
     if form.validate_on_submit():
+        # Validate full_disk_path security
+        allowed_bases = get_allowed_base_directories(current_app)
+        if not allowed_bases:
+            flash('Service configuration error: No allowed base directories configured.', 'error')
+            return render_template('admin/admin_game_identify.html', form=form, library_uuid=library_uuid, library_name=library_name, platform_name=platform_name, platform_id=platform_id)
+
+        is_safe, error_message = is_safe_path(form.full_disk_path.data, allowed_bases)
+        if not is_safe:
+            print(f"Security error: Game path validation failed for {form.full_disk_path.data}: {error_message}")
+            flash(f"Access denied: {error_message}", 'error')
+            return render_template('admin/admin_game_identify.html', form=form, library_uuid=library_uuid, library_name=library_name, platform_name=platform_name, platform_id=platform_id)
+
         # Check if this is a custom IGDB ID (above 2,000,000,420)
         is_custom_game = int(form.igdb_id.data) >= 2000000420
         

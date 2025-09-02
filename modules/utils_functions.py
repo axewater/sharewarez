@@ -10,7 +10,8 @@ from modules.models import ReleaseGroup, Library, Game
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import select
 from modules.models import GlobalSettings
-from flask import url_for
+from flask import url_for, current_app
+from modules.utils_security import is_safe_path, get_allowed_base_directories
 
 def format_size(size_in_bytes):
     """Format file size from bytes to human-readable format."""
@@ -50,6 +51,22 @@ def get_folder_size_in_bytes(folder_path, timeout=300):
         int: Total size in bytes, or 0 if there was an error
     """
     try:
+        # Validate folder path security (only if we're in an application context)
+        try:
+            if current_app:
+                allowed_bases = get_allowed_base_directories(current_app)
+                if not allowed_bases:
+                    print(f"Security error: No allowed base directories configured for path: {folder_path}")
+                    return 0
+
+                is_safe, error_message = is_safe_path(folder_path, allowed_bases)
+                if not is_safe:
+                    print(f"Security error: Path validation failed for {folder_path}: {error_message}")
+                    return 0
+        except RuntimeError:
+            # Working outside of application context - skip validation for now
+            # This is expected during unit tests
+            pass
         # Check if path exists and is accessible
         if not os.path.exists(folder_path):
             print(f"Error: Path does not exist: {folder_path}")
@@ -96,6 +113,22 @@ def get_folder_size_in_bytes(folder_path, timeout=300):
 def get_folder_size_in_bytes_updates(folder_path, timeout=300):
     """Calculate folder size excluding update and extras folders."""
     try:
+        # Validate folder path security (only if we're in an application context)
+        try:
+            if current_app:
+                allowed_bases = get_allowed_base_directories(current_app)
+                if not allowed_bases:
+                    print(f"Security error: No allowed base directories configured for path: {folder_path}")
+                    return 0
+
+                is_safe, error_message = is_safe_path(folder_path, allowed_bases)
+                if not is_safe:
+                    print(f"Security error: Path validation failed for {folder_path}: {error_message}")
+                    return 0
+        except RuntimeError:
+            # Working outside of application context - skip validation for now  
+            # This is expected during unit tests
+            pass
         # Handle single file case first
         if os.path.isfile(folder_path):
             return os.path.getsize(folder_path)
@@ -151,6 +184,23 @@ def get_folder_size_in_bytes_updates(folder_path, timeout=300):
 def read_first_nfo_content(full_disk_path):
     """Read the content of the first NFO file found in the given path."""
     print(f"Searching for NFO file in: {full_disk_path}")
+    
+    # Validate folder path security (only if we're in an application context)
+    try:
+        if current_app:
+            allowed_bases = get_allowed_base_directories(current_app)
+            if not allowed_bases:
+                print(f"Security error: No allowed base directories configured for path: {full_disk_path}")
+                return None
+
+            is_safe, error_message = is_safe_path(full_disk_path, allowed_bases)
+            if not is_safe:
+                print(f"Security error: Path validation failed for {full_disk_path}: {error_message}")
+                return None
+    except RuntimeError:
+        # Working outside of application context - skip validation for now  
+        # This is expected during unit tests
+        pass
     
     if os.path.isfile(full_disk_path):
         print("Path is a file, not a directory. Skipping NFO scan.")

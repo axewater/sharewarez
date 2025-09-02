@@ -17,6 +17,7 @@ from modules.utils_game_core import remove_from_lib
 from modules.utils_gamenames import get_game_names_from_folder, get_game_names_from_files
 from modules.utils_scanning import process_game_with_fallback, process_game_updates, process_game_extras, is_scan_job_running
 from modules.utils_igdb_api import IGDBRateLimiter
+from modules.utils_security import is_safe_path, get_allowed_base_directories
 
 
 def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remove_missing=False, existing_job=None, download_missing_images=False):
@@ -331,9 +332,24 @@ def handle_auto_scan(auto_form):
         folder_path = auto_form.folder_path.data
         scan_mode = auto_form.scan_mode.data        
         print(f"Auto-scan form submitted. Library: {library.name}, Folder: {folder_path}, Scan mode: {scan_mode}, Download missing images: {download_missing_images}")
+        
+        # Validate folder path security
+        allowed_bases = get_allowed_base_directories(current_app)
+        if not allowed_bases:
+            flash('Service configuration error: No allowed base directories configured.', 'error')
+            return redirect(url_for('main.scan_management', active_tab='auto'))
+        
         # Prepend the base path
         base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
         full_path = os.path.join(base_dir, folder_path)
+        
+        # Security validation: ensure the constructed path is within allowed directories
+        is_safe, error_message = is_safe_path(full_path, allowed_bases)
+        if not is_safe:
+            print(f"Security error: Auto-scan path validation failed for {full_path}: {error_message}")
+            flash(f"Access denied: {error_message}", 'error')
+            return redirect(url_for('main.scan_management', active_tab='auto'))
+        
         if not os.path.exists(full_path) or not os.access(full_path, os.R_OK):
             flash(f"Cannot access folder: {full_path}. Please check the path and permissions.", 'error')
             print(f"Cannot access folder: {full_path}. Please check the path and permissions.", 'error')
@@ -378,9 +394,22 @@ def handle_manual_scan(manual_form):
         session['selected_library_uuid'] = library_uuid
         print(f"Manual scan: Selected library UUID: {library_uuid}")
 
+        # Validate folder path security
+        allowed_bases = get_allowed_base_directories(current_app)
+        if not allowed_bases:
+            flash('Service configuration error: No allowed base directories configured.', 'error')
+            return redirect(url_for('main.scan_management', active_tab='manual'))
+
         base_dir = current_app.config.get('BASE_FOLDER_WINDOWS') if os.name == 'nt' else current_app.config.get('BASE_FOLDER_POSIX')
         full_path = os.path.join(base_dir, folder_path)
         print(f"Manual scan form submitted. Full path: {full_path}, Library UUID: {library_uuid}")
+        
+        # Security validation: ensure the constructed path is within allowed directories
+        is_safe, error_message = is_safe_path(full_path, allowed_bases)
+        if not is_safe:
+            print(f"Security error: Manual scan path validation failed for {full_path}: {error_message}")
+            flash(f"Access denied: {error_message}", 'error')
+            return redirect(url_for('main.scan_management', active_tab='manual'))
 
         if os.path.exists(full_path) and os.access(full_path, os.R_OK):
             print("Folder exists and can be accessed.")

@@ -14,7 +14,6 @@ from . import download_bp
 @login_required
 @admin_required
 def manage_downloads():
-    print("Route: /admin/manage-downloads")    
     # Modified query to return full objects
     download_requests = db.session.execute(
         select(DownloadRequest, User.name.label('username'))
@@ -79,13 +78,14 @@ def clear_processing_downloads():
         # Update their status to 'failed'
         for download in processing_downloads:
             download.status = 'failed'
-            download.error_message = 'Cleared by administrator'
+            # Note: DownloadRequest model doesn't currently have error_message field
         
         db.session.commit()
         flash('Successfully cleared all processing downloads.', 'success')
         
     except Exception as e:
         db.session.rollback()
-        flash(f'Error clearing processing downloads: {str(e)}', 'error')
+        log_system_event('admin_download', f'Error clearing processing downloads: {str(e)}', 'error')
+        flash('An error occurred while clearing processing downloads. Please try again.', 'error')
     
     return redirect(url_for('download.manage_downloads'))

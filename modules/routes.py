@@ -33,6 +33,7 @@ from modules.utils_auth import admin_required
 from modules.utils_gamenames import get_game_names_from_folder, get_game_name_by_uuid
 from modules.utils_scanning import refresh_images_in_background, is_scan_job_running
 from modules.utils_game_core import delete_game
+from modules.utils_security import is_safe_path, get_allowed_base_directories
 from modules.utils_unmatched import handle_delete_unmatched
 from modules.utils_processors import get_global_settings
 from modules import app_start_time, app_version
@@ -141,6 +142,23 @@ def scan_folder():
         
         folder_path = form.folder_path.data
         print(f"Scanning folder: {folder_path}")
+
+        # Validate folder path security
+        allowed_bases = get_allowed_base_directories(current_app)
+        if not allowed_bases:
+            flash('Service configuration error: No allowed base directories configured.', 'error')
+            return render_template('admin/admin_manage_scanjobs.html', 
+                                  form=form, manual_form=form, csrf_form=csrf_form, 
+                                  game_names_with_ids=game_names_with_ids)
+        
+        # Security validation: ensure the folder path is within allowed directories
+        is_safe, error_message = is_safe_path(folder_path, allowed_bases)
+        if not is_safe:
+            print(f"Security error: Scan folder path validation failed for {folder_path}: {error_message}")
+            flash(f"Access denied: {error_message}", 'error')
+            return render_template('admin/admin_manage_scanjobs.html', 
+                                  form=form, manual_form=form, csrf_form=csrf_form, 
+                                  game_names_with_ids=game_names_with_ids)
 
         if os.path.exists(folder_path) and os.access(folder_path, os.R_OK):
             print("Folder exists and is accessible.")

@@ -8,6 +8,7 @@ from sqlalchemy import select
 from . import apis_bp
 
 @apis_bp.route('/get_libraries')
+@login_required
 def get_libraries():
     # Direct query to the Library model
     libraries_query = db.session.execute(select(Library)).scalars().all()
