@@ -1,10 +1,11 @@
-from flask import render_template, redirect, url_for, flash, copy_current_request_context, request, abort
+from flask import render_template, redirect, url_for, flash, copy_current_request_context, request, abort, current_app
 from flask_login import login_required, current_user
 from modules.forms import AddGameForm
 from modules.models import Game, Library, Category, Developer, Publisher
 from modules.utils_functions import read_first_nfo_content, get_folder_size_in_bytes_updates, format_size, PLATFORM_IDS
 from modules.utils_auth import admin_required
 from modules.utils_scanning import is_scan_job_running, refresh_images_in_background
+from modules.utils_security import is_safe_path, get_allowed_base_directories
 from modules.utils_logging import log_system_event
 from modules import db
 from threading import Thread
@@ -31,6 +32,18 @@ def game_edit(game_uuid):
             flash('Cannot edit the game while a scan job is running. Please try again later.', 'error')
             print("Attempt to edit a game while a scan job is running by user:", current_user.name)
             # Re-render the template with the current form data
+            return render_template('admin/admin_game_identify.html', form=form, game_uuid=game_uuid, action="edit")
+
+        # Validate full_disk_path security
+        allowed_bases = get_allowed_base_directories(current_app)
+        if not allowed_bases:
+            flash('Service configuration error: No allowed base directories configured.', 'error')
+            return render_template('admin/admin_game_identify.html', form=form, game_uuid=game_uuid, action="edit")
+
+        is_safe, error_message = is_safe_path(form.full_disk_path.data, allowed_bases)
+        if not is_safe:
+            print(f"Security error: Game path validation failed for {form.full_disk_path.data}: {error_message}")
+            flash(f"Access denied: {error_message}", 'error')
             return render_template('admin/admin_game_identify.html', form=form, game_uuid=game_uuid, action="edit")
 
         # Check if any other game has the same igdb_id and is not the current game

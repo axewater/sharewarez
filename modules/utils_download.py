@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import Tuple
 from modules.utils_filename import sanitize_filename
 from modules.models import DownloadRequest, GlobalSettings, db
+from modules.utils_security import is_safe_path, get_allowed_base_directories
 from sqlalchemy import select
 
 def zip_game(download_request_id, app, zip_file_path):
@@ -18,8 +19,21 @@ def zip_game(download_request_id, app, zip_file_path):
 
         print(f"Processing game: {game.name}")
         
-        zip_save_path = app.config['ZIP_SAVE_PATH']
+        # Validate game path is within allowed directories
+        allowed_bases = get_allowed_base_directories(app)
+        if not allowed_bases:
+            print("Error: No allowed base directories configured")
+            update_download_request(download_request, 'failed', "Error: Service configuration error")
+            return
+            
         source_path = game.full_disk_path
+        is_safe, error_message = is_safe_path(source_path, allowed_bases)
+        if not is_safe:
+            print(f"Security error: Game path validation failed for {source_path}: {error_message}")
+            update_download_request(download_request, 'failed', f"Error: {error_message}")
+            return
+        
+        zip_save_path = app.config['ZIP_SAVE_PATH']
         safe_name = sanitize_filename(os.path.basename(zip_file_path))
         zip_file_path = os.path.join(os.path.dirname(zip_file_path), safe_name)
 
@@ -33,6 +47,14 @@ def zip_game(download_request_id, app, zip_file_path):
         if os.path.isfile(zip_file_path):
             print(f"Source is a file, providing direct link: {zip_file_path}")
             update_download_request(download_request, 'available', zip_file_path)
+            return
+        
+        # Validate destination ZIP path is within the expected ZIP save directory (only when creating ZIP)
+        abs_zip_path = os.path.abspath(os.path.realpath(zip_file_path))
+        abs_zip_save_path = os.path.abspath(os.path.realpath(zip_save_path))
+        if not abs_zip_path.startswith(abs_zip_save_path):
+            print(f"Security error: ZIP destination path outside allowed directory: {zip_file_path}")
+            update_download_request(download_request, 'failed', "Error: Invalid destination path")
             return
        
         # Proceed to zip the game
@@ -90,8 +112,21 @@ def zip_folder(download_request_id, app, file_location, file_name):
 
         print(f"Processing file for game: {game.name}")
         
-        zip_save_path = app.config['ZIP_SAVE_PATH']
+        # Validate file location is within allowed directories
+        allowed_bases = get_allowed_base_directories(app)
+        if not allowed_bases:
+            print("Error: No allowed base directories configured")
+            update_download_request(download_request, 'failed', "Error: Service configuration error")
+            return
+            
         source_path = file_location
+        is_safe, error_message = is_safe_path(source_path, allowed_bases)
+        if not is_safe:
+            print(f"Security error: File location validation failed for {source_path}: {error_message}")
+            update_download_request(download_request, 'failed', f"Error: {error_message}")
+            return
+        
+        zip_save_path = app.config['ZIP_SAVE_PATH']
 
         # Check if source path exists
         if not os.path.exists(source_path):
@@ -114,6 +149,15 @@ def zip_folder(download_request_id, app, file_location, file_name):
                     
             safe_name = sanitize_filename(f"{file_name}.zip")
             zip_file_path = os.path.join(zip_save_path, safe_name)
+            
+            # Validate destination ZIP path is within the expected ZIP save directory
+            abs_zip_path = os.path.abspath(os.path.realpath(zip_file_path))
+            abs_zip_save_path = os.path.abspath(os.path.realpath(zip_save_path))
+            if not abs_zip_path.startswith(abs_zip_save_path):
+                print(f"Security error: ZIP destination path outside allowed directory: {zip_file_path}")
+                update_download_request(download_request, 'failed', "Error: Invalid destination path")
+                return
+                
             print(f"Zipping game folder: {source_path} to {zip_file_path} with storage method.")
             
             with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_STORED) as zipf:
