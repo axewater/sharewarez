@@ -7,7 +7,8 @@ from modules.utils_functions import read_first_nfo_content, PLATFORM_IDS
 from modules.utils_auth import admin_required
 from modules.utils_scanning import is_scan_job_running, refresh_images_in_background
 from modules.utils_logging import log_system_event
-from modules.utils_security import is_safe_path, get_allowed_base_directories
+from modules.utils_security import is_safe_path, get_allowed_base_directories, sanitize_path_for_logging
+from modules.utils_functions import sanitize_string_input
 from modules.utils_game_core import check_existing_game_by_igdb_id
 from modules import db
 from threading import Thread
@@ -23,9 +24,13 @@ from . import games_bp
 def add_game_manual():
     if is_scan_job_running():
         flash('Cannot add a new game while a scan job is running. Please try again later.', 'error')
-        print("Attempt to add a new game while a scan job is running.")
+        log_system_event(
+            f"Admin {current_user.name} attempted to add game while scan job is running",
+            event_type='security',
+            event_level='warning'
+        )
         
-        # Determine redirection based on from_unmatched
+        # Determine redirection based from_unmatched
         from_unmatched = request.args.get('from_unmatched', 'false') == 'true'
         if from_unmatched:
             return redirect(url_for('main.scan_management', active_tab='unmatched'))
@@ -41,7 +46,11 @@ def add_game_manual():
 
     # Populate the choices for the library_uuid field
     form.library_uuid.choices = [(str(library.uuid), library.name) for library in db.session.execute(select(Library).order_by(Library.name)).scalars().all()]
-    print(f'agm Library choices: {form.library_uuid.choices}')
+    log_system_event(
+        f"Add game form loaded with {len(form.library_uuid.choices)} library options",
+        event_type='form',
+        event_level='debug'
+    )
     
     # Fetch library details for displaying on the form
     library_uuid = request.args.get('library_uuid')
@@ -70,7 +79,12 @@ def add_game_manual():
 
         is_safe, error_message = is_safe_path(form.full_disk_path.data, allowed_bases)
         if not is_safe:
-            print(f"Security error: Game path validation failed for {form.full_disk_path.data}: {error_message}")
+            sanitized_path = sanitize_path_for_logging(form.full_disk_path.data)
+            log_system_event(
+                f"Path validation failed for admin {current_user.name}: {sanitized_path} - {error_message}",
+                event_type='security',
+                event_level='warning'
+            )
             flash(f"Access denied: {error_message}", 'error')
             return render_template('admin/admin_game_identify.html', form=form, library_uuid=library_uuid, library_name=library_name, platform_name=platform_name, platform_id=platform_id)
 
@@ -103,38 +117,49 @@ def add_game_manual():
         new_game.platforms = form.platforms.data
         new_game.player_perspectives = form.player_perspectives.data
 
-        # Handle developer
+        # Handle developer with input sanitization
         if form.developer.data and form.developer.data != 'Not Found':
-            developer = db.session.execute(select(Developer).filter_by(name=form.developer.data)).scalars().first()
-            if not developer:
-                developer = Developer(name=form.developer.data)
-                db.session.add(developer)
-                db.session.flush() 
-            new_game.developer = developer
+            sanitized_developer_name = sanitize_string_input(form.developer.data, 255)
+            if sanitized_developer_name:
+                developer = db.session.execute(select(Developer).filter_by(name=sanitized_developer_name)).scalars().first()
+                if not developer:
+                    developer = Developer(name=sanitized_developer_name)
+                    db.session.add(developer)
+                    db.session.flush() 
+                new_game.developer = developer
 
+        # Handle publisher with input sanitization
         if form.publisher.data and form.publisher.data != 'Not Found':
-            publisher = db.session.execute(select(Publisher).filter_by(name=form.publisher.data)).scalars().first()
-            if not publisher:
-                publisher = Publisher(name=form.publisher.data)
-                db.session.add(publisher)
-                db.session.flush()
-            new_game.publisher = publisher
+            sanitized_publisher_name = sanitize_string_input(form.publisher.data, 255)
+            if sanitized_publisher_name:
+                publisher = db.session.execute(select(Publisher).filter_by(name=sanitized_publisher_name)).scalars().first()
+                if not publisher:
+                    publisher = Publisher(name=sanitized_publisher_name)
+                    db.session.add(publisher)
+                    db.session.flush()
+                new_game.publisher = publisher
         new_game.nfo_content = read_first_nfo_content(form.full_disk_path.data)
 
         try:
             db.session.add(new_game)
-            db.session.commit()
-            flash('Game added successfully.', 'success')
-            log_system_event(f"Game {game_name} added manually by admin {current_user.name}",  event_type='game', event_level='information')
             
+            # Handle unmatched folder deletion in same transaction for consistency
+            unmatched_folder = None
             if full_disk_path: 
                 unmatched_folder = db.session.execute(select(UnmatchedFolder).filter_by(folder_path=full_disk_path)).scalars().first()
                 if unmatched_folder:
                     db.session.delete(unmatched_folder)
-                    print("Deleted unmatched folder:", unmatched_folder)
-                    db.session.commit()
-            print(f"add_game_manual Game: {game_name} added by user {current_user.name}.")
-            log_system_event(f"Game {game_name} added manually by user {current_user.name}", event_type='game', event_level='information')
+            
+            # Commit both operations together
+            db.session.commit()
+            
+            flash('Game added successfully.', 'success')
+            log_system_event(
+                f"Game '{game_name}' added manually by admin {current_user.name}" + 
+                (f" (removed from unmatched list)" if unmatched_folder else ""),
+                event_type='game',
+                event_level='information'
+            )
             # Trigger image refresh after adding the game
             @copy_current_request_context
             def refresh_images_in_thread():
@@ -143,7 +168,11 @@ def add_game_manual():
             # Start the background process for refreshing images
             thread = Thread(target=refresh_images_in_thread)
             thread.start()
-            print(f"Refresh images thread started for game UUID: {new_game.uuid}")
+            log_system_event(
+                f"Image refresh background task started for game '{game_name}' (UUID: {new_game.uuid})",
+                event_type='task',
+                event_level='debug'
+            )
             
             if from_unmatched:
                 return redirect(url_for('main.scan_management', active_tab='unmatched'))
@@ -151,10 +180,19 @@ def add_game_manual():
                 return redirect(url_for('library.library'))
         except SQLAlchemyError as e:
             db.session.rollback()
-            print(f"Error saving the game to the database: {e}")
+            log_system_event(
+                f"Database error adding game '{game_name}' by admin {current_user.name}: {str(e)[:200]}",
+                event_type='error',
+                event_level='error'
+            )
             flash('An error occurred while adding the game. Please try again.', 'error')
     else:
-        print(f"Form validation failed: {form.errors}")
+        if form.errors:
+            log_system_event(
+                f"Form validation failed for admin {current_user.name} adding game: {len(form.errors)} errors",
+                event_type='form',
+                event_level='warning'
+            )
     return render_template(
         'admin/admin_game_identify.html',
         form=form,
