@@ -103,7 +103,7 @@ class TestGetGlobalSettings:
         }
         
         assert result == expected_defaults
-        assert result['app_version'] == '2.6.0'
+        assert result['app_version'] == app_version
     
     def test_get_global_settings_empty_settings(self, app, db_session):
         """Test get_global_settings with GlobalSettings record but null settings."""
