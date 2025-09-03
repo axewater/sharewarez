@@ -9,11 +9,16 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
 
-<body data-base-delete-url="{{ url_for('main.delete_full_library', library_uuid='') }}">
-    <!-- Loading Spinner -->
+<body data-base-delete-url="{{ url_for('main.delete_full_library', library_uuid='') }}" data-delete-url="#" data-progress-url="{{ url_for('main.delete_library_progress', job_id='') }}" data-check-progress-url="{{ url_for('main.check_deletion_progress', job_id='') }}">
+    <!-- Loading Spinner with Progress -->
     <div id="deleteSpinner" class="spinner-overlay" style="display: none;">
         <div class="spinner-container">
             <img src="{{ url_for('static', filename='newstyle/searching_small.gif') }}" alt="Loading...">
+            <div id="progressText" class="progress-text">Preparing deletion...</div>
+            <div id="progressBar" class="progress-bar" style="display: none;">
+                <div id="progressFill" class="progress-fill"></div>
+                <div id="progressCounter" class="progress-counter">0/0</div>
+            </div>
         </div>
     </div>
     <!-- Rest of your HTML -->

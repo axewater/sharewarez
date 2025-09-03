@@ -122,6 +122,14 @@
                         <div class="card-content">
                             <div class="path-input-group">
                                 {{ auto_form.folder_path.label(class="config-label") }}
+                                <div class="scan-controls-group" style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                                    <button type="submit" name="submit" value="AutoScan" class="btn btn-primary browse-btn" style="margin-right: 10px;">
+                                        <i class="fas fa-play"></i> Start Scan
+                                    </button>
+                                    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                                        <img src="/static/newstyle/searching_small.gif" alt="Loading...">
+                                    </div>
+                                </div>
                                 <div class="input-with-button">
                                     {{ auto_form.folder_path(class="form-control path-input") }}
                                     <button id="browseFoldersBtn" type="button" class="btn btn-info browse-btn" data-browse-url="{{ url_for('apis.browse_folders_ss') }}">
@@ -140,18 +148,6 @@
                                     <i class="fas fa-arrow-up"></i> Up
                                 </button>
                                 <div id="folderContents" class="folder-contents"></div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Action Card -->
-                    <div class="action-card">
-                        <div class="action-content">
-                            <button type="submit" name="submit" value="AutoScan" class="btn btn-primary scan-btn">
-                                <i class="fas fa-play"></i> Start Scan
-                            </button>
-                            <div id="loadingSpinner" class="loading-spinner" style="display: none;">
-                                <img src="/static/newstyle/searching_small.gif" alt="Loading...">
                             </div>
                         </div>
                     </div>

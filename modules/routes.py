@@ -4,7 +4,7 @@ from threading import Thread
 from config import Config
 from flask import (
     Flask, render_template, flash, redirect, url_for, request, Blueprint, 
-    jsonify, session, abort, current_app, 
+    jsonify, session, abort, current_app, Response,
     copy_current_request_context, g, current_app
 )
 from flask_login import current_user, login_required
@@ -43,6 +43,9 @@ s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False
+
+# Progress tracking for library deletion
+deletion_progress = {}
 
 @bp.context_processor
 @cache.cached(timeout=500, key_prefix='global_settings')
@@ -659,86 +662,229 @@ def delete_full_game():
         return jsonify({'status': 'error', 'message': f'Error deleting game and folder: {e}'}), 500
 
 
+@bp.route('/delete_library_progress/<job_id>')
+@login_required 
+@admin_required
+def delete_library_progress(job_id):
+    """SSE endpoint for library deletion progress"""
+    print(f"SSE endpoint accessed for job_id: {job_id} by user: {current_user.name if current_user.is_authenticated else 'Anonymous'}")
+    def event_stream():
+        import time
+        
+        # Initial delay to ensure EventSource connection is established
+        time.sleep(0.2)
+        
+        # Send initial connection confirmation
+        yield f"data: {json.dumps({'status': 'connected', 'message': 'Progress tracking connected'})}\n\n"
+        
+        # Wait for progress data to appear (up to 10 seconds)
+        wait_count = 0
+        while job_id not in deletion_progress and wait_count < 20:
+            time.sleep(0.5)
+            wait_count += 1
+        
+        if job_id not in deletion_progress:
+            yield f"data: {json.dumps({'status': 'error', 'message': 'Progress data not found'})}\n\n"
+            return
+        
+        # Stream progress updates
+        while job_id in deletion_progress:
+            progress_data = deletion_progress[job_id]
+            yield f"data: {json.dumps(progress_data)}\n\n"
+            
+            if progress_data.get('status') == 'completed' or progress_data.get('status') == 'error':
+                # Keep data for a moment to ensure client receives it
+                time.sleep(1)
+                # Clean up after completion
+                if job_id in deletion_progress:
+                    del deletion_progress[job_id]
+                break
+            
+            # Wait before checking again
+            time.sleep(0.3)
+    
+    # Create response with proper SSE headers
+    response = Response(event_stream(), mimetype='text/event-stream')
+    response.headers['Cache-Control'] = 'no-cache'
+    response.headers['Connection'] = 'keep-alive'
+    response.headers['X-Accel-Buffering'] = 'no'  # Disable nginx buffering
+    return response
+
+def delete_library_background(library_uuid, job_id):
+    """Background task for deleting a library with progress updates"""
+    @copy_current_request_context
+    def delete_task():
+        import time
+        try:
+            library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalar_one_or_none()
+            if not library:
+                deletion_progress[job_id] = {
+                    'status': 'error',
+                    'message': 'Library not found',
+                    'current': 0,
+                    'total': 0
+                }
+                return
+            
+            print(f"Background deletion of library: {library.name}")
+            
+            # Update progress - starting (give UI time to connect)
+            deletion_progress[job_id].update({
+                'status': 'starting',
+                'message': f'Preparing to delete library "{library.name}"...',
+                'current': 0,
+                'total': 0
+            })
+            
+            # Small delay to allow EventSource to connect
+            time.sleep(0.5)
+            
+            # Safety check: Cancel any running scan jobs for this library first
+            running_scan_jobs = db.session.execute(
+                select(ScanJob).filter_by(library_uuid=library.uuid, status='Running')
+            ).scalars().all()
+            
+            for running_job in running_scan_jobs:
+                running_job.status = 'Failed'
+                running_job.error_message = 'Scan cancelled due to library deletion'
+                running_job.is_enabled = False
+                print(f"Cancelled running scan job: {running_job.id}")
+            
+            if running_scan_jobs:
+                db.session.commit()  # Commit the cancellation first
+                print(f"Cancelled {len(running_scan_jobs)} running scan jobs before library deletion")
+            
+            # Get all games to delete
+            games_to_delete = db.session.execute(select(Game).filter_by(library_uuid=library.uuid)).scalars().all()
+            total_games = len(games_to_delete)
+            games_deleted = 0
+            games_failed = 0
+            
+            deletion_progress[job_id].update({
+                'status': 'deleting_games',
+                'total': total_games,
+                'current': 0
+            })
+            
+            # Delete games with progress updates
+            for i, game in enumerate(games_to_delete, 1):
+                try:
+                    # Update progress
+                    deletion_progress[job_id].update({
+                        'current': i,
+                        'message': f'Deleting game {i}/{total_games}: {game.name}',
+                        'current_game': game.name
+                    })
+                    
+                    # Use the existing delete_game function which handles all related data
+                    delete_game(game.uuid)
+                    games_deleted += 1
+                    print(f'Successfully deleted game: {game.name}')
+                    
+                except FileNotFoundError as fnfe:
+                    print(f'File not found for game {game.name} (UUID: {game.uuid}): {fnfe}')
+                    games_deleted += 1  # Still count as deleted since it's not blocking
+                except Exception as e:
+                    print(f'Error deleting game {game.name} (UUID: {game.uuid}): {e}')
+                    games_failed += 1
+                    # Continue with other games instead of stopping
+            
+            # Update progress - cleaning up
+            deletion_progress[job_id].update({
+                'status': 'cleanup',
+                'message': 'Cleaning up scan jobs and library data...',
+                'current': total_games,
+                'total': total_games
+            })
+            
+            # Delete scan jobs related to this library
+            scan_jobs = db.session.execute(select(ScanJob).filter_by(library_uuid=library.uuid)).scalars().all()
+            for scan_job in scan_jobs:
+                try:
+                    db.session.delete(scan_job)
+                    print(f'Deleted scan job: {scan_job.id}')
+                except Exception as e:
+                    print(f'Error deleting scan job {scan_job.id}: {e}')
+            
+            # Finally delete the library itself
+            library_name = library.name
+            db.session.delete(library)
+            
+            # Commit all changes
+            db.session.commit()
+            
+            # Update progress - completed
+            if games_failed == 0:
+                message = f'Library "{library_name}" and all {games_deleted} games have been deleted successfully.'
+            else:
+                message = f'Library "{library_name}" deleted. {games_deleted} games deleted successfully, {games_failed} failed.'
+            
+            deletion_progress[job_id] = {
+                'status': 'completed',
+                'message': message,
+                'current': total_games,
+                'total': total_games,
+                'games_deleted': games_deleted,
+                'games_failed': games_failed,
+                'library_name': library_name
+            }
+            
+        except Exception as e:
+            db.session.rollback()
+            error_msg = f"Error during library deletion: {str(e)}"
+            print(error_msg)
+            deletion_progress[job_id] = {
+                'status': 'error',
+                'message': error_msg,
+                'current': 0,
+                'total': 0
+            }
+    
+    # Start the background task
+    thread = Thread(target=delete_task)
+    thread.start()
+
 @bp.route('/delete_full_library/<library_uuid>', methods=['POST'])
 @login_required
 @admin_required
 def delete_full_library(library_uuid=None):
     print(f"Route: /delete_full_library - {current_user.name} - {current_user.role} method: {request.method} UUID: {library_uuid}")
-    try:
-        if library_uuid:
-            library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalar_one_or_none()
-            if library:
-                print(f"Deleting full library: {library}")
-                
-                # Safety check: Cancel any running scan jobs for this library first
-                running_scan_jobs = db.session.execute(
-                    select(ScanJob).filter_by(library_uuid=library.uuid, status='Running')
-                ).scalars().all()
-                
-                for running_job in running_scan_jobs:
-                    running_job.status = 'Failed'
-                    running_job.error_message = 'Scan cancelled due to library deletion'
-                    running_job.is_enabled = False
-                    print(f"Cancelled running scan job: {running_job.id}")
-                
-                if running_scan_jobs:
-                    db.session.commit()  # Commit the cancellation first
-                    print(f"Cancelled {len(running_scan_jobs)} running scan jobs before library deletion")
-                
-                # Delete all related records in proper order to avoid foreign key violations
-                
-                # 1. Delete all games in the library (this will cascade to related tables like images, URLs, etc.)
-                games_to_delete = db.session.execute(select(Game).filter_by(library_uuid=library.uuid)).scalars().all()
-                games_deleted = 0
-                games_failed = 0
-                
-                for game in games_to_delete:
-                    try:
-                        # Use the existing delete_game function which handles all related data
-                        delete_game(game.uuid)
-                        games_deleted += 1
-                        print(f'Successfully deleted game: {game.name}')
-                    except FileNotFoundError as fnfe:
-                        print(f'File not found for game {game.name} (UUID: {game.uuid}): {fnfe}')
-                        games_deleted += 1  # Still count as deleted since it's not blocking
-                    except Exception as e:
-                        print(f'Error deleting game {game.name} (UUID: {game.uuid}): {e}')
-                        games_failed += 1
-                        # Continue with other games instead of stopping
-                
-                # 2. Delete scan jobs related to this library (nullable=True, so safe)
-                scan_jobs = db.session.execute(select(ScanJob).filter_by(library_uuid=library.uuid)).scalars().all()
-                for scan_job in scan_jobs:
-                    try:
-                        db.session.delete(scan_job)
-                        print(f'Deleted scan job: {scan_job.id}')
-                    except Exception as e:
-                        print(f'Error deleting scan job {scan_job.id}: {e}')
-                
-                # 3. UnmatchedFolders will be handled by CASCADE delete (ondelete="CASCADE")
-                
-                # 4. Finally delete the library itself
-                db.session.delete(library)
-                
-                # Commit all changes
-                db.session.commit()
-                
-                if games_failed == 0:
-                    flash(f'Library "{library.name}" and all {games_deleted} games have been deleted successfully.', 'success')
-                else:
-                    flash(f'Library "{library.name}" deleted. {games_deleted} games deleted successfully, {games_failed} failed.', 'warning')
-                    
-            else:
-                flash('Library not found.', 'error')
-        else:
-            flash('No library specified.', 'error')
-            
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error during library deletion: {str(e)}")
-        flash(f"Error during deletion: {str(e)}", 'error')
+    
+    if not library_uuid:
+        return jsonify({'status': 'error', 'message': 'No library specified'}), 400
+    
+    # Generate a unique job ID
+    job_id = str(uuid.uuid4())
+    
+    # Get library info immediately for progress tracking
+    library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalar_one_or_none()
+    if not library:
+        return jsonify({'status': 'error', 'message': 'Library not found'}), 404
+    
+    # Create initial progress data immediately in main thread to prevent race condition
+    deletion_progress[job_id] = {
+        'status': 'initializing',
+        'message': f'Preparing to delete library "{library.name}"...',
+        'current': 0,
+        'total': 0,
+        'library_name': library.name
+    }
+    
+    # Start background deletion
+    delete_library_background(library_uuid, job_id)
+    
+    # Return job ID for progress tracking
+    return jsonify({'status': 'started', 'job_id': job_id})
 
-    return redirect(url_for('library.libraries'))
+@bp.route('/check_deletion_progress/<job_id>')
+@login_required
+@admin_required
+def check_deletion_progress(job_id):
+    """Simple progress check endpoint as fallback for SSE"""
+    if job_id in deletion_progress:
+        return jsonify(deletion_progress[job_id])
+    else:
+        return jsonify({'status': 'not_found', 'message': 'Job not found'}), 404
 
     
 @bp.add_app_template_global  
