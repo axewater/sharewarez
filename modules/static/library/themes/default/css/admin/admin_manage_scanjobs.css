@@ -475,23 +475,90 @@
 
 /* No libraries card */
 .no-libraries-card {
-    background: rgba(255, 193, 7, 0.1);
-    border: 1px solid rgba(255, 193, 7, 0.3);
-    border-radius: 15px;
-    padding: 40px;
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 20px;
+    padding: 50px 40px;
     text-align: center;
     color: #fff;
+    max-width: 600px;
+    margin: 0 auto;
+    transition: all 0.3s ease;
+}
+
+.no-libraries-card:hover {
+    background: rgba(59, 130, 246, 0.12);
+    border-color: rgba(59, 130, 246, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+}
+
+.no-libraries-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
 }
 
 .no-libraries-content h4 {
-    color: #ffc107;
-    margin-bottom: 15px;
+    color: #60a5fa;
+    margin-bottom: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
 }
 
 .no-libraries-content i {
-    font-size: 3rem;
-    color: #ffc107;
-    margin-bottom: 20px;
+    font-size: 2.5rem;
+    color: #60a5fa;
+    margin-bottom: 5px;
+    opacity: 0.9;
+}
+
+.no-libraries-content p {
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.no-libraries-content .help-text {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 10px;
+}
+
+/* Elegant button styling */
+.btn-elegant {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: white;
+    padding: 12px 30px;
+    border-radius: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+    font-size: 1.05rem;
+}
+
+.btn-elegant:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-elegant:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.create-library-btn i {
+    font-size: 1.1rem;
 }
 
 /* General form styling */

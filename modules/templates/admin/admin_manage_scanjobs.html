@@ -155,11 +155,12 @@
                 {% else %}
                 <div class="no-libraries-card">
                     <div class="no-libraries-content">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <h4>No Libraries Found</h4>
-                        <p>You need to create at least one library before you can run scans.</p>
-                        <a href="{{ url_for('library.libraries') }}" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Create Library
+                        <i class="fas fa-book-open"></i>
+                        <h4>Welcome to Scan Management</h4>
+                        <p>Get started by creating your first library to organize your game collection.</p>
+                        <p class="help-text">Libraries help organize your games by platform, genre, or any way you prefer.</p>
+                        <a href="{{ url_for('library.libraries') }}" class="btn btn-elegant create-library-btn">
+                            <i class="fas fa-plus-circle"></i> Create Your First Library
                         </a>
                     </div>
                 </div>
