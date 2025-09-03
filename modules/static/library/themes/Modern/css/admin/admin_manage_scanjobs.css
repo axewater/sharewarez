@@ -97,7 +97,7 @@
     background-color: rgba(0, 123, 255, 0.1) !important;
 }
 
-.nav-tabs .nav-link, .nav-tabs .nav-link.active, .nav-tabs .nav-link:hover {
+.nav-tabs .nav-link, .nav-tabs .nav-link:hover {
 	border: 0;
     border-bottom: 1px solid grey;
     color: gray;
@@ -107,11 +107,18 @@
 	
 }
 
-.nav-tabs .nav-link.active {
-	color: #000000;
+/* High specificity selectors to override Bootstrap defaults */
+.admin_manage_scanjobs-nav-tabs .nav-link.active,
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-item.show .nav-link {
+	color: #ffffff !important;
     border-radius: 0;
-	border-bottom: 2px solid #474747;
-	background: #f0f0f0;
+	border-bottom: 2px solid #ffffff !important;
+	background: rgba(255, 255, 255, 0.2) !important;
+	backdrop-filter: blur(10px);
+	border-left: none !important;
+	border-right: none !important;
+	border-top: none !important;
 }
 
 .admin_manage_scanjobs-nav-link:hover {
