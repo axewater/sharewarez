@@ -3,10 +3,7 @@
 {% extends "base.html" %}
 {% block content %}
 {% block head %}
-    <!-- DataTables CSS and JS -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 {% endblock %}
 
@@ -44,124 +41,158 @@
         <!-- Tab panes -->
         <div class="admin_manage_scanjobs-tab-content tab-content">
             <!-- Auto Scan Tab -->
-            <div id="autoScan" class="admin_manage_scanjobs-tab-panel tab-pane active"><br>
-                <div class="admin_manage_scanjobs-tab-header">
-                    <h3>Automatic Folder Scan</h3>
+            <div id="autoScan" class="admin_manage_scanjobs-tab-panel tab-pane active">
+                <div class="auto-scan-header">
+                    <h3 class="section-title">Automatic Folder Scan</h3>
+                    <p class="section-subtitle">Configure and run automated scans to discover games in your library folders</p>
                 </div>
+                
                 {% if libraries|length > 0 %}
                 <form action="" method="post">
                     {{ auto_form.hidden_tag() }}
                     
-                    <div class="selection-container glass-panel">
-                        <!-- Library Dropdown -->
-                        <div class="admin_manage_scanjobs-library form-group">
-                            {{ auto_form.library_uuid.label }}
-                            {{ auto_form.library_uuid(class="form-control", id="libraryUuid", onchange='onLibraryChange(this.value, "auto")') }}
-                            {% if auto_form.library_uuid.errors %}
-                                {% for error in auto_form.library_uuid.errors %}
-                                    <div class="alert alert-danger">{{ error }}</div>
-                                {% endfor %}
-                            {% endif %}
+                    <!-- Configuration Card -->
+                    <div class="config-card">
+                        <div class="card-header">
+                            <h4 class="card-title"><i class="fas fa-cogs"></i> Scan Configuration</h4>
                         </div>
-
-                        <!-- Scan Mode -->
-                        <div class="admin_manage_scanjobs-scanmode form-group">
-                            {{ auto_form.scan_mode.label }}
-                            {% for subfield in auto_form.scan_mode %}
-                                <div class="form-check">
-                                    {{ subfield(class="form-check-input") }}
-                                    {{ subfield.label(class="form-check-label") }}
+                        <div class="card-content">
+                            <div class="config-grid">
+                                <!-- Library Selection -->
+                                <div class="config-item">
+                                    {{ auto_form.library_uuid.label(class="config-label") }}
+                                    {{ auto_form.library_uuid(class="form-control config-input", id="libraryUuid", onchange='onLibraryChange(this.value, "auto")') }}
+                                    {% if auto_form.library_uuid.errors %}
+                                        {% for error in auto_form.library_uuid.errors %}
+                                            <div class="alert alert-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
-                            {% endfor %}
-                            {% if auto_form.scan_mode.errors %}
-                                {% for error in auto_form.scan_mode.errors %}
-                                    <div class="alert alert-danger">{{ error }}</div>
-                                {% endfor %}
-                            {% endif %}
-                        </div>
-        
-                        <!-- Remove Missing Games Option -->
-                        <div class="admin_manage_scanjobs-removemissing form-group">
-                            <div class="form-check">
-                                {{ auto_form.remove_missing(class="form-check-input") }}
-                                {{ auto_form.remove_missing.label(class="form-check-label") }}
+
+                                <!-- Scan Mode -->
+                                <div class="config-item">
+                                    <label class="config-label">{{ auto_form.scan_mode.label.text }}</label>
+                                    <div class="radio-group">
+                                        {% for subfield in auto_form.scan_mode %}
+                                            <div class="radio-option">
+                                                {{ subfield(class="form-check-input") }}
+                                                {{ subfield.label(class="form-check-label") }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% if auto_form.scan_mode.errors %}
+                                        {% for error in auto_form.scan_mode.errors %}
+                                            <div class="alert alert-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
                             </div>
-                        </div>
-                        
-                        <!-- Download Missing Images Option -->
-                        <div class="admin_manage_scanjobs-downloadmissingimages form-group">
-                            <div class="form-check">
-                                {{ auto_form.download_missing_images(class="form-check-input") }}
-                                {{ auto_form.download_missing_images.label(class="form-check-label") }}
+                            
+                            <!-- Options Row -->
+                            <div class="options-row">
+                                <div class="option-item">
+                                    <div class="form-check modern-checkbox">
+                                        {{ auto_form.remove_missing(class="form-check-input") }}
+                                        {{ auto_form.remove_missing.label(class="form-check-label") }}
+                                    </div>
+                                </div>
+                                
+                                <div class="option-item">
+                                    <div class="form-check modern-checkbox">
+                                        {{ auto_form.download_missing_images(class="form-check-input") }}
+                                        {{ auto_form.download_missing_images.label(class="form-check-label") }}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                         
-                    <!-- Folder Path -->
-                    <div class="admin_manage_scanjobs-folderpath form-group">
-                        {{ auto_form.folder_path.label }}
-                        {{ auto_form.folder_path(class="form-control") }}
-                        {% if auto_form.folder_path.errors %}
-                            {% for error in auto_form.folder_path.errors %}
-                                <div class="alert alert-danger">{{ error }}</div>
-                            {% endfor %}
-                        {% endif %}
+                    <!-- Path Selection Card -->
+                    <div class="path-card">
+                        <div class="card-header">
+                            <h4 class="card-title"><i class="fas fa-folder"></i> Scan Location</h4>
+                        </div>
+                        <div class="card-content">
+                            <div class="path-input-group">
+                                {{ auto_form.folder_path.label(class="config-label") }}
+                                <div class="input-with-button">
+                                    {{ auto_form.folder_path(class="form-control path-input") }}
+                                    <button id="browseFoldersBtn" type="button" class="btn btn-info browse-btn" data-browse-url="{{ url_for('apis.browse_folders_ss') }}">
+                                        <i class="fas fa-search"></i> Browse
+                                    </button>
+                                </div>
+                                {% if auto_form.folder_path.errors %}
+                                    {% for error in auto_form.folder_path.errors %}
+                                        <div class="alert alert-danger">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            
+                            <div class="folder-browser">
+                                <button id="upFolderBtn" type="button" class="btn btn-secondary up-btn" style="display: none;">
+                                    <i class="fas fa-arrow-up"></i> Up
+                                </button>
+                                <div id="folderContents" class="folder-contents"></div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <!-- Scan and Browse Buttons -->
-                    <div class="form-group">
-                        <button id="browseFoldersBtn" type="button" class="admin_manage_scanjobs-browsefolders-btn btn btn-info" data-browse-url="{{ url_for('apis.browse_folders_ss') }}">Browse Folders</button>
-                        <button type="submit" name="submit" value="AutoScan" class="admin_manage_scanjobs-startscan-btn btn btn-primary">Start On-Demand Scan</button>
-                        <div id="loadingSpinner" class="loading-spinner" style="display: none;">
-                            <img src="/static/newstyle/searching_small.gif" alt="Loading...">
+                    <!-- Action Card -->
+                    <div class="action-card">
+                        <div class="action-content">
+                            <button type="submit" name="submit" value="AutoScan" class="btn btn-primary scan-btn">
+                                <i class="fas fa-play"></i> Start Scan
+                            </button>
+                            <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                                <img src="/static/newstyle/searching_small.gif" alt="Loading...">
+                            </div>
                         </div>
-                        <button id="upFolderBtn" type="button" class="admin_manage_scanjobs-up-btn btn btn-secondary" style="display: none;">Up</button>
-                        <div id="folderContents" class="scanandbrowse"></div>
                     </div>
                 </form>
                 {% else %}
-                <p>You have no Libraries!, go to <a href="{{ url_for('library.libraries') }}">Library Manager</a> and create one.</p>
+                <div class="no-libraries-card">
+                    <div class="no-libraries-content">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h4>No Libraries Found</h4>
+                        <p>You need to create at least one library before you can run scans.</p>
+                        <a href="{{ url_for('library.libraries') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create Library
+                        </a>
+                    </div>
+                </div>
                 {% endif %}
-                <div class="admin_manage_scanjobs-scanjobs-panel mt-4">
-                    <div class="scanjobs-header-text">
-                        <div class="scanjobs-title-section">
-                            <h2>Scan Jobs Management</h2>
-                            <p class="scanjobs-subtitle">(You can only have one scan job 'Running' at a time!)</p>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <button id="toggleDetailsBtn" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-eye"></i> Show Details
-                            </button>
-                            <button id="toggleCompactBtn" class="btn btn-outline-info btn-sm">
-                                <i class="fas fa-compress"></i> Compact
-                            </button>
+                <!-- Scan Jobs Management Card -->
+                <div class="scan-jobs-card">
+                    <div class="card-header">
+                        <div class="jobs-header-content">
+                            <div class="jobs-title-section">
+                                <h4 class="card-title">
+                                    <i class="fas fa-tasks"></i> Active Scan Jobs
+                                </h4>
+                                <p class="jobs-subtitle">Monitor and manage running scan operations</p>
+                            </div>
+                            <div class="jobs-controls">
+                                <form action="{{ url_for('main.clear_all_scan_jobs') }}" method="post" class="inline-form">
+                                    {{ csrf_form.csrf_token }}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm control-btn" onclick="return confirm('Delete ALL jobs?');">
+                                        <i class="fas fa-trash"></i> <span class="btn-text">Clear All</span>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                     
-                    <form action="{{ url_for('main.clear_all_scan_jobs') }}" method="post">
-                        {{ csrf_form.csrf_token }}
-                        <input type="submit" value="Clear All" class="admin_manage_scanjobs-clearall-btn btn btn-danger" onclick="return confirm('Delete ALL jobs?');">
-                    </form>
-                    <div class="table-responsive-wrapper">
-                        <div class="scan-jobs-table-container">
-                            <table id="scanJobsTable" class="admin_manage_scanjobs-scanjobs-table table">
+                    <div class="card-content">
+                        <div class="jobs-table-wrapper">
+                            <table id="scanJobsTable" class="simple-jobs-table">
                                 <thead>
                                     <tr>
-                                        <th title="Job ID"><i class="fas fa-hashtag"></i></th>
-                                        <th title="Library"><i class="fas fa-database"></i></th>
-                                        <th title="Scan Folder Path"><i class="fas fa-search"></i></th>
-                                        <th title="Current Status"><i class="fas fa-info-circle"></i></th>
-                                        <th title="Scan Progress"><i class="fas fa-chart-line"></i></th>
-                                        <th title="Total Files/Folders"><i class="fas fa-folder-open"></i></th>
-                                        <th title="Games Found"><i class="fas fa-gamepad"></i></th>
-                                        <th title="Failed Files/Folders"><i class="fas fa-times-circle"></i></th>
-                                        <th title="Actions"><i class="fas fa-cogs"></i></th>
-                                        <!-- Collapsible columns (hidden by default) -->
-                                        <th class="detail-column" title="Error Message"><i class="fas fa-exclamation-triangle"></i></th>
-                                        <th class="detail-column" title="Last Run Time"><i class="fas fa-clock"></i></th>
-                                        <th class="detail-column" title="Removed Missing Items"><i class="fas fa-trash-alt"></i></th>
-                                        <th class="detail-column" title="Remove Missing (on/off)"><i class="fas fa-toggle-on"></i></th>
-                                        <th class="detail-column" title="File / Folder mode"><i class="fas fa-file"></i></th>
+                                        <th>ID</th>
+                                        <th>Library</th>
+                                        <th>Path</th>
+                                        <th>Status</th>
+                                        <th>Progress</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="jobsTableBody">
@@ -266,14 +297,14 @@
                             <button type="submit" class="admin_manage_scanjobs-clearunmatched-btn btn btn-warning" title="Remove folders with statsus Unmatched" onclick="return confirm('Are you sure you want to clear all unmatched folders? This cannot be undone.');">Clear Unmatched</button>
                         </form>
                     </div>
-                    <table id="unmatchedTable" class="admin_manage_scanjobs-unmatched-table table" style="border-radius: 15px;">
+                    <table id="unmatchedTable" class="simple-unmatched-table table" style="border-radius: 15px;">
                         <thead>
                             <tr>
-                                <th title="Folder Path"><i class="fas fa-folder"></i></th>
-                                <th title="Current Status"><i class="fas fa-info-circle"></i></th>
-                                <th title="Library"><i class="fas fa-database"></i></th>
-                                <th title="Platform"><i class="fas fa-gamepad"></i></th>
-                                <th title="Available Actions"><i class="fas fa-cogs"></i></th>
+                                <th>Folder Path</th>
+                                <th>Status</th>
+                                <th>Library</th>
+                                <th>Platform</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="unmatchedFoldersTableBody">
