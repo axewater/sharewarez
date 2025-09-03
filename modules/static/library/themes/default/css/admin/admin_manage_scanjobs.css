@@ -139,16 +139,19 @@
 
 /* Progress information layout */
 .progress-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     margin-top: 4px;
     font-size: 0.875rem;
+    text-align: center;
 }
 
 .progress-numbers {
     color: #fff;
     font-weight: bold;
+}
+
+.progress-status {
+    margin-top: 2px;
+    text-align: center;
 }
 
 .text-bright-green {
