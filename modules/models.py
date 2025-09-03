@@ -448,6 +448,7 @@ class ScanJob(db.Model):
     setting_remove = db.Column(db.Boolean, default=False)
     setting_filefolder = db.Column(db.Boolean, default=False)
     setting_download_missing_images = db.Column(db.Boolean, default=False)
+    setting_force_updates_extras = db.Column(db.Boolean, default=False)
     current_processing = db.Column(db.String(255), nullable=True)  # "Processing: Game Name (450/1000)"
     last_progress_update = db.Column(db.DateTime, nullable=True)
 

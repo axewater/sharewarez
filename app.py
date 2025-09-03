@@ -48,6 +48,6 @@ if __name__ == "__main__":
         import uvicorn
         from asgiref.wsgi import WsgiToAsgi
         asgi_app = WsgiToAsgi(app)
-        uvicorn.run(asgi_app, host="0.0.0.0", port=5006, workers=1)
+        uvicorn.run(asgi_app, host="0.0.0.0", port=5006, workers=4)
     else:
-        app.run(host="0.0.0.0", debug=False, use_reloader=False, port=5006)
+        app.run(host="0.0.0.0", debug=False, use_reloader=False, port=5006, threaded=True)

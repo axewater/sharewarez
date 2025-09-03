@@ -303,7 +303,8 @@ def restart_scan_job(job_id):
             library_uuid=job.library_uuid,
             remove_missing=job.setting_remove,
             existing_job=job,
-            download_missing_images=download_missing_images
+            download_missing_images=download_missing_images,
+            force_updates_extras_scan=getattr(job, 'setting_force_updates_extras', False)
         )
 
     thread = Thread(target=start_scan)
