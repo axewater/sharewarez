@@ -260,8 +260,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
         # Sequential processing (original behavior)
         print("Using single-threaded sequential scanning")
         
-        # Batch commit and progress tracking variables
-        commit_batch_size = 10
+        # Progress tracking variables
         processed_count = 0
         already_exist_count = 0
         new_games_count = 0
@@ -334,16 +333,16 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                     error_line = f"Exception processing '{game_name}': {str(e)}"
                     scan_job_entry.error_message = (scan_job_entry.error_message or "") + f"{error_line}\n"
             
-            # Batch commit and progress update every 10 games or at the end
-            if processed_count % commit_batch_size == 0 or processed_count == len(game_names_with_paths):
-                # Update progress information
-                scan_job_entry.current_processing = f"Processing: {game_name} ({processed_count}/{len(game_names_with_paths)})"
-                scan_job_entry.last_progress_update = datetime.now()
+            # Commit after each game and update progress
+            scan_job_entry.current_processing = f"Processing: {game_name} ({processed_count}/{len(game_names_with_paths)})"
+            scan_job_entry.last_progress_update = datetime.now()
+            
+            db.session.commit()
+            
+            # Log detailed progress every 10 games
+            if processed_count % 10 == 0 or processed_count == len(game_names_with_paths):
+                print(f"Committed: {processed_count}/{len(game_names_with_paths)} games processed")
                 
-                db.session.commit()
-                print(f"Committed batch: {processed_count}/{len(game_names_with_paths)} games processed")
-                
-                # Log detailed progress every 10 games
                 elapsed_time = (datetime.now() - scan_start_time).total_seconds()
                 games_per_second = processed_count / elapsed_time if elapsed_time > 0 else 0
                 estimated_remaining = (len(game_names_with_paths) - processed_count) / games_per_second if games_per_second > 0 else 0
