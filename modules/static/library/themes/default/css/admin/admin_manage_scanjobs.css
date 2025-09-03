@@ -430,6 +430,36 @@
     overflow-y: auto;
 }
 
+/* Folder and file item styling */
+.folder-item,
+.file-item {
+    padding: 8px 12px;
+    margin: 4px 0;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.file-item {
+    cursor: default;
+}
+
+/* Hover effects with blue tint */
+.folder-item:hover,
+.file-item:hover {
+    background-color: rgba(0, 123, 255, 0.15);
+    border: 1px solid rgba(0, 123, 255, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+}
+
+/* File size styling */
+.file-size {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    margin-left: 8px;
+}
+
 /* Action card */
 .action-content {
     display: flex;
