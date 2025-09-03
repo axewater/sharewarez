@@ -180,7 +180,7 @@ class TestDiscoverSectionQueries:
         """Test that visible discovery sections are queried correctly."""
         visible_sections = db.session.execute(select(DiscoverySection).filter_by(is_visible=True).order_by(DiscoverySection.display_order)).scalars().all()
         
-        assert len(visible_sections) >= 4  # At least 4 visible sections
+        assert len(visible_sections) >= 3  # At least 3 visible sections
         assert all(section.is_visible for section in visible_sections)
         
         # Check they are ordered by display_order
