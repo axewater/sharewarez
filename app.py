@@ -4,6 +4,7 @@ import argparse
 import os
 from modules.updateschema import DatabaseManager
 from modules.models import User
+from modules.init_migrations import run_database_migrations, should_run_migrations, mark_migrations_complete
 from sqlalchemy import select
 from dotenv import load_dotenv
 
@@ -35,7 +36,29 @@ def setup_database(app, force_setup=False):
             db.session.commit()
             print("Setup wizard will be forced on next startup")
 
-# Create the Flask app
+# Run migrations and initialization once before creating app (only in main process)
+if __name__ == "__main__":
+    from modules.init_migrations import (
+        should_run_migrations, should_run_initialization, 
+        mark_initialization_complete, cleanup_orphaned_scan_jobs
+    )
+    
+    if should_run_migrations():
+        # Run migrations before creating app to ensure they only run once
+        if run_database_migrations():
+            mark_migrations_complete()
+    
+    # Let create_app() handle initialization, then mark it complete so subsequent calls skip it
+    if should_run_initialization():
+        # Create app for initialization (this will run initialization in create_app())
+        temp_app = create_app()
+        with temp_app.app_context():
+            # Clean up orphaned scan jobs (the only thing not handled by create_app())
+            cleanup_orphaned_scan_jobs()
+            # Mark initialization complete so subsequent create_app() calls skip it
+            mark_initialization_complete()
+
+# Create the Flask app (will skip initialization since flag is now set)
 app = create_app()
 
 # Handle setup if running directly

@@ -124,17 +124,22 @@ def create_app():
 
         db.create_all()
         
-        # Run database schema updates before initialization
-        try:
-            from modules.updateschema import DatabaseManager
-            db_manager = DatabaseManager()
-            db_manager.add_column_if_not_exists()
-        except Exception as e:
-            print(f"Warning: Database schema update failed: {e}")
+        # Run database schema updates only if not already done by parent process
+        # This prevents multiple workers from running the same migrations
+        if os.getenv('SHAREWAREZ_MIGRATIONS_COMPLETE') != 'true':
+            try:
+                from modules.updateschema import DatabaseManager
+                db_manager = DatabaseManager()
+                db_manager.add_column_if_not_exists()
+            except Exception as e:
+                print(f"Warning: Database schema update failed: {e}")
+        else:
+            print("Database migrations already completed by parent process, skipping...")
         
-        # CRITICAL: Only initialize data during non-test execution
+        # CRITICAL: Only initialize data during non-test execution and if not already done by parent process
         # Tests should manage their own data to prevent production contamination
-        if 'pytest' not in sys.modules and 'PYTEST_CURRENT_TEST' not in os.environ:
+        if ('pytest' not in sys.modules and 'PYTEST_CURRENT_TEST' not in os.environ and 
+            os.getenv('SHAREWAREZ_INITIALIZATION_COMPLETE') != 'true'):
             print("🔧 PRODUCTION MODE: Initializing database with default data")
             log_system_event(f"SharewareZ v{app_version} initializing database", event_type='system', event_level='startup', audit_user='system')
             initialize_library_folders()
@@ -145,6 +150,8 @@ def create_app():
             
             # Clean up any orphaned scan jobs from previous server crashes/restarts
             cleanup_orphaned_scan_jobs()
+        elif os.getenv('SHAREWAREZ_INITIALIZATION_COMPLETE') == 'true':
+            print("Database initialization already completed by parent process, skipping...")
         else:
             print("🧪 TEST MODE: Skipping database initialization to prevent production contamination")
     app.register_blueprint(routes.bp)
