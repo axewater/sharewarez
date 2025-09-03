@@ -181,14 +181,21 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                         else:
                             print(f"Extras scanning disabled, skipping for game: {game_name}")
                     else:
-                        print(f"Failed to process game {game_name} after fallback attempts.")
+                        result['error'] = 'Game could not be matched to IGDB database or was already unmatched'
+                        print(f"[PROCESS FAILED] Failed to process game '{game_name}' after fallback attempts.")
+                        print(f"[PROCESS FAILED] Game path: {full_disk_path}")
+                        print(f"[PROCESS FAILED] Reason: Game could not be matched to IGDB database")
                         
                 finally:
                     igdb_rate_limiter.release()
                     
             except Exception as e:
                 result['error'] = str(e)
-                print(f"Failed to process game {game_name}: {e}")
+                print(f"[PROCESS EXCEPTION] Exception in process_single_game for '{game_name}': {str(e)}")
+                print(f"[PROCESS EXCEPTION] Game path: {full_disk_path}")
+                print(f"[PROCESS EXCEPTION] Full exception: {repr(e)}")
+                import traceback
+                print(f"[PROCESS EXCEPTION] Traceback: {traceback.format_exc()}")
                 
         return result
     
@@ -226,12 +233,22 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                     else:
                         scan_job_entry.folders_failed += 1
                         
-                    if result['error']:
-                        scan_job_entry.error_message = (scan_job_entry.error_message or "") + f" Failed to process {result['game_name']}: {result['error']}; "
+                    if result.get('error'):
+                        error_line = f"Failed to process '{result['game_name']}': {result['error']}"
+                        scan_job_entry.error_message = (scan_job_entry.error_message or "") + f"{error_line}\n"
+                        print(f"[SCAN ERROR] {error_line}")
+                        print(f"[SCAN ERROR] Game path: {future_to_game[future]['full_path']}")
+                        print(f"[SCAN ERROR] Full result: {result}")
                         
                 except Exception as e:
                     scan_job_entry.folders_failed += 1
-                    scan_job_entry.error_message = (scan_job_entry.error_message or "") + f" Failed to process {game_info['name']}: {str(e)}; "
+                    error_line = f"Exception processing '{game_info['name']}': {str(e)}"
+                    scan_job_entry.error_message = (scan_job_entry.error_message or "") + f"{error_line}\n"
+                    print(f"[SCAN EXCEPTION] {error_line}")
+                    print(f"[SCAN EXCEPTION] Game path: {game_info.get('full_path', 'unknown')}")
+                    print(f"[SCAN EXCEPTION] Full exception: {repr(e)}")
+                    import traceback
+                    print(f"[SCAN EXCEPTION] Traceback: {traceback.format_exc()}")
                     
                 db.session.commit()
     else:
@@ -297,13 +314,20 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                             print(f"Extras scanning disabled, skipping for game: {game_name}")
                     else:
                         scan_job_entry.folders_failed += 1
-                        print(f"Failed to process game {game_name} after fallback attempts.")
+                        print(f"[SCAN FAILED] Failed to process game '{game_name}' after fallback attempts.")
+                        print(f"[SCAN FAILED] Game path: {full_disk_path}")
+                        print(f"[SCAN FAILED] Reason: Game could not be matched to IGDB database or was already unmatched")
 
                 except Exception as e:
-                    print(f"Failed to process game {game_name}: {e}")
+                    print(f"[SCAN EXCEPTION] Exception processing game '{game_name}': {str(e)}")
+                    print(f"[SCAN EXCEPTION] Game path: {full_disk_path}")
+                    print(f"[SCAN EXCEPTION] Full exception: {repr(e)}")
+                    import traceback
+                    print(f"[SCAN EXCEPTION] Traceback: {traceback.format_exc()}")
                     scan_job_entry.folders_failed += 1
                     scan_job_entry.status = 'Failed'
-                    scan_job_entry.error_message = (scan_job_entry.error_message or "") + f" Failed to process {game_name}: {str(e)}; "
+                    error_line = f"Exception processing '{game_name}': {str(e)}"
+                    scan_job_entry.error_message = (scan_job_entry.error_message or "") + f"{error_line}\n"
             
             # Batch commit and progress update every 10 games or at the end
             if processed_count % commit_batch_size == 0 or processed_count == len(game_names_with_paths):
