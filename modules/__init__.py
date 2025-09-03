@@ -21,6 +21,33 @@ cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 app_start_time = datetime.now()
 app_version = '2.6.1'
 
+def cleanup_orphaned_scan_jobs():
+    """Clean up scan jobs that were left in 'Running' state after server restart."""
+    try:
+        from modules.models import ScanJob
+        from sqlalchemy import select, update
+        from datetime import datetime, timezone
+        
+        # Find all jobs that are still marked as 'Running'
+        running_jobs = db.session.execute(select(ScanJob).filter_by(status='Running')).scalars().all()
+        
+        if running_jobs:
+            print(f"Found {len(running_jobs)} orphaned scan job(s) from previous server session")
+            
+            # Mark all running jobs as failed since they were interrupted by server restart
+            for job in running_jobs:
+                job.status = 'Failed'
+                job.error_message = 'Scan job interrupted by server restart'
+                job.is_enabled = False
+                
+            db.session.commit()
+            print(f"Marked {len(running_jobs)} orphaned scan job(s) as failed")
+        else:
+            print("No orphaned scan jobs found")
+            
+    except Exception as e:
+        print(f"Error during orphaned scan job cleanup: {e}")
+
 def create_app():
     global s    
     app = Flask(__name__)
@@ -94,6 +121,9 @@ def create_app():
         insert_default_filters()
         initialize_default_settings()
         initialize_allowed_file_types()
+        
+        # Clean up any orphaned scan jobs from previous server crashes/restarts
+        cleanup_orphaned_scan_jobs()
     app.register_blueprint(routes.bp)
     app.register_blueprint(site_bp)
     app.register_blueprint(admin2_bp)

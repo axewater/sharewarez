@@ -78,15 +78,20 @@ def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_u
 
     print(f'Game does not exist in database: {game_name} at {full_disk_path}')
     # Try to add the game, now using library_uuid
+    print(f"[GAME MATCH] Attempting to match game: '{game_name}' at {full_disk_path}")
     if not try_add_game(game_name, full_disk_path, scan_job_id, library_uuid=library_uuid, check_exists=False):
+        print(f"[GAME MATCH] Initial match failed for '{game_name}', trying fallback names...")
         # Attempt fallback game name processing
         parts = game_name.split()
         for i in range(len(parts) - 1, 0, -1):
             fallback_name = ' '.join(parts[:i])
+            print(f"[GAME MATCH] Trying fallback name: '{fallback_name}'")
             if try_add_game(fallback_name, full_disk_path, scan_job_id, library_uuid=library_uuid, check_exists=False):
+                print(f"[GAME MATCH] Success with fallback name: '{fallback_name}'")
                 return True
+        print(f"[GAME MATCH] All fallback attempts failed for '{game_name}'")
     else:
-        print(f'Skipping duplicate game: {game_name} at {full_disk_path}')
+        print(f"[GAME MATCH] Success with initial name: '{game_name}'")
         return True
 
     # If the game does not match, log it as unmatched
@@ -110,13 +115,16 @@ def log_unmatched_folder(scan_job_id, folder_path, matched_status, library_uuid=
         try:
             db.session.add(unmatched_folder)
             db.session.commit()
-            print(f"Logged unmatched folder: {folder_path}")
+            print(f"[UNMATCHED] Logged unmatched folder: {folder_path}")
+            print(f"[UNMATCHED] Status: {matched_status}")
+            print(f"[UNMATCHED] Library UUID: {library_uuid}")
+            print(f"[UNMATCHED] Scan Job ID: {scan_job_id}")
         except IntegrityError:
             log_system_event(f"Failed to log unmatched folder: {folder_path}", event_type='scan', event_level='warning')
             db.session.rollback()
-            print(f"Failed to log unmatched folder due to a database error: {folder_path}")
+            print(f"[UNMATCHED ERROR] Failed to log unmatched folder due to a database error: {folder_path}")
     else:
-        print(f"Unmatched folder already logged for: {folder_path}. Skipping.")
+        print(f"[UNMATCHED SKIPPED] Unmatched folder already logged for: {folder_path}. Status: {existing_unmatched_folder.status}")
         
 
 
