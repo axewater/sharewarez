@@ -36,7 +36,7 @@ class LazyASGIApp:
     def __init__(self):
         self._app = None
     
-    def __call__(self, scope, receive, send):
+    async def __call__(self, scope, receive, send):
         if self._app is None:
             # Create Flask app only on first request, not during module import
             app = create_app()
@@ -48,7 +48,7 @@ class LazyASGIApp:
             # Wrap with ASGI adapter
             self._app = WsgiToAsgi(app)
         
-        return self._app(scope, receive, send)
+        await self._app(scope, receive, send)
 
 # Create lazy ASGI app (won't call create_app() until first request)
 asgi_app = LazyASGIApp()
