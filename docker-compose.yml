@@ -5,7 +5,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    privileged: true
     image: kapitanczarnobrod/sharewarez:latest
     ports:
       - "5006:5006"
