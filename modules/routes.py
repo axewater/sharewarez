@@ -463,60 +463,6 @@ def clear_all_scan_jobs():
     return redirect(url_for('main.scan_management'))
 
 
-@bp.route('/api/scan_jobs_status', methods=['GET'])
-@login_required
-def scan_jobs_status():
-    """API endpoint for retrieving all scan jobs with progress status"""
-    try:
-        # Get all scan jobs ordered by last run (for table population)
-        all_jobs = db.session.execute(
-            select(ScanJob).order_by(ScanJob.last_run.desc())
-        ).scalars().all()
-        
-        jobs_data = []
-        running_jobs_data = []
-        
-        for job in all_jobs:
-            # Get library name for display
-            library_name = 'N/A'
-            if job.library_uuid:
-                library = db.session.execute(select(Library).filter_by(uuid=job.library_uuid)).scalar_one_or_none()
-                if library:
-                    library_name = library.name
-            
-            job_data = {
-                'id': job.id,
-                'status': job.status,
-                'library_name': library_name,
-                'library_uuid': job.library_uuid,
-                'folders': job.folders,
-                'last_run': job.last_run.isoformat() if job.last_run else None,
-                'error_message': job.error_message or '',
-                'total_folders': job.total_folders,
-                'folders_success': job.folders_success,
-                'folders_failed': job.folders_failed,
-                'removed_count': job.removed_count,
-                'scan_folder': job.scan_folder,
-                'setting_remove': job.setting_remove,
-                'setting_filefolder': job.setting_filefolder,
-                'setting_download_missing_images': job.setting_download_missing_images,
-                'current_processing': job.current_processing,
-                'last_update': job.last_progress_update.isoformat() if job.last_progress_update else None,
-                'progress_percentage': round((job.folders_success + job.folders_failed) / job.total_folders * 100, 1) if job.total_folders > 0 else 0
-            }
-            jobs_data.append(job_data)
-            
-            # Add to running jobs list if status is Running (for progress tracking)
-            if job.status == 'Running':
-                running_jobs_data.append(job_data)
-        
-        return jsonify(jobs_data)
-        
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
 
 
 @bp.route('/delete_all_unmatched_folders', methods=['POST'])
