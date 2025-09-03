@@ -41,13 +41,20 @@ app = create_app()
 # Handle setup if running directly
 if __name__ == "__main__":
     args = handle_setup_args()
-    setup_database(app, args.force_setup)
+    
+    # For development mode, run setup here since asgi.py won't be used
+    # For production mode, setup is handled in asgi.py
+    if os.getenv('PRODUCTION', 'false').lower() != 'true':
+        setup_database(app, args.force_setup)
     
     # Run with uvicorn for production or flask dev server for development
     if os.getenv('PRODUCTION', 'false').lower() == 'true':
         import uvicorn
-        from asgiref.wsgi import WsgiToAsgi
-        asgi_app = WsgiToAsgi(app)
-        uvicorn.run(asgi_app, host="0.0.0.0", port=5006, workers=4)
+        # Pass force_setup flag through sys.argv for asgi.py to pick up
+        if args.force_setup:
+            import sys
+            if '--force-setup' not in sys.argv:
+                sys.argv.append('--force-setup')
+        uvicorn.run("asgi:asgi_app", host="0.0.0.0", port=5006, workers=4)
     else:
         app.run(host="0.0.0.0", debug=False, use_reloader=False, port=5006, threaded=True)
