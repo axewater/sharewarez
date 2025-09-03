@@ -10,7 +10,7 @@ from modules.utils_functions import (
     load_release_group_patterns,
 )
 from modules.models import (
-    Game, Library, AllowedFileType, ScanJob, GlobalSettings
+    Game, Library, AllowedFileType, ScanJob, GlobalSettings, UnmatchedFolder
 )
 from modules import db
 from modules.utils_game_core import remove_from_lib
@@ -30,10 +30,26 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
     settings = db.session.execute(select(GlobalSettings)).scalars().first()
     update_folder_name = settings.update_folder_name if settings else 'updates'
     extras_folder_name = settings.extras_folder_name if settings else 'extras'
+    enable_game_updates = settings.enable_game_updates if settings else False
+    enable_game_extras = settings.enable_game_extras if settings else False
     scan_thread_count = settings.scan_thread_count if settings else 1
     
     # Initialize IGDB rate limiter for scanning operations
     igdb_rate_limiter = IGDBRateLimiter()
+    
+    # Bulk prefetch existing games and unmatched folders for performance
+    print("Prefetching existing games and unmatched folders...")
+    existing_game_paths = set(
+        db.session.execute(
+            select(Game.full_disk_path).filter_by(library_uuid=library_uuid)
+        ).scalars().all()
+    )
+    existing_unmatched_paths = set(
+        db.session.execute(
+            select(UnmatchedFolder.folder_path).filter_by(library_uuid=library_uuid)
+        ).scalars().all()
+    )
+    print(f"Prefetched {len(existing_game_paths)} existing games and {len(existing_unmatched_paths)} unmatched folders")
     
     # First, find the library and its platform
     library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalars().first()
@@ -118,11 +134,20 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
         print(f"Error during pattern loading or game name extraction: {str(e)}")
         return
 
-    def process_single_game(game_info, scan_job_id, library_uuid, update_folder_name, extras_folder_name, igdb_rate_limiter, app):
+    def process_single_game(game_info, scan_job_id, library_uuid, update_folder_name, extras_folder_name, enable_game_updates, enable_game_extras, existing_game_paths, existing_unmatched_paths, igdb_rate_limiter, app):
         """Process a single game with rate limiting and thread-safe database operations."""
         game_name = game_info['name']
         full_disk_path = game_info['full_path']
         result = {'game_name': game_name, 'success': False, 'error': None}
+        
+        # Fast path - check cached sets BEFORE rate limiting
+        if existing_game_paths and full_disk_path in existing_game_paths:
+            print(f"Game already exists (cached): {game_name} at {full_disk_path}")
+            return {'game_name': game_name, 'success': True, 'already_exists': True}
+        
+        if existing_unmatched_paths and full_disk_path in existing_unmatched_paths:
+            print(f"Folder already logged as unmatched (cached): {full_disk_path}")
+            return {'game_name': game_name, 'success': False, 'already_unmatched': True}
         
         # Ensure we have a Flask app context for database operations
         with app.app_context():
@@ -135,20 +160,26 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                     
                     if success:
                         # Check for updates folder using the cached setting
-                        updates_folder = os.path.join(full_disk_path, update_folder_name)
-                        if os.path.exists(updates_folder) and os.path.isdir(updates_folder):
-                            print(f"Updates folder found for game: {game_name}")
-                            process_game_updates(game_name, full_disk_path, updates_folder, library_uuid, update_folder_name)
+                        if enable_game_updates:
+                            updates_folder = os.path.join(full_disk_path, update_folder_name)
+                            if os.path.exists(updates_folder) and os.path.isdir(updates_folder):
+                                print(f"Updates folder found for game: {game_name}")
+                                process_game_updates(game_name, full_disk_path, updates_folder, library_uuid, update_folder_name)
+                            else:
+                                print(f"No updates folder found for game: {game_name}")
                         else:
-                            print(f"No updates folder found for game: {game_name}")
+                            print(f"Updates scanning disabled, skipping for game: {game_name}")
                             
                         # Check for extras folder
-                        extras_folder = os.path.join(full_disk_path, extras_folder_name)
-                        if os.path.exists(extras_folder) and os.path.isdir(extras_folder):
-                            print(f"Extras folder found for game: {game_name}")
-                            process_game_extras(game_name, full_disk_path, extras_folder, library_uuid, extras_folder_name)
+                        if enable_game_extras:
+                            extras_folder = os.path.join(full_disk_path, extras_folder_name)
+                            if os.path.exists(extras_folder) and os.path.isdir(extras_folder):
+                                print(f"Extras folder found for game: {game_name}")
+                                process_game_extras(game_name, full_disk_path, extras_folder, library_uuid, extras_folder_name)
+                            else:
+                                print(f"No extras folder found for game: {game_name}")
                         else:
-                            print(f"No extras folder found for game: {game_name}")
+                            print(f"Extras scanning disabled, skipping for game: {game_name}")
                     else:
                         print(f"Failed to process game {game_name} after fallback attempts.")
                         
@@ -169,7 +200,8 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
             # Submit all game processing tasks
             future_to_game = {
                 executor.submit(process_single_game, game_info, scan_job_entry.id, library_uuid, 
-                              update_folder_name, extras_folder_name, igdb_rate_limiter, current_app._get_current_object()): game_info 
+                              update_folder_name, extras_folder_name, enable_game_updates, enable_game_extras,
+                              existing_game_paths, existing_unmatched_paths, igdb_rate_limiter, current_app._get_current_object()): game_info 
                 for game_info in game_names_with_paths
             }
             
@@ -205,6 +237,15 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
     else:
         # Sequential processing (original behavior)
         print("Using single-threaded sequential scanning")
+        
+        # Batch commit and progress tracking variables
+        commit_batch_size = 10
+        processed_count = 0
+        already_exist_count = 0
+        new_games_count = 0
+        already_unmatched_count = 0
+        scan_start_time = datetime.now()
+        
         for game_info in game_names_with_paths:
             db.session.refresh(scan_job_entry)  # Check if the job is still enabled
             if not scan_job_entry.is_enabled:
@@ -215,40 +256,76 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
             
             game_name = game_info['name']
             full_disk_path = game_info['full_path']
+            processed_count += 1
             
-            try:
-                success = process_game_with_fallback(game_name, full_disk_path, scan_job_entry.id, library_uuid)
-                if success:
-                    scan_job_entry.folders_success += 1
-                    # Use cached settings instead of querying database again
-                    # Check for updates folder using the cached setting
-                    updates_folder = os.path.join(full_disk_path, update_folder_name)
-                    # print(f"Checking for updates folder: {updates_folder}")
-                    if os.path.exists(updates_folder) and os.path.isdir(updates_folder):
-                        print(f"Updates folder found for game: {game_name}")
-                        process_game_updates(game_name, full_disk_path, updates_folder, library_uuid, update_folder_name)
-                    else:
-                        print(f"No updates folder found for game: {game_name}")
-                        
-                    # Check for extras folder
-                    extras_folder = os.path.join(full_disk_path, extras_folder_name)
-                    # print(f"Checking for extras folder: {extras_folder}")
-                    if os.path.exists(extras_folder) and os.path.isdir(extras_folder):
-                        print(f"Extras folder found for game: {game_name}")
-                        process_game_extras(game_name, full_disk_path, extras_folder, library_uuid, extras_folder_name)
-                    else:
-                        print(f"No extras folder found for game: {game_name}")
-                else:
-                    scan_job_entry.folders_failed += 1
-                    print(f"Failed to process game {game_name} after fallback attempts.")   
-                db.session.commit()
-
-            except Exception as e:
-                print(f"Failed to process game {game_name}: {e}")
+            # Fast path - check cached sets BEFORE database queries
+            if existing_game_paths and full_disk_path in existing_game_paths:
+                print(f"Game already exists (cached): {game_name} at {full_disk_path}")
+                already_exist_count += 1
+                scan_job_entry.folders_success += 1
+            elif existing_unmatched_paths and full_disk_path in existing_unmatched_paths:
+                print(f"Folder already logged as unmatched (cached): {full_disk_path}")
+                already_unmatched_count += 1
                 scan_job_entry.folders_failed += 1
-                scan_job_entry.status = 'Failed'
-                scan_job_entry.error_message += f" Failed to process {game_name}: {str(e)}; "
+            else:
+                try:
+                    success = process_game_with_fallback(game_name, full_disk_path, scan_job_entry.id, library_uuid, existing_game_paths, existing_unmatched_paths)
+                    if success:
+                        new_games_count += 1
+                        scan_job_entry.folders_success += 1
+                        # Use cached settings instead of querying database again
+                        # Check for updates folder using the cached setting
+                        if enable_game_updates:
+                            updates_folder = os.path.join(full_disk_path, update_folder_name)
+                            if os.path.exists(updates_folder) and os.path.isdir(updates_folder):
+                                print(f"Updates folder found for game: {game_name}")
+                                process_game_updates(game_name, full_disk_path, updates_folder, library_uuid, update_folder_name)
+                            else:
+                                print(f"No updates folder found for game: {game_name}")
+                        else:
+                            print(f"Updates scanning disabled, skipping for game: {game_name}")
+                            
+                        # Check for extras folder
+                        if enable_game_extras:
+                            extras_folder = os.path.join(full_disk_path, extras_folder_name)
+                            if os.path.exists(extras_folder) and os.path.isdir(extras_folder):
+                                print(f"Extras folder found for game: {game_name}")
+                                process_game_extras(game_name, full_disk_path, extras_folder, library_uuid, extras_folder_name)
+                            else:
+                                print(f"No extras folder found for game: {game_name}")
+                        else:
+                            print(f"Extras scanning disabled, skipping for game: {game_name}")
+                    else:
+                        scan_job_entry.folders_failed += 1
+                        print(f"Failed to process game {game_name} after fallback attempts.")
+
+                except Exception as e:
+                    print(f"Failed to process game {game_name}: {e}")
+                    scan_job_entry.folders_failed += 1
+                    scan_job_entry.status = 'Failed'
+                    scan_job_entry.error_message = (scan_job_entry.error_message or "") + f" Failed to process {game_name}: {str(e)}; "
+            
+            # Batch commit and progress update every 10 games or at the end
+            if processed_count % commit_batch_size == 0 or processed_count == len(game_names_with_paths):
+                # Update progress information
+                scan_job_entry.current_processing = f"Processing: {game_name} ({processed_count}/{len(game_names_with_paths)})"
+                scan_job_entry.last_progress_update = datetime.now()
+                
                 db.session.commit()
+                print(f"Committed batch: {processed_count}/{len(game_names_with_paths)} games processed")
+                
+                # Log detailed progress every 10 games
+                elapsed_time = (datetime.now() - scan_start_time).total_seconds()
+                games_per_second = processed_count / elapsed_time if elapsed_time > 0 else 0
+                estimated_remaining = (len(game_names_with_paths) - processed_count) / games_per_second if games_per_second > 0 else 0
+                
+                print(f"Progress: {processed_count}/{len(game_names_with_paths)} games processed")
+                print(f"Speed: {games_per_second:.1f} games/sec")
+                if estimated_remaining > 0:
+                    print(f"Estimated time remaining: {estimated_remaining:.0f} seconds")
+                print(f"Skipped (already exist): {already_exist_count}")
+                print(f"New games found: {new_games_count}")
+                print(f"Already unmatched: {already_unmatched_count}")
 
     if scan_job_entry.status != 'Failed':
         scan_job_entry.status = 'Completed'

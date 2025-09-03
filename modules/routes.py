@@ -463,6 +463,62 @@ def clear_all_scan_jobs():
     return redirect(url_for('main.scan_management'))
 
 
+@bp.route('/api/scan_jobs_status', methods=['GET'])
+@login_required
+def scan_jobs_status():
+    """API endpoint for retrieving all scan jobs with progress status"""
+    try:
+        # Get all scan jobs ordered by last run (for table population)
+        all_jobs = db.session.execute(
+            select(ScanJob).order_by(ScanJob.last_run.desc())
+        ).scalars().all()
+        
+        jobs_data = []
+        running_jobs_data = []
+        
+        for job in all_jobs:
+            # Get library name for display
+            library_name = 'N/A'
+            if job.library_uuid:
+                library = db.session.execute(select(Library).filter_by(uuid=job.library_uuid)).scalar_one_or_none()
+                if library:
+                    library_name = library.name
+            
+            job_data = {
+                'id': job.id,
+                'status': job.status,
+                'library_name': library_name,
+                'library_uuid': job.library_uuid,
+                'folders': job.folders,
+                'last_run': job.last_run.isoformat() if job.last_run else None,
+                'error_message': job.error_message or '',
+                'total_folders': job.total_folders,
+                'folders_success': job.folders_success,
+                'folders_failed': job.folders_failed,
+                'removed_count': job.removed_count,
+                'scan_folder': job.scan_folder,
+                'setting_remove': job.setting_remove,
+                'setting_filefolder': job.setting_filefolder,
+                'setting_download_missing_images': job.setting_download_missing_images,
+                'current_processing': job.current_processing,
+                'last_update': job.last_progress_update.isoformat() if job.last_progress_update else None,
+                'progress_percentage': round((job.folders_success + job.folders_failed) / job.total_folders * 100, 1) if job.total_folders > 0 else 0
+            }
+            jobs_data.append(job_data)
+            
+            # Add to running jobs list if status is Running (for progress tracking)
+            if job.status == 'Running':
+                running_jobs_data.append(job_data)
+        
+        return jsonify(jobs_data)
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
 @bp.route('/delete_all_unmatched_folders', methods=['POST'])
 @login_required
 @admin_required
@@ -666,25 +722,73 @@ def delete_full_library(library_uuid=None):
             library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalar_one_or_none()
             if library:
                 print(f"Deleting full library: {library}")
+                
+                # Safety check: Cancel any running scan jobs for this library first
+                running_scan_jobs = db.session.execute(
+                    select(ScanJob).filter_by(library_uuid=library.uuid, status='Running')
+                ).scalars().all()
+                
+                for running_job in running_scan_jobs:
+                    running_job.status = 'Failed'
+                    running_job.error_message = 'Scan cancelled due to library deletion'
+                    running_job.is_enabled = False
+                    print(f"Cancelled running scan job: {running_job.id}")
+                
+                if running_scan_jobs:
+                    db.session.commit()  # Commit the cancellation first
+                    print(f"Cancelled {len(running_scan_jobs)} running scan jobs before library deletion")
+                
+                # Delete all related records in proper order to avoid foreign key violations
+                
+                # 1. Delete all games in the library (this will cascade to related tables like images, URLs, etc.)
                 games_to_delete = db.session.execute(select(Game).filter_by(library_uuid=library.uuid)).scalars().all()
+                games_deleted = 0
+                games_failed = 0
+                
                 for game in games_to_delete:
                     try:
+                        # Use the existing delete_game function which handles all related data
                         delete_game(game.uuid)
+                        games_deleted += 1
+                        print(f'Successfully deleted game: {game.name}')
                     except FileNotFoundError as fnfe:
-                        print(f'File not found for game with UUID {game.uuid}: {fnfe}')
-                        flash(f'File not found for game with UUID {game.uuid}. Skipping...', 'info')
+                        print(f'File not found for game {game.name} (UUID: {game.uuid}): {fnfe}')
+                        games_deleted += 1  # Still count as deleted since it's not blocking
                     except Exception as e:
-                        print(f'Error deleting game with UUID {game.uuid}: {e}')
-                        flash(f'Error deleting game with UUID {game.uuid}: {e}', 'error')
+                        print(f'Error deleting game {game.name} (UUID: {game.uuid}): {e}')
+                        games_failed += 1
+                        # Continue with other games instead of stopping
+                
+                # 2. Delete scan jobs related to this library (nullable=True, so safe)
+                scan_jobs = db.session.execute(select(ScanJob).filter_by(library_uuid=library.uuid)).scalars().all()
+                for scan_job in scan_jobs:
+                    try:
+                        db.session.delete(scan_job)
+                        print(f'Deleted scan job: {scan_job.id}')
+                    except Exception as e:
+                        print(f'Error deleting scan job {scan_job.id}: {e}')
+                
+                # 3. UnmatchedFolders will be handled by CASCADE delete (ondelete="CASCADE")
+                
+                # 4. Finally delete the library itself
                 db.session.delete(library)
-                flash(f'Library "{library.name}" and all its games have been deleted.', 'success')
+                
+                # Commit all changes
+                db.session.commit()
+                
+                if games_failed == 0:
+                    flash(f'Library "{library.name}" and all {games_deleted} games have been deleted successfully.', 'success')
+                else:
+                    flash(f'Library "{library.name}" deleted. {games_deleted} games deleted successfully, {games_failed} failed.', 'warning')
+                    
             else:
                 flash('Library not found.', 'error')
         else:
             flash('No library specified.', 'error')
-        db.session.commit()
+            
     except Exception as e:
         db.session.rollback()
+        print(f"Error during library deletion: {str(e)}")
         flash(f"Error during deletion: {str(e)}", 'error')
 
     return redirect(url_for('library.libraries'))

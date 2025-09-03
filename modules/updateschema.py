@@ -110,6 +110,13 @@ class DatabaseManager:
         -- Change error_message column from varchar(512) to text for longer error messages
         ALTER TABLE scan_jobs
         ALTER COLUMN error_message TYPE TEXT;
+
+        -- Add progress tracking columns to scan_jobs table for scan optimization
+        ALTER TABLE scan_jobs
+        ADD COLUMN IF NOT EXISTS current_processing VARCHAR(255);
+
+        ALTER TABLE scan_jobs
+        ADD COLUMN IF NOT EXISTS last_progress_update TIMESTAMP;
         
         """
         print("Upgrading database to the latest schema")

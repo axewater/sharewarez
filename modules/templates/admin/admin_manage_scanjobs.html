@@ -124,37 +124,52 @@
                 {% endif %}
                 <div class="admin_manage_scanjobs-scanjobs-panel mt-4">
                     <div class="scanjobs-header-text">
-                        <h2>Scan Jobs Management</h2>
-                        <p>(You can only have one scan job 'Running' at a time!)</p>
+                        <div class="scanjobs-title-section">
+                            <h2>Scan Jobs Management</h2>
+                            <p class="scanjobs-subtitle">(You can only have one scan job 'Running' at a time!)</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button id="toggleDetailsBtn" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-eye"></i> Show Details
+                            </button>
+                            <button id="toggleCompactBtn" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-compress"></i> Compact
+                            </button>
+                        </div>
                     </div>
                     
                     <form action="{{ url_for('main.clear_all_scan_jobs') }}" method="post">
                         {{ csrf_form.csrf_token }}
                         <input type="submit" value="Clear All" class="admin_manage_scanjobs-clearall-btn btn btn-danger" onclick="return confirm('Delete ALL jobs?');">
                     </form>
-                    <table id="scanJobsTable" class="admin_manage_scanjobs-scanjobs-table table mt-3">
-                        <thead>
-                            <tr>
-                                <th title="Job ID"><i class="fas fa-hashtag"></i></th>
-                                <th title="Library"><i class="fas fa-database"></i></th>
-                                <th title="Folder Path"><i class="fas fa-folder"></i></th>
-                                <th title="Current Status"><i class="fas fa-info-circle"></i></th>
-                                <th title="Error Message"><i class="fas fa-exclamation-triangle"></i></th>
-                                <th title="Last Run Time"><i class="fas fa-clock"></i></th>
-                                <th title="Removed Missing Items"><i class="fas fa-trash-alt"></i></th>
-                                <th title="Scan Folder Path"><i class="fas fa-search"></i></th>
-                                <th title="Total Files/Folders"><i class="fas fa-folder-open"></i></th>
-                                <th title="Games Found"><i class="fas fa-gamepad"></i></th>
-                                <th title="Failed Files/Folders"><i class="fas fa-times-circle"></i></th>
-                                <th title="Remove Missing (on/off)"><i class="fas fa-toggle-on"></i></th>
-                                <th title="File / Folder mode"><i class="fas fa-file"></i></th>
-                                <th title="Actions"><i class="fas fa-cogs"></i></th>
-                            </tr>
-                        </thead>
-                        <tbody id="jobsTableBody">
-                            <!-- Scan job rows will be dynamically populated here -->
-                        </tbody>
-                    </table>
+                    <div class="table-responsive-wrapper">
+                        <div class="scan-jobs-table-container">
+                            <table id="scanJobsTable" class="admin_manage_scanjobs-scanjobs-table table">
+                                <thead>
+                                    <tr>
+                                        <th title="Job ID"><i class="fas fa-hashtag"></i></th>
+                                        <th title="Library"><i class="fas fa-database"></i></th>
+                                        <th title="Scan Folder Path"><i class="fas fa-search"></i></th>
+                                        <th title="Current Status"><i class="fas fa-info-circle"></i></th>
+                                        <th title="Scan Progress"><i class="fas fa-chart-line"></i></th>
+                                        <th title="Total Files/Folders"><i class="fas fa-folder-open"></i></th>
+                                        <th title="Games Found"><i class="fas fa-gamepad"></i></th>
+                                        <th title="Failed Files/Folders"><i class="fas fa-times-circle"></i></th>
+                                        <th title="Actions"><i class="fas fa-cogs"></i></th>
+                                        <!-- Collapsible columns (hidden by default) -->
+                                        <th class="detail-column" title="Error Message"><i class="fas fa-exclamation-triangle"></i></th>
+                                        <th class="detail-column" title="Last Run Time"><i class="fas fa-clock"></i></th>
+                                        <th class="detail-column" title="Removed Missing Items"><i class="fas fa-trash-alt"></i></th>
+                                        <th class="detail-column" title="Remove Missing (on/off)"><i class="fas fa-toggle-on"></i></th>
+                                        <th class="detail-column" title="File / Folder mode"><i class="fas fa-file"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="jobsTableBody">
+                                    <!-- Scan job rows will be dynamically populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 
