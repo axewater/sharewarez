@@ -14,6 +14,51 @@ from modules.utilities import scan_and_add_games, handle_auto_scan, handle_manua
 from sqlalchemy import select
 
 
+def safe_cleanup_database(db_session):
+    """Completely clean up ALL test data - this is a test database, nuke everything!"""
+    from sqlalchemy import text
+    
+    try:
+        # Disable foreign key checks temporarily for aggressive cleanup
+        db_session.execute(text("SET session_replication_role = replica;"))
+        
+        # Delete all junction table data first
+        db_session.execute(text("TRUNCATE TABLE user_favorites CASCADE"))
+        db_session.execute(text("TRUNCATE TABLE game_genre_association CASCADE"))
+        db_session.execute(text("TRUNCATE TABLE game_platform_association CASCADE"))
+        db_session.execute(text("TRUNCATE TABLE game_game_mode_association CASCADE"))
+        db_session.execute(text("TRUNCATE TABLE game_theme_association CASCADE"))
+        
+        # Delete all main table data
+        for table in ['game_updates', 'game_extras', 'images', 'game_urls', 'unmatched_folders', 
+                     'scan_jobs', 'download_requests', 'newsletters', 'system_events', 
+                     'invite_tokens', 'games', 'users', 'libraries']:
+            try:
+                db_session.execute(text(f"TRUNCATE TABLE {table} RESTART IDENTITY CASCADE"))
+            except Exception:
+                pass  # Table might not exist
+        
+        # Re-enable foreign key checks
+        db_session.execute(text("SET session_replication_role = DEFAULT;"))
+        
+        db_session.commit()
+        
+    except Exception as e:
+        db_session.rollback()
+        print(f"❌ Error during aggressive cleanup in test_utilities.py: {e}")
+        # Try to re-enable foreign key checks
+        try:
+            db_session.execute(text("SET session_replication_role = DEFAULT;"))
+            db_session.commit()
+        except:
+            pass
+
+
+@pytest.fixture(autouse=True)
+def cleanup_after_each_test(db_session):
+    """Automatically clean up after each test - no test data should persist!"""
+    yield  # Let the test run first
+    safe_cleanup_database(db_session)  # Clean up after
 
 
 class TestScanAndAddGamesCore:

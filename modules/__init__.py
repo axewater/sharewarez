@@ -132,15 +132,21 @@ def create_app():
         except Exception as e:
             print(f"Warning: Database schema update failed: {e}")
         
-        log_system_event(f"SharewareZ v{app_version} initializing database", event_type='system', event_level='startup', audit_user='system')
-        initialize_library_folders()
-        initialize_discovery_sections()
-        insert_default_filters()
-        initialize_default_settings()
-        initialize_allowed_file_types()
-        
-        # Clean up any orphaned scan jobs from previous server crashes/restarts
-        cleanup_orphaned_scan_jobs()
+        # CRITICAL: Only initialize data during non-test execution
+        # Tests should manage their own data to prevent production contamination
+        if 'pytest' not in sys.modules and 'PYTEST_CURRENT_TEST' not in os.environ:
+            print("🔧 PRODUCTION MODE: Initializing database with default data")
+            log_system_event(f"SharewareZ v{app_version} initializing database", event_type='system', event_level='startup', audit_user='system')
+            initialize_library_folders()
+            initialize_discovery_sections()
+            insert_default_filters()
+            initialize_default_settings()
+            initialize_allowed_file_types()
+            
+            # Clean up any orphaned scan jobs from previous server crashes/restarts
+            cleanup_orphaned_scan_jobs()
+        else:
+            print("🧪 TEST MODE: Skipping database initialization to prevent production contamination")
     app.register_blueprint(routes.bp)
     app.register_blueprint(site_bp)
     app.register_blueprint(admin2_bp)

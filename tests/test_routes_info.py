@@ -110,13 +110,14 @@ class TestAdminServerStatusRoute:
     @patch('modules.routes_info.get_config_values')
     @patch('modules.routes_info.get_active_users')
     @patch('modules.routes_info.get_log_info')
+    @patch('modules.routes_info.get_database_info')
     @patch('modules.routes_info.get_formatted_system_uptime')
     @patch('modules.routes_info.get_formatted_app_uptime')
     @patch('modules.routes_info.format_bytes')
     @patch('modules.routes_info.current_user')
     def test_admin_server_status_success(self, mock_current_user, mock_format_bytes,
-                                       mock_app_uptime, mock_system_uptime, mock_log_info,
-                                       mock_active_users, mock_config_values, mock_system_info,
+                                       mock_app_uptime, mock_system_uptime, mock_database_info,
+                                       mock_log_info, mock_active_users, mock_config_values, mock_system_info,
                                        mock_warez_usage, mock_disk_usage, mock_memory_usage,
                                        mock_open_files, mock_process_count, mock_cpu_usage,
                                        mock_check_server_settings, mock_log_system_event,
@@ -159,6 +160,12 @@ class TestAdminServerStatusRoute:
             'DATA_FOLDER_WAREZ': '/var/games'
         }
         mock_active_users.return_value = [{'name': 'testuser', 'last_seen': '2023-01-01'}]
+        mock_database_info.return_value = {
+            'database_name': 'sharewareztest',
+            'host': 'localhost',
+            'port': 5432,
+            'engine': 'postgresql'
+        }
         
         # Mock log entry with proper structure
         mock_latest_log = Mock()
@@ -250,13 +257,14 @@ class TestAdminServerStatusRoute:
     @patch('modules.routes_info.get_config_values')
     @patch('modules.routes_info.get_active_users')
     @patch('modules.routes_info.get_log_info')
+    @patch('modules.routes_info.get_database_info')
     @patch('modules.routes_info.get_formatted_system_uptime')
     @patch('modules.routes_info.get_formatted_app_uptime')
     @patch('modules.routes_info.format_bytes')
     @patch('modules.routes_info.current_user')
     def test_admin_server_status_with_none_usage_values(self, mock_current_user, mock_format_bytes,
-                                                      mock_app_uptime, mock_system_uptime, mock_log_info,
-                                                      mock_active_users, mock_config_values, mock_system_info,
+                                                      mock_app_uptime, mock_system_uptime, mock_database_info,
+                                                      mock_log_info, mock_active_users, mock_config_values, mock_system_info,
                                                       mock_warez_usage, mock_disk_usage, mock_memory_usage,
                                                       mock_open_files, mock_process_count, mock_cpu_usage,
                                                       mock_check_server_settings, mock_log_system_event,
@@ -284,6 +292,12 @@ class TestAdminServerStatusRoute:
         mock_system_info.return_value = {'OS': 'Linux'}
         mock_config_values.return_value = {'DATABASE_URL': 'postgresql://...'}
         mock_active_users.return_value = []
+        mock_database_info.return_value = {
+            'database_name': 'sharewareztest', 
+            'host': 'localhost',
+            'port': 5432,
+            'engine': 'postgresql'
+        }
         
         # Mock log info with None latest log
         mock_log_info.return_value = {'count': 0, 'latest': None}
