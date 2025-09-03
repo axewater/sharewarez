@@ -95,3 +95,4 @@ source venv/bin/activate
 
 
 IMPORTANT: When creating unit tests, we always work against the actual Postgresql TEST DB, we DO NOT work with any fake sqlite (in memory) db's. The URI to the DB is in the .env and config.py. variable name is TEST_DATABASE_URL
+- please ignore the modern theme at all time
