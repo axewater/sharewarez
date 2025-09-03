@@ -933,11 +933,15 @@ class TestMainBlueprint:
             sess['_user_id'] = str(admin_user.id)
         
         response = client.post(f'/delete_full_library/{test_library.uuid}')
-        assert response.status_code == 302  # Redirect
+        assert response.status_code == 200  # JSON response
         
-        # Check library was deleted
-        deleted_library = db.session.execute(select(Library).filter_by(uuid=test_library.uuid)).scalar_one_or_none()
-        assert deleted_library is None
+        # Check JSON response
+        json_data = response.get_json()
+        assert json_data['status'] == 'started'
+        assert 'job_id' in json_data
+        
+        # Note: Library deletion now happens in background, so immediate check is not reliable
+        # The actual deletion would be tested in integration tests or by polling the progress endpoint
 
     @patch('flask_login.current_user')
     def test_delete_full_library_not_found(self, mock_current_user, client, app, db_session, admin_user):
@@ -951,7 +955,12 @@ class TestMainBlueprint:
             sess['_user_id'] = str(admin_user.id)
         
         response = client.post(f'/delete_full_library/{fake_uuid}')
-        assert response.status_code == 302  # Redirect
+        assert response.status_code == 404  # Not found
+        
+        # Check JSON error response
+        json_data = response.get_json()
+        assert json_data['status'] == 'error'
+        assert 'Library not found' in json_data['message']
 
     def test_verify_file_exists(self, app):
         """Test verify_file template global with existing file."""
