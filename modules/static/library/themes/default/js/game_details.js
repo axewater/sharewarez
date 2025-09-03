@@ -184,3 +184,80 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// NFO Modal functionality
+let nfoModalState = {
+    modalOpen: false,
+    originalScrollPosition: 0,
+    bodyOverflowOriginal: ''
+};
+
+function openNfoModal() {
+    const modal = document.getElementById("nfoModal");
+    if (!modal) return;
+
+    nfoModalState.originalScrollPosition = window.scrollY;
+    nfoModalState.modalOpen = true;
+    
+    modal.style.display = "flex";
+    document.body.classList.add('modal-open');
+    
+    // Prevent background scrolling
+    nfoModalState.bodyOverflowOriginal = document.body.style.overflow;
+    document.body.style.position = 'fixed';
+    document.body.style.overflow = 'hidden';
+    document.body.style.width = '100%';
+    document.body.style.top = `-${nfoModalState.originalScrollPosition}px`;
+    
+    // Add escape key listener
+    addNfoEscapeKeyListener();
+    
+    // Add click handler for backdrop
+    modal.addEventListener('click', handleNfoModalClick);
+}
+
+function closeNfoModal() {
+    const modal = document.getElementById("nfoModal");
+    if (!modal) return;
+
+    cleanupNfoModal();
+    modal.style.display = "none";
+    document.body.classList.remove('modal-open');
+    
+    // Restore body position and scrolling
+    removeNfoEscapeKeyListener();
+    document.body.style.position = '';
+    document.body.style.overflow = nfoModalState.bodyOverflowOriginal;
+    document.body.style.width = '';
+    document.body.style.top = '';
+    window.scrollTo(0, nfoModalState.originalScrollPosition);
+    
+    nfoModalState.modalOpen = false;
+}
+
+function handleNfoModalClick(event) {
+    if (event.target.id === "nfoModal") {
+        closeNfoModal();
+    }
+}
+
+function cleanupNfoModal() {
+    const modal = document.getElementById("nfoModal");
+    if (modal) {
+        modal.removeEventListener('click', handleNfoModalClick);
+    }
+}
+
+function addNfoEscapeKeyListener() {
+    document.addEventListener('keydown', nfoEscapeKeyHandler);
+}
+
+function removeNfoEscapeKeyListener() {
+    document.removeEventListener('keydown', nfoEscapeKeyHandler);
+}
+
+function nfoEscapeKeyHandler(event) {
+    if (event.key === 'Escape' && nfoModalState.modalOpen) {
+        closeNfoModal();
+    }
+}
