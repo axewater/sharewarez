@@ -49,10 +49,6 @@ def cleanup_orphaned_scan_jobs():
         print(f"Error during orphaned scan job cleanup: {e}")
 
 def create_app():
-    # TEMPORARY DEBUG: Track create_app() calls to identify duplicates
-    import os
-    print(f"🔍 DEBUG: create_app() called in process {os.getpid()}")
-    
     global s    
     app = Flask(__name__)
     app.config.from_object(Config)
