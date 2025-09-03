@@ -4,7 +4,7 @@ from modules.utils_auth import admin_required
 from modules.utils_processors import get_global_settings
 from modules.utils_system_stats import format_bytes, get_cpu_usage, get_memory_usage, get_disk_usage, get_process_count, get_open_files, get_warez_folder_usage
 from modules.utils_uptime import get_formatted_system_uptime, get_formatted_app_uptime
-from modules.utils_status import get_system_info, get_config_values, get_active_users, get_log_info, check_server_settings
+from modules.utils_status import get_system_info, get_config_values, get_active_users, get_log_info, check_server_settings, get_database_info
 from modules import app_version, app_start_time
 from modules import db, cache
 from datetime import datetime, timedelta
@@ -43,6 +43,7 @@ def admin_server_status():
         config_values = get_config_values()
         active_users = get_active_users()
         log_info = get_log_info()
+        database_info = get_database_info()
         
         # Format usage statistics
         for usage in [memory_usage, disk_usage, warez_usage]:
@@ -75,5 +76,6 @@ def admin_server_status():
         warez_usage=warez_usage,
         log_count=log_info['count'],
         active_users=active_users,
-        latest_log=log_info['latest']
+        latest_log=log_info['latest'],
+        database_info=database_info
     )

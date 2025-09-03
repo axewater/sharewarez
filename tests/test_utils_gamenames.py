@@ -75,10 +75,9 @@ def cleanup_database():
     """Drop and recreate all tables after all tests complete."""
     yield
     # This runs after all tests are done
-    from modules import db
-    with create_app().app_context():
-        db.drop_all()
-        db.create_all()
+    # IMPORTANT: We cannot create our own app instance here as it would bypass 
+    # the database override done in conftest.py. Instead, we rely on the 
+    # per-function cleanup in the cleanup_database fixture below.
 
 
 class TestGetGameNamesFromFolder:

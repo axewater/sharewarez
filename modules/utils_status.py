@@ -9,6 +9,7 @@ from modules import db
 from modules.utils_system_stats import format_bytes
 from modules import app_start_time
 from config import Config
+from urllib.parse import urlparse
 
 def get_system_info():
     """Get basic system information."""
@@ -65,6 +66,41 @@ def get_log_info():
         'count': db.session.execute(select(func.count(SystemEvents.id))).scalar(),
         'latest': db.session.execute(select(SystemEvents).order_by(SystemEvents.timestamp.desc())).scalars().first()
     }
+
+def get_database_info():
+    """Get database connection information."""
+    try:
+        # Get the current database URI
+        db_uri = db.engine.url
+        
+        # Parse the database URI to extract components
+        parsed = urlparse(str(db_uri))
+        
+        # Extract database name from path (remove leading slash)
+        db_name = parsed.path.lstrip('/')
+        
+        # Get database host and port
+        host = parsed.hostname or 'localhost'
+        port = parsed.port or 5432
+        
+        # Get database engine type
+        engine_type = db_uri.drivername
+        
+        return {
+            'database_name': db_name,
+            'host': host,
+            'port': port,
+            'engine': engine_type,
+            'connection_info': f"{engine_type}://{host}:{port}/{db_name}"
+        }
+    except Exception as e:
+        return {
+            'database_name': 'Error retrieving database info',
+            'host': 'Unknown',
+            'port': 'Unknown', 
+            'engine': 'Unknown',
+            'connection_info': f'Error: {str(e)}'
+        }
 
 def check_server_settings():
     """Check if server settings are properly configured."""

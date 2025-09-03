@@ -52,6 +52,23 @@ def create_app():
     global s    
     app = Flask(__name__)
     app.config.from_object(Config)
+    
+    # SAFETY CHECK: Prevent production database access during tests
+    import sys
+    if 'pytest' in sys.modules or 'PYTEST_CURRENT_TEST' in os.environ:
+        # We are running in pytest - ensure we're using test database
+        test_db_url = os.getenv('TEST_DATABASE_URL')
+        production_db_url = os.getenv('DATABASE_URL')
+        
+        # If DATABASE_URL was not properly overridden in conftest.py
+        if production_db_url and test_db_url and production_db_url != test_db_url:
+            if 'sharewarez' in production_db_url and 'test' not in production_db_url:
+                print(f"🚨 CRITICAL: Tests attempting to use production database: {production_db_url}")
+                print(f"🛡️  BLOCKING: Forcing test database: {test_db_url}")
+                app.config['SQLALCHEMY_DATABASE_URI'] = test_db_url
+        
+        print(f"🧪 PYTEST MODE: Using database: {app.config.get('SQLALCHEMY_DATABASE_URI', 'NOT SET')}")
+    
     csrf = CSRFProtect(app)
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/library')
 
