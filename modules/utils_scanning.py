@@ -42,7 +42,16 @@ def try_add_game(game_name, full_disk_path, scan_job_id, library_uuid, check_exi
     return game is not None
 
 
-def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_uuid):
+def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_uuid, existing_game_paths=None, existing_unmatched_paths=None):
+    # Fast path - check cached sets first if provided
+    if existing_game_paths and full_disk_path in existing_game_paths:
+        print(f"Game already exists (fast path): {game_name} at {full_disk_path}")
+        return True
+    
+    if existing_unmatched_paths and full_disk_path in existing_unmatched_paths:
+        print(f"Folder already logged as unmatched (fast path): {full_disk_path}")
+        return False
+    
     # Fetch library details based on library_uuid
     library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalar_one_or_none()
     scan_job = db.session.get(ScanJob, scan_job_id)
@@ -50,20 +59,22 @@ def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_u
         print(f"Library with UUID {library_uuid} not found.")
         return False
 
-    # Log skipping of processing for already matched or unmatched folders
-    existing_unmatched_folder = db.session.execute(select(UnmatchedFolder).filter_by(folder_path=full_disk_path)).scalar_one_or_none()
-    if existing_unmatched_folder:
-        print(f"Skipping processing for already logged unmatched folder: {full_disk_path}")
-        # Update total count to maintain consistency even when skipping
-        scan_job.folders_failed += 1
-        return False
+    # Log skipping of processing for already matched or unmatched folders (fallback for when cached sets not provided)
+    if not existing_unmatched_paths:
+        existing_unmatched_folder = db.session.execute(select(UnmatchedFolder).filter_by(folder_path=full_disk_path)).scalar_one_or_none()
+        if existing_unmatched_folder:
+            print(f"Skipping processing for already logged unmatched folder: {full_disk_path}")
+            # Update total count to maintain consistency even when skipping
+            scan_job.folders_failed += 1
+            return False
 
-    # Check if the game already exists in the database
-    existing_game = db.session.execute(select(Game).filter_by(full_disk_path=full_disk_path, library_uuid=library_uuid)).scalar_one_or_none()
-    if existing_game:
-        print(f"Game already exists in database: {game_name} at {full_disk_path}")
-        # Don't increment success counter for existing games to avoid inflated counts during rescans
-        return True 
+    # Check if the game already exists in the database (fallback for when cached sets not provided)
+    if not existing_game_paths:
+        existing_game = db.session.execute(select(Game).filter_by(full_disk_path=full_disk_path, library_uuid=library_uuid)).scalar_one_or_none()
+        if existing_game:
+            print(f"Game already exists in database: {game_name} at {full_disk_path}")
+            # Don't increment success counter for existing games to avoid inflated counts during rescans
+            return True 
 
     print(f'Game does not exist in database: {game_name} at {full_disk_path}')
     # Try to add the game, now using library_uuid

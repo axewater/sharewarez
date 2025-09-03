@@ -48,6 +48,55 @@
 	
 }
 
+/* Toggle button styles for Modern theme */
+#toggleDetailsBtn {
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+#toggleDetailsBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.scanjobs-header-text {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.scanjobs-title-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.scanjobs-title-section h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.scanjobs-subtitle {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+}
+
+/* Detail column styling for better visual separation */
+.detail-column {
+    border-left: 2px solid #007bff !important;
+    background-color: rgba(0, 123, 255, 0.1) !important;
+}
+
 .nav-tabs .nav-link, .nav-tabs .nav-link.active, .nav-tabs .nav-link:hover {
 	border: 0;
     border-bottom: 1px solid grey;
@@ -247,14 +296,96 @@
 
 table {
     width: 100%;
-    table-layout: fixed; /* Use a fixed table layout */
-    border-collapse: collapse; /* Optional: for cleaner borders */
+    border-collapse: collapse;
+    table-layout: auto;
+}
+
+/* Scan Jobs Table Container */
+.scan-jobs-table-container {
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 9px 16px rgba(17, 2, 2, 0.3);
+}
+
+/* Scan Jobs Table Specific Styling */
+#scanJobsTable {
+    margin-bottom: 0;
+}
+
+#scanJobsTable thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #555 !important;
+    color: #fff !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Column Width Optimization */
+#scanJobsTable th:nth-child(1), /* Job ID */
+#scanJobsTable td:nth-child(1) {
+    width: 80px;
+    max-width: 80px;
+}
+
+#scanJobsTable th:nth-child(2), /* Library */
+#scanJobsTable td:nth-child(2) {
+    width: 120px;
+    max-width: 120px;
+}
+
+#scanJobsTable th:nth-child(4), /* Status */
+#scanJobsTable td:nth-child(4) {
+    width: 100px;
+    max-width: 100px;
+}
+
+#scanJobsTable th:nth-child(6), /* Total */
+#scanJobsTable td:nth-child(6),
+#scanJobsTable th:nth-child(7), /* Found */
+#scanJobsTable td:nth-child(7),
+#scanJobsTable th:nth-child(8), /* Failed */
+#scanJobsTable td:nth-child(8) {
+    width: 80px;
+    max-width: 80px;
+    text-align: center;
+}
+
+#scanJobsTable th:nth-child(9), /* Actions */
+#scanJobsTable td:nth-child(9) {
+    width: 120px;
+    max-width: 120px;
+    text-align: center;
+}
+
+#scanJobsTable th:nth-child(3), /* Scan Path - takes remaining space */
+#scanJobsTable td:nth-child(3) {
+    width: auto;
+    min-width: 200px;
 }
 
 th, td {
-    padding: 8px; /* Adjust padding for readability */
+    padding: 6px 8px;
     text-align: left;
-    word-wrap: break-word; /* Ensure text wraps within the cell */
+    word-wrap: break-word;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Compact mode styles */
+.scan-jobs-compact th,
+.scan-jobs-compact td {
+    padding: 4px 6px;
+    font-size: 0.85em;
+    line-height: 1.2;
+}
+
+.scan-jobs-compact .btn {
+    padding: 2px 6px;
+    font-size: 0.75em;
 }
 
 th {
@@ -349,4 +480,54 @@ th {
     display: flex;
     flex-direction: row;
     gap: 25px;
+}
+
+/* Responsive wrapper for horizontal scrolling */
+.table-responsive-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    #scanJobsTable th:nth-child(6),
+    #scanJobsTable td:nth-child(6),
+    #scanJobsTable th:nth-child(7),
+    #scanJobsTable td:nth-child(7),
+    #scanJobsTable th:nth-child(8),
+    #scanJobsTable td:nth-child(8) {
+        display: none; /* Hide numeric columns on mobile */
+    }
+    
+    .scan-jobs-table-container {
+        max-height: 300px;
+    }
+    
+    .scanjobs-header-text {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    #scanJobsTable th:nth-child(2),
+    #scanJobsTable td:nth-child(2) {
+        display: none; /* Hide Library column on very small screens */
+    }
+}
+
+/* Compact mode toggle button */
+#toggleCompactBtn {
+    margin-left: 10px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+#toggleCompactBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    background: rgba(255, 255, 255, 0.2);
 }

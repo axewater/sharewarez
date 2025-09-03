@@ -68,18 +68,39 @@ function attachDeleteFolderFormListeners() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Document loaded. Setting up form submission handlers and tab activation based on activeTab.");
 
-    // Initialize DataTables
+    // Initialize DataTables with column visibility control
     const scanJobsTable = $('#scanJobsTable').DataTable({
-        pageLength: 25,
-        order: [[5, 'desc']], // Sort by Last Run column by default
+        pageLength: 10,
+        lengthMenu: [[5, 10, 25, 50], [5, 10, 25, 50]],
+        order: [[10, 'desc']], // Sort by Last Run column (moved to index 10)
+        scrollY: false, // Disabled since we're using CSS max-height
+        scrollX: true,
+        autoWidth: false,
         columnDefs: [
-            { targets: [13], orderable: false }, // Disable sorting on Actions column
-            { targets: '_all', searchable: true }
+            { targets: [8], orderable: false }, // Disable sorting on Actions column
+            { targets: [4], orderable: false }, // Disable sorting on Progress column
+            { targets: [9,10,11,12,13], visible: false }, // Hide detail columns by default
+            { targets: '_all', searchable: true },
+            // Column width specifications
+            { targets: 0, width: '80px' }, // Job ID
+            { targets: 1, width: '120px' }, // Library
+            { targets: 3, width: '100px' }, // Status
+            { targets: [5,6,7], width: '80px' }, // Numeric columns
+            { targets: 8, width: '120px' } // Actions
         ],
         dom: '<"top"lf>rt<"bottom"ip><"clear">',
         language: {
             search: "Search:",
-            lengthMenu: "Show _MENU_ entries"
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ scan jobs",
+            infoEmpty: "No scan jobs found",
+            emptyTable: "No scan jobs available"
+        },
+        responsive: {
+            breakpoints: {
+                tablet: 768,
+                phone: 576
+            }
         }
     });
 
@@ -151,6 +172,97 @@ document.addEventListener('DOMContentLoaded', function() {
     setupFolderBrowse('#browseFoldersBtn', '#folderContents', '#loadingSpinner', '#upFolderBtn', '#folder_path', 'currentPathAuto');
     setupFolderBrowse('#browseFoldersBtnManual', '#folderContentsManual', '#loadingSpinnerManual', '#upFolderBtnManual', '#manualFolderPath', 'currentPathManual');
 
+    // Setup toggle functionality for detailed columns
+    let detailColumnsVisible = localStorage.getItem('scanJobsDetailsVisible') === 'true';
+    let compactMode = localStorage.getItem('scanJobsCompactMode') === 'true';
+    const detailColumnIndices = [9, 10, 11, 12, 13]; // Updated indices after Job ID moved to first position
+    
+    function updateToggleButton() {
+        const btn = document.getElementById('toggleDetailsBtn');
+        const icon = btn.querySelector('i');
+        
+        if (detailColumnsVisible) {
+            icon.className = 'fas fa-eye-slash';
+            btn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Details';
+        } else {
+            icon.className = 'fas fa-eye';
+            btn.innerHTML = '<i class="fas fa-eye"></i> Show Details';
+        }
+    }
+    
+    function updateCompactButton() {
+        const btn = document.getElementById('toggleCompactBtn');
+        const icon = btn.querySelector('i');
+        
+        if (compactMode) {
+            icon.className = 'fas fa-expand';
+            btn.innerHTML = '<i class="fas fa-expand"></i> Normal';
+            btn.classList.remove('btn-outline-info');
+            btn.classList.add('btn-info');
+        } else {
+            icon.className = 'fas fa-compress';
+            btn.innerHTML = '<i class="fas fa-compress"></i> Compact';
+            btn.classList.remove('btn-info');
+            btn.classList.add('btn-outline-info');
+        }
+    }
+    
+    function toggleDetailColumns() {
+        detailColumnsVisible = !detailColumnsVisible;
+        localStorage.setItem('scanJobsDetailsVisible', detailColumnsVisible);
+        
+        // Toggle column visibility
+        detailColumnIndices.forEach(columnIndex => {
+            scanJobsTable.column(columnIndex).visible(detailColumnsVisible);
+        });
+        
+        updateToggleButton();
+    }
+    
+    function toggleCompactMode() {
+        compactMode = !compactMode;
+        localStorage.setItem('scanJobsCompactMode', compactMode);
+        
+        const table = document.getElementById('scanJobsTable');
+        const container = document.querySelector('.scan-jobs-table-container');
+        
+        if (compactMode) {
+            table.classList.add('scan-jobs-compact');
+            container.style.maxHeight = '300px';
+            // Change to 5 entries in compact mode
+            scanJobsTable.page.len(5).draw();
+        } else {
+            table.classList.remove('scan-jobs-compact');
+            container.style.maxHeight = '500px';
+            // Back to 10 entries in normal mode
+            scanJobsTable.page.len(10).draw();
+        }
+        
+        updateCompactButton();
+    }
+    
+    // Initialize button states
+    updateToggleButton();
+    updateCompactButton();
+    
+    // Set initial column visibility based on stored preference
+    detailColumnIndices.forEach(columnIndex => {
+        scanJobsTable.column(columnIndex).visible(detailColumnsVisible);
+    });
+    
+    // Set initial compact mode
+    if (compactMode) {
+        const table = document.getElementById('scanJobsTable');
+        const container = document.querySelector('.scan-jobs-table-container');
+        table.classList.add('scan-jobs-compact');
+        container.style.maxHeight = '300px';
+        scanJobsTable.page.len(5).draw();
+    }
+    
+    // Attach click handlers to toggle buttons
+    document.getElementById('toggleDetailsBtn').addEventListener('click', toggleDetailColumns);
+    document.getElementById('toggleCompactBtn').addEventListener('click', toggleCompactMode);
+
     var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
     const updateScanJobs = () => {
@@ -166,20 +278,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 const isAnyJobRunning = data.some(j => j.status === 'Running');
                 
                 data.forEach(job => {
+                    // Create progress column content
+                    let progressColumn = '';
+                    if (job.status === 'Running' && job.total_folders > 0) {
+                        const percentage = job.progress_percentage || 0;
+                        const processed = job.folders_success + job.folders_failed;
+                        progressColumn = `
+                            <div class="scan-progress">
+                                <div class="progress mb-1" style="height: 20px;">
+                                    <div class="progress-bar bg-primary" style="width: ${percentage}%">
+                                        ${processed}/${job.total_folders}
+                                    </div>
+                                </div>
+                                <small class="text-muted">${job.current_processing || 'Processing...'}</small>
+                            </div>
+                        `;
+                    } else if (job.status === 'Completed') {
+                        progressColumn = `<span class="text-success"><i class="fas fa-check"></i> ${job.folders_success + job.folders_failed}/${job.total_folders}</span>`;
+                    } else if (job.status === 'Failed') {
+                        progressColumn = `<span class="text-danger"><i class="fas fa-times"></i> ${job.folders_success + job.folders_failed}/${job.total_folders}</span>`;
+                    } else {
+                        progressColumn = '-';
+                    }
+                    
                     scanJobsTable.row.add([
-                        job.id.substring(0, 8),
+                        job.id.substring(0, 8),  // Job ID - now first column
                         job.library_name || 'N/A',
-                        Object.keys(job.folders).join(', '),
-                        job.status,
-                        job.error_message,
-                        job.last_run,
-                        job.removed_count || 0,
                         job.scan_folder || 'N/A',
+                        job.status,
+                        progressColumn,
                         job.total_folders,
                         job.folders_success,
                         job.folders_failed,
-                        job.setting_remove ? 'On' : 'Off',
-                        job.setting_filefolder ? 'File' : 'Folder',
                         `
                             ${job.status === 'Running' ? 
                                 `<form action="/cancel_scan_job/${job.id}" method="post" style="display: inline-block;">
@@ -194,7 +324,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </form>`
                                 }`
                             }
-                        `
+                        `,
+                        // Detail columns (hidden by default)
+                        job.error_message,
+                        formatTimestamp(job.last_run),
+                        job.removed_count || 0,
+                        job.setting_remove ? 'On' : 'Off',
+                        job.setting_filefolder ? 'File' : 'Folder'
                     ]);
                 });
                 
@@ -424,6 +560,42 @@ function formatFileSize(bytes) {
     return parseFloat((bytes / Math.pow(kilobyte, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
+function formatTimestamp(timestamp) {
+    if (!timestamp) return 'N/A';
+    
+    try {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / (1000 * 60));
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        
+        // Format time as HH:MM
+        const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        // If it's today, show "Today at HH:MM"
+        if (diffDays === 0) {
+            return `Today at ${timeStr}`;
+        }
+        // If it's yesterday, show "Yesterday at HH:MM"
+        else if (diffDays === 1) {
+            return `Yesterday at ${timeStr}`;
+        }
+        // If it's within the last week, show "X days ago at HH:MM"
+        else if (diffDays < 7) {
+            return `${diffDays} days ago at ${timeStr}`;
+        }
+        // For older dates, show the full date
+        else {
+            return date.toLocaleDateString() + ' at ' + timeStr;
+        }
+    } catch (error) {
+        console.error('Error formatting timestamp:', timestamp, error);
+        return timestamp; // Return original if formatting fails
+    }
+}
+
 window.clearEntry = clearEntry;
 function clearEntry(folderId) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -452,3 +624,86 @@ function clearEntry(folderId) {
     })
     .catch(error => console.error('Error:', error));
 }
+
+// Auto-refresh scan jobs progress functionality
+let progressUpdateInterval;
+
+function startProgressTracking() {
+    // Check for running scan jobs every 5 seconds
+    progressUpdateInterval = setInterval(updateScanJobsProgress, 5000);
+    console.log("Started scan jobs progress tracking");
+}
+
+function stopProgressTracking() {
+    if (progressUpdateInterval) {
+        clearInterval(progressUpdateInterval);
+        progressUpdateInterval = null;
+        console.log("Stopped scan jobs progress tracking");
+    }
+}
+
+function updateScanJobsProgress() {
+    fetch('/api/scan_jobs_status')
+        .then(response => response.json())
+        .then(data => {
+            // Filter for running jobs only for progress tracking
+            const runningJobs = data.filter(job => job.status === 'Running');
+            updateProgressDisplay(runningJobs);
+        })
+        .catch(error => {
+            console.error('Error fetching scan job progress:', error);
+        });
+}
+
+function updateProgressDisplay(runningJobs) {
+    const hasRunningJobs = runningJobs.length > 0;
+    
+    // Start/stop tracking based on whether there are running jobs
+    if (hasRunningJobs && !progressUpdateInterval) {
+        startProgressTracking();
+    } else if (!hasRunningJobs && progressUpdateInterval) {
+        stopProgressTracking();
+    }
+    
+    // Update each running job's progress in the table
+    runningJobs.forEach(job => {
+        const jobRow = document.querySelector(`tr[data-job-id="${job.id}"]`);
+        if (jobRow) {
+            updateJobRowProgress(jobRow, job);
+        }
+    });
+}
+
+function updateJobRowProgress(jobRow, job) {
+    // Find the progress column (5th column, index 4)
+    const progressCell = jobRow.cells[4]; // Progress column
+    
+    if (progressCell) {
+        const percentage = job.progress_percentage || 0;
+        const processed = job.folders_success + job.folders_failed;
+        const total = job.total_folders;
+        
+        progressCell.innerHTML = `
+            <div class="scan-progress">
+                <div class="progress mb-1" style="height: 20px;">
+                    <div class="progress-bar ${percentage === 100 ? 'bg-success' : 'bg-primary'}" 
+                         style="width: ${percentage}%">
+                        ${processed}/${total}
+                    </div>
+                </div>
+                <small class="text-muted">${job.current_processing || 'Processing...'}</small>
+            </div>
+        `;
+    }
+}
+
+// Initialize progress tracking on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial check for running jobs
+    updateScanJobsProgress();
+});
+
+// Clean up interval when leaving the page
+window.addEventListener('beforeunload', function() {
+    stopProgressTracking();
+});
