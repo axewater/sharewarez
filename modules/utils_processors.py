@@ -17,7 +17,6 @@ def get_global_settings():
         'showSystemLogo': True,
         'showHelpButton': True,
         'allowUsersToInviteOthers': False,
-        'enableMainGameUpdates': True,
         'enableGameUpdates': True,
         'updateFolderName': 'updates',
         'enableGameExtras': True,

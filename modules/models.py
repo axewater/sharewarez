@@ -495,7 +495,6 @@ class GlobalSettings(db.Model):
     discord_bot_name = db.Column(db.String(100), nullable=True)
     discord_bot_avatar_url = db.Column(db.String(512), nullable=True)
     enable_delete_game_on_disk = db.Column(db.Boolean, default=True)
-    enable_main_game_updates = db.Column(db.Boolean, default=False)
     # IGDB Settings
     igdb_client_id = db.Column(db.String(255), nullable=True)
     igdb_client_secret = db.Column(db.String(255), nullable=True)

@@ -37,7 +37,6 @@ document.addEventListener('DOMContentLoaded', function() {
             enableDeleteGameOnDisk: document.getElementById('enableDeleteGameOnDisk').checked,
             enableGameUpdates: document.getElementById('enableGameUpdates').checked,
             enableGameExtras: document.getElementById('enableGameExtras').checked,
-            enableMainGameUpdates: document.getElementById('enableMainGameUpdates').checked,
             discordNotifyNewGames: document.getElementById('discordNotifyNewGames').checked,
             discordNotifyGameUpdates: document.getElementById('discordNotifyGameUpdates').checked,
             discordNotifyGameExtras: document.getElementById('discordNotifyGameExtras').checked,
