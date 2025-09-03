@@ -40,7 +40,8 @@ def setup_database(app, force_setup=False):
 if __name__ == "__main__":
     from modules.init_migrations import (
         should_run_migrations, should_run_initialization, 
-        mark_initialization_complete, cleanup_orphaned_scan_jobs
+        mark_initialization_complete, cleanup_orphaned_scan_jobs,
+        run_database_initialization
     )
     
     if should_run_migrations():
@@ -48,18 +49,22 @@ if __name__ == "__main__":
         if run_database_migrations():
             mark_migrations_complete()
     
-    # Let create_app() handle initialization, then mark it complete so subsequent calls skip it
-    if should_run_initialization():
-        # Create app for initialization (this will run initialization in create_app())
-        temp_app = create_app()
-        with temp_app.app_context():
-            # Clean up orphaned scan jobs (the only thing not handled by create_app())
-            cleanup_orphaned_scan_jobs()
-            # Mark initialization complete so subsequent create_app() calls skip it
-            mark_initialization_complete()
+    # Check if initialization is needed before marking it complete
+    need_initialization = should_run_initialization()
+    if need_initialization:
+        # Mark initialization complete BEFORE create_app so it skips initialization
+        mark_initialization_complete()
 
-# Create the Flask app (will skip initialization since flag is now set)
+# Create the Flask app (will skip both migrations and initialization due to flags)
 app = create_app()
+
+# Run initialization manually if it was needed (only in main process)
+if __name__ == "__main__":
+    if need_initialization:
+        with app.app_context():
+            # Run initialization manually since create_app() skipped it
+            run_database_initialization()
+            cleanup_orphaned_scan_jobs()
 
 # Handle setup if running directly
 if __name__ == "__main__":
