@@ -307,7 +307,122 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Folder browse setup function
-function setupFolderBrowse(browseBtnId, contentId, loadingId, upBtnId, inputId, currentPathVar) {
-    // Implementation would go here - keeping the existing folder browse functionality
-    // This is beyond the scope of the table simplification but would remain unchanged
+function setupFolderBrowse(browseButtonId, folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar) {
+    // Store the initial library selection
+    var initialLibrarySelection = $(inputFieldId).closest('form').find('select[name="library_uuid"]').val();
+    
+    $(browseButtonId).click(function() {
+        window[currentPathVar] = ''; // Reset the current path
+        $(upButtonId).hide(); // Initially hide the "Up" button
+        // Preserve the library selection
+        var librarySelect = $(inputFieldId).closest('form').find('select[name="library_uuid"]');
+        if (!librarySelect.val() && initialLibrarySelection) {
+            librarySelect.val(initialLibrarySelection);
+        }
+        fetchFolders('', folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar);
+    });
+
+    $(upButtonId).click(function() {
+        var segments = window[currentPathVar].split('/').filter(Boolean);
+        if (segments.length > 0) {
+            // Remove the last segment to go up one level
+            segments.pop();
+            if (segments.length > 0) {
+                window[currentPathVar] = segments.join('/') + '/';
+            } else {
+                window[currentPathVar] = ''; // Reset to base directory if no segments left
+            }
+        } else {
+            window[currentPathVar] = ''; // Already at base directory
+        }
+
+        fetchFolders(window[currentPathVar], folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar);
+
+        // Update the input field with the new current path
+        $(inputFieldId).val(window[currentPathVar]);
+
+        if (segments.length < 1) {
+            $(upButtonId).hide();
+        } else {
+            $(upButtonId).show();
+        }
+    });
+}
+
+function fetchFolders(path, folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar) {
+    console.log("Fetching folders for path:", path);
+    $(spinnerId).show();
+    $.ajax({
+        url: '/api/browse_folders_ss',
+        data: { path: path },
+        success: function(data) {
+            $(spinnerId).hide();
+            $(folderContentsId).empty();
+            
+            // Check if we're using the new response format or the old one
+            const items = data.items || data;
+            
+            // Display warning if there were errors
+            if (data.hasErrors) {
+                $(folderContentsId).append(
+                    $('<div class="alert alert-warning">').html(
+                        `<i class="fas fa-exclamation-triangle"></i> Some items (${data.skippedItems}) could not be accessed and were skipped.`
+                    )
+                );
+            }
+            
+            items.forEach(function(item) {
+                var itemElement;
+                if (item.isDir) {
+                    itemElement = $('<div>').html('<i class="fas fa-folder text-warning"></i> ' + item.name);
+                    var fullPath = path + item.name + "/";
+                    $(itemElement).addClass('folder-item').attr('data-path', fullPath);
+                } else {
+                    // Get file extension and appropriate icon
+                    var ext = item.ext ? item.ext.toLowerCase() : '';
+                    var iconClass = fileIcons[ext] || fileIcons['default'];
+                    
+                    // Format file size
+                    var sizeText = formatFileSize(item.size);
+                    
+                    // Create file element with icon, name, and size
+                    itemElement = $('<div>').html(
+                        '<i class="fas ' + iconClass + '"></i> ' + 
+                        item.name + 
+                        '<span class="file-size">(' + sizeText + ')</span>'
+                    );
+                    $(itemElement)
+                        .addClass('file-item')
+                        .attr('title', item.name + ' - ' + sizeText)
+                        .css('cursor', 'default');
+                }
+                $(folderContentsId).append(itemElement);
+            });
+
+            // Only attach click handlers to folders
+            $('.folder-item').click(function() {
+                var newPath = $(this).data('path');
+                window[currentPathVar] = newPath; 
+                fetchFolders(newPath, folderContentsId, spinnerId, upButtonId, inputFieldId, currentPathVar);
+                $(inputFieldId).val(newPath); 
+            });
+            if (path) {
+                $(upButtonId).show();
+            } else {
+                $(upButtonId).hide();
+            }
+        },
+        error: function(error) {
+            $(spinnerId).hide();
+            console.error("Error fetching folders:", error);
+        }
+    });
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const kilobyte = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(kilobyte));
+    return parseFloat((bytes / Math.pow(kilobyte, i)).toFixed(2)) + ' ' + sizes[i];
 }
