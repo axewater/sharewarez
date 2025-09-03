@@ -151,11 +151,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         progressColumn = `
                             <div class="scan-progress">
                                 <div class="progress mb-1" style="height: 20px;">
-                                    <div class="progress-bar bg-primary" style="width: ${percentage}%">
-                                        ${processed}/${job.total_folders}
-                                    </div>
+                                    <div class="progress-bar" style="width: ${percentage}%"></div>
                                 </div>
-                                <small class="text-muted">${job.current_processing || 'Processing...'}</small>
+                                <div class="progress-info">
+                                    <span class="progress-numbers">${processed}/${job.total_folders} (${percentage}%)</span>
+                                </div>
+                                <div class="progress-status">
+                                    <small class="text-bright-green">${job.current_processing || 'Processing...'}</small>
+                                </div>
                             </div>
                         `;
                     } else if (job.status === 'Completed') {
