@@ -117,6 +117,10 @@ class DatabaseManager:
 
         ALTER TABLE scan_jobs
         ADD COLUMN IF NOT EXISTS last_progress_update TIMESTAMP;
+
+        -- Add force_updates_extras setting to scan_jobs table for enhanced scan functionality
+        ALTER TABLE scan_jobs
+        ADD COLUMN IF NOT EXISTS setting_force_updates_extras BOOLEAN DEFAULT FALSE;
         
         """
         print("Upgrading database to the latest schema")
