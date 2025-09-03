@@ -130,6 +130,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
+    // Helper function to get user-friendly status display
+    function getDisplayStatus(job) {
+        if (job.status === 'Failed' && job.error_message) {
+            if (job.error_message === 'Scan cancelled by user') {
+                return 'Cancelled';
+            } else if (job.error_message === 'Scan job interrupted by server restart') {
+                return 'Interrupted by server restart';
+            }
+        }
+        return job.status;
+    }
+
     const updateScanJobs = () => {
         fetch('/api/scan_jobs_status', {cache: 'no-store'})
             .then(response => response.json())
@@ -191,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${job.id.substring(0, 8)}</td>
                         <td>${job.library_name || 'N/A'}</td>
                         <td>${job.scan_folder || 'N/A'}</td>
-                        <td>${job.status}</td>
+                        <td>${getDisplayStatus(job)}</td>
                         <td>${progressColumn}</td>
                         <td>${actionsColumn}</td>
                     `;

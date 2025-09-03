@@ -509,7 +509,6 @@
 }
 
 .admin_manage_scanjobs-nav-link {
-    color: rgba(255, 255, 255, 0.7) !important;
     border: none;
     padding: 15px 25px;
     font-weight: 500;
@@ -517,14 +516,20 @@
 }
 
 .admin_manage_scanjobs-nav-link:hover {
-    color: #fff !important;
-    background: rgba(255, 255, 255, 0.1);
+
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 8px 8px 0 0;
+    transition: all 0.3s ease;
 }
 
 .admin_manage_scanjobs-nav-link.active {
-    color: #fff !important;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-bottom: 3px solid #007bff;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
 
 .admin_manage_scanjobs-tab-content {
