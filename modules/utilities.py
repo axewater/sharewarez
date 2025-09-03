@@ -181,10 +181,10 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                         else:
                             print(f"Extras scanning disabled, skipping for game: {game_name}")
                     else:
-                        result['error'] = 'Game could not be matched to IGDB database or was already unmatched'
-                        print(f"[PROCESS FAILED] Failed to process game '{game_name}' after fallback attempts.")
-                        print(f"[PROCESS FAILED] Game path: {full_disk_path}")
-                        print(f"[PROCESS FAILED] Reason: Game could not be matched to IGDB database")
+                        result['unmatched'] = True
+                        print(f"[PROCESS INFO] Game '{game_name}' could not be matched to IGDB database or was already unmatched.")
+                        print(f"[PROCESS INFO] Game path: {full_disk_path}")
+                        print(f"[PROCESS INFO] This is informational, not an error")
                         
                 finally:
                     igdb_rate_limiter.release()
@@ -230,10 +230,15 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                     result = future.result()
                     if result['success']:
                         scan_job_entry.folders_success += 1
+                    elif result.get('unmatched'):
+                        # Unmatched games are not errors, just increment failed count for tracking
+                        scan_job_entry.folders_failed += 1
+                        print(f"[SCAN INFO] Game '{result['game_name']}' was unmatched (not an error)")
                     else:
                         scan_job_entry.folders_failed += 1
                         
-                    if result.get('error'):
+                    # Only add actual errors to error_message, not unmatched games
+                    if result.get('error') and not result.get('unmatched'):
                         error_line = f"Failed to process '{result['game_name']}': {result['error']}"
                         scan_job_entry.error_message = (scan_job_entry.error_message or "") + f"{error_line}\n"
                         print(f"[SCAN ERROR] {error_line}")
@@ -314,9 +319,9 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                             print(f"Extras scanning disabled, skipping for game: {game_name}")
                     else:
                         scan_job_entry.folders_failed += 1
-                        print(f"[SCAN FAILED] Failed to process game '{game_name}' after fallback attempts.")
-                        print(f"[SCAN FAILED] Game path: {full_disk_path}")
-                        print(f"[SCAN FAILED] Reason: Game could not be matched to IGDB database or was already unmatched")
+                        print(f"[SCAN INFO] Game '{game_name}' could not be matched to IGDB database or was already unmatched.")
+                        print(f"[SCAN INFO] Game path: {full_disk_path}")
+                        print(f"[SCAN INFO] This is informational, not an error")
 
                 except Exception as e:
                     print(f"[SCAN EXCEPTION] Exception processing game '{game_name}': {str(e)}")
