@@ -471,9 +471,9 @@ th {
 /* Folder and file item styling */
 .folder-item,
 .file-item {
-    padding: 8px 12px;
-    margin: 4px 0;
-    border-radius: 6px;
+    padding: 4px 8px;
+    margin: 2px 0;
+    border-radius: 4px;
     transition: all 0.2s ease;
     cursor: pointer;
 }
@@ -496,6 +496,15 @@ th {
     color: rgba(255, 255, 255, 0.7);
     font-size: 0.85rem;
     margin-left: 8px;
+}
+
+/* Folder contents container */
+.folder-contents {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 8px;
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 .scanandbrowse {
