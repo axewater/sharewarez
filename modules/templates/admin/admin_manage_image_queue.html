@@ -17,12 +17,12 @@
     }
     
     .stat-card {
-        background: var(--card-background, #f8f9fa);
-        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-background, rgba(40, 40, 40, 0.8));
+        border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
         border-radius: 8px;
         padding: 20px;
         text-align: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     
     .stat-number {
@@ -33,7 +33,7 @@
     }
     
     .stat-label {
-        color: var(--text-muted, #6c757d);
+        color: #cccccc;
         font-size: 0.9em;
     }
     
@@ -53,11 +53,16 @@
     }
     
     .controls-section {
-        background: var(--card-background, #f8f9fa);
-        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-background, rgba(40, 40, 40, 0.8));
+        border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
         border-radius: 8px;
         padding: 20px;
         margin-bottom: 30px;
+    }
+    
+    .controls-section h3 {
+        color: #ffffff;
+        margin-bottom: 15px;
     }
     
     .controls-grid {
@@ -113,22 +118,23 @@
     
     .filter-group label {
         font-weight: 500;
-        color: var(--text-color, #333);
+        color: #ffffff;
     }
     
     .filter-group select {
         padding: 5px 10px;
-        border: 1px solid var(--border-color, #dee2e6);
+        border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 4px;
-        background: white;
+        background: rgba(60, 60, 60, 0.8);
+        color: #ffffff;
     }
     
     .image-queue-table {
-        background: white;
-        border: 1px solid var(--border-color, #dee2e6);
+        background: rgba(40, 40, 40, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         border-radius: 8px;
         overflow: hidden;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     
     .table {
@@ -141,20 +147,21 @@
     .table td {
         padding: 12px;
         text-align: left;
-        border-bottom: 1px solid var(--border-color, #dee2e6);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: #ffffff;
     }
     
     .table th {
-        background: var(--bg-light, #f8f9fa);
+        background: rgba(30, 30, 30, 0.9);
         font-weight: 600;
-        color: var(--text-color, #333);
+        color: #ffffff;
         position: sticky;
         top: 0;
         z-index: 10;
     }
     
     .table tbody tr:hover {
-        background: var(--hover-bg, #f5f5f5);
+        background: rgba(255, 255, 255, 0.1);
     }
     
     .status-badge {
@@ -204,14 +211,15 @@
     
     .pagination button {
         padding: 8px 12px;
-        border: 1px solid var(--border-color, #dee2e6);
-        background: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: rgba(50, 50, 50, 0.8);
         border-radius: 4px;
         cursor: pointer;
+        color: #ffffff;
     }
     
     .pagination button:hover:not(:disabled) {
-        background: var(--bg-light, #f8f9fa);
+        background: rgba(255, 255, 255, 0.1);
     }
     
     .pagination button:disabled {
@@ -228,7 +236,7 @@
     .loading {
         text-align: center;
         padding: 40px;
-        color: var(--text-muted, #6c757d);
+        color: #cccccc;
     }
     
     .error {
@@ -248,12 +256,13 @@
     }
     
     .bulk-actions {
-        background: var(--bg-light, #f8f9fa);
-        border: 1px solid var(--border-color, #dee2e6);
+        background: rgba(50, 50, 50, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         border-radius: 4px;
         padding: 15px;
         margin-bottom: 20px;
         display: none;
+        color: #ffffff;
     }
     
     .bulk-actions.active {
@@ -271,11 +280,16 @@
     }
     
     .recent-activity {
-        background: white;
-        border: 1px solid var(--border-color, #dee2e6);
+        background: rgba(40, 40, 40, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         border-radius: 8px;
         padding: 20px;
         margin-top: 30px;
+    }
+    
+    .recent-activity h3 {
+        color: #ffffff;
+        margin-bottom: 15px;
     }
     
     .activity-item {
@@ -283,7 +297,8 @@
         justify-content: space-between;
         align-items: center;
         padding: 8px 0;
-        border-bottom: 1px solid var(--border-color, #dee2e6);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: #ffffff;
     }
     
     .activity-item:last-child {
@@ -291,7 +306,7 @@
     }
     
     .activity-time {
-        color: var(--text-muted, #6c757d);
+        color: #cccccc;
         font-size: 0.85em;
     }
 </style>
