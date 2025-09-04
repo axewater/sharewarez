@@ -510,6 +510,7 @@ class GlobalSettings(db.Model):
     discord_notify_game_updates = db.Column(db.Boolean, default=False)
     discord_notify_game_extras = db.Column(db.Boolean, default=False)
     discord_notify_downloads = db.Column(db.Boolean, default=False)
+    discord_notify_manual_trigger = db.Column(db.Boolean, default=False)
     site_url = db.Column(db.String(255), default='http://127.0.0.1')
     # Image Download Settings
     use_turbo_image_downloads = db.Column(db.Boolean, default=True)

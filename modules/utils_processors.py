@@ -52,6 +52,8 @@ def get_global_settings():
             'enable_delete_game_on_disk': settings_record.settings.get('enableDeleteGameOnDisk', True),
             'enable_game_updates': settings_record.settings.get('enableGameUpdates', True),
             'enable_game_extras': settings_record.settings.get('enableGameExtras', True),
+            'discord_configured': bool(settings_record.discord_webhook_url),
+            'discord_manual_trigger_enabled': settings_record.discord_notify_manual_trigger if settings_record else False,
             'app_version': app_version
         }
     
@@ -66,5 +68,7 @@ def get_global_settings():
         'enable_delete_game_on_disk': True,
         'enable_game_updates': True,
         'enable_game_extras': True,
+        'discord_configured': False,
+        'discord_manual_trigger_enabled': False,
         'app_version': app_version
     }

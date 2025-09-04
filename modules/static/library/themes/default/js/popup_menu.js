@@ -55,6 +55,71 @@ document.addEventListener('DOMContentLoaded', function() {
             // Display the modal
             document.getElementById('deleteGameModal').style.display = 'block';
         }
+
+        // Handling Discord notification trigger
+        if (event.target.classList.contains('trigger-discord-notification')) {
+            event.stopPropagation();
+            const gameUuid = event.target.getAttribute('data-game-uuid');
+            console.log(`Triggering Discord notification for game UUID: ${gameUuid}`);
+
+            // Disable the button to prevent double-clicks
+            const button = event.target;
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Sending...';
+
+            fetch(`/trigger_discord_notification/${gameUuid}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    button.textContent = 'Sent!';
+                    button.style.backgroundColor = '#28a745';
+                    console.log('Discord notification sent successfully:', data.message);
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.disabled = false;
+                        button.style.backgroundColor = '';
+                    }, 2000);
+                } else {
+                    // Show error message
+                    button.textContent = 'Failed';
+                    button.style.backgroundColor = '#dc3545';
+                    console.error('Failed to send Discord notification:', data.message);
+                    
+                    // Show user-friendly error message
+                    alert('Failed to send Discord notification: ' + data.message);
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.disabled = false;
+                        button.style.backgroundColor = '';
+                    }, 2000);
+                }
+            })
+            .catch(error => {
+                console.error('Error sending Discord notification:', error);
+                button.textContent = 'Error';
+                button.style.backgroundColor = '#dc3545';
+                alert('An error occurred while sending the Discord notification.');
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    button.style.backgroundColor = '';
+                }, 2000);
+            });
+        }
     });
 
     document.body.addEventListener('click', function(event) {

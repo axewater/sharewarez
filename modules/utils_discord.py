@@ -21,12 +21,16 @@ def get_folder_size_in_bytes(folder_path):
     return max(total_size, 1)  # Ensure the size is at least 1 byte
 
 
-def discord_webhook(game_uuid):
+def discord_webhook(game_uuid, manual_trigger=False):
     """
     Sends a Discord notification for the given game UUID 
     if Discord notifications are enabled and webhook URL is configured.
+    
+    Args:
+        game_uuid: The UUID of the game to notify about
+        manual_trigger: If True, bypass the discord_notify_new_games check
     """
-    print(f"Discord notifications: Starting for game UUID '{game_uuid}'.")
+    print(f"Discord notifications: Starting for game UUID '{game_uuid}'. Manual trigger: {manual_trigger}")
 
     # Get global settings once
     settings = db.session.execute(select(GlobalSettings)).scalars().first()
@@ -36,9 +40,9 @@ def discord_webhook(game_uuid):
         print("Discord notifications: Webhook URL not configured. Exiting.")
         return
 
-    # Return early if notifications for new games are disabled
-    if not settings.discord_notify_new_games:
-        print("Discord notifications: Disabled for new games. Exiting.")
+    # Return early if notifications for new games are disabled (unless manually triggered)
+    if not manual_trigger and not settings.discord_notify_new_games:
+        print("Discord notifications: Disabled for new games and not manually triggered. Exiting.")
         return
 
     # Retrieve the game by UUID
