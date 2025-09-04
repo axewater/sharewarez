@@ -130,11 +130,11 @@
     }
     
     .image-queue-table {
-        background: rgba(40, 40, 40, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(30, 30, 30, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 8px;
         overflow: hidden;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.4);
     }
     
     .table {
@@ -148,7 +148,23 @@
         padding: 12px;
         text-align: left;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        color: #ffffff;
+        color: #ffffff !important;
+    }
+    
+    .table td strong,
+    .table td small,
+    .table td span:not(.status-badge):not(.image-type-badge) {
+        color: #ffffff !important;
+    }
+    
+    .table td strong {
+        font-weight: 600;
+        color: #ffffff !important;
+    }
+    
+    .table td small {
+        color: #cccccc !important;
+        font-size: 0.85em;
     }
     
     .table th {
@@ -164,6 +180,31 @@
         background: rgba(255, 255, 255, 0.1);
     }
     
+    /* Additional fallback styles to ensure text visibility */
+    .table tbody tr td * {
+        color: inherit !important;
+    }
+    
+    .table tbody tr td {
+        background-color: rgba(40, 40, 40, 0.8);
+    }
+    
+    .table tbody tr:hover td {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Ensure loading and error states are visible */
+    .loading {
+        color: #ffffff !important;
+        background: rgba(50, 50, 50, 0.8);
+    }
+    
+    .error {
+        background: rgba(220, 53, 69, 0.3) !important;
+        color: #ff6b7d !important;
+        border: 1px solid rgba(220, 53, 69, 0.5);
+    }
+    
     .status-badge {
         padding: 4px 8px;
         border-radius: 12px;
@@ -173,13 +214,17 @@
     }
     
     .status-pending {
-        background: #fff3cd;
-        color: #856404;
+        background: rgba(255, 193, 7, 0.3);
+        color: #ffd700 !important;
+        border: 1px solid rgba(255, 193, 7, 0.5);
+        font-weight: 600;
     }
     
     .status-downloaded {
-        background: #d1edff;
-        color: #0c5460;
+        background: rgba(40, 167, 69, 0.3);
+        color: #32cd32 !important;
+        border: 1px solid rgba(40, 167, 69, 0.5);
+        font-weight: 600;
     }
     
     .image-type-badge {
@@ -191,13 +236,17 @@
     }
     
     .type-cover {
-        background: #e7f3ff;
-        color: #0056b3;
+        background: rgba(0, 123, 255, 0.3);
+        color: #00bfff !important;
+        border: 1px solid rgba(0, 123, 255, 0.5);
+        font-weight: 600;
     }
     
     .type-screenshot {
-        background: #f0f9ff;
-        color: #0369a1;
+        background: rgba(23, 162, 184, 0.3);
+        color: #00d4ff !important;
+        border: 1px solid rgba(23, 162, 184, 0.5);
+        font-weight: 600;
     }
     
     .pagination {
