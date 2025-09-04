@@ -244,14 +244,12 @@ def _log_system_event(session):
     try:
         from modules.models import SystemEvents
         from modules import app_version
-        from datetime import datetime
         
         event = SystemEvents(
-            event_message=f"SharewareZ v{app_version} initializing database",
+            event_text=f"SharewareZ v{app_version} initializing database",
             event_type='system',
             event_level='startup',
-            audit_user='system',
-            created_at=datetime.utcnow()
+            audit_user=None
         )
         session.add(event)
     except Exception as e:
