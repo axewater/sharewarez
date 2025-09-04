@@ -99,6 +99,8 @@ class TestGetGlobalSettings:
             'enable_delete_game_on_disk': True,
             'enable_game_updates': True,
             'enable_game_extras': True,
+            'discord_configured': False,
+            'discord_manual_trigger_enabled': False,
             'app_version': app_version
         }
         
@@ -130,6 +132,8 @@ class TestGetGlobalSettings:
             'enable_delete_game_on_disk': True,
             'enable_game_updates': True,
             'enable_game_extras': True,
+            'discord_configured': False,
+            'discord_manual_trigger_enabled': False,
             'app_version': app_version
         }
         
@@ -239,6 +243,8 @@ class TestGetGlobalSettings:
             'enable_delete_game_on_disk',
             'enable_game_updates',
             'enable_game_extras',
+            'discord_configured',
+            'discord_manual_trigger_enabled',
             'app_version'
         }
         
@@ -257,12 +263,12 @@ class TestGetGlobalSettings:
         
         # Should not cause errors and return valid result
         assert isinstance(result, dict)
-        assert len(result) == 10  # Should have exactly 10 keys
+        assert len(result) == 12  # Should have exactly 12 keys
         assert all(key in result for key in [
             'show_logo', 'show_help_button', 'enable_web_links',
             'enable_server_status', 'enable_newsletter', 'show_version',
             'enable_delete_game_on_disk', 'enable_game_updates',
-            'enable_game_extras', 'app_version'
+            'enable_game_extras', 'discord_configured', 'discord_manual_trigger_enabled', 'app_version'
         ])
     
     def test_get_global_settings_boolean_types(self, app, db_session):
