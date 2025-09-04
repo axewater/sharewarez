@@ -104,8 +104,7 @@ def create_app():
         return dict(current_theme=current_theme)
 
     with app.app_context():
-        # Initialize library folders
-        from modules.utils_logging import log_system_event
+        # Import models and routes
         from . import routes, models
         from modules.routes_site import site_bp
         from modules.routes_library import library_bp
@@ -119,13 +118,11 @@ def create_app():
         from modules.routes_info import info_bp
         from modules.routes_admin_ext import admin2_bp
         from modules.routes_apis import apis_bp
-        from modules.init_data import initialize_library_folders, insert_default_filters, initialize_default_settings, initialize_allowed_file_types, initialize_discovery_sections
 
-
+        # Ensure database tables exist
         db.create_all()
         
-        # Run database schema updates only if not already done by parent process
-        # This prevents multiple workers from running the same migrations
+        # Run database schema updates only if not already done by startup process
         if os.getenv('SHAREWAREZ_MIGRATIONS_COMPLETE') != 'true':
             try:
                 from modules.updateschema import DatabaseManager
@@ -134,22 +131,14 @@ def create_app():
             except Exception as e:
                 print(f"Warning: Database schema update failed: {e}")
         
-        # CRITICAL: Only initialize data during non-test execution and if not already done by parent process
-        # Tests should manage their own data to prevent production contamination
+        # Database initialization is handled by startup_init.py before workers start
+        # Worker processes should skip this to avoid duplication
         if ('pytest' not in sys.modules and 'PYTEST_CURRENT_TEST' not in os.environ and 
             os.getenv('SHAREWAREZ_INITIALIZATION_COMPLETE') != 'true'):
-            print("🔧 Initializing database with default data")
-            log_system_event(f"SharewareZ v{app_version} initializing database", event_type='system', event_level='startup', audit_user='system')
+            # This should only happen in development or if startup_init.py wasn't run
+            print("⚠️  Database initialization not completed by startup process - running minimal init")
+            from modules.init_data import initialize_library_folders
             initialize_library_folders()
-            initialize_discovery_sections()
-            insert_default_filters()
-            initialize_default_settings()
-            initialize_allowed_file_types()
-            
-            # Clean up any orphaned scan jobs from previous server crashes/restarts
-            cleanup_orphaned_scan_jobs()
-        elif 'pytest' in sys.modules or 'PYTEST_CURRENT_TEST' in os.environ:
-            pass  # Silent skip for tests
     app.register_blueprint(routes.bp)
     app.register_blueprint(site_bp)
     app.register_blueprint(admin2_bp)

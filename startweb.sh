@@ -6,36 +6,17 @@ source venv/bin/activate
 
 echo "Starting SharewareZ with uvicorn..."
 
-# Run database migrations and initialization once before starting workers
-echo "Running database migrations and initialization..."
+# Run complete startup initialization once before starting workers
 python3 -c "
-import os
-from modules.init_migrations import (
-    run_database_migrations, mark_migrations_complete,
-    run_database_initialization, mark_initialization_complete,
-    cleanup_orphaned_scan_jobs
-)
-from modules import create_app
+from modules.startup_init import run_complete_startup_initialization
+import sys
 
-# Run migrations
-if run_database_migrations():
-    mark_migrations_complete()
-    print('Migrations completed successfully')
-else:
-    print('Migration failed, but continuing...')
-
-# Run initialization
-app = create_app()
-with app.app_context():
-    if run_database_initialization():
-        mark_initialization_complete()
-        cleanup_orphaned_scan_jobs()
-        print('Initialization completed successfully')
-    else:
-        print('Initialization failed, but continuing...')
+if not run_complete_startup_initialization():
+    print('Startup initialization failed, but continuing...')
+    sys.exit(1)
 "
 
-# Export environment variables so worker processes inherit them
+# Ensure environment variables are set for worker processes
 export SHAREWAREZ_MIGRATIONS_COMPLETE=true
 export SHAREWAREZ_INITIALIZATION_COMPLETE=true
 
