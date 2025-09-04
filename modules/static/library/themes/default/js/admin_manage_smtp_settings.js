@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Define test settings function
     window.testSettings = function() {
-        testResultsDiv.innerHTML = '<div class="alert alert-info">Testing SMTP connection...</div>';
         testButton.disabled = true;
 
         fetch('/admin/smtp_test', {
@@ -21,23 +20,20 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             testButton.disabled = false;
             if (data.success) {
-                testResultsDiv.innerHTML = `
-                    <div class="alert alert-success">
-                        <i class="fas fa-check-circle"></i> ${data.message || 'SMTP connection successful'}
-                    </div>`;
+                $.notify("SMTP connection successful", "success");
+                // Clear any previous test results
+                testResultsDiv.innerHTML = '';
             } else {
-                testResultsDiv.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle"></i> ${data.message || 'SMTP connection failed'}
-                    </div>`;
+                $.notify("SMTP connection failed: " + (data.message || 'Unknown error'), "error");
+                // Clear any previous test results
+                testResultsDiv.innerHTML = '';
             }
         })
         .catch(error => {
             testButton.disabled = false;
-            testResultsDiv.innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-circle"></i> Error testing SMTP connection: ${error.message || 'Unknown error'}
-                </div>`;
+            $.notify("Error testing SMTP connection: " + (error.message || 'Unknown error'), "error");
+            // Clear any previous test results
+            testResultsDiv.innerHTML = '';
         });
     }
 
