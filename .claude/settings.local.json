@@ -29,7 +29,8 @@
       "Bash(python -m pytest tests/test_routes.py::TestMainBlueprint::test_scan_management_auto_scan tests/test_routes.py::TestMainBlueprint::test_scan_management_manual_scan tests/test_routes.py::TestMainBlueprint::test_scan_management_delete_unmatched -v)",
       "WebFetch(domain:stackoverflow.com)",
       "Bash(python:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "WebSearch"
     ],
     "deny": []
   },
