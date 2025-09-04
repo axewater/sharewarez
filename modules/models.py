@@ -434,7 +434,7 @@ class ScanJob(db.Model):
     content_type = db.Column(db.Enum('Games', name='content_type_enum'))
     schedule = db.Column(db.Enum('8_hours', '24_hours', '48_hours', name='schedule_enum'))
     is_enabled = db.Column(db.Boolean, default=True)
-    status = db.Column(db.Enum('Scheduled', 'Running', 'Completed', 'Failed', name='status_enum'))
+    status = db.Column(db.Enum('Scheduled', 'Running', 'Completed', 'Failed', 'Cancelled', name='status_enum'))
     last_run = db.Column(db.DateTime, nullable=True)
     next_run = db.Column(db.DateTime, nullable=True)
     error_message = db.Column(db.Text)
