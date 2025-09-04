@@ -126,7 +126,8 @@ def library():
         user_default_sort_order=user_default_sort_order,
         filters=filters,
         form=form,
-        library_uuid = library_uuid
+        library_uuid = library_uuid,
+        is_admin=current_user.role == 'admin'
     )
 
 

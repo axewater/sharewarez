@@ -11,4 +11,4 @@ def inject_settings():
     return get_global_settings()
 
 # Import routes to register them with the blueprint
-from . import add, details, edit
+from . import add, details, edit, discord

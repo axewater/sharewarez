@@ -50,4 +50,9 @@
         <button type="submit" onclick="window.open('{{ game.url }}', 'target=_new')" class="menu-button">Open IGDB Page</button>
         {% endif %}
     </div>
+    {% if discord_configured and discord_manual_trigger_enabled and is_admin %}
+    <div class="menu-item">
+        <button type="button" class="menu-button trigger-discord-notification" data-game-uuid="{{ game_uuid }}">Send Discord Notification</button>
+    </div>
+    {% endif %}
 </div>

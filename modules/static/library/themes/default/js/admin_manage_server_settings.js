@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
             discordNotifyGameUpdates: document.getElementById('discordNotifyGameUpdates').checked,
             discordNotifyGameExtras: document.getElementById('discordNotifyGameExtras').checked,
             discordNotifyDownloads: document.getElementById('discordNotifyDownloads').checked,
+            discordNotifyManualTrigger: document.getElementById('discordNotifyManualTrigger').checked,
             updateFolderName: document.getElementById('updateFolderName').value,
             extrasFolderName: document.getElementById('extrasFolderName').value,
             siteUrl: document.getElementById('siteUrl').value,

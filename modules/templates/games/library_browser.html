@@ -43,7 +43,7 @@
     <script src="{{ url_for('static', filename='library/themes/default/js/favorites_manager.js') }}"></script>
 {% endif %}
 </head>
-<body data-user-per-page="{{ user_per_page }}" data-user-default-sort="{{ user_default_sort }}" data-user-default-sort-order="{{ user_default_sort_order }}">
+<body data-user-per-page="{{ user_per_page }}" data-user-default-sort="{{ user_default_sort }}" data-user-default-sort-order="{{ user_default_sort_order }}" data-enable-delete-game-on-disk="{{ enable_delete_game_on_disk|lower }}" data-discord-configured="{{ discord_configured|lower }}" data-discord-manual-trigger="{{ discord_manual_trigger_enabled|lower }}" data-is-admin="{{ is_admin|lower }}">
 
 
     <div class="glass-panel">

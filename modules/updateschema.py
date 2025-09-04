@@ -103,6 +103,9 @@ class DatabaseManager:
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS scan_thread_count INTEGER DEFAULT 1;
 
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS discord_notify_manual_trigger BOOLEAN DEFAULT FALSE;
+
         -- Add setting_download_missing_images column to scan_jobs table
         ALTER TABLE scan_jobs
         ADD COLUMN IF NOT EXISTS setting_download_missing_images BOOLEAN DEFAULT FALSE;

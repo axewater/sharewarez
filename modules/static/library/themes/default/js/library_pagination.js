@@ -331,6 +331,9 @@ $(document).ready(function() {
         // update the popup_menu.html template as well
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         const enableDeleteGameOnDisk = document.body.getAttribute('data-enable-delete-game-on-disk') === 'true';
+        const discordConfigured = document.body.getAttribute('data-discord-configured') === 'true';
+        const discordManualTrigger = document.body.getAttribute('data-discord-manual-trigger') === 'true';
+        const isAdmin = document.body.getAttribute('data-is-admin') === 'true';
         let menuHtml = `
     <div id="popupMenu-${game.uuid}" class="popup-menu" style="display: none;">
         <form action="/download_game/${game.uuid}" method="get" class="menu-item">
@@ -368,7 +371,16 @@ $(document).ready(function() {
         menuHtml += `
         <div class="menu-item">
             <button type="submit" onclick="window.open('{{ game.url }}', 'target=_new')" class="menu-button">Open IGDB Page</button>
-        </div>
+        </div>`;
+        
+        if (discordConfigured && discordManualTrigger && isAdmin) {
+            menuHtml += `
+        <div class="menu-item">
+            <button type="button" class="menu-button trigger-discord-notification" data-game-uuid="${game.uuid}">Send Discord Notification</button>
+        </div>`;
+        }
+        
+        menuHtml += `
     </div>
     `;
         return menuHtml;

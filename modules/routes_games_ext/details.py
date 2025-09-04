@@ -126,7 +126,7 @@ def game_details(game_uuid):
         
         library_uuid = game.library_uuid
         
-        return render_template('games/game_details.html', game=game_data, form=csrf_form, library_uuid=library_uuid)
+        return render_template('games/game_details.html', game=game_data, form=csrf_form, library_uuid=library_uuid, is_admin=current_user.role == 'admin')
     else:
         log_system_event(
             f"User {current_user.name} attempted to access non-existent game UUID: {game_uuid[:8]}...",
