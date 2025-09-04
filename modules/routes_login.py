@@ -84,9 +84,24 @@ def register():
     if invite_token_from_url:
         invite = db.session.execute(select(InviteToken).filter_by(token=invite_token_from_url, used=False)).scalar_one_or_none()
         print(f"Invite found: {invite}")
-        if invite and invite.expires_at >= datetime.now(timezone.utc):
-            # The invite is valid; skip the whitelist check later
-            pass
+        if invite:
+            # Handle timezone comparison safely
+            current_time = datetime.now(timezone.utc)
+            if invite.expires_at.tzinfo:
+                # Timezone-aware comparison
+                is_valid = invite.expires_at >= current_time
+            else:
+                # Timezone-naive comparison
+                naive_current = current_time.replace(tzinfo=None)
+                is_valid = invite.expires_at >= naive_current
+            
+            if is_valid:
+                # The invite is valid; skip the whitelist check later
+                pass
+            else:
+                invite = None  # Invalidate
+                flash('The invite is invalid or has expired.', 'warning')
+                return redirect(url_for('login.register'))
         else:
             invite = None  # Invalidate
             flash('The invite is invalid or has expired.', 'warning')
@@ -139,6 +154,7 @@ def register():
             if invite:
                 invite.used = True
                 invite.used_by = user.user_id
+                invite.used_at = datetime.now(timezone.utc)
 
             # Verification email
             verification_token = user.email_verification_token
