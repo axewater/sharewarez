@@ -77,10 +77,9 @@ function testSettings() {
     
     fetch('/admin/test_igdb', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token() }}'
-        }
+        headers: CSRFUtils.getHeaders({
+            'Content-Type': 'application/json'
+        })
     })
     .then(response => response.json())
     .then(data => {

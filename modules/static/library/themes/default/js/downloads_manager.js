@@ -83,8 +83,3 @@ function updateDownloadRow(downloadRow, downloadId) {
                              </form>`;
 }
 
-// CSRF token function replaced with CSRFUtils
-// function getCsrfToken() {
-//     const csrfInput = document.querySelector('input[name="csrf_token"]');
-//     return csrfInput ? csrfInput.value : null;
-// }

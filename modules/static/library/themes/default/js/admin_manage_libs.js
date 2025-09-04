@@ -10,10 +10,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Send the new order to the server
             fetch('/api/reorder_libraries', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': CSRFUtils.getToken()
-                },
+                headers: CSRFUtils.getHeaders({
+                    'Content-Type': 'application/json'
+                }),
                 body: JSON.stringify({ order: newOrder })
             })
             .then(response => response.json())
@@ -82,10 +81,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Start the deletion with AJAX instead of form submit
                 fetch(deleteForm.action, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-CSRFToken': CSRFUtils.getToken()
-                    },
+                    headers: CSRFUtils.getHeaders({
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }),
                     body: new URLSearchParams(new FormData(deleteForm))
                 })
                 .then(response => response.json())
