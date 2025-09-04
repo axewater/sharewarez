@@ -459,14 +459,125 @@ form textarea {
   }
 
 
-.delete-game-modal .modal-content {
-    border: 20px solid #ff0000;
-    border-radius: 15px;
+/* Delete Game Modal - Modern Glassmorphic Design */
+.delete-game-modal {
+    backdrop-filter: blur(5px);
 }
 
+.delete-game-modal .modal-content {
+    background: rgba(30, 30, 30, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 0, 0, 0.3);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 0, 0, 0.1);
+    color: white;
+    max-width: 500px;
+    width: 90%;
+    margin: 10% auto;
+    padding: 0;
+    position: relative;
+    animation: modalSlideIn 0.3s ease-out;
+}
 
-.delete-game-modal h2 {
-    color: #ff0000;
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.delete-game-modal .modal-content h2 {
+    color: #ff4444;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    margin: 0 0 15px 0;
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 20px 20px 0 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.delete-game-modal .modal-content p {
+    color: #e0e0e0;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0 0 25px 0;
+    padding: 0 20px;
+    text-align: center;
+}
+
+.delete-game-modal .modal-content form {
+    padding: 0 20px 20px 20px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.delete-game-modal .close-button {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #ccc;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.delete-game-modal .close-button:hover {
+    color: #ff4444;
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+.delete-game-modal .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 120px;
+}
+
+.delete-game-modal .btn-danger {
+    background: linear-gradient(45deg, #dc3545, #c82333);
+    color: white;
+    border-color: rgba(220, 53, 69, 0.5);
+}
+
+.delete-game-modal .btn-danger:hover {
+    background: linear-gradient(45deg, #c82333, #bd2130);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.delete-game-modal .btn-success {
+    background: rgba(40, 167, 69, 0.8);
+    color: white;
+    border-color: rgba(40, 167, 69, 0.5);
+    backdrop-filter: blur(5px);
+}
+
+.delete-game-modal .btn-success:hover {
+    background: rgba(40, 167, 69, 1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
 }
 
 
