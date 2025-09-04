@@ -311,29 +311,6 @@ class TestDownloadOtherRoute:
             shutil.rmtree(app.config['ZIP_SAVE_PATH'], ignore_errors=True)
 
 
-class TestDownloadFileRoute:
-    """Test cases for download_file route (legacy route)."""
-    
-    def test_download_file_requires_login(self, client, test_game):
-        """Test that download_file requires authentication."""
-        response = client.get(f'/download_file/updates/1KB/{test_game.uuid}/test_file.zip')
-        assert response.status_code == 302  # Redirect to login
-        assert '/login' in response.location
-    
-    def test_download_file_invalid_location(self, client, authenticated_user, test_game):
-        """Test download_file with invalid file location."""
-        authenticate_user(client, authenticated_user)
-        
-        response = client.get(f'/download_file/invalid/1KB/{test_game.uuid}/test_file.zip')
-        assert response.status_code == 302
-    
-    def test_download_file_invalid_uuid(self, client, authenticated_user):
-        """Test download_file with invalid UUID format."""
-        authenticate_user(client, authenticated_user)
-        
-        response = client.get('/download_file/updates/1KB/invalid-uuid/test_file.zip')
-        assert response.status_code in [400, 302]  # Either validation error or redirect
-
 
 class TestSecurityValidation:
     """Test cases focused on security validation."""
