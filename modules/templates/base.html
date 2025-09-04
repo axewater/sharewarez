@@ -139,44 +139,54 @@
         closeAllSubmenus();
     
         // Toggle sidebar
-        document.getElementById("toggleSidebar").addEventListener("click", function() {
-            console.log("Sidebar toggle clicked.");
-            document.getElementById("sidebar").classList.toggle("collapsed");
-            document.getElementById("content").classList.toggle("collapsed");
-            closeAllSubmenus();
-        });
+        const toggleSidebar = document.getElementById("toggleSidebar");
+        if (toggleSidebar) {
+            toggleSidebar.addEventListener("click", function() {
+                console.log("Sidebar toggle clicked.");
+                document.getElementById("sidebar").classList.toggle("collapsed");
+                document.getElementById("content").classList.toggle("collapsed");
+                closeAllSubmenus();
+            });
+        }
     
         // User account icon click event
-        document.getElementById('userAccountIcon').addEventListener('click', function() {
-            console.log("User account icon clicked.");
+        const userAccountIcon = document.getElementById('userAccountIcon');
+        if (userAccountIcon) {
+            userAccountIcon.addEventListener('click', function() {
+                console.log("User account icon clicked.");
 
-            var menu = document.getElementById('userAccountMenu');
-            var icon = document.querySelector('.user-expand-icon');
-        
-            if (menu.classList.contains('hide')) {
-                console.log("Menu is hidden, showing now.");
-                menu.classList.remove('hide');
-                menu.classList.add('show');
-                icon.style.transform = 'rotate(180deg)';
-            } else {
-                console.log("Menu is shown, hiding now.");
-                menu.classList.remove('show');
-                menu.classList.add('hide');
-                icon.style.transform = 'rotate(0deg)';
-            }
-        });
+                var menu = document.getElementById('userAccountMenu');
+                var icon = document.querySelector('.user-expand-icon');
+            
+                if (menu.classList.contains('hide')) {
+                    console.log("Menu is hidden, showing now.");
+                    menu.classList.remove('hide');
+                    menu.classList.add('show');
+                    icon.style.transform = 'rotate(180deg)';
+                } else {
+                    console.log("Menu is shown, hiding now.");
+                    menu.classList.remove('show');
+                    menu.classList.add('hide');
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            });
+        }
 
         document.addEventListener('click', function(event) {
-            var isClickInsideIcon = document.getElementById('userAccountIcon').contains(event.target);
-            var isClickInsideMenu = document.getElementById('userAccountMenu').contains(event.target);
-
+            const userAccountIcon = document.getElementById('userAccountIcon');
+            const userAccountMenu = document.getElementById('userAccountMenu');
+            const userExpandIcon = document.querySelector('.user-expand-icon');
             
+            if (userAccountIcon && userAccountMenu && userExpandIcon) {
+                var isClickInsideIcon = userAccountIcon.contains(event.target);
+                var isClickInsideMenu = userAccountMenu.contains(event.target);
+
                 if (!isClickInsideIcon && !isClickInsideMenu) {
-                
-                // If the click is outside the userAccountIcon and userAccountMenu, close the menu
-                document.getElementById('userAccountMenu').classList.add('hide');
-                document.getElementById('userAccountMenu').classList.remove('show');
-                document.querySelector('.user-expand-icon').style.transform = 'rotate(0deg)';
+                    // If the click is outside the userAccountIcon and userAccountMenu, close the menu
+                    userAccountMenu.classList.add('hide');
+                    userAccountMenu.classList.remove('show');
+                    userExpandIcon.style.transform = 'rotate(0deg)';
+                }
             }
         });
         
@@ -204,7 +214,10 @@
     // Additional checks for visibility of elements based on URL
     if (window.location.pathname !== '/library') {
         console.log("Not on '/library' page, adjusting visibility.");
-        document.querySelector('.container-filtersandsort').style.visibility = 'hidden';
+        const filterContainer = document.querySelector('.container-filtersandsort');
+        if (filterContainer) {
+            filterContainer.style.visibility = 'hidden';
+        }
     }
 </script>
 
@@ -213,20 +226,23 @@
 <div id="preferencesModalContainer"></div>
 
 <script>
-document.querySelector('[data-bs-toggle="modal"][data-bs-target="#preferencesModal"]').addEventListener('click', function(e) {
-    e.preventDefault();
-    
-    fetch("{{ url_for('settings.settings_panel') }}")
-        .then(response => response.text())
-        .then(html => {
-            document.getElementById('preferencesModalContainer').innerHTML = html;
-            new bootstrap.Modal(document.getElementById('preferencesModal')).show();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            $.notify("Error loading preferences", "error");
-        });
-});
+const prefsToggle = document.querySelector('[data-bs-toggle="modal"][data-bs-target="#preferencesModal"]');
+if (prefsToggle) {
+    prefsToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        fetch("{{ url_for('settings.settings_panel') }}")
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('preferencesModalContainer').innerHTML = html;
+                new bootstrap.Modal(document.getElementById('preferencesModal')).show();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                $.notify("Error loading preferences", "error");
+            });
+    });
+}
 </script>
 
 </body>
