@@ -60,7 +60,7 @@
                             <div class="config-grid">
                                 <!-- Library Selection -->
                                 <div class="config-item">
-                                    {{ auto_form.library_uuid.label(class="config-label") }}
+                                    {{ auto_form.library_uuid.label(class="config-label", **{"data-toggle": "tooltip", "title": "Choose which library to scan games into"}) }}
                                     {{ auto_form.library_uuid(class="form-control config-input", id="libraryUuid", onchange='onLibraryChange(this.value, "auto")') }}
                                     {% if auto_form.library_uuid.errors %}
                                         {% for error in auto_form.library_uuid.errors %}
@@ -71,12 +71,16 @@
 
                                 <!-- Scan Mode -->
                                 <div class="config-item">
-                                    <label class="config-label">{{ auto_form.scan_mode.label.text }}</label>
+                                    <label class="config-label" data-toggle="tooltip" title="Choose how your games are organized on disk">{{ auto_form.scan_mode.label.text }}</label>
                                     <div class="radio-group">
                                         {% for subfield in auto_form.scan_mode %}
                                             <div class="radio-option">
                                                 {{ subfield(class="form-check-input") }}
-                                                {{ subfield.label(class="form-check-label") }}
+                                                {% if subfield.data == 'folders' %}
+                                                {{ subfield.label(class="form-check-label", **{"data-toggle": "tooltip", "title": "Each game is in its own folder (e.g., /Games/Doom/, /Games/Quake/)"}) }}
+                                                {% else %}
+                                                {{ subfield.label(class="form-check-label", **{"data-toggle": "tooltip", "title": "Games are individual files in one folder (e.g., /Games/doom.zip, /Games/quake.exe)"}) }}
+                                                {% endif %}
                                             </div>
                                         {% endfor %}
                                     </div>
@@ -93,21 +97,21 @@
                                 <div class="option-item">
                                     <div class="form-check modern-checkbox">
                                         {{ auto_form.remove_missing(class="form-check-input") }}
-                                        {{ auto_form.remove_missing.label(class="form-check-label") }}
+                                        {{ auto_form.remove_missing.label(class="form-check-label", **{"data-toggle": "tooltip", "title": "Remove games from library if their folders no longer exist on disk"}) }}
                                     </div>
                                 </div>
                                 
                                 <div class="option-item">
                                     <div class="form-check modern-checkbox">
                                         {{ auto_form.download_missing_images(class="form-check-input") }}
-                                        {{ auto_form.download_missing_images.label(class="form-check-label") }}
+                                        {{ auto_form.download_missing_images.label(class="form-check-label", **{"data-toggle": "tooltip", "title": "Automatically download cover art and screenshots for games missing images"}) }}
                                     </div>
                                 </div>
                                 
                                 <div class="option-item">
                                     <div class="form-check modern-checkbox">
                                         {{ auto_form.force_updates_extras_scan(class="form-check-input", id="force-updates-extras-auto") }}
-                                        {{ auto_form.force_updates_extras_scan.label(class="form-check-label") }}
+                                        {{ auto_form.force_updates_extras_scan.label(class="form-check-label", **{"data-toggle": "tooltip", "title": "Force re-scanning of update and extras folders even if previously scanned"}) }}
                                     </div>
                                 </div>
                             </div>
@@ -121,7 +125,7 @@
                         </div>
                         <div class="card-content">
                             <div class="path-input-group">
-                                {{ auto_form.folder_path.label(class="config-label") }}
+                                {{ auto_form.folder_path.label(class="config-label", **{"data-toggle": "tooltip", "title": "Browse or enter the path to scan for games"}) }}
                                 <div class="scan-controls-group" style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
                                     <button type="submit" name="submit" value="AutoScan" class="btn btn-primary browse-btn" style="margin-right: 10px;">
                                         <i class="fas fa-play"></i> Start Scan
@@ -217,7 +221,7 @@
                     {{ manual_form.hidden_tag() }}
                     <!-- Library Selection -->
                     <div class="admin_manage_scanjobs-library form-group">
-                        {{ manual_form.library_uuid.label }}
+                        {{ manual_form.library_uuid.label(**{"data-toggle": "tooltip", "title": "Choose which library to scan games into"}) }}
                         {{ manual_form.library_uuid(class="form-control", id="manualLibraryUuid", onchange='onLibraryChange(this.value, "manual")') }}
                         {% if manual_form.library_uuid.errors %}
                             {% for error in manual_form.library_uuid.errors %}
@@ -227,16 +231,20 @@
                     </div>
                     <!-- Scan Mode -->
                     <div class="admin_manage_scanjobs-scanmode form-group">
-                        {{ manual_form.scan_mode.label }}
+                        {{ manual_form.scan_mode.label(**{"data-toggle": "tooltip", "title": "Choose how your games are organized on disk"}) }}
                         {% for subfield in manual_form.scan_mode %}
                             <div class="form-check">
                                 {{ subfield(class="form-check-input") }}
-                                {{ subfield.label(class="form-check-label") }}
+                                {% if subfield.data == 'folders' %}
+                                {{ subfield.label(class="form-check-label", **{"data-toggle": "tooltip", "title": "Each game is in its own folder (e.g., /Games/Doom/, /Games/Quake/)"}) }}
+                                {% else %}
+                                {{ subfield.label(class="form-check-label", **{"data-toggle": "tooltip", "title": "Games are individual files in one folder (e.g., /Games/doom.zip, /Games/quake.exe)"}) }}
+                                {% endif %}
                             </div>
                         {% endfor %}
                     </div>
                     <div class="form-group">
-                        {{ manual_form.folder_path.label }}
+                        {{ manual_form.folder_path.label(**{"data-toggle": "tooltip", "title": "Browse or enter the path to scan for games"}) }}
                         {{ manual_form.folder_path(class="form-control", id="manualFolderPath") }}
                         {% if manual_form.folder_path.errors %}
                             {% for error in manual_form.folder_path.errors %}
@@ -248,7 +256,7 @@
                     <!-- Options -->
                     <div class="form-check modern-checkbox">
                         {{ manual_form.force_updates_extras_scan(class="form-check-input", id="force-updates-extras-manual") }}
-                        {{ manual_form.force_updates_extras_scan.label(class="form-check-label") }}
+                        {{ manual_form.force_updates_extras_scan.label(class="form-check-label", **{"data-toggle": "tooltip", "title": "Force re-scanning of update and extras folders even if previously scanned"}) }}
                     </div>
                     
                     <div class="form-group">
@@ -300,12 +308,12 @@
                         <form action="" method="post">
                             {{ csrf_form.csrf_token }}
                             <input type="hidden" name="submit" value="DeleteAllUnmatched">
-                            <button type="submit" class="admin_manage_scanjobs-clearall-btn btn btn-danger"  title="Clear the entire table" onclick="return confirm('Are you sure you want to delete all entries in the list? This cannot be undone.');">Clear All</button>
+                            <button type="submit" class="admin_manage_scanjobs-clearall-btn btn btn-danger" data-toggle="tooltip" title="Remove all entries from the unmatched folders list" onclick="return confirm('Are you sure you want to delete all entries in the list? This cannot be undone.');">Clear All</button>
                         </form>
                         <form action="" method="post">
                             {{ csrf_form.csrf_token }}
                             <input type="hidden" name="submit" value="DeleteOnlyUnmatched">
-                            <button type="submit" class="admin_manage_scanjobs-clearunmatched-btn btn btn-warning" title="Remove folders with statsus Unmatched" onclick="return confirm('Are you sure you want to clear all unmatched folders? This cannot be undone.');">Clear Unmatched</button>
+                            <button type="submit" class="admin_manage_scanjobs-clearunmatched-btn btn btn-warning" data-toggle="tooltip" title="Remove only folders with 'Unmatched' status, keeping identified items" onclick="return confirm('Are you sure you want to clear all unmatched folders? This cannot be undone.');">Clear Unmatched</button>
                         </form>
                     </div>
                     <table id="unmatchedTable" class="simple-unmatched-table table" style="border-radius: 15px;">

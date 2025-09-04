@@ -68,6 +68,12 @@ function attachDeleteFolderFormListeners() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Document loaded. Setting up form submission handlers and tab activation based on activeTab.");
 
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+
     // Simple table references - no DataTables initialization needed
     const scanJobsTableBody = document.getElementById('jobsTableBody');
     const unmatchedTableBody = document.getElementById('unmatchedFoldersTableBody');
