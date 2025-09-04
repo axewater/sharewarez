@@ -238,17 +238,19 @@ class TestDownloadZipRoute:
                 event_type='download', event_level='error'
             )
 
-    @patch('modules.routes_downloads_ext.serve.send_from_directory')
+    @patch('modules.routes_downloads_ext.serve.create_streaming_response')
     @patch('modules.routes_downloads_ext.serve.os.path.exists')
     @patch('modules.routes_downloads_ext.serve.is_safe_path')
     @patch('modules.routes_downloads_ext.serve.log_system_event')
     def test_download_zip_successful_download(self, mock_log, mock_is_safe_path, mock_exists, 
-                                             mock_send_from_directory, client, authenticated_user, 
+                                             mock_create_streaming_response, client, authenticated_user, 
                                              sample_download_request, db_session, app, temp_zip_file):
         """Test successful file download."""
         mock_is_safe_path.return_value = (True, None)
         mock_exists.return_value = True
-        mock_send_from_directory.return_value = MagicMock()
+        mock_streaming_response = MagicMock()
+        mock_streaming_response.headers = {}
+        mock_create_streaming_response.return_value = mock_streaming_response
         
         # Update the download request with the temp file path
         sample_download_request.zip_file_path = temp_zip_file
@@ -263,28 +265,27 @@ class TestDownloadZipRoute:
             
             response = client.get(f'/download_zip/{sample_download_request.id}')
             
-            # Verify send_from_directory was called correctly
-            expected_directory = os.path.dirname(temp_zip_file)
+            # Verify create_streaming_response was called correctly
             expected_filename = os.path.basename(temp_zip_file)
-            mock_send_from_directory.assert_called_once_with(
-                expected_directory, expected_filename, as_attachment=True
+            mock_create_streaming_response.assert_called_once_with(
+                temp_zip_file, expected_filename
             )
             
             # Verify success logging
             mock_log.assert_any_call(f"File downloaded: {expected_filename}", 
                                    event_type='download', event_level='information')
 
-    @patch('modules.routes_downloads_ext.serve.send_from_directory')
+    @patch('modules.routes_downloads_ext.serve.create_streaming_response')
     @patch('modules.routes_downloads_ext.serve.os.path.exists')
     @patch('modules.routes_downloads_ext.serve.is_safe_path')
     @patch('modules.routes_downloads_ext.serve.log_system_event')
-    def test_download_zip_send_from_directory_exception(self, mock_log, mock_is_safe_path, 
-                                                       mock_exists, mock_send_from_directory,
-                                                       client, authenticated_user, sample_download_request, app):
-        """Test handling of send_from_directory exceptions."""
+    def test_download_zip_streaming_exception(self, mock_log, mock_is_safe_path, 
+                                             mock_exists, mock_create_streaming_response,
+                                             client, authenticated_user, sample_download_request, app):
+        """Test handling of streaming response exceptions."""
         mock_is_safe_path.return_value = (True, None)
         mock_exists.return_value = True
-        mock_send_from_directory.side_effect = Exception("File permission error")
+        mock_create_streaming_response.side_effect = Exception("File permission error")
         
         with client.session_transaction() as session:
             session['_user_id'] = str(authenticated_user.id)
@@ -362,10 +363,10 @@ class TestSecurityValidation:
                 event_type='security', event_level='warning'
             )
 
-    @patch('modules.routes_downloads_ext.serve.send_from_directory')
+    @patch('modules.routes_downloads_ext.serve.create_streaming_response')
     @patch('modules.routes_downloads_ext.serve.os.path.exists')
     @patch('modules.routes_downloads_ext.serve.log_system_event')
-    def test_valid_path_within_allowed_directory(self, mock_log, mock_exists, mock_send_from_directory,
+    def test_valid_path_within_allowed_directory(self, mock_log, mock_exists, mock_create_streaming_response,
                                                  client, authenticated_user, sample_download_request, 
                                                  db_session, app):
         """Test that valid paths within allowed directories are accepted."""
@@ -375,7 +376,9 @@ class TestSecurityValidation:
         db_session.commit()
         
         mock_exists.return_value = True
-        mock_send_from_directory.return_value = MagicMock()
+        mock_streaming_response = MagicMock()
+        mock_streaming_response.headers = {}
+        mock_create_streaming_response.return_value = mock_streaming_response
         
         with client.session_transaction() as session:
             session['_user_id'] = str(authenticated_user.id)
@@ -386,8 +389,8 @@ class TestSecurityValidation:
             
             response = client.get(f'/download_zip/{sample_download_request.id}')
             
-            # Should succeed - send_from_directory should be called
-            mock_send_from_directory.assert_called_once()
+            # Should succeed - create_streaming_response should be called
+            mock_create_streaming_response.assert_called_once_with(valid_path, "valid_game.zip")
             
             # Verify success logging
             mock_log.assert_any_call("File downloaded: valid_game.zip", 
@@ -411,8 +414,10 @@ class TestLoggingFunctionality:
         with app.app_context():
             app.config['ZIP_SAVE_PATH'] = os.path.dirname(temp_zip_file)
             
-            with patch('modules.routes_downloads_ext.serve.send_from_directory') as mock_send:
-                mock_send.return_value = MagicMock()
+            with patch('modules.routes_downloads_ext.serve.create_streaming_response') as mock_stream:
+                mock_streaming_response = MagicMock()
+                mock_streaming_response.headers = {}
+                mock_stream.return_value = mock_streaming_response
                 
                 response = client.get(f'/download_zip/{sample_download_request.id}')
                 
@@ -475,16 +480,17 @@ class TestIntegration:
         with app.app_context():
             app.config['ZIP_SAVE_PATH'] = os.path.dirname(temp_zip_file)
             
-            with patch('modules.routes_downloads_ext.serve.send_from_directory') as mock_send:
-                mock_send.return_value = MagicMock()
+            with patch('modules.routes_downloads_ext.serve.create_streaming_response') as mock_stream:
+                mock_streaming_response = MagicMock()
+                mock_streaming_response.headers = {}
+                mock_stream.return_value = mock_streaming_response
                 
                 response = client.get(f'/download_zip/{sample_download_request.id}')
                 
-                # Verify successful call to send_from_directory
-                mock_send.assert_called_once_with(
-                    os.path.dirname(temp_zip_file),
-                    os.path.basename(temp_zip_file),
-                    as_attachment=True
+                # Verify successful call to create_streaming_response
+                mock_stream.assert_called_once_with(
+                    temp_zip_file,
+                    os.path.basename(temp_zip_file)
                 )
 
     def test_security_and_logging_integration(self, client, authenticated_user, 

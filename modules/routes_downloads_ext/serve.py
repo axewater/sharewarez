@@ -1,5 +1,5 @@
 import os
-from flask import redirect, url_for, flash, send_from_directory, current_app
+from flask import redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
 from modules import db
 from modules.models import DownloadRequest
@@ -7,6 +7,7 @@ from sqlalchemy import select
 from flask import abort
 from modules.utils_security import is_safe_path, get_allowed_base_directories
 from modules.utils_logging import log_system_event
+from modules.utils_streaming import create_streaming_response
 from . import download_bp
 
 @download_bp.route('/download_zip/<download_id>')
@@ -46,13 +47,12 @@ def download_zip(download_id):
         return redirect(url_for('library.library'))
 
     try:
-        directory = os.path.dirname(file_path)
         filename = os.path.basename(file_path)
         
         log_system_event(f"File downloaded: {filename}", event_type='download', event_level='information')
         
-        # Serve the file
-        return send_from_directory(directory, filename, as_attachment=True)
+        # Stream the file using chunked response
+        return create_streaming_response(file_path, filename)
         
     except Exception as e:
         log_system_event(f"Download error for {download_id}: {str(e)}", event_type='download', event_level='error')
