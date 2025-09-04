@@ -7,12 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-        if (!csrfMeta) {
-            console.error('[FavoritesManager] CSRF token meta tag not found. Cannot proceed.');
+        const csrfToken = CSRFUtils.getToken();
+        if (!csrfToken) {
+            console.error('[FavoritesManager] CSRF token not found. Cannot proceed.');
             return;
         }
-        const csrfToken = csrfMeta.content;
 
         favoriteButtons.forEach(button => {
             // Skip already initialized buttons
@@ -42,10 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const response = await fetch(`/api/toggle_favorite/${gameUuid}`, {
                         method: 'POST',
-                        headers: {
-                            'X-CSRFToken': csrfToken,
+                        headers: CSRFUtils.getHeaders({
                             'Content-Type': 'application/json'
-                        }
+                        })
                     });
 
                     if (!response.ok) {
