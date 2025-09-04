@@ -140,7 +140,7 @@ def create_app():
         # Tests should manage their own data to prevent production contamination
         if ('pytest' not in sys.modules and 'PYTEST_CURRENT_TEST' not in os.environ and 
             os.getenv('SHAREWAREZ_INITIALIZATION_COMPLETE') != 'true'):
-            print("🔧 PRODUCTION MODE: Initializing database with default data")
+            print("🔧 Initializing database with default data")
             log_system_event(f"SharewareZ v{app_version} initializing database", event_type='system', event_level='startup', audit_user='system')
             initialize_library_folders()
             initialize_discovery_sections()

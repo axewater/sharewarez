@@ -47,7 +47,7 @@ def run_database_initialization():
         from modules.utils_logging import log_system_event
         from modules import app_version
         
-        print("🔧 PRODUCTION MODE: Initializing database with default data")
+        print("🔧 Initializing database with default data")
         log_system_event(f"SharewareZ v{app_version} initializing database", 
                          event_type='system', event_level='startup', audit_user='system')
         
