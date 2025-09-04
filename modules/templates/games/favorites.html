@@ -20,6 +20,71 @@
     <script src="{{ url_for('static', filename='library/themes/default/js/popup_menu.js') }}"></script>
 {% endif %}
 
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/favorites_manager.js') %}
+    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/favorites_manager.js') }}"></script>
+{% else %}
+    <script src="{{ url_for('static', filename='library/themes/default/js/favorites_manager.js') }}"></script>
+{% endif %}
+
+<script src="{{ url_for('static', filename='library/themes/default/js/csrf_utils.js') }}"></script>
+
+<style>
+.favorite-count .favorite-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s ease;
+}
+
+.favorite-count .favorite-btn:hover {
+    transform: scale(1.1);
+}
+
+.favorite-count .favorite-btn.processing {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.favorite-count .favorite-btn i {
+    position: relative;
+    z-index: 0;
+    color: #ff69b4;
+    font-size: 18px;
+}
+
+.favorite-count .favorite-number {
+    position: relative;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.remove-favorite-modal .modal-content {
+    border: 2px solid #ff69b4;
+    border-radius: 15px;
+}
+
+.remove-favorite-modal h2 {
+    color: #ff69b4;
+}
+
+.modal-buttons {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+</style>
+
 <body>
     <div class="discovery-panel">
         <h1 class="discovery-header">    
@@ -44,7 +109,9 @@
                                     </a>
                                 {% endif %}
                                 <div class="favorite-count">
-                                    <i class="fas fa-heart"></i>
+                                    <button class="favorite-btn" data-game-uuid="{{ game.uuid }}" data-is-favorite="{{ game.is_favorite|lower }}" data-game-name="{{ game.name }}">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
                                     <span class="favorite-number">{{ game.favorite_count }}</span>
                                 </div>
                             </div>
@@ -58,6 +125,19 @@
             {% else %}
                 <p>You haven't added any favorites yet!</p>
             {% endif %}
+        </div>
+    </div>
+
+    <!-- Remove Favorite Confirmation Modal -->
+    <div id="removeFavoriteModal" class="modal remove-favorite-modal" style="display:none; z-index: 15;">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Remove from Favorites?</h2>
+            <p>Are you sure you want to remove "<span id="gameNameToRemove"></span>" from your favorites?</p>
+            <div class="modal-buttons">
+                <button type="button" class="confirm-remove btn btn-danger">Remove</button>
+                <button type="button" class="cancel-remove btn btn-success">Cancel</button>
+            </div>
         </div>
     </div>
 </body>

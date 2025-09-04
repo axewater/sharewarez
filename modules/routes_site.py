@@ -73,7 +73,7 @@ def favorites():
         favorite_count = len(game.favorited_by)
         game_data.append({'uuid': game.uuid, 'name': game.name, 'cover_url': cover_url, 
                          'size': game_size_formatted, 'genres': genres, 
-                         'favorite_count': favorite_count})
+                         'favorite_count': favorite_count, 'is_favorite': True})
     
     return render_template('games/favorites.html', favorites=game_data)
 
