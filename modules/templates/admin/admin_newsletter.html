@@ -28,12 +28,12 @@
             {{ form.hidden_tag() }}
             <div class="mb-3">
                 <label for="subject" class="form-label">{{ form.subject.label }}</label>
-                {{ form.subject(size=32, class="form-control input-glass") }}
+                {{ form.subject(size=32, class="form-control input-glass", id="subject") }}
             </div>
             
             <div class="mb-3">
                 <label for="content" class="form-label">{{ form.content.label }}</label>
-                {{ form.content(id="editor", class="form-control input-glass") }}
+                {{ form.content(id="content", class="form-control input-glass") }}
             </div>
             
             <div class="mb-3 form-check">
