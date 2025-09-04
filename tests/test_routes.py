@@ -374,8 +374,9 @@ class TestMainBlueprint:
         
         # Check job was cancelled
         db_session.refresh(test_scan_job)
-        assert test_scan_job.status == 'Failed'
+        assert test_scan_job.status == 'Cancelled'
         assert test_scan_job.is_enabled == False
+        assert test_scan_job.error_message == 'Scan cancelled by user'
 
     @patch('flask_login.current_user')
     def test_cancel_scan_job_not_running(self, mock_current_user, client, app, db_session, admin_user, test_scan_job):
