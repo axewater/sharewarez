@@ -86,7 +86,7 @@ class TestGetGameNamesFromFolder:
     def test_valid_folder_with_game_directories(self, temp_directory):
         """Test extraction of game names from valid folder with game directories."""
         # Create test directories
-        game_dirs = ['Super Mario Bros', 'The Legend of Zelda v1.2', 'Final_Fantasy_VII']
+        game_dirs = ['Nethack', 'Rogue v1.2', 'Adventure_Game']
         for dir_name in game_dirs:
             os.makedirs(os.path.join(temp_directory, dir_name))
         
@@ -104,9 +104,9 @@ class TestGetGameNamesFromFolder:
         
         # Check specific cleaning (v1.2 should be removed)
         names = [item['name'] for item in result]
-        assert 'The Legend Of Zelda' in names
-        assert 'Super Mario Bros' in names
-        assert 'Final Fantasy Vii' in names
+        assert 'Rogue' in names
+        assert 'Nethack' in names
+        assert 'Adventure Game' in names
     
     @patch('modules.utils_gamenames.flash')
     def test_non_existent_folder(self, mock_flash, capsys):
@@ -156,7 +156,7 @@ class TestGetGameNamesFromFiles:
     def test_valid_files_with_supported_extensions(self, temp_directory):
         """Test extraction of game names from files with supported extensions."""
         # Create test files
-        files = ['Super_Mario_Bros.exe', 'Zelda_v1.2.zip', 'Final Fantasy VII.rar']
+        files = ['Nethack.exe', 'Rogue_v1.2.zip', 'Adventure.rar']
         for file_name in files:
             with open(os.path.join(temp_directory, file_name), 'w') as f:
                 f.write('test content')
@@ -177,10 +177,10 @@ class TestGetGameNamesFromFiles:
         
         # Check specific cleaning and file types
         result_dict = {item['name']: item['file_type'] for item in result}
-        assert 'Super Mario Bros' in result_dict
-        assert result_dict['Super Mario Bros'] == 'exe'
-        assert 'Zelda' in result_dict  # v1.2 should be removed
-        assert 'Final Fantasy Vii' in result_dict
+        assert 'Nethack' in result_dict
+        assert result_dict['Nethack'] == 'exe'
+        assert 'Rogue' in result_dict  # v1.2 should be removed
+        assert 'Adventure' in result_dict
     
     def test_files_with_unsupported_extensions(self, temp_directory):
         """Test that files with unsupported extensions are ignored."""
@@ -261,8 +261,8 @@ class TestCleanGameName:
         test_cases = [
             ('setupGame Name', 'Game Name'),
             ('SetupAnother Game', 'Another Game'),
-            ('SETUP_Final Fantasy', 'Final Fantasy'),
-            ('setup-Zelda', 'Zelda'),
+            ('SETUP_Adventure', 'Adventure'),
+            ('setup-Rogue', 'Rogue'),
             ('setup Game', 'Game')
         ]
         
@@ -274,9 +274,9 @@ class TestCleanGameName:
         """Test removal of version numbers."""
         test_cases = [
             ('Game v1.0.3', 'Game'),
-            ('Super Mario v2.1', 'Super Mario'),
+            ('Nethack v2.1', 'Nethack'),
             ('Game 1.5.2', 'Game'),
-            ('Final Fantasy 7.0', 'Final Fantasy')
+            ('Adventure 7.0', 'Adventure')
         ]
         
         for input_name, expected in test_cases:
@@ -344,7 +344,7 @@ class TestCleanGameName:
         """Test handling of Roman numerals and numbers."""
         test_cases = [
             ('Game III Special', 'Game Iii Special'),  # Title case conversion affects Roman numerals
-            ('Final Fantasy VII', 'Final Fantasy Vii'),
+            ('Adventure VII', 'Adventure Vii'),
             ('Game 2 Deluxe', 'Game 2 Deluxe'),
             ('GameIII', 'Gameiii'),  # No spaces added for attached numerals
             ('Game2', 'Game2')  # Numbers don't get spaced when attached
@@ -439,9 +439,9 @@ class TestCleanGameName:
         sensitive_patterns = [('PROPER', True)]
         
         test_cases = [
-            ('setupSuper_Mario_Bros.v1.2.3-REPACK-GOG-Build.456+5DLCs', 'Super Mario Bros'),
-            ('The.Legend.of.Zelda.Breath.of.the.Wild.Remastered.Edition(1)', 'The Legend Of Zelda Breath Of The Wild'),
-            ('FINAL_FANTASY_VII_REMAKE-FITGIRL-v2.1+DLC-PROPER', 'Final Fantasy Vii Remake Dlc'),  # Some patterns may remain
+            ('setupNethack.v1.2.3-REPACK-GOG-Build.456+5DLCs', 'Nethack'),
+            ('Rogue.Breath.of.the.Wild.Remastered.Edition(1)', 'Rogue Breath Of The Wild'),
+            ('ADVENTURE_GAME_REMAKE-FITGIRL-v2.1+DLC-PROPER', 'Adventure Game Remake Dlc'),  # Some patterns may remain
             ('A.Tale.Of.Two.Cities.STEAM.Repack.Build.789', 'A Tale Of Two Cities Steam'),  # STEAM may not match as word boundary
             ('setupGame-Name_Here.v1.0-REPACK+3DLCs(123)', 'Game - Name Here')
         ]
@@ -451,10 +451,10 @@ class TestCleanGameName:
             # Normalize whitespace and compare more flexibly
             result_normalized = ' '.join(result.split())
             # Check if the core game name is preserved (allowing some pattern remnants)
-            if expected == 'Super Mario Bros':
-                assert 'Super Mario Bros' in result_normalized
-            elif expected == 'The Legend Of Zelda Breath Of The Wild':
-                assert 'The Legend Of Zelda Breath Of The Wild' in result_normalized
+            if expected == 'Nethack':
+                assert 'Nethack' in result_normalized
+            elif expected == 'Rogue Breath Of The Wild':
+                assert 'Rogue Breath Of The Wild' in result_normalized
             else:
                 # For other complex cases, just check the core name is there
                 core_name = expected.split()[0:3]  # First few words
@@ -469,9 +469,9 @@ class TestIntegrationScenarios:
         """Test complete folder processing with name cleaning."""
         # Create directories with complex names
         complex_dirs = [
-            'setupSuper_Mario_Bros-REPACK',
-            'The.Legend.of.Zelda.v1.2',
-            'Final_Fantasy_VII_Remake+5DLCs(1)'
+            'setupNethack-REPACK',
+            'Rogue.v1.2',
+            'Adventure_Game_Remake+5DLCs(1)'
         ]
         for dir_name in complex_dirs:
             os.makedirs(os.path.join(temp_directory, dir_name))
@@ -484,21 +484,21 @@ class TestIntegrationScenarios:
         assert len(result) == 3
         names = [item['name'] for item in result]
         # Be more flexible with pattern matching due to regex behavior
-        mario_found = any('Super Mario Bros' in name for name in names)
-        zelda_found = any('The Legend Of Zelda' in name for name in names)
-        ff_found = any('Final Fantasy' in name for name in names)
+        nethack_found = any('Nethack' in name for name in names)
+        rogue_found = any('Rogue' in name for name in names)
+        adventure_found = any('Adventure' in name for name in names)
         
-        assert mario_found, f"Super Mario Bros not found in {names}"
-        assert zelda_found, f"Zelda not found in {names}"
-        assert ff_found, f"Final Fantasy not found in {names}"
+        assert nethack_found, f"Nethack not found in {names}"
+        assert rogue_found, f"Rogue not found in {names}"
+        assert adventure_found, f"Adventure not found in {names}"
     
     def test_file_processing_with_cleaning(self, temp_directory):
         """Test complete file processing with name cleaning."""
         # Create files with complex names
         complex_files = [
-            'setupSuper_Mario_Bros-REPACK.exe',
-            'The.Legend.of.Zelda.v1.2.zip',
-            'Final_Fantasy_VII+DLC.rar'
+            'setupNethack-REPACK.exe',
+            'Rogue.v1.2.zip',
+            'Adventure_Game+DLC.rar'
         ]
         for file_name in complex_files:
             with open(os.path.join(temp_directory, file_name), 'w') as f:
@@ -513,13 +513,13 @@ class TestIntegrationScenarios:
         assert len(result) == 3
         names = [item['name'] for item in result]
         # Be more flexible with pattern matching
-        mario_found = any('Super Mario Bros' in name for name in names)
-        zelda_found = any('The Legend Of Zelda' in name for name in names)
-        ff_found = any('Final Fantasy' in name for name in names)
+        nethack_found = any('Nethack' in name for name in names)
+        rogue_found = any('Rogue' in name for name in names)
+        adventure_found = any('Adventure' in name for name in names)
         
-        assert mario_found, f"Super Mario Bros not found in {names}"
-        assert zelda_found, f"Zelda not found in {names}"
-        assert ff_found, f"Final Fantasy not found in {names}"
+        assert nethack_found, f"Nethack not found in {names}"
+        assert rogue_found, f"Rogue not found in {names}"
+        assert adventure_found, f"Adventure not found in {names}"
         
         # Verify file types are preserved
         file_types = [item['file_type'] for item in result]
