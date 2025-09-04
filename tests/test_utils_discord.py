@@ -239,7 +239,7 @@ class TestDiscordWebhook:
             discord_webhook("some-uuid")
             
             captured = capsys.readouterr()
-            assert "Disabled for new games. Exiting." in captured.out
+            assert "Disabled for new games and not manually triggered. Exiting." in captured.out
 
     def test_game_not_found(self, app, db_session, capsys):
         """Test early return when game UUID is not found."""

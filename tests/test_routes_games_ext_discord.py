@@ -10,6 +10,22 @@ from sqlalchemy import select
 class TestDiscordNotificationRoute:
     """Test class for Discord notification route functionality."""
     
+    @pytest.fixture(autouse=True)
+    def cleanup_global_settings(self, app):
+        """Clear GlobalSettings before and after each test for isolation."""
+        with app.app_context():
+            # Clear before test
+            from sqlalchemy import delete
+            db.session.execute(delete(GlobalSettings))
+            db.session.commit()
+        
+        yield
+        
+        with app.app_context():
+            # Clear after test
+            db.session.execute(delete(GlobalSettings))
+            db.session.commit()
+    
     @pytest.fixture
     def app(self):
         """Create a test Flask app."""
@@ -41,6 +57,22 @@ class TestDiscordNotificationRoute:
             return admin.id
     
     @pytest.fixture
+    def regular_user(self, app):
+        """Create a regular user for testing."""
+        with app.app_context():
+            user_uuid = str(uuid4())
+            user = User(
+                name=f"user_{user_uuid[:8]}", 
+                email=f"user_{user_uuid[:8]}@test.com", 
+                role="user",
+                user_id=user_uuid
+            )
+            user.set_password("user123")
+            db.session.add(user)
+            db.session.commit()
+            return user.id
+    
+    @pytest.fixture
     def test_game(self, app):
         """Create a test game."""
         with app.app_context():
@@ -69,20 +101,28 @@ class TestDiscordNotificationRoute:
         response = client.post('/trigger_discord_notification/test-uuid')
         assert response.status_code == 302  # Redirect to login
     
+    def test_trigger_discord_notification_requires_admin(self, client, regular_user, app):
+        """Test that the route requires admin role."""
+        with client.session_transaction() as sess:
+            sess['_user_id'] = str(regular_user)
+            sess['_fresh'] = True
+            
+        response = client.post('/trigger_discord_notification/test-uuid')
+        data = json.loads(response.data)
+        
+        assert response.status_code == 403
+        assert data['success'] is False
+        assert 'Admin access required' in data['message']
+    
     def test_trigger_discord_notification_no_webhook_url(self, client, admin_user, app):
         """Test notification when Discord webhook URL is empty."""
         with app.app_context():
-            # Ensure Discord webhook URL is empty (but settings exist)
-            settings = db.session.execute(select(GlobalSettings)).scalars().first()
-            if not settings:
-                settings = GlobalSettings(
-                    discord_webhook_url='',  # Empty string
-                    discord_notify_manual_trigger=False
-                )
-                db.session.add(settings)
-            else:
-                settings.discord_webhook_url = ''
-                settings.discord_notify_manual_trigger = False
+            # Create settings with empty webhook URL
+            settings = GlobalSettings(
+                discord_webhook_url='',  # Empty string
+                discord_notify_manual_trigger=False
+            )
+            db.session.add(settings)
             db.session.commit()
             
         with client.session_transaction() as sess:
@@ -99,23 +139,21 @@ class TestDiscordNotificationRoute:
     def test_trigger_discord_notification_manual_trigger_disabled(self, client, admin_user, app):
         """Test notification when manual triggers are disabled."""
         with app.app_context():
-            # Get or create settings with Discord configured but manual trigger disabled
-            settings = db.session.execute(select(GlobalSettings)).scalars().first()
-            if not settings:
-                settings = GlobalSettings(
-                    discord_webhook_url='https://discord.com/api/webhooks/123/test',
-                    discord_notify_manual_trigger=False
-                )
-                db.session.add(settings)
-            else:
-                settings.discord_webhook_url = 'https://discord.com/api/webhooks/123/test'
-                settings.discord_notify_manual_trigger = False
+            # Create settings with Discord configured but manual trigger disabled
+            settings = GlobalSettings(
+                discord_webhook_url='https://discord.com/api/webhooks/123/test',
+                discord_notify_manual_trigger=False
+            )
+            db.session.add(settings)
             db.session.commit()
+            db.session.flush()  # Ensure settings are written to database
             
+            # Setup session INSIDE the context
             with client.session_transaction() as sess:
                 sess['_user_id'] = str(admin_user)
                 sess['_fresh'] = True
-                
+            
+            # Make request INSIDE the context
             response = client.post('/trigger_discord_notification/test-uuid')
             data = json.loads(response.data)
             
@@ -126,84 +164,76 @@ class TestDiscordNotificationRoute:
     def test_trigger_discord_notification_game_not_found(self, client, admin_user, app):
         """Test notification when game doesn't exist."""
         with app.app_context():
-            # Get or create settings with Discord configured and manual trigger enabled
-            settings = db.session.execute(select(GlobalSettings)).scalars().first()
-            if not settings:
-                settings = GlobalSettings(
-                    discord_webhook_url='https://discord.com/api/webhooks/123/test',
-                    discord_notify_manual_trigger=True
-                )
-                db.session.add(settings)
-            else:
-                settings.discord_webhook_url = 'https://discord.com/api/webhooks/123/test'
-                settings.discord_notify_manual_trigger = True
+            # Create settings with Discord configured and manual trigger enabled
+            settings = GlobalSettings(
+                discord_webhook_url='https://discord.com/api/webhooks/123/test',
+                discord_notify_manual_trigger=True
+            )
+            db.session.add(settings)
             db.session.commit()
+            db.session.flush()  # Ensure settings are written to database
             
-        with client.session_transaction() as sess:
-            sess['_user_id'] = str(admin_user)
-            sess['_fresh'] = True
+            # Setup session INSIDE the context
+            with client.session_transaction() as sess:
+                sess['_user_id'] = str(admin_user)
+                sess['_fresh'] = True
             
-        response = client.post('/trigger_discord_notification/nonexistent-uuid')
-        data = json.loads(response.data)
-        
-        assert response.status_code == 404
-        assert data['success'] is False
-        assert 'not found' in data['message']
+            # Make request INSIDE the context
+            response = client.post('/trigger_discord_notification/nonexistent-uuid')
+            data = json.loads(response.data)
+            
+            assert response.status_code == 404
+            assert data['success'] is False
+            assert 'not found' in data['message']
     
     @patch('modules.routes_games_ext.discord.discord_webhook')
     def test_trigger_discord_notification_success(self, mock_discord_webhook, client, admin_user, test_game, app):
         """Test successful Discord notification."""
         with app.app_context():
-            # Get or create settings with Discord configured and manual trigger enabled
-            settings = db.session.execute(select(GlobalSettings)).scalars().first()
-            if not settings:
-                settings = GlobalSettings(
-                    discord_webhook_url='https://discord.com/api/webhooks/123/test',
-                    discord_notify_manual_trigger=True
-                )
-                db.session.add(settings)
-            else:
-                settings.discord_webhook_url = 'https://discord.com/api/webhooks/123/test'
-                settings.discord_notify_manual_trigger = True
+            # Create settings with Discord configured and manual trigger enabled
+            settings = GlobalSettings(
+                discord_webhook_url='https://discord.com/api/webhooks/123/test',
+                discord_notify_manual_trigger=True
+            )
+            db.session.add(settings)
             db.session.commit()
             
-        with client.session_transaction() as sess:
-            sess['_user_id'] = str(admin_user)
-            sess['_fresh'] = True
+            # Setup session INSIDE the context
+            with client.session_transaction() as sess:
+                sess['_user_id'] = str(admin_user)
+                sess['_fresh'] = True
             
-        response = client.post(f'/trigger_discord_notification/{test_game}')
+            # Make request INSIDE the context
+            response = client.post(f'/trigger_discord_notification/{test_game}')
         data = json.loads(response.data)
         
         assert response.status_code == 200
         assert data['success'] is True
         assert 'notification sent' in data['message'].lower()
-        mock_discord_webhook.assert_called_once_with(test_game)
+        mock_discord_webhook.assert_called_once_with(test_game, manual_trigger=True)
     
     @patch('modules.routes_games_ext.discord.discord_webhook')
     def test_trigger_discord_notification_webhook_error(self, mock_discord_webhook, client, admin_user, test_game, app):
         """Test Discord notification when webhook fails."""
         with app.app_context():
-            # Get or create settings with Discord configured and manual trigger enabled
-            settings = db.session.execute(select(GlobalSettings)).scalars().first()
-            if not settings:
-                settings = GlobalSettings(
-                    discord_webhook_url='https://discord.com/api/webhooks/123/test',
-                    discord_notify_manual_trigger=True
-                )
-                db.session.add(settings)
-            else:
-                settings.discord_webhook_url = 'https://discord.com/api/webhooks/123/test'
-                settings.discord_notify_manual_trigger = True
+            # Create settings with Discord configured and manual trigger enabled
+            settings = GlobalSettings(
+                discord_webhook_url='https://discord.com/api/webhooks/123/test',
+                discord_notify_manual_trigger=True
+            )
+            db.session.add(settings)
             db.session.commit()
             
             # Make the discord_webhook function raise an exception
             mock_discord_webhook.side_effect = Exception("Webhook failed")
             
-        with client.session_transaction() as sess:
-            sess['_user_id'] = str(admin_user)
-            sess['_fresh'] = True
+            # Setup session INSIDE the context
+            with client.session_transaction() as sess:
+                sess['_user_id'] = str(admin_user)
+                sess['_fresh'] = True
             
-        response = client.post(f'/trigger_discord_notification/{test_game}')
+            # Make request INSIDE the context
+            response = client.post(f'/trigger_discord_notification/{test_game}')
         data = json.loads(response.data)
         
         assert response.status_code == 500
