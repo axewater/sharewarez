@@ -24,8 +24,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Get Cross-Site Request Forgery token
-        const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+        // Get Cross-Site Request Forgery token using CSRFUtils
+        const csrfToken = CSRFUtils.getToken();
 
         // Disable button and show loading state
         testButton.disabled = true;

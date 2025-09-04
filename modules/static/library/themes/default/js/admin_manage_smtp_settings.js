@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize UI elements
     const smtpEnabledCheckbox = document.getElementById('smtp_enabled');
-    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+    // CSRF token now handled by CSRFUtils
+    // const csrfToken = document.querySelector('meta[name="csrf-token"]');
     const formFields = document.querySelectorAll('.form-control');
     const saveButton = document.querySelector('.btn-primary');
     const testButton = document.querySelector('.btn-secondary');
@@ -14,10 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         fetch('/admin/smtp_test', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken.content
-            }
+            headers: CSRFUtils.getHeaders({
+                'Content-Type': 'application/json'
+            })
         })
         .then(response => response.json())
         .then(data => {
@@ -57,10 +57,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         fetch('/admin/smtp_settings', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken.content
-            },
+            headers: CSRFUtils.getHeaders({
+                'Content-Type': 'application/json'
+            }),
             body: JSON.stringify(data)
         })
         .then(response => response.json())
