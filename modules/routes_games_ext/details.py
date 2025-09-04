@@ -126,7 +126,11 @@ def game_details(game_uuid):
         
         library_uuid = game.library_uuid
         
-        return render_template('games/game_details.html', game=game_data, form=csrf_form, library_uuid=library_uuid, is_admin=current_user.role == 'admin')
+        # Calculate if the game is in current user's favorites
+        current_user_id = current_user.id if current_user.is_authenticated else None
+        is_favorite = current_user_id in [user.id for user in game.favorited_by] if current_user_id else False
+        
+        return render_template('games/game_details.html', game=game_data, form=csrf_form, library_uuid=library_uuid, is_admin=current_user.role == 'admin', is_favorite=is_favorite)
     else:
         log_system_event(
             f"User {current_user.name} attempted to access non-existent game UUID: {game_uuid[:8]}...",
