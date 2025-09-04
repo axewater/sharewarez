@@ -48,8 +48,8 @@
             <!-- Essential Information Section -->
             <div class="essential-info">
             <div class="game_edit-form-group-id">
-                <label for="name">IGDB ID#</label>
-                {{ form.igdb_id(class="form-control") }}
+                <label for="igdb_id">IGDB ID#</label>
+                {{ form.igdb_id(class="form-control", id="igdb_id") }}
                 <button type="button" class="btn btn-info mb-3" id="search-igdb-btn">Search IGDB</button>
                 {% if form.igdb_id.errors %}
                     <div class="alert alert-danger" role="alert">
@@ -66,7 +66,7 @@
             </button>
             <div class="game_edit-form-group-name">
                 <label for="name">Name</label>
-                {{ form.name(class="form-control") }}
+                {{ form.name(class="form-control", id="name") }}
                 {% if form.name.errors %}
                     <div class="alert alert-danger" role="alert">
                         {% for error in form.name.errors %}
@@ -83,7 +83,7 @@
             </div>
             <div class="game_edit-form-group-path">
                 <label for="full_disk_path">Full Disk Path</label>
-                {{ form.full_disk_path(class="form-control") }}
+                {{ form.full_disk_path(class="form-control", id="full_disk_path") }}
                 {% if form.full_disk_path.errors %}
                     <div class="alert alert-danger" role="alert">
                         {% for error in form.full_disk_path.errors %}
@@ -102,15 +102,15 @@
                 <div class="collapse" id="gameDetails">
                     <div class="game_edit-form-group-summary">
                         <label for="summary">Summary</label>
-                        {{ form.summary(class="form-control") }}
+                        {{ form.summary(class="form-control", id="summary") }}
                     </div>
                     <div class="game_edit-form-group-storyline">
                         <label for="storyline">Storyline</label>
-                        {{ form.storyline(class="form-control") }}
+                        {{ form.storyline(class="form-control", id="storyline") }}
                     </div>
                     <div class="game_edit-form-group-url">
                         <label for="url">URL</label>
-                        {{ form.url(class="form-control") }}
+                        {{ form.url(class="form-control", id="url") }}
                         {% if form.url.errors %}
                             <div class="alert alert-danger" role="alert">
                                 {% for error in form.url.errors %}
@@ -122,7 +122,7 @@
                     
                     <div class="game_edit-form-group-video-url">
                         <label for="video_urls">Video URLs</label>
-                        {{ form.video_urls(class="form-control") }}
+                        {{ form.video_urls(class="form-control", id="video_urls") }}
                         {% if form.video_urls.errors %}
                             <div class="alert alert-danger" role="alert">
                                 {% for error in form.video_urls.errors %}
@@ -134,11 +134,11 @@
                     
                     <div class="game_edit-form-group-status">
                         <label for="status">Status</label>
-                        {{ form.status(class="form-control") }}
+                        {{ form.status(class="form-control", id="status") }}
                     </div>
                     <div class="game_edit-form-group-release-type">
                         <label for="category">Release Type</label>
-                        {{ form.category(class="form-control") }}
+                        {{ form.category(class="form-control", id="category") }}
                     </div>
 
                     <div class="group-game-details">

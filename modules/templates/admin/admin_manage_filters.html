@@ -32,10 +32,10 @@
                         {{ form.hidden_tag() }}
                         <div class="mb-3">
                             <label for="rlsgroup" class="form-label">Release Group Pattern</label>
-                            {{ form.rlsgroup(class="form-control") }}
+                            {{ form.rlsgroup(class="form-control", id="rlsgroup") }}
                         </div>
                         <div class="mb-3 form-check">
-                            {{ form.rlsgroupcs(class="form-check-input") }}
+                            {{ form.rlsgroupcs(class="form-check-input", id="rlsgroupcs") }}
                             <label class="form-check-label" for="rlsgroupcs">Case Sensitive</label>
                         </div>
                     </form>
