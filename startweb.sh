@@ -35,5 +35,9 @@ with app.app_context():
         print('Initialization failed, but continuing...')
 "
 
+# Export environment variables so worker processes inherit them
+export SHAREWAREZ_MIGRATIONS_COMPLETE=true
+export SHAREWAREZ_INITIALIZATION_COMPLETE=true
+
 # Start uvicorn with workers (migrations already complete)
 uvicorn asgi:asgi_app --host 0.0.0.0 --port 5006 --workers 4
