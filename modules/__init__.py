@@ -94,6 +94,13 @@ def create_app():
     login_manager.login_view = 'login.login'
     cache.init_app(app)
 
+    @app.errorhandler(413)
+    def request_entity_too_large(error):
+        """Handle file upload size limit exceeded errors."""
+        from flask import flash, redirect, request
+        flash('The file you tried to upload is too large. Maximum file size is 10MB.', 'error')
+        return redirect(request.url)
+
     @app.context_processor
     def inject_current_theme():
         """Injects the current user's theme into all templates."""
