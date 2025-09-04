@@ -133,8 +133,6 @@ def create_app():
                 db_manager.add_column_if_not_exists()
             except Exception as e:
                 print(f"Warning: Database schema update failed: {e}")
-        else:
-            print("Database migrations already completed by parent process, skipping...")
         
         # CRITICAL: Only initialize data during non-test execution and if not already done by parent process
         # Tests should manage their own data to prevent production contamination
@@ -150,10 +148,8 @@ def create_app():
             
             # Clean up any orphaned scan jobs from previous server crashes/restarts
             cleanup_orphaned_scan_jobs()
-        elif os.getenv('SHAREWAREZ_INITIALIZATION_COMPLETE') == 'true':
-            print("Database initialization already completed by parent process, skipping...")
-        else:
-            print("🧪 TEST MODE: Skipping database initialization to prevent production contamination")
+        elif 'pytest' in sys.modules or 'PYTEST_CURRENT_TEST' in os.environ:
+            pass  # Silent skip for tests
     app.register_blueprint(routes.bp)
     app.register_blueprint(site_bp)
     app.register_blueprint(admin2_bp)
