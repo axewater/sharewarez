@@ -502,3 +502,73 @@ def validate_discord_avatar_url(url, max_length=512):
         return False, "Avatar URL must use HTTPS"
     
     return True, sanitized_url
+
+
+def get_url_icon(url_type, url):
+    """
+    Get the appropriate Font Awesome icon for a URL based on type and URL pattern matching.
+    
+    Args:
+        url_type (str): The stored URL type from database
+        url (str): The actual URL for pattern matching fallback
+    
+    Returns:
+        str: Font Awesome icon class
+    """
+    # Primary icon mapping based on stored type
+    type_icons = {
+        "official": "fa-solid fa-globe",
+        "wikia": "fa-brands fa-wikimedia", 
+        "wikipedia": "fa-brands fa-wikipedia-w",
+        "facebook": "fa-brands fa-facebook",
+        "twitter": "fa-brands fa-twitter", 
+        "twitch": "fa-brands fa-twitch",
+        "instagram": "fa-brands fa-instagram",
+        "youtube": "fa-brands fa-youtube",
+        "steam": "fa-brands fa-steam",
+        "reddit": "fa-brands fa-reddit",
+        "itch": "fa-brands fa-itch-io",
+        "epicgames": "fa-brands fa-epic-games",
+        "gog": "fa-brands fa-gog",
+        "discord": "fa-brands fa-discord",
+        "android": "fa-brands fa-android",
+        "iphone": "fa-brands fa-apple",
+        "ipad": "fa-brands fa-apple"
+    }
+    
+    # If we have a known type, use it
+    if url_type in type_icons:
+        return type_icons[url_type]
+    
+    # Fallback: Pattern matching for "unknown" or unmapped types
+    if not url:
+        return "fa-solid fa-link"
+        
+    url_lower = url.lower()
+    
+    # URL pattern mapping for fallback detection
+    url_patterns = {
+        "steam": ["steampowered.com", "store.steampowered.com"],
+        "gog": ["gog.com", "www.gog.com"],
+        "epicgames": ["epicgames.com", "store.epicgames.com"],
+        "itch": ["itch.io"],
+        "youtube": ["youtube.com", "youtu.be"],
+        "twitch": ["twitch.tv"],
+        "discord": ["discord.gg", "discord.com"],
+        "reddit": ["reddit.com"],
+        "facebook": ["facebook.com", "fb.com"],
+        "twitter": ["twitter.com", "x.com"],
+        "instagram": ["instagram.com"],
+        "wikipedia": ["wikipedia.org"],
+        "wikia": ["fandom.com", "wikia.com"],
+        "official": []  # Will be handled by default case
+    }
+    
+    # Check URL patterns
+    for pattern_type, domains in url_patterns.items():
+        for domain in domains:
+            if domain in url_lower:
+                return type_icons.get(pattern_type, "fa-solid fa-link")
+    
+    # Default fallback
+    return "fa-solid fa-link"
