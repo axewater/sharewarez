@@ -17,10 +17,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (username) {
             fetch('/api/check_username', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-                },
+                headers: CSRFUtils.getHeaders({
+                    'Content-Type': 'application/json'
+                }),
                 body: JSON.stringify({ username: username })
             })
             .then(response => response.json())
@@ -60,10 +59,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         fetch('/admin/api/user/0', {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-            },
+            headers: CSRFUtils.getHeaders({
+                'Content-Type': 'application/json'
+            }),
             body: JSON.stringify(userData)
         })
         .then(response => response.json())
@@ -142,10 +140,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateUser(userId, userData) {
         fetch(`/admin/api/user/${userId}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-            },
+            headers: CSRFUtils.getHeaders({
+                'Content-Type': 'application/json'
+            }),
             body: JSON.stringify(userData)
         })
         .then(response => response.json())
@@ -167,9 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function deleteUser(userId) {
         fetch(`/admin/api/user/${userId}`, {
             method: 'DELETE',
-            headers: {
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-            }
+            headers: CSRFUtils.getHeaders()
         })
         .then(response => response.json())
         .then(data => {

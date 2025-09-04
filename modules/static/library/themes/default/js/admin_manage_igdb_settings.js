@@ -33,10 +33,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         fetch('/admin/igdb_settings', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-            },
+            headers: CSRFUtils.getHeaders({
+                'Content-Type': 'application/json'
+            }),
             body: JSON.stringify(data)
         })
         .then(response => response.json())
@@ -62,10 +61,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         fetch('/admin/test_igdb', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-            }
+            headers: CSRFUtils.getHeaders({
+                'Content-Type': 'application/json'
+            })
         })
         .then(response => response.json())
         .then(data => {

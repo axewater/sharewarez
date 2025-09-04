@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     
     let currentLibrariesSubmenu = null;
-    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var csrfToken = CSRFUtils.getToken();
 
     // Adjusted for dynamic content using event delegation
     document.body.addEventListener('click', function(event) {
@@ -16,9 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             fetch(`/delete_game/${gameUuid}`, {
                 method: 'POST',
-                headers: {
-                    'X-CSRF-Token': csrfToken
-                },
+                headers: CSRFUtils.getHeaders(),
                 body: {}
             })
             .then(response => {
@@ -70,10 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             fetch(`/trigger_discord_notification/${gameUuid}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken
-                }
+                headers: CSRFUtils.getHeaders({ 'Content-Type': 'application/json' })
             })
             .then(response => response.json())
             .then(data => {
@@ -194,10 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     // Send request to move the game
                                     fetch('/api/move_game_to_library', {
                                         method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            'X-CSRF-Token': csrfToken
-                                        },
+                                        headers: CSRFUtils.getHeaders({ 'Content-Type': 'application/json' }),
                                         body: JSON.stringify({
                                             game_uuid: gameUuid,
                                             target_library_uuid: targetLibraryUuid

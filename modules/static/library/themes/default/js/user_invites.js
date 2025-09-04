@@ -19,13 +19,10 @@ function copyToClipboard(textToCopy) {
 
 function deleteInvite(token) {
     if (confirm('Are you sure you want to delete this invite?')) {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfToken = CSRFUtils.getToken();
         fetch('/delete_invite/' + token, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
+            headers: CSRFUtils.getHeaders({ 'Content-Type': 'application/json' }),
             credentials: 'same-origin'
         })
         .then(response => response.json())

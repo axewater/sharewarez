@@ -201,8 +201,8 @@ function showDeleteModal(requestId) {
 
 function confirmDelete() {
     if (currentDeleteId) {
-        // Get CSRF token
-        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        // Get CSRF token using CSRFUtils
+        const token = CSRFUtils.getToken();
         
         // Make the AJAX call
         fetch(`/api/delete_download/${currentDeleteId}`, {

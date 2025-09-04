@@ -25,16 +25,13 @@ function attachDeleteFolderFormListeners() {
                 }
 
                 showSpinner();
-                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const csrfToken = CSRFUtils.getToken();
 
                 console.log("Attempting to delete folder with path:", folderPath);
 
                 fetch('/delete_folder', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': csrfToken
-                    },
+                    headers: CSRFUtils.getHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({folder_path: folderPath})
                 })
                 .then(response => response.json())
@@ -173,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // No complex toggle functionality needed for simplified table
 
-    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var csrfToken = CSRFUtils.getToken();
 
     const updateScanJobs = () => {
         fetch('/api/scan_jobs_status', {cache: 'no-store'})
@@ -316,14 +313,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 window.toggleIgnoreStatus = function(folderId, button) {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const csrfToken = CSRFUtils.getToken();
     
     fetch('/update_unmatched_folder_status', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-Token': csrfToken
+            'X-CSRF-Token': CSRFUtils.getToken()
         },
         body: `folder_id=${folderId}&csrf_token=${csrfToken}`
     })
@@ -508,7 +505,7 @@ function formatTimestamp(timestamp) {
 
 window.clearEntry = clearEntry;
 function clearEntry(folderId) {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const csrfToken = CSRFUtils.getToken();
     console.log("Clearing entry for folder ID:", folderId);
     if (!confirm('Are you sure you want to clear this entry? This will only remove the database entry.')) {
         return;
@@ -518,7 +515,7 @@ function clearEntry(folderId) {
         method: 'POST',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-Token': csrfToken
+            'X-CSRF-Token': CSRFUtils.getToken()
         }
     })
     .then(response => response.json())
