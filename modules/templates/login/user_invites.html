@@ -12,7 +12,7 @@
     <i class="fas fa-exclamation-triangle"></i> 
     <strong>Warning:</strong> SMTP settings are not configured. Users will not be able to confirm their email addresses 
     and activate their accounts. It is recommended to use the 
-    <a href="{{ url_for('admin.manage_users') }}">user manager</a> to create accounts manually.
+    <a href="{{ url_for('admin2.manage_users') }}">user manager</a> to create accounts manually.
 </div>
 {% endif %}
 
@@ -22,7 +22,7 @@
     {% if site_url == 'http://127.0.0.1' and current_user.role == 'admin' %}
     <div class="alert alert-warning" role="alert">
         <i class="fas fa-exclamation-triangle"></i> Warning: Site URL is still set to default value (127.0.0.1). 
-        Please <a href="{{ url_for('admin.manage_settings') }}">configure the site URL</a> in admin settings for proper invite functionality.
+        Please <a href="{{ url_for('admin2.manage_settings') }}">configure the site URL</a> in admin settings for proper invite functionality.
     </div>
     {% endif %}
     <div class="alert alert-info" role="alert">
@@ -54,7 +54,12 @@
                     Used on: <strong>{{ invite.used_at.strftime('%Y-%m-%d %H:%M:%S') }}</strong><br>
                 {% else %}
                     Expires in: 
-                    {% set seconds_remaining = (invite.expires_at - datetime).total_seconds() %}
+                    {% if invite.expires_at.tzinfo %}
+                        {% set seconds_remaining = (invite.expires_at - current_datetime).total_seconds() %}
+                    {% else %}
+                        {% set naive_current = current_datetime.replace(tzinfo=None) %}
+                        {% set seconds_remaining = (invite.expires_at - naive_current).total_seconds() %}
+                    {% endif %}
                     {% if seconds_remaining > 0 %}
                         <strong>{{ seconds_remaining // 3600 }} hours</strong>
                     {% else %}
@@ -63,8 +68,18 @@
                 {% endif %}
             </div>
             <div>
-                <button type="button" class="btn btn-outline-secondary btn-sm" {% if invite.used or seconds_remaining <= 0 %}disabled{% endif %}
-                onclick="copyToClipboard('{{ site_url }}/register?token={{ invite.token }}')">Copy Invite URL</button>
+                {% if not invite.used %}
+                    {% if invite.expires_at.tzinfo %}
+                        {% set button_seconds_remaining = (invite.expires_at - current_datetime).total_seconds() %}
+                    {% else %}
+                        {% set naive_current = current_datetime.replace(tzinfo=None) %}
+                        {% set button_seconds_remaining = (invite.expires_at - naive_current).total_seconds() %}
+                    {% endif %}
+                    <button type="button" class="btn btn-outline-secondary btn-sm" {% if button_seconds_remaining <= 0 %}disabled{% endif %}
+                    onclick="copyToClipboard('{{ site_url }}/register?token={{ invite.token }}')">Copy Invite URL</button>
+                {% else %}
+                    <button type="button" class="btn btn-outline-secondary btn-sm" disabled>Copy Invite URL</button>
+                {% endif %}
                 <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteInvite('{{ invite.token }}')">Delete</button>
             </div>
             

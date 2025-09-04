@@ -278,7 +278,7 @@ def invites():
                          smtp_enabled=smtp_enabled,
                          current_invites_count=current_invites_count, 
                          remaining_invites=remaining_invites, 
-                         datetime=datetime.now(timezone.utc))
+                         current_datetime=datetime.now(timezone.utc))
 
 @login_bp.route('/delete_invite/<token>', methods=['POST'])
 @login_required
