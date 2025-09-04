@@ -324,7 +324,7 @@
                                 {% for link in game.urls %}
                                     <div class="game-link-icon-container">
                                         <a href="{{ link.url }}" target="_blank" class="game-link-icon" title="{{ link.type|capitalize }}">
-                                            <i class="fas {{ 'fa-solid fa-globe' if link.icon == 'fa-brands fa-wikimedia' else link.icon }}"></i>
+                                            <i class="{{ link.icon }}"></i>
                                         </a>
                                     </div>
                                 {% endfor %}

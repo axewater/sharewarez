@@ -5,7 +5,7 @@ from modules.forms import CsrfForm
 from modules.models import GameUpdate, GameExtra
 from modules import db
 from sqlalchemy import select
-from modules.utils_functions import format_size, sanitize_string_input
+from modules.utils_functions import format_size, sanitize_string_input, get_url_icon
 from modules.utils_game_core import get_game_by_uuid
 from modules.utils_security import sanitize_path_for_logging
 from modules.utils_logging import log_system_event
@@ -100,28 +100,11 @@ def game_details(game_uuid):
             # Duplicate "updates" array removed - already included above
         }
         
-        # URL Icons Mapping
-        url_icons = {
-            "official": "fa-solid fa-globe",
-            "wikia": "fa-brands fa-wikimedia",
-            "wikipedia": "fa-brands fa-wikipedia-w",
-            "facebook": "fa-brands fa-facebook",
-            "twitter": "fa-brands fa-twitter",
-            "twitch": "fa-brands fa-twitch",
-            "instagram": "fa-brands fa-instagram",
-            "youtube": "fa-brands fa-youtube",
-            "steam": "fa-brands fa-steam",
-            "reddit": "fa-brands fa-reddit",
-            "itch": "fa-brands fa-itch-io",
-            "epicgames": "fa-brands fa-epic-games",
-            "gog": "fa-brands fa-gog",
-            "discord": "fa-brands fa-discord",
-        }
-        # Augment game_data with URLs
+        # Augment game_data with URLs using smart icon detection
         game_data['urls'] = [{
             "type": url.url_type,
             "url": url.url,
-            "icon": url_icons.get(url.url_type, "fa-link")
+            "icon": get_url_icon(url.url_type, url.url)
         } for url in game.urls]
         
         library_uuid = game.library_uuid
