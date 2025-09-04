@@ -441,7 +441,7 @@ class TestCleanGameName:
         test_cases = [
             ('setupNethack.v1.2.3-REPACK-GOG-Build.456+5DLCs', 'Nethack'),
             ('Rogue.Breath.of.the.Wild.Remastered.Edition(1)', 'Rogue Breath Of The Wild'),
-            ('ADVENTURE_GAME_REMAKE-FITGIRL-v2.1+DLC-PROPER', 'Adventure Game Remake Dlc'),  # Some patterns may remain
+            ('ADVENTURE_GAME_REMAKE-FITGIRL-v2.1+DLC-PROPER', 'Adventure Game Dlc'),  # REMAKE gets removed by cleaning
             ('A.Tale.Of.Two.Cities.STEAM.Repack.Build.789', 'A Tale Of Two Cities Steam'),  # STEAM may not match as word boundary
             ('setupGame-Name_Here.v1.0-REPACK+3DLCs(123)', 'Game - Name Here')
         ]
