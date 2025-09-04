@@ -124,6 +124,14 @@ class DatabaseManager:
         -- Add force_updates_extras setting to scan_jobs table for enhanced scan functionality
         ALTER TABLE scan_jobs
         ADD COLUMN IF NOT EXISTS setting_force_updates_extras BOOLEAN DEFAULT FALSE;
+
+        -- Add 'Cancelled' value to the status_enum for scan_jobs
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'Cancelled' AND enumtypid = (SELECT oid FROM pg_type WHERE typname = 'status_enum')) THEN
+                ALTER TYPE status_enum ADD VALUE 'Cancelled';
+            END IF;
+        END $$;
         
         """
         print("Upgrading database to the latest schema")

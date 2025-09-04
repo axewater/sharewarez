@@ -256,7 +256,7 @@ def cancel_scan_job(job_id):
     job = db.session.get(ScanJob, job_id)
     if job and job.status == 'Running':
         job.is_enabled = False
-        job.status = 'Failed'
+        job.status = 'Cancelled'
         job.error_message = 'Scan cancelled by user'
         db.session.commit()
         flash(f"Scan job {job_id} has been canceled.")

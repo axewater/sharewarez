@@ -235,7 +235,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                     # Cancel remaining tasks
                     for f in future_to_game:
                         f.cancel()
-                    scan_job_entry.status = 'Failed'
+                    scan_job_entry.status = 'Cancelled'
                     scan_job_entry.error_message = 'Scan cancelled by the captain'
                     db.session.commit()
                     return
@@ -285,7 +285,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
         for game_info in game_names_with_paths:
             db.session.refresh(scan_job_entry)  # Check if the job is still enabled
             if not scan_job_entry.is_enabled:
-                scan_job_entry.status = 'Failed'
+                scan_job_entry.status = 'Cancelled'
                 scan_job_entry.error_message = 'Scan cancelled by the captain'
                 db.session.commit()
                 return  # Stop processing if cancelled
