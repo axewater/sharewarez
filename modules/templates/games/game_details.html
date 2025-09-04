@@ -424,8 +424,8 @@
                             {% endif %}
                         </div>
                         {% if game.nfo_content and game.nfo_content.lower() != 'none' %}
-                            <div class="nfo-icon-container">
-                                <i class="fa fa-file-alt nfo-icon" onclick="openNfoModal()" title="View NFO"></i>
+                            <div class="nfo-button" onclick="openNfoModal()" title="View NFO">
+                                <i class="fa fa-file-alt nfo-icon"></i>
                                 <span class="nfo-text">NFO</span>
                             </div>
                         {% endif %}
