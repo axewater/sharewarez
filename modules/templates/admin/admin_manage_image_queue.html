@@ -650,7 +650,7 @@ async function downloadBatch(size) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                'X-CSRFToken': CSRFUtils.getToken()
             },
             body: JSON.stringify({ batch_size: size })
         });
@@ -700,7 +700,7 @@ async function downloadSingle(imageId) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                'X-CSRFToken': CSRFUtils.getToken()
             },
             body: JSON.stringify({ image_ids: [imageId] })
         });
@@ -731,7 +731,7 @@ async function deleteSingle(imageId) {
         const response = await fetch(`/admin/api/delete_image/${imageId}`, {
             method: 'DELETE',
             headers: {
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                'X-CSRFToken': CSRFUtils.getToken()
             }
         });
         
@@ -757,7 +757,7 @@ async function retryFailed() {
         const response = await fetch('/admin/api/retry_failed_images', {
             method: 'POST',
             headers: {
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                'X-CSRFToken': CSRFUtils.getToken()
             }
         });
         
@@ -835,7 +835,7 @@ async function downloadSelected() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                'X-CSRFToken': CSRFUtils.getToken()
             },
             body: JSON.stringify({ image_ids: Array.from(selectedImages) })
         });
@@ -873,7 +873,7 @@ async function deleteSelected() {
             await fetch(`/admin/api/delete_image/${imageId}`, {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                    'X-CSRFToken': CSRFUtils.getToken()
                 }
             });
         }
@@ -922,7 +922,7 @@ async function turboDownload(batchSize = 100, maxWorkers = 5) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                'X-CSRFToken': CSRFUtils.getToken()
             },
             body: JSON.stringify({ 
                 batch_size: batchSize,
@@ -952,7 +952,7 @@ async function startBackgroundDownloader() {
         const response = await fetch('/admin/api/start_background_downloader', {
             method: 'POST',
             headers: {
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                'X-CSRFToken': CSRFUtils.getToken()
             }
         });
         
@@ -979,7 +979,7 @@ async function startTurboDownloader() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+                'X-CSRFToken': CSRFUtils.getToken()
             },
             body: JSON.stringify({
                 max_workers: 4,
