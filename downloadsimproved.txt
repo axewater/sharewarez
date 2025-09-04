@@ -159,10 +159,9 @@
      │                                                                                                                                                                  │
      │ Current Architecture                                                                                                                                             │
      │                                                                                                                                                                  │
-     │ 1. Entry Points: Three routes initiate downloads:                                                                                                                │
+     │ 1. Entry Points: Two routes initiate downloads:                                                                                                                 │
      │   - /download_game/<game_uuid> - Main game downloads                                                                                                             │
      │   - /download_other/<file_type>/<game_uuid>/<file_id> - Update/extra files                                                                                       │
-     │   - /download_file/<file_location>/<file_size>/<game_uuid>/<file_name> - Legacy route                                                                            │
      │ 2. Processing Flow:                                                                                                                                              │
      │   - User clicks download → creates DownloadRequest record                                                                                                        │
      │   - Background thread runs zip_game() or zip_folder() to create ZIP                                                                                              │
