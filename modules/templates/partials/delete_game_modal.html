@@ -37,14 +37,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('deleteGameForm').addEventListener('submit', function(event) {
         event.preventDefault();
         const gameUuid = document.getElementById('deleteGameUuid').value;
-        const csrftoken = CSRFUtils.getToken();
 
         fetch(`/delete_full_game`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken,
-            },
+            headers: CSRFUtils.getHeaders({
+                'Content-Type': 'application/json'
+            }),
             body: JSON.stringify({ game_uuid: gameUuid })
         })
         .then(response => response.json())

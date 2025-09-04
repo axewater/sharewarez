@@ -120,10 +120,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentDeleteId) {
             fetch(`/admin/whitelist/${currentDeleteId}`, {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token() }}'
-                }
+                headers: CSRFUtils.getHeaders({
+                    'Content-Type': 'application/json'
+                })
             })
             .then(response => response.json())
             .then(data => {

@@ -1,8 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize UI elements
     const smtpEnabledCheckbox = document.getElementById('smtp_enabled');
-    // CSRF token now handled by CSRFUtils
-    // const csrfToken = document.querySelector('meta[name="csrf-token"]');
     const formFields = document.querySelectorAll('.form-control');
     const saveButton = document.querySelector('.btn-primary');
     const testButton = document.querySelector('.btn-secondary');

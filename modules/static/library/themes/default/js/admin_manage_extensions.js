@@ -40,10 +40,9 @@ function saveFileType() {
 
     fetch(`/api/file_types/${category}`, {
         method: method,
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': CSRFUtils.getToken()
-        },
+        headers: CSRFUtils.getHeaders({
+            'Content-Type': 'application/json'
+        }),
         body: JSON.stringify(data)
     })
     .then(response => response.json())
@@ -67,10 +66,9 @@ function deleteFileType(category, id) {
 
     fetch(`/api/file_types/${category}`, {
         method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': CSRFUtils.getToken()
-        },
+        headers: CSRFUtils.getHeaders({
+            'Content-Type': 'application/json'
+        }),
         body: JSON.stringify({ id })
     })
     .then(response => response.json())
