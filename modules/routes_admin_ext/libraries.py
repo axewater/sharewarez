@@ -48,11 +48,11 @@ def add_edit_library(library_uuid=None):
 
         file = form.image.data
         if file:
-            # Validate file size (< 5 MB)
+            # Validate file size (< 10 MB)
             file.seek(0, os.SEEK_END)
             file_length = file.tell()
-            if file_length > 5 * 1024 * 1024:  # 5MB limit
-                flash('File size is too large. Maximum allowed is 5 MB.', 'error')
+            if file_length > 10 * 1024 * 1024:  # 10MB limit
+                flash('File size is too large. Maximum allowed is 10 MB.', 'error')
                 return render_template('admin/admin_manage_library_create.html', form=form, library=library, page_title=page_title)
 
             # Reset file pointer after checking size
