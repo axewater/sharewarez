@@ -17,6 +17,13 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/notify/0.4.2/notify.min.js"></script>
     
+    <!-- CSRF Token Management Utility - Load before other local scripts -->
+    {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/csrf-utils.js') %}
+        <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/csrf-utils.js') }}"></script>
+    {% else %}
+        <script src="{{ url_for('static', filename='library/themes/default/js/csrf-utils.js') }}"></script>
+    {% endif %}
+    
     {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/downloads_notify.js') %}
         <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/downloads_notify.js') }}"></script>
     {% else %}

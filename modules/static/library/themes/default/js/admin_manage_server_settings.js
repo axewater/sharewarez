@@ -54,10 +54,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         fetch('/admin/settings', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.getElementById('csrf_token').textContent
-            },
+            headers: CSRFUtils.getHeaders({
+                'Content-Type': 'application/json'
+            }),
             body: JSON.stringify(settings)
         })
         .then(response => {

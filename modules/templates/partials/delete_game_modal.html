@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('deleteGameForm').addEventListener('submit', function(event) {
         event.preventDefault();
         const gameUuid = document.getElementById('deleteGameUuid').value;
-        const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrftoken = CSRFUtils.getToken();
 
         fetch(`/delete_full_game`, {
             method: 'POST',
