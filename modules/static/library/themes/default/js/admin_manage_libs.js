@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRFToken': CSRFUtils.getToken()
                 },
                 body: JSON.stringify({ order: newOrder })
             })
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var csrfInput = document.createElement('input');
     csrfInput.type = 'hidden';
     csrfInput.name = 'csrf_token';
-    csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content'); // Ensure CSRF token is pulled from a meta tag
+    csrfInput.value = CSRFUtils.getToken(); // Ensure CSRF token is pulled from CSRFUtils
     deleteForm.appendChild(csrfInput);
 
     var body = document.querySelector('body');
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-CSRFToken': csrfInput.value
+                        'X-CSRFToken': CSRFUtils.getToken()
                     },
                     body: new URLSearchParams(new FormData(deleteForm))
                 })

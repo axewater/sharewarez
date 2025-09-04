@@ -25,16 +25,13 @@ function attachDeleteFolderFormListeners() {
                 }
 
                 showSpinner();
-                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const csrfToken = CSRFUtils.getToken();
 
                 console.log("Attempting to delete folder with path:", folderPath);
 
                 fetch('/delete_folder', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': csrfToken
-                    },
+                    headers: CSRFUtils.getHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({folder_path: folderPath})
                 })
                 .then(response => response.json())
@@ -134,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // No complex toggle functionality needed for simplified table
 
-    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var csrfToken = CSRFUtils.getToken();
 
     // Helper function to get user-friendly status display
     function getDisplayStatus(job) {
@@ -278,10 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.toggleIgnoreStatus = function(folderId, button) {
         fetch(`/toggle_ignore_status/${folderId}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': csrfToken
-            }
+            headers: CSRFUtils.getHeaders({ 'Content-Type': 'application/json' })
         })
         .then(response => response.json())
         .then(data => {
@@ -296,10 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (confirm('Remove this entry from the unmatched list?')) {
             fetch(`/clear_unmatched_entry/${folderId}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken
-                }
+                headers: CSRFUtils.getHeaders({ 'Content-Type': 'application/json' })
             })
             .then(response => response.json())
             .then(data => {

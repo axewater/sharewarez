@@ -30,10 +30,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         fetch('/admin/api/discovery_sections/order', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-            },
+            headers: CSRFUtils.getHeaders({
+                'Content-Type': 'application/json'
+            }),
             body: JSON.stringify({ sections: orderData })
         })
         .then(response => response.json())
@@ -56,10 +55,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateSectionVisibility(sectionId, isVisible) {
         fetch('/admin/api/discovery_sections/visibility', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-            },
+            headers: CSRFUtils.getHeaders({
+                'Content-Type': 'application/json'
+            }),
             body: JSON.stringify({
                 section_id: sectionId,
                 is_visible: isVisible

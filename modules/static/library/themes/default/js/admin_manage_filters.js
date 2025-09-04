@@ -21,10 +21,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         fetch(window.location.pathname, {
             method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content,
+            headers: CSRFUtils.getHeaders({
                 'Content-Type': 'application/x-www-form-urlencoded'
-            },
+            }),
             body: new URLSearchParams(formData)
         })
         .then(response => {

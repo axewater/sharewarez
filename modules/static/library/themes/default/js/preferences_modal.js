@@ -3,14 +3,12 @@ document.addEventListener('DOMContentLoaded', function() {
         event.preventDefault();
         
         const formData = new FormData(this);
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfToken = CSRFUtils.getToken();
         
         fetch(this.action, {
             method: 'POST',
             body: formData,
-            headers: {
-                'X-CSRFToken': csrfToken
-            }
+            headers: CSRFUtils.getHeaders()
         })
         .then(response => {
             if (!response.ok) {

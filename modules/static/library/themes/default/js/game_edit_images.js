@@ -30,9 +30,7 @@ function uploadFile(file, gameUuid, csrfToken, imageType = 'screenshot') {
     fetch(url, {
         method: 'POST',
         body: formData,
-        headers: new Headers({
-            'X-CSRF-Token': csrfToken,
-        }),
+        headers: CSRFUtils.getHeaders(),
     })
     .then(response => {
         if (!response.ok) {
@@ -129,7 +127,7 @@ function displayCoverImage(data) {
 
 function deleteImage(imageId) {
     console.log('Deleting image with ID:', imageId);
-    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var csrfToken = CSRFUtils.getToken();
     
     // Check if this is a cover image
     const coverImageEditor = document.getElementById('cover-image-editor');
@@ -144,10 +142,7 @@ function deleteImage(imageId) {
 
     fetch('/delete_image', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': csrfToken,
-        },
+        headers: CSRFUtils.getHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ 
             image_id: imageId,
             is_cover: isCoverImage 
@@ -195,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('cover-image-input').addEventListener('change', function(e) {
         let file = e.target.files[0];
-        let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        let csrfToken = CSRFUtils.getToken();
 
         if (file) {
             uploadFile(file, gameUuid, csrfToken, 'cover');
@@ -226,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('upload-button').addEventListener('click', function() {
         let gameUuid = document.getElementById('upload-area').getAttribute('data-game-uuid');
-        let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        let csrfToken = CSRFUtils.getToken();
         console.log('Uploading files:', selectedFiles);
         for (let i = 0; i < selectedFiles.length; i++) {
             uploadFile(selectedFiles[i], gameUuid, csrfToken);
@@ -244,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function handleFiles(files) {
         console.log('Handling files');
-        let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        let csrfToken = CSRFUtils.getToken();
         for (let i = 0; i < files.length; i++) {
             uploadFile(files[i], gameUuid, csrfToken, 'screenshot');
         }

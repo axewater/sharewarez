@@ -42,7 +42,7 @@ function saveFileType() {
         method: method,
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'X-CSRFToken': CSRFUtils.getToken()
         },
         body: JSON.stringify(data)
     })
@@ -69,7 +69,7 @@ function deleteFileType(category, id) {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'X-CSRFToken': CSRFUtils.getToken()
         },
         body: JSON.stringify({ id })
     })

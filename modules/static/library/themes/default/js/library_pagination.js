@@ -72,7 +72,7 @@ $(document).ready(function() {
     console.log("User preferences:", userPerPage, userDefaultSort, userDefaultSortOrder);
     var currentPage = 1;
     var totalPages = 0;
-    csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    csrfToken = CSRFUtils.getToken();
     if (userPerPage) {
         $('#perPageSelect').val(userPerPage.toString());
     }
@@ -329,7 +329,7 @@ $(document).ready(function() {
 
     function createPopupMenuHtml(game) {
         // update the popup_menu.html template as well
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const csrfToken = CSRFUtils.getToken();
         const enableDeleteGameOnDisk = document.body.getAttribute('data-enable-delete-game-on-disk') === 'true';
         const discordConfigured = document.body.getAttribute('data-discord-configured') === 'true';
         const discordManualTrigger = document.body.getAttribute('data-discord-manual-trigger') === 'true';
@@ -486,11 +486,10 @@ document.body.addEventListener('click', function(event) {
 
         fetch(`/refresh_game_images/${gameUuid}`, {
             method: 'POST',
-            headers: {
+            headers: CSRFUtils.getHeaders({ 
                 'Content-Type': 'application/json',
-                'X-CSRF-Token': csrfToken,
                 'X-Requested-With': 'XMLHttpRequest'
-            },
+            }),
             body: JSON.stringify({ /*  */ })
         })
         .then(response => {
@@ -567,10 +566,7 @@ document.body.addEventListener('click', function(event) {
                                 // Send request to move the game
                                 fetch('/api/move_game_to_library', {
                                     method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRF-Token': csrfToken
-                                    },
+                                    headers: CSRFUtils.getHeaders({ 'Content-Type': 'application/json' }),
                                     body: JSON.stringify({
                                         game_uuid: gameUuid,
                                         target_library_uuid: targetLibraryUuid
