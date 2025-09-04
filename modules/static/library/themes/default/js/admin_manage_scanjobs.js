@@ -217,6 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const updateUnmatchedFolders = () => {
+        showSpinner();
         return fetch('/api/unmatched_folders', {cache: 'no-store'})
             .then(response => response.json())
             .then(data => {
@@ -260,7 +261,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Attach event listeners to the new forms
                 attachDeleteFolderFormListeners();
             })
-            .catch(error => console.error('Error fetching unmatched folders:', error));
+            .catch(error => {
+                console.error('Error fetching unmatched folders:', error);
+            })
+            .finally(() => {
+                hideSpinner();
+            });
     };
 
     // Run immediately on load
