@@ -54,11 +54,6 @@
         <script src="{{ url_for('static', filename='library/themes/default/js/preferences_modal.js') }}"></script>
     {% endif %}
     
-    {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/base.js') %}
-        <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/base.js') }}"></script>
-    {% else %}
-        <script src="{{ url_for('static', filename='library/themes/default/js/base.js') }}"></script>
-    {% endif %}
     
     {% endblock %}
 </head>
@@ -142,17 +137,127 @@
 {% include 'partials/delete_game_modal.html' %}
 <div id="preferencesModalContainer"></div>
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/delete_game_modal.js') %}
-    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/delete_game_modal.js') }}"></script>
-{% else %}
-    <script src="{{ url_for('static', filename='library/themes/default/js/delete_game_modal.js') }}"></script>
-{% endif %}
 
 <script>
-// Set the preferences URL as a data attribute for base.js to use
+    document.addEventListener("DOMContentLoaded", function() {
+        console.log("Document loaded.");
+
+        // Existing function to close all submenus
+        function closeAllSubmenus() {
+            document.querySelectorAll('.submenu').forEach(submenu => {
+                submenu.style.display = 'none';
+            });
+            document.querySelectorAll('.has-submenu').forEach(item => {
+                item.classList.remove('open');
+            });
+        }
+    
+        closeAllSubmenus();
+    
+        // Toggle sidebar
+        const toggleSidebar = document.getElementById("toggleSidebar");
+        if (toggleSidebar) {
+            toggleSidebar.addEventListener("click", function() {
+                console.log("Sidebar toggle clicked.");
+                document.getElementById("sidebar").classList.toggle("collapsed");
+                document.getElementById("content").classList.toggle("collapsed");
+                closeAllSubmenus();
+            });
+        }
+    
+        // User account icon click event
+        const userAccountIcon = document.getElementById('userAccountIcon');
+        if (userAccountIcon) {
+            userAccountIcon.addEventListener('click', function() {
+                console.log("User account icon clicked.");
+
+                var menu = document.getElementById('userAccountMenu');
+                var icon = document.querySelector('.user-expand-icon');
+            
+                if (menu.classList.contains('hide')) {
+                    console.log("Menu is hidden, showing now.");
+                    menu.classList.remove('hide');
+                    menu.classList.add('show');
+                    icon.style.transform = 'rotate(180deg)';
+                } else {
+                    console.log("Menu is shown, hiding now.");
+                    menu.classList.remove('show');
+                    menu.classList.add('hide');
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            });
+        }
+
+        document.addEventListener('click', function(event) {
+            const userAccountIcon = document.getElementById('userAccountIcon');
+            const userAccountMenu = document.getElementById('userAccountMenu');
+            const userExpandIcon = document.querySelector('.user-expand-icon');
+            
+            if (userAccountIcon && userAccountMenu && userExpandIcon) {
+                var isClickInsideIcon = userAccountIcon.contains(event.target);
+                var isClickInsideMenu = userAccountMenu.contains(event.target);
+
+                if (!isClickInsideIcon && !isClickInsideMenu) {
+                    // If the click is outside the userAccountIcon and userAccountMenu, close the menu
+                    userAccountMenu.classList.add('hide');
+                    userAccountMenu.classList.remove('show');
+                    userExpandIcon.style.transform = 'rotate(0deg)';
+                }
+            }
+        });
+        
+
+
+        // Handling click events on sidebar links with submenu
+        document.querySelectorAll('.sidebar-link.has-submenu').forEach(item => {
+            item.addEventListener('click', function(e) {
+                console.log("Submenu item clicked.");
+                closeAllSubmenus();
+                
+                e.preventDefault();
+    
+                let nextElement = this.nextElementSibling;
+                if (nextElement && nextElement.classList.contains('submenu')) {
+                    this.classList.toggle('open');
+                    nextElement.style.display = nextElement.style.display === 'block' ? 'none' : 'block';
+                }
+    
+                e.stopPropagation();
+            });
+        });
+    });
+    
+    // Additional checks for visibility of elements based on URL
+    if (window.location.pathname !== '/library') {
+        console.log("Not on '/library' page, adjusting visibility.");
+        const filterContainer = document.querySelector('.container-filtersandsort');
+        if (filterContainer) {
+            filterContainer.style.visibility = 'hidden';
+        }
+    }
+</script>
+
+<!-- Add this near the end of base.html -->
+{% include 'partials/delete_game_modal.html' %}
+<div id="preferencesModalContainer"></div>
+
+<script>
 const prefsToggle = document.querySelector('[data-bs-toggle="modal"][data-bs-target="#preferencesModal"]');
 if (prefsToggle) {
-    prefsToggle.dataset.preferencesUrl = "{{ url_for('settings.settings_panel') }}";
+    prefsToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        fetch("{{ url_for('settings.settings_panel') }}")
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('preferencesModalContainer').innerHTML = html;
+                new bootstrap.Modal(document.getElementById('preferencesModal')).show();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                $.notify("Error loading preferences", "error");
+            });
+    });
 }
 </script>
 
