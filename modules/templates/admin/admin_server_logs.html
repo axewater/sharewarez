@@ -20,7 +20,12 @@
 </div>
 <div class="card">
     <div class="card-body">
-        <h2>System Logs</h2>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>System Logs</h2>
+            <button type="button" class="btn btn-danger" id="clearLogsBtn">
+                <i class="fas fa-trash"></i> Clear All Logs
+            </button>
+        </div>
         <div class="table-responsive">
             <table class="table table-striped" id="logsTable">
                 <thead>
@@ -81,5 +86,19 @@
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.js"></script>
     <script src="{{ url_for('static', filename='library/themes/default/js/admin_system_logs.js') }}"></script>
 {% endblock %}
+
+<!-- Clear Logs Warning Modal -->
+<div id="clearLogsModal" class="modal delete-game-modal" style="display:none; z-index: 15;">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>Warning!</h2>
+        <p>Are you sure you want to clear all system logs? This action cannot be undone.</p>
+        <form id="clearLogsForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="clear-confirm btn btn-danger">Clear All Logs</button>
+            <button type="button" class="clear-cancel btn btn-success">Cancel</button>
+        </form>
+    </div>
+</div>
 
 {% endblock %}
