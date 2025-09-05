@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.6.4
+# 🎮 SharewareZ v2.6.5
 
 SharewareZ transforms any game folder into a searchable library with IGDB integration, adding cover images, screenshots, and metadata for enhanced filtering.
 Invite your friends securely and share your favorite games!
@@ -7,14 +7,15 @@ Invite your friends securely and share your favorite games!
 
 - 🔄 Updating from older versions: Automatic update supported - simply overwrite files and run 'pip install -r requirements.txt' again.
 - ⚠️ For versions below 2.0: Database reset required
-- Run `app.py --force-setup` to recreate database and run setup wizard
+- Run `python3 app.py --force-setup` to recreate database and run setup wizard (Note: Use `./startweb.sh` for normal operation)
 - ⚖️ SharewareZ promotes and encourages the legal use of software. We do not condone or support any unauthorized distribution or use of copyrighted material.
 - 📝 You must install version >2.5.2 before August 2025 or lose the ability to connect to IGDB for any lookups.
 
 ## ✨ Core Features
 
 ### 📚 Game Library Management
-- 🔍 Smart folder scanning & cataloging
+- 🔍 Smart folder scanning & cataloging with multi-threaded processing (4 threads by default)
+- ⚡ Multi-threaded image downloading and processing for faster library building
 - 🖼️ Steam-style popup with screenshot galleries
 - 🏷️ Advanced filtering (genre, rating, gameplay modes)
 - 📁 Support for 'updates' and 'extras' folders
@@ -29,11 +30,18 @@ Invite your friends securely and share your favorite games!
 ### 💾 Download Features
 - 📦 Auto-zip functionality for multi-file folders
 - 📄 NFO file indexing with viewer
+- ⚡ Multi-threaded download processing with configurable thread count
 
 ### 👥 User Management
 - 🛡️ Role-based access control
 - 📨 Invitation system (admin-controlled)
 - 🔑 Self-service password reset (requires SMTP)
+
+### ⚡ Performance Features
+- 🚀 Multi-threaded game scanning (4 threads by default, configurable)
+- 📥 Multi-threaded image downloading (8 threads by default, configurable)
+- 🔄 Chunked streaming downloads for large files
+- 🌐 ASGI-based web server with uvicorn and multiple workers
 
 ## 🚀 Installation Guide
 
@@ -64,20 +72,20 @@ cd sharewarez
 
 ##### 🐧 Linux
 ```bash
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate
-python -m pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
 ##### 🪟 Windows (Powershell)
 ```bash
-python -m venv venv
+python3 -m venv venv
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\venv\Scripts\Activate
-python -m pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
-> 💡 Note: Use `python3` if `python` command fails
+> 💡 Note: Use `python` if `python3` command fails
 
 #### 3️⃣ PostgreSQL Installation
 
@@ -104,13 +112,32 @@ CREATE DATABASE sharewarez;
    - 🔗 Database connection string
    - 📁 Games folder path
 
+### 🚀 Running the Application
+
+```bash
+./startweb.sh
+```
+- Runs with uvicorn and 4 workers for optimal performance
+- Automatically handles database migrations and initialization
+- Starts on port 5006 by default
+
+#### Database Reset/Setup
+```bash
+python3 app.py --force-setup
+```
+- Resets database and forces setup wizard
+- Use when upgrading from older versions or troubleshooting
+- After running, use `./startweb.sh` to start the application
+
+> 📝 **Note**: `app.py` is now primarily for CLI operations like `--force-setup`. For normal web application operation, always use `./startweb.sh`
+
 ### 🐳 Docker Alternative
 ```bash
 docker pull kapitanczarnobrod/sharewarez:latest
 ```
 
 ## 🔧 Additional Settings
-- 🌐 Default port: `5006` (configurable in `app.py` or in docker-compose.yml for docker)
+- 🌐 Default port: `5006` (configurable in `startweb.sh` for normal operation or docker-compose.yml for docker)
 - 👥 Go the admin dashboard for further configuration
 
 ## 🔧 Supported platforms to play in browser 
@@ -126,7 +153,3 @@ docker pull kapitanczarnobrod/sharewarez:latest
 ## 📝 3rd party code
 - 💭 Thanks to BinBashBanana's webretro we can now run ROMs in the browser.
 - 🌐 Check out his project here: https://github.com/BinBashBanana/webretro
-
-## 📝 Changelog
-2.5.3 - Refreshed themes.zip with updated file
-2.5.2 - IGDB.com API update compatibility implemented (deadline aug 2025)
