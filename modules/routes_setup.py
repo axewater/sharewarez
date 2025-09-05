@@ -21,7 +21,7 @@ def setup():
         return redirect(url_for('login.login'))
 
     form = SetupForm()
-    return render_template('setup/setup.html', form=form)
+    return render_template('setup/setup.html', form=form, is_setup_mode=True)
 
 @setup_bp.route('/setup/submit', methods=['POST'])
 def setup_submit():
@@ -59,7 +59,7 @@ def setup_submit():
     else:
         print(f"Form contents: {form.data}")
         print(f"Form validation failed: {form.errors}")
-        return render_template('setup/setup.html', form=form)
+        return render_template('setup/setup.html', form=form, is_setup_mode=True)
 
 @setup_bp.route('/setup/smtp', methods=['GET', 'POST'])
 def setup_smtp():
@@ -104,7 +104,7 @@ def setup_smtp():
             db.session.rollback()
             flash(f'Error saving SMTP settings: {str(e)}', 'error')
 
-    return render_template('setup/setup_smtp.html')
+    return render_template('setup/setup_smtp.html', is_setup_mode=True)
 
 @setup_bp.route('/setup/igdb', methods=['GET', 'POST'])
 def setup_igdb():
@@ -139,4 +139,4 @@ def setup_igdb():
             db.session.rollback()
             flash(f'Error saving IGDB settings: {str(e)}', 'error')
 
-    return render_template('setup/setup_igdb.html', form=form)
+    return render_template('setup/setup_igdb.html', form=form, is_setup_mode=True)

@@ -67,6 +67,7 @@
 
 
 
+{% if not is_setup_mode %}
 <div id="sidebar" class="sidebar">
     {% if current_user.is_authenticated %}
     <div class="useraccount-minimenu-container">
@@ -130,7 +131,8 @@
     </div>
     
 </div>
-<div id="content">
+{% endif %}
+<div id="content" class="{% if is_setup_mode %}setup-mode-content{% endif %}">
     {% include 'partials/flash_messages.html' %}
     {% block content %}{% endblock %}
 </div>
