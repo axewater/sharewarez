@@ -1,59 +1,158 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/site/site_help.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/site/site_help.css') }}">
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/site/help.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/site/help.css') }}">
 {% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/site/site_help.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/site/help.css') }}">
 {% endif %}
-<div class="container-base">
-    <div class="glass-panel help-content">
-        <h1>Help / FAQ</h1>
-        <p class="intro">Welcome to SharewareZ! This comprehensive guide will help you navigate and make the most of our platform's features.</p>
-
-        <section class="user-tips">
-            <h2>Getting Started</h2>
-            <ul>
-                <li>Navigate through our extensive game library using the sidebar menu</li>
-                <li>Use the search bar at the top to quickly find specific games</li>
-                <li>Apply filters to narrow down your search by genre, platform, or release date</li>
-                <li>Click on any game to view detailed information, screenshots, and download options</li>
-            </ul>
-        </section>
-
-        <section class="downloads-section">
-            <h2>Downloads</h2>
-            <ul>
-                <li>Click the download button on any game page to start the download process</li>
-                <li>Downloads are queued and processed automatically by our server</li>
-                <li>Track your download progress in the Downloads section</li>
-                <li>Downloaded files are available for 24 hours before being automatically removed</li>
-            </ul>
-        </section>
-
-        <section class="library-section">
-            <h2>Your Library</h2>
-            <ul>
-                <li>Add games to your favorites by clicking the heart icon</li>
-                <li>Access your favorite games quickly from the sidebar</li>
-                <li>View your download history in the Downloads section</li>
-                <li>Customize your experience through the user preferences panel</li>
-            </ul>
-        </section>
-
-        <div class="help-image">
-            <img src="{{ url_for('static', filename='newstyle/sharewarez_help.jpg') }}" alt="ShareWareZ Logo" class="help-logo">
+<div class="help-container">
+    <div class="help-header">
+        <div class="help-title">
+            <i class="fas fa-question-circle"></i>
+            <h1>Help & FAQ</h1>
         </div>
-        
-        <section class="support-section">
-            <h2>Need Help?</h2>
-            <p>If you need additional assistance or encounter any issues:</p>
-            <ul>
-                <li>Contact an administrator through the support system</li>
-                <li>Check our FAQ section for common questions</li>
-                <li>Report any technical issues you encounter</li>
-            </ul>
-        </section>
+        <p class="help-subtitle">Your complete guide to using SharewareZ</p>
     </div>
+
+    <div class="help-content-grid">
+        <div class="help-card getting-started">
+            <div class="card-header">
+                <i class="fas fa-play-circle"></i>
+                <h2>Getting Started</h2>
+                <div class="toggle-icon">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            <div class="card-content">
+                <div class="help-item">
+                    <i class="fas fa-bars"></i>
+                    <span>Navigate through the library using the sidebar menu</span>
+                </div>
+                <div class="help-item">
+                    <i class="fas fa-search"></i>
+                    <span>Press any key to start searching, toquickly find specific games</span>
+                </div>
+                <div class="help-item">
+                    <i class="fas fa-filter"></i>
+                    <span>Apply filters to narrow down your search by genre, platform, or release date</span>
+                </div>
+                <div class="help-item">
+                    <i class="fas fa-mouse-pointer"></i>
+                    <span>Click on any game to view detailed information, screenshots, and download options</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="help-card downloads">
+            <div class="card-header">
+                <i class="fas fa-download"></i>
+                <h2>Downloads</h2>
+                <div class="toggle-icon">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            <div class="card-content">
+                <div class="help-item">
+                    <i class="fas fa-cloud-download-alt"></i>
+                    <span>Click the download button on any game page to start the download process</span>
+                </div>
+                <div class="help-item">
+                    <i class="fas fa-list-ol"></i>
+                    <span>Some downloads will require processing time as they are being zipped on the server</span>
+                </div>
+                <div class="help-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Track your download progress in the Downloads section</span>
+                </div>
+                <div class="help-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Downloaded files are available until you (or the admin) remove them from the list</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="help-card library">
+            <div class="card-header">
+                <i class="fas fa-heart"></i>
+                <h2>Your Library</h2>
+                <div class="toggle-icon">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            <div class="card-content">
+                <div class="help-item">
+                    <i class="fas fa-heart"></i>
+                    <span>Add games to your favorites by clicking the heart icon</span>
+                </div>
+                <div class="help-item">
+                    <i class="fas fa-star"></i>
+                    <span>Access your favorite games quickly from the sidebar</span>
+                </div>
+                <div class="help-item">
+                    <i class="fas fa-history"></i>
+                    <span>View your download history in the Downloads section</span>
+                </div>
+                <div class="help-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Customize your experience through the user preferences panel</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="help-card support">
+            <div class="card-header">
+                <i class="fas fa-life-ring"></i>
+                <h2>Need Help?</h2>
+                <div class="toggle-icon">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            <div class="card-content">
+                <p class="support-description">If you need additional assistance or encounter any issues:</p>
+                
+                <div class="help-item">
+                    <i class="fas fa-bug"></i>
+                    <span>Report any technical issues you encounter on the <a href="https://github.com/axewater/sharewarez" target="_blank" rel="noopener noreferrer">GitHub repo</a></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle help cards
+    const cardHeaders = document.querySelectorAll('.card-header');
+    
+    cardHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            const card = this.parentElement;
+            const content = card.querySelector('.card-content');
+            const icon = this.querySelector('.toggle-icon i');
+            
+            card.classList.toggle('expanded');
+            
+            if (card.classList.contains('expanded')) {
+                content.style.maxHeight = content.scrollHeight + 'px';
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                content.style.maxHeight = '0';
+                icon.style.transform = 'rotate(0deg)';
+            }
+        });
+    });
+
+    // Auto-expand all cards
+    const allCards = document.querySelectorAll('.help-card');
+    allCards.forEach(card => {
+        card.classList.add('expanded');
+        const content = card.querySelector('.card-content');
+        const icon = card.querySelector('.toggle-icon i');
+        content.style.maxHeight = content.scrollHeight + 'px';
+        icon.style.transform = 'rotate(180deg)';
+    });
+});
+</script>
 {% endblock %}
