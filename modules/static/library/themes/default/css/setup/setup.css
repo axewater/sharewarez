@@ -43,3 +43,19 @@
     border: 1px solid #ffc107;
     color: #fff;
 }
+
+/* Setup mode content styling - when sidebar is hidden */
+.setup-mode-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.setup-mode-content .container-login {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}

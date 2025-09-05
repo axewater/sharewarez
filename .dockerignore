@@ -14,7 +14,7 @@ pip-delete-this-directory.txt
 # Environment & Config
 .env
 .env.*
-config.py
+
 config.backup
 config.py.backup
 config.portainer
