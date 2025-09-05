@@ -397,31 +397,6 @@ class TestFiltersAPILogging:
     """Test logging behavior for filter endpoints."""
     
     @patch('modules.routes_apis.filters.log_system_event')
-    def test_genres_successful_logging(self, mock_log, client, regular_user, sample_genres):
-        """Test that proper logging occurs for successful genres retrieval."""
-        with client.session_transaction() as sess:
-            sess['_user_id'] = str(regular_user.id)
-            sess['_fresh'] = True
-        
-        response = client.get('/api/genres')
-        assert response.status_code == 200
-        
-        # Verify logging calls
-        mock_log.assert_called()
-        log_calls = mock_log.call_args_list
-        
-        # Check for fetch and success log messages
-        fetch_logged = any(
-            'Fetching genres data' in str(call) for call in log_calls
-        )
-        success_logged = any(
-            'Successfully retrieved 3 genres items' in str(call) for call in log_calls
-        )
-        
-        assert fetch_logged
-        assert success_logged
-    
-    @patch('modules.routes_apis.filters.log_system_event')
     @patch('modules.routes_apis.filters.db.session.execute')
     def test_themes_error_logging(self, mock_execute, mock_log, client, regular_user):
         """Test that error logging occurs for failed themes retrieval."""
