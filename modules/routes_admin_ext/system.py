@@ -253,3 +253,45 @@ def update_section_visibility() -> tuple[Dict[str, Any], int]:
             audit_user=current_user.id
         )
         return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+@admin2_bp.route('/admin/api/system_logs/clear', methods=['DELETE'])
+@login_required
+@admin_required
+def clear_system_logs() -> tuple[Dict[str, Any], int]:
+    """
+    Clear all system logs from the database.
+    
+    This is a destructive action that cannot be undone.
+    The action is logged after clearing the logs for audit purposes.
+    """
+    try:
+        # Get count of logs before deletion for the response
+        logs_count = db.session.execute(select(db.func.count(SystemEvents.id))).scalar()
+        
+        # Delete all system events
+        db.session.execute(db.delete(SystemEvents))
+        db.session.commit()
+        
+        # Log the action after clearing logs so it persists
+        log_system_event(
+            f"System logs cleared by admin user '{current_user.name}' (ID: {current_user.id}). {logs_count} logs were deleted.",
+            event_type='admin_action',
+            event_level='warning',
+            audit_user=current_user.id
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': f'Successfully cleared {logs_count} system logs',
+            'deleted_count': logs_count
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        log_system_event(
+            f"Failed to clear system logs: {str(e)}",
+            event_type='admin_action',
+            event_level='error',
+            audit_user=current_user.id
+        )
+        return jsonify({'success': False, 'error': 'Internal server error'}), 500

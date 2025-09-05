@@ -686,6 +686,173 @@ class TestSystemIntegration:
         
         # Verify logging was called multiple times
         assert mock_log.call_count >= 2
+
+
+class TestClearSystemLogsAPI:
+    """Test the clear_system_logs API endpoint."""
+    
+    def test_clear_logs_requires_login(self, client):
+        """Test that API requires login."""
+        response = client.delete('/admin/api/system_logs/clear')
+        assert response.status_code == 302
+        assert 'login' in response.location
+    
+    def test_clear_logs_requires_admin(self, client, regular_user):
+        """Test that API requires admin role."""
+        with client.session_transaction() as sess:
+            sess['_user_id'] = str(regular_user.id)
+            sess['_fresh'] = True
+        
+        response = client.delete('/admin/api/system_logs/clear')
+        assert response.status_code == 302
+    
+    def test_clear_logs_success(self, client, admin_user, sample_system_events, db_session):
+        """Test successful log clearing."""
+        with client.session_transaction() as sess:
+            sess['_user_id'] = str(admin_user.id)
+            sess['_fresh'] = True
+        
+        # Verify we have logs before clearing
+        initial_count = db_session.query(SystemEvents).count()
+        assert initial_count == 5  # From sample_system_events fixture
+        
+        response = client.delete('/admin/api/system_logs/clear')
+        
+        assert response.status_code == 200
+        response_data = response.get_json()
+        assert response_data['success'] is True
+        assert f'Successfully cleared {initial_count} system logs' in response_data['message']
+        assert response_data['deleted_count'] == initial_count
+        
+        # Verify all logs were deleted except the audit log
+        remaining_count = db_session.query(SystemEvents).count()
+        assert remaining_count == 1  # Only the new log entry created after clearing
+        
+        # Verify the audit log was created with correct content
+        audit_log = db_session.query(SystemEvents).first()
+        assert audit_log.event_type == 'admin_action'
+        assert audit_log.event_level == 'warning'
+        assert audit_log.audit_user == admin_user.id
+        assert f"System logs cleared by admin user '{admin_user.name}' (ID: {admin_user.id})" in audit_log.event_text
+        assert f"{initial_count} logs were deleted" in audit_log.event_text
+    
+    @patch('modules.routes_admin_ext.system.log_system_event')
+    def test_clear_logs_empty_database(self, mock_log, client, admin_user, db_session):
+        """Test clearing logs when database is already empty."""
+        with client.session_transaction() as sess:
+            sess['_user_id'] = str(admin_user.id)
+            sess['_fresh'] = True
+        
+        # Clear any existing logs first
+        db_session.query(SystemEvents).delete()
+        db_session.commit()
+        
+        response = client.delete('/admin/api/system_logs/clear')
+        
+        assert response.status_code == 200
+        response_data = response.get_json()
+        assert response_data['success'] is True
+        assert 'Successfully cleared 0 system logs' in response_data['message']
+        assert response_data['deleted_count'] == 0
+        
+        # Verify the action was still logged
+        mock_log.assert_called_with(
+            f"System logs cleared by admin user '{admin_user.name}' (ID: {admin_user.id}). 0 logs were deleted.",
+            event_type='admin_action',
+            event_level='warning',
+            audit_user=admin_user.id
+        )
+    
+    @patch('modules.routes_admin_ext.system.log_system_event')
+    def test_clear_logs_database_error(self, mock_log, client, admin_user, sample_system_events, db_session):
+        """Test error handling when database operation fails."""
+        with client.session_transaction() as sess:
+            sess['_user_id'] = str(admin_user.id)
+            sess['_fresh'] = True
+        
+        # Simulate a database error by mocking the delete operation
+        with patch('modules.routes_admin_ext.system.db.session.execute') as mock_execute:
+            mock_execute.side_effect = Exception("Database connection lost")
+            
+            response = client.delete('/admin/api/system_logs/clear')
+            
+            assert response.status_code == 500
+            response_data = response.get_json()
+            assert response_data['success'] is False
+            assert response_data['error'] == 'Internal server error'
+            
+            # Verify error logging was called
+            mock_log.assert_called_with(
+                'Failed to clear system logs: Database connection lost',
+                event_type='admin_action',
+                event_level='error',
+                audit_user=admin_user.id
+            )
+    
+    def test_clear_logs_wrong_method(self, client, admin_user):
+        """Test that endpoint only accepts DELETE method."""
+        with client.session_transaction() as sess:
+            sess['_user_id'] = str(admin_user.id)
+            sess['_fresh'] = True
+        
+        # Try with GET
+        response = client.get('/admin/api/system_logs/clear')
+        assert response.status_code == 405  # Method Not Allowed
+        
+        # Try with POST
+        response = client.post('/admin/api/system_logs/clear')
+        assert response.status_code == 405  # Method Not Allowed
+        
+        # Try with PUT
+        response = client.put('/admin/api/system_logs/clear')
+        assert response.status_code == 405  # Method Not Allowed
+    
+    @patch('modules.routes_admin_ext.system.log_system_event')
+    def test_clear_logs_includes_user_details(self, mock_log, client, admin_user, sample_system_events, db_session):
+        """Test that the log entry includes proper user details."""
+        with client.session_transaction() as sess:
+            sess['_user_id'] = str(admin_user.id)
+            sess['_fresh'] = True
+        
+        initial_count = db_session.query(SystemEvents).count()
+        
+        response = client.delete('/admin/api/system_logs/clear')
+        
+        assert response.status_code == 200
+        
+        # Verify the log message includes both user name and ID
+        mock_log.assert_called_with(
+            f"System logs cleared by admin user '{admin_user.name}' (ID: {admin_user.id}). {initial_count} logs were deleted.",
+            event_type='admin_action',
+            event_level='warning',
+            audit_user=admin_user.id
+        )
+    
+    def test_clear_logs_audit_persistence(self, client, admin_user, sample_system_events, db_session):
+        """Test that the audit log persists after clearing."""
+        with client.session_transaction() as sess:
+            sess['_user_id'] = str(admin_user.id)
+            sess['_fresh'] = True
+        
+        initial_count = db_session.query(SystemEvents).count()
+        
+        response = client.delete('/admin/api/system_logs/clear')
+        assert response.status_code == 200
+        
+        # After clearing, there should be exactly 1 log entry (the audit log)
+        final_count = db_session.query(SystemEvents).count()
+        assert final_count == 1
+        
+        # The remaining log should be the audit log
+        remaining_log = db_session.query(SystemEvents).first()
+        assert remaining_log.event_type == 'admin_action'
+        assert remaining_log.event_level == 'warning'
+        assert remaining_log.audit_user == admin_user.id
+        assert 'System logs cleared by admin user' in remaining_log.event_text
+
+
+class TestSystemIntegrationExtended:
+    """Additional integration tests for system functionality."""
     
     def test_system_logs_with_multiple_filters(self, client, admin_user, sample_system_events):
         """Test system logs with multiple filters applied."""
