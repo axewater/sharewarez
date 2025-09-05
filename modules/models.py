@@ -517,7 +517,7 @@ class GlobalSettings(db.Model):
     turbo_download_threads = db.Column(db.Integer, default=8)
     turbo_download_batch_size = db.Column(db.Integer, default=200)
     # Scan Thread Settings  
-    scan_thread_count = db.Column(db.Integer, default=1)
+    scan_thread_count = db.Column(db.Integer, default=4)
 
     def __repr__(self):
         return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'

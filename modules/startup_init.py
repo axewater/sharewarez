@@ -116,9 +116,9 @@ def _initialize_discovery_sections(session):
     existing_sections = session.execute(select(DiscoverySection)).scalars().first()
     if not existing_sections:
         default_sections = [
-            DiscoverySection(name='Latest Additions', filter_type='latest', is_enabled=True, sort_order=1),
-            DiscoverySection(name='Random Selection', filter_type='random', is_enabled=True, sort_order=2),
-            DiscoverySection(name='Most Downloaded', filter_type='popular', is_enabled=True, sort_order=3)
+            DiscoverySection(name='Latest Additions', identifier='latest', is_visible=True, display_order=1),
+            DiscoverySection(name='Random Selection', identifier='random', is_visible=True, display_order=2),
+            DiscoverySection(name='Most Downloaded', identifier='popular', is_visible=True, display_order=3)
         ]
         for section in default_sections:
             session.add(section)
@@ -207,7 +207,7 @@ def _initialize_allowed_file_types(session):
         default_types = ['zip', 'rar', '7z', 'iso', 'nfo', 'nes', 'sfc', 'smc', 'sms', '32x', 'gen', 'gg', 'gba', 'gb', 'gbc', 'ndc', 'prg', 'dat', 'tap', 'z64', 'd64', 'dsk', 'img', 'bin', 'st', 'stx', 'j64', 'jag', 'lnx', 'adf', 'ngc', 'gz', 'm2v', 'ogg', 'fpt', 'fpl', 'vec', 'pce', 'a78', 'rom']
         
         for file_type in default_types:
-            allowed_type = AllowedFileType(extension=file_type)
+            allowed_type = AllowedFileType(value=file_type)
             session.add(allowed_type)
         print("Created default allowed file types")
     else:
