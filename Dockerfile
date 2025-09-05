@@ -6,7 +6,9 @@ COPY . .
 
 RUN pip install -r requirements.txt
 RUN sed -i 's/\r$//' /app/entrypoint.sh
+RUN sed -i 's/\r$//' /app/startweb-docker.sh
 RUN chmod a+x /app/entrypoint.sh
+RUN chmod a+x /app/startweb-docker.sh
 
 EXPOSE 5006
 ENTRYPOINT ["sh","/app/entrypoint.sh"]

@@ -16,5 +16,5 @@ wait_for_postgres() {
 # Wait for PostgreSQL to come online
 wait_for_postgres
 
-echo "Running the Sharewarez Docker container with uvicorn\n"
-uvicorn asgi:asgi_app --host 0.0.0.0 --port 5006 --workers 4
+echo "Running the Sharewarez Docker container with startweb-docker.sh\n"
+/app/startweb-docker.sh
