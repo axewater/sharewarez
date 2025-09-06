@@ -507,7 +507,11 @@ class TestGlobalSettingsModel:
         global_settings = GlobalSettings(
             settings=settings_data,
             discord_webhook_url='https://discord.com/webhook',
-            smtp_enabled=True
+            smtp_enabled=True,
+            # Set the setup-related fields to avoid database column errors
+            setup_in_progress=False,
+            setup_current_step=1,
+            setup_completed=False
         )
         
         db_session.add(global_settings)
@@ -518,6 +522,9 @@ class TestGlobalSettingsModel:
         assert global_settings.discord_webhook_url == 'https://discord.com/webhook'
         assert global_settings.smtp_enabled is True
         assert global_settings.last_updated is not None
+        assert global_settings.setup_in_progress is False
+        assert global_settings.setup_current_step == 1
+        assert global_settings.setup_completed is False
 
 
 class TestScanJobModel:

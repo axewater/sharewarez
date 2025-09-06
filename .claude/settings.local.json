@@ -31,7 +31,8 @@
       "Bash(python:*)",
       "Bash(find:*)",
       "WebSearch",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Read(//tmp/**)"
     ],
     "deny": []
   },
