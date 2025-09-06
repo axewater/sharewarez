@@ -98,7 +98,7 @@ CREATE DATABASE sharewarez;
 
 ##### 🪟 Windows
 - 📥 Download [PostgreSQL for Windows](https://www.postgresql.org/download/windows/)
-- 🔧 Run installer & launch Stack Builder
+- 🔧 Run installer & launch PGADMIN
 - ➕ Select "Add a new server"
 - 📊 Use pgAdmin or CLI:
   ```sql
@@ -153,5 +153,6 @@ docker pull kapitanczarnobrod/sharewarez:latest
 ## 📝 3rd party code
 - 💭 Thanks to BinBashBanana's webretro we can now run ROMs in the browser.
 - 🌐 Check out his project here: https://github.com/BinBashBanana/webretro
+
 
 
