@@ -49,9 +49,19 @@
     margin-left: 0 !important;
     width: 100% !important;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    padding: 20px;
+}
+
+.setup-mode-content .container-flash-messages {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto 20px auto;
+    position: relative;
+    z-index: 10;
 }
 
 .setup-mode-content .container-login {
