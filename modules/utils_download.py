@@ -33,21 +33,22 @@ def zip_game(download_request_id, app, zip_file_path):
             update_download_request(download_request, 'failed', f"Error: {error_message}")
             return
         
-        zip_save_path = app.config['ZIP_SAVE_PATH']
-        safe_name = sanitize_filename(os.path.basename(zip_file_path))
-        zip_file_path = os.path.join(os.path.dirname(zip_file_path), safe_name)
-
         # Check if source path exists
         if not os.path.exists(source_path):
             print(f"Source path does not exist: {source_path}")
             update_download_request(download_request, 'failed', "Error: File Not Found")
             return
 
-        # Check if source path is a file or directory
+        # FIRST: Check if zip_file_path is pointing to an existing single file (before any path manipulation)
         if os.path.isfile(zip_file_path):
-            print(f"Source is a file, providing direct link: {zip_file_path}")
+            print(f"Source is a single file, providing direct link: {zip_file_path}")
             update_download_request(download_request, 'available', zip_file_path)
             return
+        
+        # Only proceed with ZIP creation logic if it's not a single file
+        zip_save_path = app.config['ZIP_SAVE_PATH']
+        safe_name = sanitize_filename(os.path.basename(zip_file_path))
+        zip_file_path = os.path.join(os.path.dirname(zip_file_path), safe_name)
         
         # Validate destination ZIP path is within the expected ZIP save directory (only when creating ZIP)
         abs_zip_path = os.path.abspath(os.path.realpath(zip_file_path))
