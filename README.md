@@ -114,10 +114,20 @@ CREATE DATABASE sharewarez;
 3. Edit the .env and setup your database connection string and paths (leave the defaults unless you have a different setup)
 
 ### 🚀 Running the Application
+### Linux
 
 ```bash
+python3 app.py (only need to run this 1 time)
 ./startweb.sh
 ```
+### Windows 
+
+```powershell
+python3 app.py (only need to run this 1 time)
+./startweb_windows.cmd
+```
+
+- You will get errors when running app.py, ignore them, it initializes the db
 - Runs with uvicorn and 4 workers for optimal performance
 - Automatically handles database migrations and initialization
 - Starts on port 5006 by default
@@ -154,6 +164,7 @@ docker pull kapitanczarnobrod/sharewarez:latest
 ## 📝 3rd party code
 - 💭 Thanks to BinBashBanana's webretro we can now run ROMs in the browser.
 - 🌐 Check out his project here: https://github.com/BinBashBanana/webretro
+
 
 
 
