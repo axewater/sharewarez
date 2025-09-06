@@ -740,13 +740,18 @@ def start_background_image_downloader(interval_seconds=60):
     app = current_app._get_current_object()
     
     def background_worker():
-        while True:
+        from modules.utils_shutdown import should_continue_processing, sleep_interruptible
+        while should_continue_processing():
             try:
                 download_pending_images(batch_size=20, delay_between_downloads=0.5, app=app)
-                time.sleep(interval_seconds)
+                # Use interruptible sleep to allow quick shutdown
+                if not sleep_interruptible(interval_seconds):
+                    break  # Shutdown requested during sleep
             except Exception as e:
                 print(f"Background image downloader error: {e}")
-                time.sleep(interval_seconds)
+                if not sleep_interruptible(interval_seconds):
+                    break  # Shutdown requested during error sleep
+        print("🛑 Background image downloader stopped due to shutdown request")
     
     thread = threading.Thread(target=background_worker, daemon=True)
     thread.start()
@@ -900,16 +905,21 @@ def start_turbo_background_downloader(interval_seconds=30, max_workers=4, batch_
     app = current_app._get_current_object()
     
     def turbo_background_worker():
+        from modules.utils_shutdown import should_continue_processing, sleep_interruptible
         print(f"🔥 TURBO BACKGROUND DOWNLOADER STARTED - {max_workers} workers, {batch_size} batch, {interval_seconds}s interval")
-        while True:
+        while should_continue_processing():
             try:
                 result = turbo_download_images(batch_size=batch_size, max_workers=max_workers, app=app)
                 if result['downloaded'] > 0:
                     print(f"🚀 Background turbo download: {result['message']}")
-                time.sleep(interval_seconds)
+                # Use interruptible sleep to allow quick shutdown
+                if not sleep_interruptible(interval_seconds):
+                    break  # Shutdown requested during sleep
             except Exception as e:
                 print(f"Turbo background downloader error: {e}")
-                time.sleep(interval_seconds)
+                if not sleep_interruptible(interval_seconds):
+                    break  # Shutdown requested during error sleep
+        print("🛑 Turbo background downloader stopped due to shutdown request")
     
     thread = threading.Thread(target=turbo_background_worker, daemon=True)
     thread.start()

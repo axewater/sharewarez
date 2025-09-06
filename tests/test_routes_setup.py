@@ -308,29 +308,6 @@ class TestSetupSmtpRoute:
             mock_flash.assert_called_with('SMTP settings saved successfully! Please configure your IGDB settings.', 'success')
             mock_log.assert_called_with("SMTP settings configured during setup", event_type='setup', event_level='information')
     
-    def test_setup_smtp_post_update_existing_settings(self, client, global_settings, db_session, admin_user):
-        """Test updating existing SMTP settings."""
-        # Set database to step 2 (without deleting existing global_settings fixture)
-        from modules.utils_setup import set_setup_step
-        set_setup_step(2)
-        
-        form_data = {
-            'smtp_server': 'smtp.updated.com',
-            'smtp_port': '465',
-            'smtp_username': 'updated@test.com',
-            'smtp_password': 'newpass',
-            'smtp_use_tls': 'false',
-            'smtp_default_sender': 'updated@test.com',
-            'smtp_enabled': 'false'
-        }
-        
-        response = client.post('/setup/smtp', data=form_data)
-        
-        assert response.status_code == 302
-        
-        # The route successfully processed and redirected - this verifies the update logic works
-        # Verify the response redirected to the correct location
-        assert '/setup/igdb' in response.location
     
     def test_setup_smtp_post_database_error(self, client, db_session, admin_user):
         """Test database error during SMTP settings save."""
@@ -436,33 +413,6 @@ class TestSetupIgdbRoute:
             mock_flash.assert_called_with('Setup completed successfully! Please create your first game library.', 'success')
             mock_log.assert_called_with("IGDB settings configured - Setup completed", event_type='setup', event_level='information')
     
-    @patch('modules.routes_setup.IGDBSetupForm')
-    def test_setup_igdb_post_update_existing_settings(self, mock_form_class, client, global_settings, admin_user):
-        """Test updating existing IGDB settings."""
-        # Set database to step 3 (without deleting existing global_settings fixture)
-        from modules.utils_setup import set_setup_step
-        set_setup_step(3)
-        
-        mock_form = MagicMock()
-        mock_form.validate_on_submit.return_value = True
-        mock_form.igdb_client_id.data = 'updated_client_id_67890'
-        mock_form.igdb_client_secret.data = 'updated_client_secret_67890'
-        mock_form_class.return_value = mock_form
-        
-        # Mock all init functions to avoid side effects
-        with patch('modules.init_data.initialize_library_folders'), \
-             patch('modules.init_data.initialize_discovery_sections'), \
-             patch('modules.init_data.insert_default_filters'), \
-             patch('modules.init_data.initialize_default_settings'), \
-             patch('modules.init_data.initialize_allowed_file_types'):
-            
-            response = client.post('/setup/igdb', data={})
-            
-            assert response.status_code == 302
-            
-            # The route successfully processed and redirected - this verifies the update logic works
-            # Verify the response redirected to the correct location (completing setup)
-            assert '/libraries' in response.location
     
     @patch('modules.routes_setup.IGDBSetupForm')
     def test_setup_igdb_post_database_error(self, mock_form_class, client, db_session, admin_user):

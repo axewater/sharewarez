@@ -310,7 +310,7 @@ def restart_scan_job(job_id):
             force_updates_extras_scan=getattr(job, 'setting_force_updates_extras', False)
         )
 
-    thread = Thread(target=start_scan)
+    thread = Thread(target=start_scan, daemon=True)
     thread.start()
     return redirect(url_for('main.scan_management'))
 
@@ -553,7 +553,7 @@ def refresh_game_images(game_uuid):
     def refresh_images_in_thread():
         refresh_images_in_background(game_uuid)
 
-    thread = Thread(target=refresh_images_in_thread)
+    thread = Thread(target=refresh_images_in_thread, daemon=True)
     thread.start()
     print(f"Refresh images thread started for game UUID: {game_uuid} and Name: {game_name}.")
 
@@ -841,7 +841,7 @@ def delete_library_background(library_uuid, job_id):
             }
     
     # Start the background task
-    thread = Thread(target=delete_task)
+    thread = Thread(target=delete_task, daemon=True)
     thread.start()
 
 @bp.route('/delete_full_library/<library_uuid>', methods=['POST'])

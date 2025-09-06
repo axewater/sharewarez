@@ -250,7 +250,7 @@ def game_edit(game_uuid):
                 @copy_current_request_context
                 def refresh_images_in_thread():
                     refresh_images_in_background(game_uuid)
-                thread = Thread(target=refresh_images_in_thread)
+                thread = Thread(target=refresh_images_in_thread, daemon=True)
                 thread.start()
                 current_app.logger.info(f"Refresh images thread started for game UUID: {game_uuid}")
             else:
