@@ -456,17 +456,24 @@ class LazyASGIApp:
         if message["type"] == "lifespan.startup":
             # Application is starting up
             try:
-                # Could add startup initialization here if needed
+                # Register graceful shutdown handlers
+                from modules.utils_shutdown import register_shutdown_handlers
+                register_shutdown_handlers()
                 await send({"type": "lifespan.startup.complete"})
-            except Exception:
+            except Exception as e:
+                print(f"Startup failed: {e}")
                 await send({"type": "lifespan.startup.failed", "message": "Startup failed"})
         
         elif message["type"] == "lifespan.shutdown":
             # Application is shutting down
             try:
-                # Could add cleanup code here if needed
+                # Request graceful shutdown
+                from modules.utils_shutdown import request_shutdown
+                request_shutdown()
+                print("🛑 ASGI lifespan shutdown initiated")
                 await send({"type": "lifespan.shutdown.complete"})
-            except Exception:
+            except Exception as e:
+                print(f"Shutdown failed: {e}")
                 await send({"type": "lifespan.shutdown.failed", "message": "Shutdown failed"})
 
 # Create lazy ASGI app (won't call create_app() until first HTTP request)

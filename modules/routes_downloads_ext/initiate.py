@@ -93,7 +93,7 @@ def download_game(game_uuid):
             log_system_event(f"Starting zip process for download request {new_request.id}", event_type='game', event_level='information')
             zip_game(new_request.id, current_app._get_current_object(), zip_file_path)
 
-        thread = Thread(target=thread_function)
+        thread = Thread(target=thread_function, daemon=True)
         thread.start()
 
         return redirect(url_for('download.downloads'))
@@ -199,7 +199,7 @@ def download_other(file_type, game_uuid, file_id):
                 log_system_event(f"Starting zip process for {file_type} download request {new_request.id}", event_type='game', event_level='information')
                 zip_folder(new_request.id, current_app._get_current_object(), file_record.file_path, base_name)
 
-            thread = Thread(target=thread_function)
+            thread = Thread(target=thread_function, daemon=True)
             thread.start()
 
         return redirect(url_for('download.downloads'))

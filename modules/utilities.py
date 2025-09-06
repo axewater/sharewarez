@@ -229,6 +229,18 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
             
             # Process completed futures
             for future in as_completed(future_to_game):
+                # Check for shutdown request
+                from modules.utils_shutdown import should_continue_processing
+                if not should_continue_processing():
+                    print("🛑 Shutdown requested during scan, cancelling remaining tasks...")
+                    # Cancel remaining tasks
+                    for f in future_to_game:
+                        f.cancel()
+                    scan_job_entry.status = 'Cancelled'
+                    scan_job_entry.error_message = 'Scan cancelled due to application shutdown'
+                    db.session.commit()
+                    return
+                
                 # Check if the job is still enabled
                 db.session.refresh(scan_job_entry)
                 if not scan_job_entry.is_enabled:
@@ -481,7 +493,7 @@ def handle_auto_scan(auto_form):
         def start_scan():
             scan_and_add_games(full_path, scan_mode, library_uuid, remove_missing, download_missing_images=download_missing_images, force_updates_extras_scan=force_updates_extras_scan)
 
-        thread = Thread(target=start_scan)
+        thread = Thread(target=start_scan, daemon=True)
         thread.start()
         
         flash(f"Auto-scan started for folder: {full_path} and library name: {library.name}", 'info')

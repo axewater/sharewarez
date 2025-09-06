@@ -166,7 +166,7 @@ def add_game_manual():
                 refresh_images_in_background(new_game.uuid)
 
             # Start the background process for refreshing images
-            thread = Thread(target=refresh_images_in_thread)
+            thread = Thread(target=refresh_images_in_thread, daemon=True)
             thread.start()
             log_system_event(
                 f"Image refresh background task started for game '{game_name}' (UUID: {new_game.uuid})",
