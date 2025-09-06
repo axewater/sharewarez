@@ -1,9 +1,15 @@
 """
 ASGI config for SharewareZ production deployment.
-This file wraps the Flask app to be compatible with ASGI servers like uvicorn.
+This file wraps the Flask app to be compatible with ASGI servers like uvicorn
+and provides async file streaming for downloads.
 """
 
 import sys
+import os
+import re
+import json
+import uuid
+from urllib.parse import unquote
 from asgiref.wsgi import WsgiToAsgi
 from dotenv import load_dotenv
 
@@ -11,7 +17,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from modules import create_app, db
-from modules.models import User
+from modules.models import User, DownloadRequest, Game
+from modules.async_streaming import create_async_streaming_response
+from modules.utils_security import is_safe_path, get_allowed_base_directories
+from modules.utils_logging import log_system_event
 from sqlalchemy import select
 
 def setup_database(app, force_setup=False):
@@ -33,25 +42,310 @@ def setup_database(app, force_setup=False):
 class LazyASGIApp:
     def __init__(self):
         self._app = None
+        self._flask_app = None
     
     async def __call__(self, scope, receive, send):
         if scope["type"] == "lifespan":
             # Handle ASGI lifespan protocol
             await self._handle_lifespan(receive, send)
-        else:
-            # Handle HTTP requests
+        elif scope["type"] == "http":
+            # Handle HTTP requests - check for download routes first
+            path = scope["path"]
+            
+            # Check if this is a download route
+            if (path.startswith('/download_zip/') or 
+                path.startswith('/api/downloadrom/')):
+                await self._handle_download(scope, receive, send)
+                return
+            
+            # For all other routes, use Flask
             if self._app is None:
                 # Create Flask app only on first HTTP request, not during module import
-                app = create_app()
+                self._flask_app = create_app()
                 
                 # Handle database setup - check if force-setup was passed to original script
                 force_setup = '--force-setup' in sys.argv or '-fs' in sys.argv
-                setup_database(app, force_setup)
+                setup_database(self._flask_app, force_setup)
                 
                 # Wrap with ASGI adapter
-                self._app = WsgiToAsgi(app)
+                self._app = WsgiToAsgi(self._flask_app)
             
             await self._app(scope, receive, send)
+    
+    async def _handle_download(self, scope, receive, send):
+        """Handle download routes with async file streaming"""
+        path = scope["path"]
+        method = scope["method"]
+        
+        # Only handle GET requests
+        if method != "GET":
+            await self._send_error(send, 405, "Method Not Allowed")
+            return
+        
+        try:
+            # Initialize Flask app if needed for database access
+            if self._flask_app is None:
+                self._flask_app = create_app()
+                force_setup = '--force-setup' in sys.argv or '-fs' in sys.argv
+                setup_database(self._flask_app, force_setup)
+            
+            # Handle different download types
+            if path.startswith('/download_zip/'):
+                await self._handle_zip_download(scope, receive, send, path)
+            elif path.startswith('/api/downloadrom/'):
+                await self._handle_rom_download(scope, receive, send, path)
+                
+        except Exception as e:
+            log_system_event(f"Error in async download handler: {str(e)}", 
+                           event_type='download', event_level='error')
+            await self._send_error(send, 500, "Internal Server Error")
+    
+    async def _handle_zip_download(self, scope, receive, send, path):
+        """Handle ZIP file downloads"""
+        # Extract download_id from path
+        download_id_match = re.match(r'/download_zip/(\d+)', path)
+        if not download_id_match:
+            await self._send_error(send, 400, "Invalid download ID")
+            return
+        
+        download_id = int(download_id_match.group(1))
+        
+        # Get user from session
+        user_id = await self._get_user_from_session(scope)
+        if not user_id:
+            await self._send_error(send, 401, "Unauthorized")
+            return
+        
+        with self._flask_app.app_context():
+            # Get download request
+            download_request = db.session.execute(
+                select(DownloadRequest).filter_by(id=download_id, user_id=user_id)
+            ).scalars().first()
+            
+            if not download_request:
+                await self._send_error(send, 404, "Download not found")
+                return
+            
+            if download_request.status != 'available':
+                await self._send_error(send, 400, "Download not ready")
+                return
+            
+            file_path = download_request.zip_file_path
+            
+            # Security validation - different logic for ZIP files vs direct files
+            zip_save_path = self._flask_app.config.get('ZIP_SAVE_PATH')
+            if not zip_save_path:
+                await self._send_error(send, 500, "Server configuration error")
+                return
+            
+            # Check if this is a ZIP file (created by the system) or a direct game file
+            if file_path.endswith('.zip') and file_path.startswith(zip_save_path):
+                # This is a ZIP file - validate it's in ZIP_SAVE_PATH
+                is_safe, error_message = is_safe_path(file_path, [zip_save_path])
+                if not is_safe:
+                    log_system_event(f"Security violation - ZIP file outside ZIP directory: {file_path[:100]}", 
+                                   event_type='security', event_level='warning')
+                    await self._send_error(send, 403, "Access denied")
+                    return
+            else:
+                # This is a direct game file - validate it's in allowed game directories
+                allowed_bases = get_allowed_base_directories(self._flask_app)
+                if not allowed_bases:
+                    await self._send_error(send, 500, "Server configuration error")
+                    return
+                    
+                is_safe, error_message = is_safe_path(file_path, allowed_bases)
+                if not is_safe:
+                    log_system_event(f"Security violation - game file outside allowed directories: {file_path[:100]}", 
+                                   event_type='security', event_level='warning')
+                    await self._send_error(send, 403, "Access denied")
+                    return
+            
+            if not os.path.exists(file_path):
+                await self._send_error(send, 404, "File not found")
+                return
+            
+            # Stream the file
+            filename = os.path.basename(file_path)
+            log_system_event(f"Async file download: {filename}", event_type='download', event_level='information')
+            await self._stream_file(send, file_path, filename)
+    
+    async def _handle_rom_download(self, scope, receive, send, path):
+        """Handle ROM file downloads for emulator"""
+        # Extract game UUID from path
+        rom_match = re.match(r'/api/downloadrom/([a-f0-9-]+)', path)
+        if not rom_match:
+            await self._send_error(send, 400, "Invalid game UUID")
+            return
+        
+        game_uuid = rom_match.group(1)
+        
+        # Validate UUID format
+        try:
+            uuid.UUID(game_uuid)
+        except ValueError:
+            log_system_event(f"Invalid UUID format attempted for ROM download: {game_uuid}", 
+                           event_type='security', event_level='warning')
+            await self._send_error(send, 400, "Invalid game identifier")
+            return
+        
+        # Get user from session
+        user_id = await self._get_user_from_session(scope)
+        if not user_id:
+            await self._send_error(send, 401, "Unauthorized")
+            return
+        
+        with self._flask_app.app_context():
+            # Get game
+            game = db.session.execute(select(Game).filter_by(uuid=game_uuid)).scalars().first()
+            
+            if not game:
+                log_system_event(f"ROM download attempt for non-existent game UUID: {game_uuid}", 
+                               event_type='security', event_level='warning')
+                await self._send_error(send, 404, "Game not found")
+                return
+            
+            # Check if file exists
+            if not os.path.exists(game.full_disk_path):
+                log_system_event(f"ROM download attempt for missing file: {game.name} at {game.full_disk_path}", 
+                               event_type='security', event_level='warning')
+                await self._send_error(send, 404, "ROM file not found on disk")
+                return
+            
+            # Validate path is within allowed directories
+            allowed_bases = get_allowed_base_directories(self._flask_app)
+            is_safe, error_message = is_safe_path(game.full_disk_path, allowed_bases)
+            
+            if not is_safe:
+                log_system_event(f"Path traversal attempt blocked for ROM download: {game.full_disk_path} - {error_message}", 
+                               event_type='security', event_level='warning')
+                await self._send_error(send, 403, "Access denied")
+                return
+            
+            # Check if it's a folder (not supported by WebRetro)
+            if os.path.isdir(game.full_disk_path):
+                await self._send_error(send, 400, "This game is a folder and cannot be played directly")
+                return
+            
+            # Stream the file
+            filename = os.path.basename(game.full_disk_path)
+            log_system_event(f"ROM file downloaded for WebRetro: {game.name}", 
+                           event_type='download', event_level='information')
+            await self._stream_file(send, game.full_disk_path, filename)
+    
+    async def _get_user_from_session(self, scope):
+        """Extract user ID from Flask session cookie"""
+        headers = dict(scope.get("headers", []))
+        cookie_header = headers.get(b"cookie", b"").decode("utf-8")
+        
+        if not cookie_header:
+            return None
+        
+        # Parse cookies to find session cookie
+        cookies = {}
+        for cookie in cookie_header.split(';'):
+            if '=' in cookie:
+                name, value = cookie.strip().split('=', 1)
+                cookies[name] = value
+        
+        session_cookie = cookies.get('session')
+        if not session_cookie:
+            return None
+        
+        try:
+            # Decode Flask session using Flask's session interface
+            with self._flask_app.app_context():
+                from flask.sessions import SecureCookieSessionInterface
+                from urllib.parse import unquote
+                
+                # Create a session interface to decode the cookie
+                session_interface = SecureCookieSessionInterface()
+                
+                # Create a fake request context to use Flask's session decoding
+                from flask import Request
+                from werkzeug.datastructures import EnvironHeaders
+                
+                # Create minimal WSGI environ for the request
+                environ = {
+                    'REQUEST_METHOD': 'GET',
+                    'PATH_INFO': '/',
+                    'SERVER_NAME': 'localhost',
+                    'SERVER_PORT': '5000',
+                    'HTTP_COOKIE': cookie_header,
+                    'wsgi.url_scheme': 'http'
+                }
+                
+                # Create request object
+                request = Request(environ)
+                
+                # Decode session using Flask's interface
+                session_data = session_interface.open_session(self._flask_app, request)
+                
+                if session_data:
+                    # Extract user_id from session data (Flask-Login stores it as '_user_id')
+                    user_id = session_data.get('_user_id')
+                    
+                    if user_id:
+                        return int(user_id)
+                    
+                return None
+                
+        except Exception as e:
+            log_system_event(f"Error parsing Flask session cookie: {str(e)}", 
+                           event_type='security', event_level='warning')
+            return None
+    
+    async def _stream_file(self, send, file_path, filename):
+        """Stream a file asynchronously"""
+        try:
+            async_generator, headers = await create_async_streaming_response(file_path, filename)
+            
+            # Send HTTP response start
+            await send({
+                "type": "http.response.start",
+                "status": 200,
+                "headers": [(k.encode(), v.encode()) for k, v in headers.items()]
+            })
+            
+            # Stream file chunks
+            async for chunk in async_generator:
+                await send({
+                    "type": "http.response.body",
+                    "body": chunk,
+                    "more_body": True
+                })
+            
+            # End response
+            await send({
+                "type": "http.response.body",
+                "body": b"",
+                "more_body": False
+            })
+            
+        except Exception as e:
+            log_system_event(f"Error streaming file {filename}: {str(e)}", 
+                           event_type='download', event_level='error')
+            # If we haven't started the response yet, send an error
+            await self._send_error(send, 500, "Error streaming file")
+    
+    async def _send_error(self, send, status_code, message):
+        """Send an HTTP error response"""
+        response_body = json.dumps({"error": message}).encode()
+        
+        await send({
+            "type": "http.response.start",
+            "status": status_code,
+            "headers": [
+                (b"content-type", b"application/json"),
+                (b"content-length", str(len(response_body)).encode())
+            ]
+        })
+        
+        await send({
+            "type": "http.response.body",
+            "body": response_body,
+            "more_body": False
+        })
     
     async def _handle_lifespan(self, receive, send):
         """Handle ASGI lifespan events (startup/shutdown)"""

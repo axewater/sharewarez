@@ -1,3 +1,39 @@
+// Browser notification support
+let notificationPermission = 'default';
+
+// Check and request notification permission
+async function requestNotificationPermission() {
+    if ('Notification' in window) {
+        notificationPermission = await Notification.requestPermission();
+        return notificationPermission === 'granted';
+    }
+    return false;
+}
+
+// Show browser notification
+function showBrowserNotification(title, body) {
+    if ('Notification' in window && notificationPermission === 'granted') {
+        const notification = new Notification(title, {
+            body: body,
+            icon: '/static/favicon.ico', // Use site favicon as notification icon
+            badge: '/static/favicon.ico',
+            requireInteraction: false,
+            tag: 'sharewarez-download' // This replaces previous notifications
+        });
+
+        // Focus window when notification is clicked
+        notification.onclick = function() {
+            window.focus();
+            notification.close();
+        };
+
+        // Auto-close notification after 10 seconds
+        setTimeout(() => {
+            notification.close();
+        }, 10000);
+    }
+}
+
 // Track processing downloads in session storage
 function initializeProcessingDownloads() {
     if (!sessionStorage.getItem('processingDownloads')) {
@@ -71,10 +107,26 @@ function checkProcessingDownloads() {
                 }
                 
                 if (data.status === 'available') {
-                    showFlashMessage(`Download file "${info.file}" for ${info.name} has completed processing`, 'success');
+                    const successMessage = `Download file "${info.file}" for ${info.name} has completed processing`;
+                    showFlashMessage(successMessage, 'success');
+                    
+                    // Show browser notification for successful download
+                    showBrowserNotification(
+                        'Download Complete! 🎮',
+                        `${info.name} is ready to download`
+                    );
+                    
                     removeProcessingDownload(download_id);
                 } else if (data.status === 'failed') {
-                    showFlashMessage(`Download failed for "${info.file}"`, 'error');
+                    const errorMessage = `Download failed for "${info.file}"`;
+                    showFlashMessage(errorMessage, 'error');
+                    
+                    // Show browser notification for failed download
+                    showBrowserNotification(
+                        'Download Failed ❌',
+                        `Failed to prepare ${info.name} for download`
+                    );
+                    
                     removeProcessingDownload(download_id);
                 }
             })
@@ -86,8 +138,29 @@ function checkProcessingDownloads() {
 }
 
 // Initialize when the page loads
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initializeProcessingDownloads();
+    
+    // Initialize notification permission
+    if ('Notification' in window) {
+        notificationPermission = Notification.permission;
+        
+        // If permission is default (not yet asked), request permission
+        // Only request on pages where downloads are relevant
+        if (notificationPermission === 'default' && 
+            (window.location.pathname === '/downloads' || 
+             window.location.pathname.includes('/download_game/') ||
+             window.location.pathname.includes('/download_other/'))) {
+            
+            // Show a subtle info message before requesting permission
+            showFlashMessage('Enable browser notifications to get alerts when your downloads are ready!', 'info');
+            
+            // Request permission after a short delay to let user read the message
+            setTimeout(async () => {
+                await requestNotificationPermission();
+            }, 2000);
+        }
+    }
     
     // Start periodic checking of processing downloads
     setInterval(checkProcessingDownloads, 5000);
