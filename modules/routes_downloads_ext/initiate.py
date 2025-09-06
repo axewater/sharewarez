@@ -96,7 +96,6 @@ def download_game(game_uuid):
         thread = Thread(target=thread_function)
         thread.start()
 
-        flash("Your download request is being processed. You will be notified when the download is ready.", "info")
         return redirect(url_for('download.downloads'))
         
     except Exception as e:
@@ -203,7 +202,6 @@ def download_other(file_type, game_uuid, file_id):
             thread = Thread(target=thread_function)
             thread.start()
 
-        flash("Your download request is being processed. You will be notified when it's ready.", "info")
         return redirect(url_for('download.downloads'))
         
     except SQLAlchemyError as e:

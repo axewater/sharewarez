@@ -42,11 +42,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const gameName = download.querySelector("td").textContent;
         const fileName = download.querySelector(".file-name-cell").textContent;	
         
-        // Add to processing downloads if status is 'processing'
-        const statusCell = download.querySelector(".status-cell .status-value");
-        if (statusCell && statusCell.textContent.trim().toLowerCase() === 'processing') {
-            addProcessingDownload(download_id, gameName, fileName);
-        }
+        // Status handling removed - no longer tracking processing downloads
         
         checkDownloadStatus(download_id);
         setInterval(() => checkDownloadStatus(download_id), 5000);
