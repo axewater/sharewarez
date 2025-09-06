@@ -106,6 +106,16 @@ class DatabaseManager:
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS discord_notify_manual_trigger BOOLEAN DEFAULT FALSE;
 
+        -- Add setup state tracking columns to global_settings table
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS setup_in_progress BOOLEAN DEFAULT FALSE;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS setup_current_step INTEGER DEFAULT 1;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS setup_completed BOOLEAN DEFAULT FALSE;
+
         -- Add setting_download_missing_images column to scan_jobs table
         ALTER TABLE scan_jobs
         ADD COLUMN IF NOT EXISTS setting_download_missing_images BOOLEAN DEFAULT FALSE;

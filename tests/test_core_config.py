@@ -225,7 +225,7 @@ class TestAppConfigFromEnvironment:
         'DATABASE_URL': 'sqlite:///env.db',
         'IGDB_CLIENT_ID': 'env_partial_id',
         'DEBUG': 'false'
-    })
+    }, clear=True)
     def test_from_environment_with_partial_env_vars(self):
         """Test creating AppConfig from environment with partial environment variables."""
         config = AppConfig.from_environment()

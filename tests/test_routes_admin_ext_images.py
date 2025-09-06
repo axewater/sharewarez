@@ -233,17 +233,15 @@ class TestImageQueueStatsAPI:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        def mock_execute(*args, **kwargs):
-            raise Exception("Database error")
-        
-        # Use monkeypatch to mock the execute method
-        monkeypatch.setattr('modules.db.session.execute', mock_execute)
-        
-        response = client.get('/admin/api/image_queue_stats')
-        assert response.status_code == 500
-        
-        data = json.loads(response.data)
-        assert 'error' in data
+        # Mock the func.count to throw an exception
+        with patch('modules.routes_admin_ext.images.func.count') as mock_count:
+            mock_count.side_effect = Exception("Database error")
+            
+            response = client.get('/admin/api/image_queue_stats')
+            assert response.status_code == 500
+            
+            data = json.loads(response.data)
+            assert 'error' in data
 
 
 class TestImageQueueListAPI:
@@ -725,7 +723,7 @@ class TestDeleteImageAPI:
         db_session.flush()
         image_id = test_image.id
 
-        with patch('modules.routes_admin_ext.images.db.session.delete') as mock_delete:
+        with patch('modules.db.session.delete') as mock_delete:
             mock_delete.side_effect = Exception("Database error")
             
             response = client.delete(f'/admin/api/delete_image/{image_id}')
@@ -856,16 +854,15 @@ class TestRetryFailedImagesAPI:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        def mock_execute(*args, **kwargs):
-            raise Exception("Database error")
-        
-        monkeypatch.setattr('modules.db.session.execute', mock_execute)
-        
-        response = client.post('/admin/api/retry_failed_images')
-        assert response.status_code == 500
-        
-        data = json.loads(response.data)
-        assert data['success'] is False
+        # Mock the select function to throw an exception
+        with patch('modules.routes_admin_ext.images.select') as mock_select:
+            mock_select.side_effect = Exception("Database error")
+            
+            response = client.post('/admin/api/retry_failed_images')
+            assert response.status_code == 500
+            
+            data = json.loads(response.data)
+            assert data['success'] is False
 
 
 class TestClearDownloadedQueueAPI:
@@ -917,16 +914,15 @@ class TestClearDownloadedQueueAPI:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        def mock_execute(*args, **kwargs):
-            raise Exception("Database error")
-        
-        monkeypatch.setattr('modules.db.session.execute', mock_execute)
-        
-        response = client.post('/admin/api/clear_downloaded_queue')
-        assert response.status_code == 500
-        
-        data = json.loads(response.data)
-        assert data['success'] is False
+        # Mock the func.count to throw an exception
+        with patch('modules.routes_admin_ext.images.func.count') as mock_count:
+            mock_count.side_effect = Exception("Database error")
+            
+            response = client.post('/admin/api/clear_downloaded_queue')
+            assert response.status_code == 500
+            
+            data = json.loads(response.data)
+            assert data['success'] is False
 
 
 class TestBackgroundDownloaderAPI:

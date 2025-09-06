@@ -62,10 +62,10 @@ def discord_settings():
         
         return redirect(url_for('admin2.discord_settings'))
 
-    # Set default values if no settings exist
-    webhook_url = settings.discord_webhook_url if settings else 'insert_webhook_url_here'
-    bot_name = settings.discord_bot_name if settings else 'SharewareZ Bot'
-    bot_avatar_url = settings.discord_bot_avatar_url if settings else 'insert_bot_avatar_url_here'
+    # Set default values if no settings exist or if fields are None
+    webhook_url = (settings.discord_webhook_url if settings and settings.discord_webhook_url else 'insert_webhook_url_here')
+    bot_name = (settings.discord_bot_name if settings and settings.discord_bot_name else 'SharewareZ Bot')
+    bot_avatar_url = (settings.discord_bot_avatar_url if settings and settings.discord_bot_avatar_url else 'insert_bot_avatar_url_here')
 
     return render_template('admin/admin_manage_discord_settings.html',
                          webhook_url=webhook_url,
