@@ -107,10 +107,11 @@ CREATE DATABASE sharewarez;
   ```
 
 ### ⚙️ Configuration
-1. Edit `config.py`
-2. Configure:
-   - 🔗 Database connection string
-   - 📁 Games folder path
+1. Create config.py by copying the example
+   Copy config.py.example config.py
+2. Create .env by copying .env.example
+   copy .env.example .env
+3. Edit the .env and setup your database connection string and paths (leave the defaults unless you have a different setup)
 
 ### 🚀 Running the Application
 
@@ -153,6 +154,7 @@ docker pull kapitanczarnobrod/sharewarez:latest
 ## 📝 3rd party code
 - 💭 Thanks to BinBashBanana's webretro we can now run ROMs in the browser.
 - 🌐 Check out his project here: https://github.com/BinBashBanana/webretro
+
 
 
 
