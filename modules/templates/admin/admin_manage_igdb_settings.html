@@ -55,7 +55,7 @@
             <label for="igdb_client_secret">Client Secret</label>
             <div class="password-input-container">
                 <input type="password" id="igdb_client_secret" value="{{ settings.igdb_client_secret if settings else '' }}" class="form-control"
-                minlength="20" maxlength="50">
+                minlength="20" maxlength="50" autocomplete="off">
                 <button type="button" class="toggle-password" data-input="igdb_client_secret" aria-label="Toggle password visibility">
                     <i id="eye-igdb-secret" class="fas fa-eye"></i>
                 </button>
