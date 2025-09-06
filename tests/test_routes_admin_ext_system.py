@@ -770,10 +770,19 @@ class TestClearSystemLogsAPI:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        # Simulate a database error by mocking the delete operation
-        with patch('modules.routes_admin_ext.system.db.session.execute') as mock_execute:
-            mock_execute.side_effect = Exception("Database connection lost")
-            
+        # Simulate a database error by mocking the delete operation more specifically
+        # We need to mock the execute method to differentiate between count and delete operations
+        original_execute = db_session.execute
+        
+        def mock_execute(statement):
+            # Check if this is a delete statement by examining the statement
+            if hasattr(statement, '__class__') and 'Delete' in statement.__class__.__name__:
+                raise Exception("Database connection lost")
+            else:
+                # Allow other operations (like count queries) to proceed normally
+                return original_execute(statement)
+        
+        with patch('modules.routes_admin_ext.system.db.session.execute', side_effect=mock_execute):
             response = client.delete('/admin/api/system_logs/clear')
             
             assert response.status_code == 500

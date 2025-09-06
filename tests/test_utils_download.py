@@ -155,25 +155,11 @@ class TestZipGame:
         # Refresh the download request from database
         db_session.refresh(sample_download_request)
         
-        # Verify the zip file was created
-        assert os.path.exists(zip_file_path)
-        
-        # Verify download request was updated
+        # Verify download request was updated for zipstream
         assert sample_download_request.status == 'available'
-        assert sample_download_request.zip_file_path == zip_file_path
         assert sample_download_request.completion_time is not None
-        
-        # Verify zip file contents
-        with zipfile.ZipFile(zip_file_path, 'r') as zipf:
-            file_list = zipf.namelist()
-            # Should include main files and subfolder files
-            assert 'game.exe' in file_list
-            assert 'config.cfg' in file_list
-            assert 'readme.txt' in file_list
-            assert 'data/game.dat' in file_list
-            # Should NOT include updates or extras folders
-            assert not any('updates/' in name for name in file_list)
-            assert not any('extras/' in name for name in file_list)
+        # Zipstream mode - zip_file_path contains the source path for streaming
+        assert sample_download_request.zip_file_path == temp_game_directory
     
     def test_zip_game_excludes_folders_case_variations(self, app, db_session, 
                                                      sample_download_request, sample_global_settings):
@@ -200,15 +186,14 @@ class TestZipGame:
             # Call the function
             zip_game(sample_download_request.id, app, zip_file_path)
             
-            # Verify zip file contents
-            with zipfile.ZipFile(zip_file_path, 'r') as zipf:
-                file_list = zipf.namelist()
-                # Should only include the main game file
-                assert 'game.exe' in file_list
-                # Should not include any excluded folders
-                excluded_patterns = ['updates/', 'Updates/', 'UPDATES/', 'extras/', 'Extras/', 'EXTRAS/']
-                for pattern in excluded_patterns:
-                    assert not any(pattern in name for name in file_list), f"Found {pattern} in {file_list}"
+            # Refresh the download request from database
+            db_session.refresh(sample_download_request)
+            
+            # Verify zipstream setup was successful
+            assert sample_download_request.status == 'available'
+            assert sample_download_request.zip_file_path == temp_dir
+            assert sample_download_request.completion_time is not None
+            # Note: Folder exclusion logic is handled in the zipstream code during streaming
         
         finally:
             if os.path.exists(temp_dir):
@@ -262,19 +247,15 @@ class TestZipGame:
             if os.path.exists(temp_file.name):
                 os.unlink(temp_file.name)
     
-    @patch('modules.utils_download.zipfile.ZipFile')
-    def test_zip_game_zip_creation_error(self, mock_zipfile, app, db_session, 
-                                       sample_download_request, sample_global_settings, 
-                                       temp_game_directory):
-        """Test error handling during zip creation."""
-        # Mock ZipFile to raise an exception
-        mock_zipfile.side_effect = Exception('Zip creation failed')
-        
+    def test_zip_game_zipstream_preparation_success(self, app, db_session, 
+                                                   sample_download_request, sample_global_settings, 
+                                                   temp_game_directory):
+        """Test successful zipstream preparation."""
         # Update the game's path
         sample_download_request.game.full_disk_path = temp_game_directory
         db_session.commit()
         
-        zip_file_path = os.path.join(app.config['ZIP_SAVE_PATH'], 'test_error.zip')
+        zip_file_path = os.path.join(app.config['ZIP_SAVE_PATH'], 'test_zipstream.zip')
         
         # Call the function
         zip_game(sample_download_request.id, app, zip_file_path)
@@ -282,34 +263,15 @@ class TestZipGame:
         # Refresh the download request from database
         db_session.refresh(sample_download_request)
         
-        # Verify download request was marked as failed
-        assert sample_download_request.status == 'failed'
-        assert 'Error: Zip creation failed' in sample_download_request.zip_file_path
+        # Verify zipstream was prepared successfully
+        assert sample_download_request.status == 'available'
+        assert sample_download_request.zip_file_path == temp_game_directory
         assert sample_download_request.completion_time is not None
     
-    def test_zip_game_creates_directory(self, app, db_session, sample_download_request, 
-                                      sample_global_settings, temp_game_directory):
-        """Test that ZIP_SAVE_PATH directory is created if it doesn't exist."""
-        # Remove the ZIP_SAVE_PATH directory
-        if os.path.exists(app.config['ZIP_SAVE_PATH']):
-            shutil.rmtree(app.config['ZIP_SAVE_PATH'])
-        
-        # Update the game's path
-        sample_download_request.game.full_disk_path = temp_game_directory
-        db_session.commit()
-        
-        zip_file_path = os.path.join(app.config['ZIP_SAVE_PATH'], 'test_create_dir.zip')
-        
-        # Call the function
-        zip_game(sample_download_request.id, app, zip_file_path)
-        
-        # Verify directory was created and zip file exists
-        assert os.path.exists(app.config['ZIP_SAVE_PATH'])
-        assert os.path.exists(zip_file_path)
     
-    def test_zip_game_filename_sanitization(self, app, db_session, sample_download_request, 
-                                          sample_global_settings, temp_game_directory):
-        """Test that zip file names are properly sanitized."""
+    def test_zip_game_zipstream_with_unsafe_filename(self, app, db_session, sample_download_request, 
+                                                    sample_global_settings, temp_game_directory):
+        """Test zipstream setup with unsafe filename."""
         # Update the game's path
         sample_download_request.game.full_disk_path = temp_game_directory
         db_session.commit()
@@ -324,15 +286,9 @@ class TestZipGame:
         # Refresh the download request from database
         db_session.refresh(sample_download_request)
         
-        # Verify the filename was sanitized
+        # Verify zipstream was set up (filename sanitization happens in streaming)
         assert sample_download_request.status == 'available'
-        # The actual path should be sanitized (no invalid characters)
-        assert '<' not in sample_download_request.zip_file_path
-        assert '>' not in sample_download_request.zip_file_path
-        assert '|' not in sample_download_request.zip_file_path
-        assert ':' not in os.path.basename(sample_download_request.zip_file_path)
-        assert '*' not in sample_download_request.zip_file_path
-        assert '?' not in sample_download_request.zip_file_path
+        assert sample_download_request.zip_file_path == temp_game_directory
 
 
 class TestUpdateDownloadRequest:
@@ -395,7 +351,7 @@ class TestZipFolder:
     """Test cases for the zip_folder function."""
     
     def test_zip_folder_success(self, app, db_session, sample_download_request, temp_game_directory):
-        """Test successful zipping of a folder."""
+        """Test successful zipstream setup for a folder."""
         file_name = 'test_folder_zip'
         
         # Call the function
@@ -404,21 +360,10 @@ class TestZipFolder:
         # Refresh the download request from database
         db_session.refresh(sample_download_request)
         
-        # Verify the zip file was created
-        expected_zip_path = os.path.join(app.config['ZIP_SAVE_PATH'], f'{file_name}.zip')
-        assert os.path.exists(expected_zip_path)
-        
-        # Verify download request was updated
+        # Verify zipstream was set up successfully
         assert sample_download_request.status == 'available'
-        assert sample_download_request.zip_file_path == expected_zip_path
-        assert sample_download_request.download_size > 0  # Should have file size
+        assert sample_download_request.zip_file_path == temp_game_directory
         assert sample_download_request.completion_time is not None
-        
-        # Verify zip file contents
-        with zipfile.ZipFile(expected_zip_path, 'r') as zipf:
-            file_list = zipf.namelist()
-            # Should include all files (no exclusion logic in zip_folder)
-            assert len(file_list) > 0
     
     def test_zip_folder_source_is_file(self, app, db_session, sample_download_request):
         """Test handling when source location is a single file."""
@@ -461,41 +406,6 @@ class TestZipFolder:
         assert 'Error: File Not Found' in sample_download_request.zip_file_path
         assert sample_download_request.completion_time is not None
     
-    def test_zip_folder_creates_directory(self, app, db_session, sample_download_request, temp_game_directory):
-        """Test that ZIP_SAVE_PATH directory is created if it doesn't exist."""
-        # Remove the ZIP_SAVE_PATH directory
-        if os.path.exists(app.config['ZIP_SAVE_PATH']):
-            shutil.rmtree(app.config['ZIP_SAVE_PATH'])
-        
-        file_name = 'test_create_dir_folder'
-        
-        # Call the function
-        zip_folder(sample_download_request.id, app, temp_game_directory, file_name)
-        
-        # Verify directory was created and zip file exists
-        assert os.path.exists(app.config['ZIP_SAVE_PATH'])
-        expected_zip_path = os.path.join(app.config['ZIP_SAVE_PATH'], f'{file_name}.zip')
-        assert os.path.exists(expected_zip_path)
-    
-    @patch('modules.utils_download.zipfile.ZipFile')
-    def test_zip_folder_zip_creation_error(self, mock_zipfile, app, db_session, 
-                                         sample_download_request, temp_game_directory):
-        """Test error handling during zip creation."""
-        # Mock ZipFile to raise an exception
-        mock_zipfile.side_effect = Exception('Folder zip creation failed')
-        
-        file_name = 'test_folder_error'
-        
-        # Call the function
-        zip_folder(sample_download_request.id, app, temp_game_directory, file_name)
-        
-        # Refresh the download request from database
-        db_session.refresh(sample_download_request)
-        
-        # Verify download request was marked as failed
-        assert sample_download_request.status == 'failed'
-        assert 'Error: Folder zip creation failed' in sample_download_request.zip_file_path
-        assert sample_download_request.completion_time is not None
 
 
 class TestGetZipStorageStats:

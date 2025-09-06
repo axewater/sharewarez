@@ -211,7 +211,7 @@ class TestDownloadRomRoute:
     
     @patch('modules.routes_downloads_ext.play.log_system_event')
     def test_downloadrom_invalid_uuid_format(self, mock_log, client, authenticated_user):
-        """Test that invalid UUID format is rejected with proper logging."""
+        """Test downloadrom reaches Flask route (should not happen with ASGI)."""
         with client.session_transaction() as sess:
             sess['_user_id'] = str(authenticated_user.id)
             sess['_fresh'] = True
@@ -219,20 +219,21 @@ class TestDownloadRomRoute:
         invalid_uuid = 'not-a-valid-uuid'
         response = client.get(f'/api/downloadrom/{invalid_uuid}')
         
-        assert response.status_code == 400
+        # Flask route should return 500 since ASGI should handle this
+        assert response.status_code == 500
         response_data = json.loads(response.data)
-        assert response_data['error'] == 'Invalid game identifier'
+        assert response_data['error'] == 'ROM download route should be handled by ASGI'
         
-        # Verify security logging
+        # Verify system logging for unexpected Flask route access
         mock_log.assert_called_once()
         call_args = mock_log.call_args
-        assert 'Invalid UUID format attempted for ROM download' in call_args[0][0]
-        assert call_args[1]['event_type'] == 'security'
+        assert 'Flask ROM download route reached unexpectedly' in call_args[0][0]
+        assert call_args[1]['event_type'] == 'system'
         assert call_args[1]['event_level'] == 'warning'
     
     @patch('modules.routes_downloads_ext.play.log_system_event')
     def test_downloadrom_valid_uuid_nonexistent_game(self, mock_log, client, authenticated_user):
-        """Test downloadrom with valid UUID but non-existent game."""
+        """Test downloadrom reaches Flask route (should not happen with ASGI)."""
         with client.session_transaction() as sess:
             sess['_user_id'] = str(authenticated_user.id)
             sess['_fresh'] = True
@@ -240,122 +241,107 @@ class TestDownloadRomRoute:
         nonexistent_uuid = str(uuid4())
         response = client.get(f'/api/downloadrom/{nonexistent_uuid}')
         
-        assert response.status_code == 404
+        # Flask route should return 500 since ASGI should handle this
+        assert response.status_code == 500
         response_data = json.loads(response.data)
-        assert response_data['error'] == 'Game not found'
+        assert response_data['error'] == 'ROM download route should be handled by ASGI'
         
-        # Verify security logging
+        # Verify system logging for unexpected Flask route access
         mock_log.assert_called_once()
         call_args = mock_log.call_args
-        assert 'ROM download attempt for non-existent game UUID' in call_args[0][0]
-        assert call_args[1]['event_type'] == 'security'
+        assert 'Flask ROM download route reached unexpectedly' in call_args[0][0]
+        assert call_args[1]['event_type'] == 'system'
         assert call_args[1]['event_level'] == 'warning'
     
     @patch('modules.routes_downloads_ext.play.log_system_event')
     def test_downloadrom_game_file_not_exists(self, mock_log, client, authenticated_user, test_game_with_nonexistent_file):
-        """Test downloadrom when game file doesn't exist on disk."""
+        """Test downloadrom reaches Flask route (should not happen with ASGI)."""
         with client.session_transaction() as sess:
             sess['_user_id'] = str(authenticated_user.id)
             sess['_fresh'] = True
         
         response = client.get(f'/api/downloadrom/{test_game_with_nonexistent_file.uuid}')
         
-        assert response.status_code == 404
+        # Flask route should return 500 since ASGI should handle this
+        assert response.status_code == 500
         response_data = json.loads(response.data)
-        assert response_data['error'] == 'ROM file not found on disk'
+        assert response_data['error'] == 'ROM download route should be handled by ASGI'
         
-        # Verify security logging
+        # Verify system logging for unexpected Flask route access
         mock_log.assert_called_once()
         call_args = mock_log.call_args
-        assert 'ROM download attempt for missing file' in call_args[0][0]
-        assert call_args[1]['event_type'] == 'security'
+        assert 'Flask ROM download route reached unexpectedly' in call_args[0][0]
+        assert call_args[1]['event_type'] == 'system'
         assert call_args[1]['event_level'] == 'warning'
     
     @patch('modules.routes_downloads_ext.play.log_system_event')
-    @patch('modules.routes_downloads_ext.play.get_allowed_base_directories')
-    @patch('modules.routes_downloads_ext.play.is_safe_path')
-    def test_downloadrom_path_traversal_attempt(self, mock_is_safe_path, mock_get_allowed, mock_log, 
-                                              client, authenticated_user, test_game_with_unsafe_path):
-        """Test that path traversal attempts are blocked."""
+    def test_downloadrom_path_traversal_attempt(self, mock_log, client, authenticated_user, test_game_with_unsafe_path):
+        """Test downloadrom reaches Flask route (should not happen with ASGI)."""
         with client.session_transaction() as sess:
             sess['_user_id'] = str(authenticated_user.id)
             sess['_fresh'] = True
         
-        # Mock the security functions to simulate path traversal detection
-        mock_get_allowed.return_value = ['/allowed/games']
-        mock_is_safe_path.return_value = (False, "Access denied - path outside allowed directories")
+        response = client.get(f'/api/downloadrom/{test_game_with_unsafe_path.uuid}')
         
-        # Mock os.path.exists to return True to get past file existence check
-        with patch('modules.routes_downloads_ext.play.os.path.exists', return_value=True):
-            response = client.get(f'/api/downloadrom/{test_game_with_unsafe_path.uuid}')
-        
-        assert response.status_code == 403
+        # Flask route should return 500 since ASGI should handle this
+        assert response.status_code == 500
         response_data = json.loads(response.data)
-        assert response_data['error'] == 'Access denied'
+        assert response_data['error'] == 'ROM download route should be handled by ASGI'
         
-        # Verify path validation was called
-        mock_is_safe_path.assert_called_once()
-        mock_get_allowed.assert_called_once()
-        
-        # Verify security logging
-        mock_log.assert_called()
+        # Verify system logging for unexpected Flask route access
+        mock_log.assert_called_once()
         call_args = mock_log.call_args
-        assert 'Path traversal attempt blocked for ROM download' in call_args[0][0]
-        assert call_args[1]['event_type'] == 'security'
+        assert 'Flask ROM download route reached unexpectedly' in call_args[0][0]
+        assert call_args[1]['event_type'] == 'system'
         assert call_args[1]['event_level'] == 'warning'
     
-    def test_downloadrom_folder_not_supported(self, client, authenticated_user, test_game_with_folder):
-        """Test that folders are rejected for ROM download."""
+    @patch('modules.routes_downloads_ext.play.log_system_event')
+    def test_downloadrom_folder_not_supported(self, mock_log, client, authenticated_user, test_game_with_folder):
+        """Test downloadrom reaches Flask route (should not happen with ASGI)."""
         with client.session_transaction() as sess:
             sess['_user_id'] = str(authenticated_user.id)
             sess['_fresh'] = True
         
-        # Mock path validation to pass security checks
-        with patch('modules.routes_downloads_ext.play.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_downloads_ext.play.get_allowed_base_directories', return_value=['/tmp']):
-                response = client.get(f'/api/downloadrom/{test_game_with_folder.uuid}')
+        response = client.get(f'/api/downloadrom/{test_game_with_folder.uuid}')
         
-        assert response.status_code == 400
+        # Flask route should return 500 since ASGI should handle this
+        assert response.status_code == 500
         response_data = json.loads(response.data)
-        assert 'folder and cannot be played directly' in response_data['error']
+        assert response_data['error'] == 'ROM download route should be handled by ASGI'
+        
+        # Verify system logging for unexpected Flask route access
+        mock_log.assert_called_once()
+        call_args = mock_log.call_args
+        assert 'Flask ROM download route reached unexpectedly' in call_args[0][0]
+        assert call_args[1]['event_type'] == 'system'
+        assert call_args[1]['event_level'] == 'warning'
     
-    @patch('modules.routes_downloads_ext.play.send_file')
     @patch('modules.routes_downloads_ext.play.log_system_event')
-    def test_downloadrom_successful_download(self, mock_log, mock_send_file, client, 
+    def test_downloadrom_successful_download(self, mock_log, client, 
                                            authenticated_user, test_game_with_file, app):
-        """Test successful ROM file download."""
+        """Test downloadrom reaches Flask route (should not happen with ASGI)."""
         with client.session_transaction() as sess:
             sess['_user_id'] = str(authenticated_user.id)
             sess['_fresh'] = True
         
-        # Mock send_file to return a response
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_send_file.return_value = mock_response
+        with app.app_context():
+            response = client.get(f'/api/downloadrom/{test_game_with_file.uuid}')
         
-        # Mock path validation to pass security checks
-        with patch('modules.routes_downloads_ext.play.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_downloads_ext.play.get_allowed_base_directories') as mock_get_allowed:
-                mock_get_allowed.return_value = [os.path.dirname(test_game_with_file.full_disk_path)]
-                
-                with app.app_context():
-                    response = client.get(f'/api/downloadrom/{test_game_with_file.uuid}')
+        # Flask route should return 500 since ASGI should handle this
+        assert response.status_code == 500
+        response_data = json.loads(response.data)
+        assert response_data['error'] == 'ROM download route should be handled by ASGI'
         
-        assert response.status_code == 200
-        
-        # Verify file was served
-        mock_send_file.assert_called_once_with(test_game_with_file.full_disk_path, as_attachment=True)
-        
-        # Verify success logging
-        mock_log.assert_called()
+        # Verify system logging for unexpected Flask route access
+        mock_log.assert_called_once()
         call_args = mock_log.call_args
-        assert 'ROM file downloaded for WebRetro' in call_args[0][0]
-        assert call_args[1]['event_type'] == 'download'
-        assert call_args[1]['event_level'] == 'information'
+        assert 'Flask ROM download route reached unexpectedly' in call_args[0][0]
+        assert call_args[1]['event_type'] == 'system'
+        assert call_args[1]['event_level'] == 'warning'
     
     @patch('modules.routes_downloads_ext.play.log_system_event')
     def test_downloadrom_logs_security_events(self, mock_log, client, authenticated_user):
-        """Test that various security events are properly logged."""
+        """Test that Flask route logs system events when reached unexpectedly."""
         with client.session_transaction() as sess:
             sess['_user_id'] = str(authenticated_user.id)
             sess['_fresh'] = True
@@ -366,17 +352,19 @@ class TestDownloadRomRoute:
         # Test non-existent game logging
         client.get(f'/api/downloadrom/{str(uuid4())}')
         
-        # Verify multiple logging calls were made
+        # Verify multiple logging calls were made (Flask route reached unexpectedly)
         assert mock_log.call_count >= 2
         
-        # Check that security event types were used
+        # Check that system event types were used (Flask route warnings)
         call_args_list = mock_log.call_args_list
         for call_args in call_args_list:
-            assert call_args[1]['event_type'] == 'security'
+            assert call_args[1]['event_type'] == 'system'
             assert call_args[1]['event_level'] == 'warning'
+            assert 'Flask ROM download route reached unexpectedly' in call_args[0][0]
     
-    def test_downloadrom_sql_injection_attempt(self, client, authenticated_user):
-        """Test that potential SQL injection attempts are handled safely."""
+    @patch('modules.routes_downloads_ext.play.log_system_event')
+    def test_downloadrom_sql_injection_attempt(self, mock_log, client, authenticated_user):
+        """Test that Flask route is reached for SQL injection attempts."""
         with client.session_transaction() as sess:
             sess['_user_id'] = str(authenticated_user.id)
             sess['_fresh'] = True
@@ -391,21 +379,25 @@ class TestDownloadRomRoute:
         
         for attempt in injection_attempts:
             response = client.get(f'/api/downloadrom/{attempt}')
-            # Should return 400 due to invalid UUID format, not 500 (server error)
-            assert response.status_code == 400
+            # Flask route should return 500 since ASGI should handle this
+            assert response.status_code == 500
             response_data = json.loads(response.data)
-            assert response_data['error'] == 'Invalid game identifier'
+            assert response_data['error'] == 'ROM download route should be handled by ASGI'
+        
+        # Verify system logging for all injection attempts
+        assert mock_log.call_count == len(injection_attempts)
+        for call_args in mock_log.call_args_list:
+            assert call_args[1]['event_type'] == 'system'
+            assert call_args[1]['event_level'] == 'warning'
+            assert 'Flask ROM download route reached unexpectedly' in call_args[0][0]
     
-    @patch('modules.routes_downloads_ext.play.get_allowed_base_directories')
-    def test_downloadrom_allowed_directories_validation(self, mock_get_allowed, client, 
+    @patch('modules.routes_downloads_ext.play.log_system_event')
+    def test_downloadrom_allowed_directories_validation(self, mock_log, client, 
                                                       authenticated_user, app):
-        """Test that allowed directories are properly validated."""
+        """Test downloadrom reaches Flask route (should not happen with ASGI)."""
         with client.session_transaction() as sess:
             sess['_user_id'] = str(authenticated_user.id)
             sess['_fresh'] = True
-        
-        # Mock allowed directories
-        mock_get_allowed.return_value = ['/allowed/games', '/another/allowed/path']
         
         # Create a temporary game for testing
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -429,13 +421,17 @@ class TestDownloadRomRoute:
                 
                 response = client.get(f'/api/downloadrom/{game.uuid}')
                 
-                # Should fail path validation since temp_dir is not in allowed directories
-                assert response.status_code == 403
+                # Flask route should return 500 since ASGI should handle this
+                assert response.status_code == 500
                 response_data = json.loads(response.data)
-                assert response_data['error'] == 'Access denied'
+                assert response_data['error'] == 'ROM download route should be handled by ASGI'
         
-        # Verify get_allowed_base_directories was called
-        mock_get_allowed.assert_called()
+        # Verify system logging for unexpected Flask route access
+        mock_log.assert_called_once()
+        call_args = mock_log.call_args
+        assert 'Flask ROM download route reached unexpectedly' in call_args[0][0]
+        assert call_args[1]['event_type'] == 'system'
+        assert call_args[1]['event_level'] == 'warning'
 
 
 class TestSecurityIntegration:
@@ -444,33 +440,25 @@ class TestSecurityIntegration:
     @patch('modules.routes_downloads_ext.play.log_system_event')
     def test_comprehensive_security_flow(self, mock_log, client, authenticated_user, 
                                        test_game_with_file, app):
-        """Test the complete security validation flow."""
+        """Test downloadrom reaches Flask route (should not happen with ASGI)."""
         with client.session_transaction() as sess:
             sess['_user_id'] = str(authenticated_user.id)
             sess['_fresh'] = True
         
         with app.app_context():
-            # Configure allowed directories to include our test file's directory
-            test_dir = os.path.dirname(test_game_with_file.full_disk_path)
+            response = client.get(f'/api/downloadrom/{test_game_with_file.uuid}')
             
-            with patch('modules.routes_downloads_ext.play.get_allowed_base_directories') as mock_get_allowed:
-                mock_get_allowed.return_value = [test_dir]
-                
-                with patch('modules.routes_downloads_ext.play.send_file') as mock_send_file:
-                    mock_send_file.return_value = MagicMock(status_code=200)
-                    
-                    response = client.get(f'/api/downloadrom/{test_game_with_file.uuid}')
-                    
-                    # Should succeed with all security checks passing
-                    assert response.status_code == 200
-                    
-                    # Verify security functions were called
-                    mock_get_allowed.assert_called_once()
-                    
-                    # Verify success was logged
-                    success_calls = [call for call in mock_log.call_args_list 
-                                   if 'download' in call[1].get('event_type', '')]
-                    assert len(success_calls) > 0
+            # Flask route should return 500 since ASGI should handle this
+            assert response.status_code == 500
+            response_data = json.loads(response.data)
+            assert response_data['error'] == 'ROM download route should be handled by ASGI'
+            
+            # Verify system logging for unexpected Flask route access
+            mock_log.assert_called_once()
+            call_args = mock_log.call_args
+            assert 'Flask ROM download route reached unexpectedly' in call_args[0][0]
+            assert call_args[1]['event_type'] == 'system'
+            assert call_args[1]['event_level'] == 'warning'
     
     def test_database_cleanup_after_tests(self, db_session):
         """Verify that tests clean up properly."""

@@ -69,25 +69,22 @@ def global_settings(db_session):
 class TestSetupRoute:
     """Test the /setup GET route."""
     
-    def test_setup_get_clears_session_and_sets_step(self, client, db_session):
-        """Test GET /setup clears session and sets step to 1."""
+    def test_setup_get_sets_database_step(self, client, db_session):
+        """Test GET /setup sets database setup step to 1."""
         # Ensure no users exist for this test
         # Clean up database safely respecting foreign key constraints
         safe_cleanup_users_and_related(db_session)
-        
-        # Add some session data first
-        with client.session_transaction() as sess:
-            sess['existing_key'] = 'existing_value'
-            sess['setup_step'] = 5
+        # Also clean up GlobalSettings to ensure clean state
+        db_session.execute(delete(GlobalSettings))
+        db_session.commit()
         
         response = client.get('/setup')
         
         assert response.status_code == 200
         
-        # Check that session was cleared and setup_step set to 1
-        with client.session_transaction() as sess:
-            assert 'existing_key' not in sess
-            assert sess['setup_step'] == 1
+        # Check that database setup step is set to 1
+        from modules.utils_setup import get_current_setup_step
+        assert get_current_setup_step() == 1
     
     def test_setup_get_redirects_if_user_exists(self, client, admin_user):
         """Test GET /setup redirects to login if admin user already exists."""
@@ -164,9 +161,9 @@ class TestSetupSubmitRoute:
             assert user.invite_quota == 10
             assert user.user_id is not None
             
-            # Check session was updated
-            with client.session_transaction() as sess:
-                assert sess['setup_step'] == 2
+            # Check database setup step was updated
+            from modules.utils_setup import get_current_setup_step
+            assert get_current_setup_step() == 2
             
             mock_flash.assert_called_with('Admin account created successfully! Please configure your SMTP settings.', 'success')
             mock_log.assert_called_with("Admin account created during setup", event_type='setup', event_level='information')
@@ -212,23 +209,33 @@ class TestSetupSubmitRoute:
             response = client.post('/setup/submit', data={})
             
             assert response.status_code == 200
-            mock_render.assert_called_with('setup/setup.html', form=mock_form)
+            mock_render.assert_called_with('setup/setup.html', form=mock_form, is_setup_mode=True)
 
 
 class TestSetupSmtpRoute:
     """Test the /setup/smtp route."""
     
-    def test_setup_smtp_get_no_session_redirects(self, client):
-        """Test GET /setup/smtp redirects when no setup session."""
+    def test_setup_smtp_get_no_setup_in_progress_redirects(self, client, admin_user, db_session):
+        """Test GET /setup/smtp redirects when setup is not in progress."""
+        # Ensure no setup is in progress by clearing GlobalSettings
+        db_session.execute(delete(GlobalSettings))
+        db_session.commit()
+        
+        # Setup completed (admin user exists, no setup in progress), so should redirect to login
         response = client.get('/setup/smtp')
         
         assert response.status_code == 302
         assert '/login' in response.location
     
-    def test_setup_smtp_get_wrong_step_redirects(self, client):
+    def test_setup_smtp_get_wrong_step_redirects(self, client, db_session):
         """Test GET /setup/smtp redirects when not in step 2."""
-        with client.session_transaction() as sess:
-            sess['setup_step'] = 1  # Should be 2 for SMTP setup
+        # Clean up and set database to step 1
+        safe_cleanup_users_and_related(db_session)
+        db_session.execute(delete(GlobalSettings))
+        db_session.commit()
+        
+        from modules.utils_setup import set_setup_step
+        set_setup_step(1)  # Should be 2 for SMTP setup
         
         with patch('modules.routes_setup.flash') as mock_flash:
             response = client.get('/setup/smtp')
@@ -238,21 +245,23 @@ class TestSetupSmtpRoute:
             mock_flash.assert_called_with('Please complete the admin account setup first.', 'warning')
     
     @patch('modules.routes_setup.render_template')
-    def test_setup_smtp_get_correct_step(self, mock_render, client):
+    def test_setup_smtp_get_correct_step(self, mock_render, client, db_session, admin_user):
         """Test GET /setup/smtp renders template in correct step."""
-        with client.session_transaction() as sess:
-            sess['setup_step'] = 2
+        # Use existing admin_user fixture and set database to step 2
+        from modules.utils_setup import set_setup_step
+        set_setup_step(2)
         
         mock_render.return_value = 'smtp setup template'
         response = client.get('/setup/smtp')
         
         assert response.status_code == 200
-        mock_render.assert_called_with('setup/setup_smtp.html')
+        mock_render.assert_called_with('setup/setup_smtp.html', is_setup_mode=True)
     
-    def test_setup_smtp_post_skip_button(self, client):
+    def test_setup_smtp_post_skip_button(self, client, db_session, admin_user):
         """Test POST /setup/smtp with skip button."""
-        with client.session_transaction() as sess:
-            sess['setup_step'] = 2
+        # Use existing admin_user fixture and set database to step 2
+        from modules.utils_setup import set_setup_step, get_current_setup_step
+        set_setup_step(2)
         
         form_data = {'skip_smtp': 'true'}
         
@@ -262,16 +271,17 @@ class TestSetupSmtpRoute:
             assert response.status_code == 302
             assert '/setup/igdb' in response.location
             
-            with client.session_transaction() as sess:
-                assert sess['setup_step'] == 3
+            # Check database step was updated to 3
+            assert get_current_setup_step() == 3
             
             mock_flash.assert_called_with('SMTP setup skipped. Please configure your IGDB settings.', 'info')
     
     @patch('modules.routes_setup.log_system_event')
-    def test_setup_smtp_post_save_settings_success(self, mock_log, client, db_session):
+    def test_setup_smtp_post_save_settings_success(self, mock_log, client, db_session, admin_user):
         """Test successful SMTP settings save."""
-        with client.session_transaction() as sess:
-            sess['setup_step'] = 2
+        # Use existing admin_user fixture and set database to step 2
+        from modules.utils_setup import set_setup_step, get_current_setup_step
+        set_setup_step(2)
         
         form_data = {
             'smtp_server': 'smtp.gmail.com',
@@ -292,16 +302,17 @@ class TestSetupSmtpRoute:
             # Verify the route executed successfully by checking redirect location
             # The specific settings verification is subject to transaction rollback behavior
             
-            with client.session_transaction() as sess:
-                assert sess['setup_step'] == 3
+            # Check database step was updated to 3
+            assert get_current_setup_step() == 3
             
             mock_flash.assert_called_with('SMTP settings saved successfully! Please configure your IGDB settings.', 'success')
             mock_log.assert_called_with("SMTP settings configured during setup", event_type='setup', event_level='information')
     
-    def test_setup_smtp_post_update_existing_settings(self, client, global_settings, db_session):
+    def test_setup_smtp_post_update_existing_settings(self, client, global_settings, db_session, admin_user):
         """Test updating existing SMTP settings."""
-        with client.session_transaction() as sess:
-            sess['setup_step'] = 2
+        # Set database to step 2 (without deleting existing global_settings fixture)
+        from modules.utils_setup import set_setup_step
+        set_setup_step(2)
         
         form_data = {
             'smtp_server': 'smtp.updated.com',
@@ -321,10 +332,11 @@ class TestSetupSmtpRoute:
         # Verify the response redirected to the correct location
         assert '/setup/igdb' in response.location
     
-    def test_setup_smtp_post_database_error(self, client, db_session):
+    def test_setup_smtp_post_database_error(self, client, db_session, admin_user):
         """Test database error during SMTP settings save."""
-        with client.session_transaction() as sess:
-            sess['setup_step'] = 2
+        # Use existing admin_user fixture and set database to step 2
+        from modules.utils_setup import set_setup_step
+        set_setup_step(2)
         
         form_data = {
             'smtp_server': 'smtp.test.com',
@@ -344,10 +356,15 @@ class TestSetupSmtpRoute:
 class TestSetupIgdbRoute:
     """Test the /setup/igdb route."""
     
-    def test_setup_igdb_get_wrong_step_redirects(self, client):
+    def test_setup_igdb_get_wrong_step_redirects(self, client, db_session):
         """Test GET /setup/igdb redirects when not in step 3."""
-        with client.session_transaction() as sess:
-            sess['setup_step'] = 2  # Should be 3 for IGDB setup
+        # Clean up and set database to step 2
+        safe_cleanup_users_and_related(db_session)
+        db_session.execute(delete(GlobalSettings))
+        db_session.commit()
+        
+        from modules.utils_setup import set_setup_step
+        set_setup_step(2)  # Should be 3 for IGDB setup
         
         with patch('modules.routes_setup.flash') as mock_flash:
             response = client.get('/setup/igdb')
@@ -357,10 +374,11 @@ class TestSetupIgdbRoute:
             mock_flash.assert_called_with('Please complete the SMTP setup first.', 'warning')
     
     @patch('modules.routes_setup.render_template')
-    def test_setup_igdb_get_correct_step(self, mock_render, client):
+    def test_setup_igdb_get_correct_step(self, mock_render, client, db_session, admin_user):
         """Test GET /setup/igdb renders template in correct step."""
-        with client.session_transaction() as sess:
-            sess['setup_step'] = 3
+        # Use existing admin_user fixture and set database to step 3
+        from modules.utils_setup import set_setup_step
+        set_setup_step(3)
         
         mock_render.return_value = 'igdb setup template'
         response = client.get('/setup/igdb')
@@ -371,6 +389,7 @@ class TestSetupIgdbRoute:
         assert args[0] == 'setup/setup_igdb.html'
         assert 'form' in kwargs
         assert isinstance(kwargs['form'], IGDBSetupForm)
+        assert kwargs['is_setup_mode'] is True
     
     @patch('modules.routes_setup.IGDBSetupForm')
     @patch('modules.routes_setup.log_system_event')
@@ -382,10 +401,11 @@ class TestSetupIgdbRoute:
     def test_setup_igdb_post_success_complete_setup(self, mock_init_filetypes, mock_init_settings, 
                                                    mock_init_filters, mock_init_discovery, 
                                                    mock_init_folders, mock_log, mock_form_class, 
-                                                   client, db_session):
+                                                   client, db_session, admin_user):
         """Test successful IGDB setup completing the entire setup process."""
-        with client.session_transaction() as sess:
-            sess['setup_step'] = 3
+        # Use existing admin_user fixture and set database to step 3
+        from modules.utils_setup import set_setup_step, get_current_setup_step, is_setup_required
+        set_setup_step(3)
         
         # Mock the form
         mock_form = MagicMock()
@@ -403,9 +423,8 @@ class TestSetupIgdbRoute:
             # Verify the route executed successfully by checking redirect location
             # The specific settings verification is subject to transaction rollback behavior
             
-            # Check setup_step was removed from session
-            with client.session_transaction() as sess:
-                assert 'setup_step' not in sess
+            # Check setup was completed (get_current_setup_step returns None when completed)
+            assert get_current_setup_step() is None
             
             # Verify all initialization functions were called
             mock_init_folders.assert_called_once()
@@ -418,10 +437,11 @@ class TestSetupIgdbRoute:
             mock_log.assert_called_with("IGDB settings configured - Setup completed", event_type='setup', event_level='information')
     
     @patch('modules.routes_setup.IGDBSetupForm')
-    def test_setup_igdb_post_update_existing_settings(self, mock_form_class, client, global_settings):
+    def test_setup_igdb_post_update_existing_settings(self, mock_form_class, client, global_settings, admin_user):
         """Test updating existing IGDB settings."""
-        with client.session_transaction() as sess:
-            sess['setup_step'] = 3
+        # Set database to step 3 (without deleting existing global_settings fixture)
+        from modules.utils_setup import set_setup_step
+        set_setup_step(3)
         
         mock_form = MagicMock()
         mock_form.validate_on_submit.return_value = True
@@ -445,15 +465,16 @@ class TestSetupIgdbRoute:
             assert '/libraries' in response.location
     
     @patch('modules.routes_setup.IGDBSetupForm')
-    def test_setup_igdb_post_database_error(self, mock_form_class, client):
+    def test_setup_igdb_post_database_error(self, mock_form_class, client, db_session, admin_user):
         """Test database error during IGDB settings save."""
-        with client.session_transaction() as sess:
-            sess['setup_step'] = 3
+        # Use existing admin_user fixture and set database to step 3
+        from modules.utils_setup import set_setup_step
+        set_setup_step(3)
         
         mock_form = MagicMock()
         mock_form.validate_on_submit.return_value = True
-        mock_form.igdb_client_id.data = 'test_client_id'
-        mock_form.igdb_client_secret.data = 'test_client_secret'
+        mock_form.igdb_client_id.data = 'test_client_id_12345'
+        mock_form.igdb_client_secret.data = 'test_client_secret_12345'
         mock_form_class.return_value = mock_form
         
         with patch('modules.routes_setup.db.session.commit', side_effect=Exception('Database error')):
@@ -466,10 +487,11 @@ class TestSetupIgdbRoute:
                     mock_flash.assert_called_with('Error saving IGDB settings: Database error', 'error')
     
     @patch('modules.routes_setup.IGDBSetupForm')
-    def test_setup_igdb_post_form_validation_failed(self, mock_form_class, client):
+    def test_setup_igdb_post_form_validation_failed(self, mock_form_class, client, db_session, admin_user):
         """Test form validation failure."""
-        with client.session_transaction() as sess:
-            sess['setup_step'] = 3
+        # Use existing admin_user fixture and set database to step 3
+        from modules.utils_setup import set_setup_step
+        set_setup_step(3)
         
         mock_form = MagicMock()
         mock_form.validate_on_submit.return_value = False
@@ -481,7 +503,7 @@ class TestSetupIgdbRoute:
             response = client.post('/setup/igdb', data={})
             
             assert response.status_code == 200
-            mock_render.assert_called_with('setup/setup_igdb.html', form=mock_form)
+            mock_render.assert_called_with('setup/setup_igdb.html', form=mock_form, is_setup_mode=True)
 
 
 class TestSetupWorkflow:
@@ -499,8 +521,9 @@ class TestSetupWorkflow:
         response = client.get('/setup')
         assert response.status_code == 200
         
-        with client.session_transaction() as sess:
-            assert sess['setup_step'] == 1
+        # Check database setup step
+        from modules.utils_setup import get_current_setup_step
+        assert get_current_setup_step() == 1
         
         # Step 2: POST /setup/submit with valid admin data
         with patch('modules.routes_setup.SetupForm') as mock_form_class:
@@ -517,8 +540,8 @@ class TestSetupWorkflow:
                 assert response.status_code == 302
                 assert '/setup/smtp' in response.location
         
-        with client.session_transaction() as sess:
-            assert sess['setup_step'] == 2
+        # Check database setup step
+        assert get_current_setup_step() == 2
         
         # Step 3: Skip SMTP setup
         form_data = {'skip_smtp': 'true'}
@@ -526,8 +549,8 @@ class TestSetupWorkflow:
         assert response.status_code == 302
         assert '/setup/igdb' in response.location
         
-        with client.session_transaction() as sess:
-            assert sess['setup_step'] == 3
+        # Check database setup step
+        assert get_current_setup_step() == 3
         
         # Step 4: Complete IGDB setup
         with patch('modules.routes_setup.IGDBSetupForm') as mock_igdb_form_class:
@@ -549,9 +572,8 @@ class TestSetupWorkflow:
                 assert response.status_code == 302
                 assert '/libraries' in response.location
         
-        # Verify setup_step was cleared
-        with client.session_transaction() as sess:
-            assert 'setup_step' not in sess
+        # Verify setup was completed (get_current_setup_step returns None when completed)
+        assert get_current_setup_step() is None
         
         # Verify admin user was created
         admin_user = db.session.execute(select(User).filter_by(email='admin@test.com')).scalars().first()
@@ -569,34 +591,35 @@ class TestSetupWorkflow:
 class TestSetupSessionHandling:
     """Test setup session state management."""
     
-    def test_session_cleared_on_setup_start(self, client, db_session):
+    def test_setup_start_sets_database_state(self, client, db_session):
         # Ensure no users exist for this test
         # Clean up database safely respecting foreign key constraints
         safe_cleanup_users_and_related(db_session)
-        """Test that starting setup clears all existing session data."""
-        with client.session_transaction() as sess:
-            sess['user_id'] = '12345'
-            sess['last_activity'] = '2023-01-01'
-            sess['custom_data'] = {'key': 'value'}
-        
+        # Also clean up GlobalSettings to ensure clean state
+        db_session.execute(delete(GlobalSettings))
+        db_session.commit()
+        """Test that starting setup sets database state correctly."""
         response = client.get('/setup')
         assert response.status_code == 200
         
-        with client.session_transaction() as sess:
-            assert 'user_id' not in sess
-            assert 'last_activity' not in sess
-            assert 'custom_data' not in sess
-            assert sess['setup_step'] == 1
+        # Check database setup state
+        from modules.utils_setup import get_current_setup_step, is_setup_required
+        assert get_current_setup_step() == 1
+        assert is_setup_required()  # Should still be required since no admin user exists
     
     def test_setup_step_progression(self, client, db_session):
         # Ensure no users exist for this test
         # Clean up database safely respecting foreign key constraints
         safe_cleanup_users_and_related(db_session)
-        """Test proper setup step progression."""
+        # Also clean up GlobalSettings to ensure clean state
+        db_session.execute(delete(GlobalSettings))
+        db_session.commit()
+        """Test proper setup step progression via database tracking."""
+        from modules.utils_setup import get_current_setup_step, is_setup_required
+        
         # Start at step 1
         response = client.get('/setup')
-        with client.session_transaction() as sess:
-            assert sess['setup_step'] == 1
+        assert get_current_setup_step() == 1
         
         # Admin creation moves to step 2
         with patch('modules.routes_setup.SetupForm') as mock_form_class:
@@ -611,20 +634,18 @@ class TestSetupSessionHandling:
             with patch('modules.routes_setup.log_system_event'):
                 response = client.post('/setup/submit', data={})
                 
-        with client.session_transaction() as sess:
-            assert sess['setup_step'] == 2
+        assert get_current_setup_step() == 2
         
         # SMTP setup (skip) moves to step 3
         response = client.post('/setup/smtp', data={'skip_smtp': 'true'})
-        with client.session_transaction() as sess:
-            assert sess['setup_step'] == 3
+        assert get_current_setup_step() == 3
         
-        # IGDB completion clears setup_step
+        # IGDB completion clears setup_step (marks as completed)
         with patch('modules.routes_setup.IGDBSetupForm') as mock_form_class:
             mock_form = MagicMock()
             mock_form.validate_on_submit.return_value = True
-            mock_form.igdb_client_id.data = 'test_client_id'
-            mock_form.igdb_client_secret.data = 'test_client_secret'
+            mock_form.igdb_client_id.data = 'test_client_id_12345'
+            mock_form.igdb_client_secret.data = 'test_client_secret_12345'
             mock_form_class.return_value = mock_form
             
             with patch('modules.init_data.initialize_library_folders'), \
@@ -636,8 +657,9 @@ class TestSetupSessionHandling:
                 
                 response = client.post('/setup/igdb', data={})
                 
-        with client.session_transaction() as sess:
-            assert 'setup_step' not in sess
+        # Setup should be completed, so get_current_setup_step returns None
+        assert get_current_setup_step() is None
+        assert not is_setup_required()  # Should no longer be required
 
 
 class TestSetupFormIntegration:
@@ -662,10 +684,11 @@ class TestSetupFormIntegration:
         assert response.status_code == 200
         assert b'setup' in response.data or b'Setup' in response.data
     
-    def test_igdb_form_validation_error_handling(self, client):
+    def test_igdb_form_validation_error_handling(self, client, db_session, admin_user):
         """Test how IGDB setup handles real form validation errors."""
-        with client.session_transaction() as sess:
-            sess['setup_step'] = 3
+        # Use existing admin_user fixture and set database to step 3
+        from modules.utils_setup import set_setup_step
+        set_setup_step(3)
         
         # Submit invalid IGDB data
         form_data = {

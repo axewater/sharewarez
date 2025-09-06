@@ -1,5 +1,6 @@
 import pytest
 import os
+import json
 import tempfile
 import shutil
 from unittest.mock import patch, MagicMock, call
@@ -123,29 +124,51 @@ class TestDownloadZipRoute:
         assert response.status_code == 302
         assert '/login' in response.location
 
-    def test_download_zip_nonexistent_request(self, client, authenticated_user):
-        """Test download with non-existent download request."""
+    @patch('modules.routes_downloads_ext.serve.log_system_event')
+    def test_download_zip_nonexistent_request(self, mock_log, client, authenticated_user):
+        """Test download ZIP reaches Flask route (should not happen with ASGI)."""
         with client.session_transaction() as session:
             session['_user_id'] = str(authenticated_user.id)
             session['_fresh'] = True
         
         response = client.get('/download_zip/99999')
-        assert response.status_code == 404
+        # Flask route should return 500 since ASGI should handle this
+        assert response.status_code == 500
+        response_data = json.loads(response.data)
+        assert response_data['error'] == 'Download route should be handled by ASGI'
+        
+        # Verify system logging for unexpected Flask route access
+        mock_log.assert_called_once()
+        call_args = mock_log.call_args
+        assert 'Flask download route reached unexpectedly' in call_args[0][0]
+        assert call_args[1]['event_type'] == 'system'
+        assert call_args[1]['event_level'] == 'warning'
 
-    def test_download_zip_wrong_user(self, client, authenticated_user, admin_user, sample_download_request):
-        """Test that users can only download their own requests."""
+    @patch('modules.routes_downloads_ext.serve.log_system_event')
+    def test_download_zip_wrong_user(self, mock_log, client, authenticated_user, admin_user, sample_download_request):
+        """Test download ZIP reaches Flask route (should not happen with ASGI)."""
         # Login as different user
         with client.session_transaction() as session:
             session['_user_id'] = str(admin_user.id)
             session['_fresh'] = True
         
         response = client.get(f'/download_zip/{sample_download_request.id}')
-        assert response.status_code == 404
+        # Flask route should return 500 since ASGI should handle this
+        assert response.status_code == 500
+        response_data = json.loads(response.data)
+        assert response_data['error'] == 'Download route should be handled by ASGI'
+        
+        # Verify system logging for unexpected Flask route access
+        mock_log.assert_called_once()
+        call_args = mock_log.call_args
+        assert 'Flask download route reached unexpectedly' in call_args[0][0]
+        assert call_args[1]['event_type'] == 'system'
+        assert call_args[1]['event_level'] == 'warning'
 
     @patch('modules.routes_downloads_ext.serve.log_system_event')
     def test_download_zip_not_ready_status(self, mock_log, client, authenticated_user, 
                                           sample_download_request, db_session):
-        """Test download when request status is not 'available'."""
+        """Test download ZIP reaches Flask route (should not happen with ASGI)."""
         # Change status to processing
         sample_download_request.status = 'processing'
         db_session.commit()
@@ -156,19 +179,22 @@ class TestDownloadZipRoute:
         
         response = client.get(f'/download_zip/{sample_download_request.id}')
         
-        assert response.status_code == 302
-        assert '/library' in response.location
+        # Flask route should return 500 since ASGI should handle this
+        assert response.status_code == 500
+        response_data = json.loads(response.data)
+        assert response_data['error'] == 'Download route should be handled by ASGI'
         
-        # Verify logging
-        mock_log.assert_any_call(f"Download attempt for ID: {sample_download_request.id}", 
-                                event_type='download', event_level='information')
-        mock_log.assert_any_call(f"Download blocked - not ready: {sample_download_request.id}", 
-                                event_type='download', event_level='warning')
+        # Verify system logging for unexpected Flask route access
+        mock_log.assert_called_once()
+        call_args = mock_log.call_args
+        assert 'Flask download route reached unexpectedly' in call_args[0][0]
+        assert call_args[1]['event_type'] == 'system'
+        assert call_args[1]['event_level'] == 'warning'
 
     @patch('modules.routes_downloads_ext.serve.log_system_event')
     def test_download_zip_missing_config(self, mock_log, client, authenticated_user, 
                                         sample_download_request, app):
-        """Test download when ZIP_SAVE_PATH is not configured."""
+        """Test download ZIP reaches Flask route (should not happen with ASGI)."""
         with client.session_transaction() as session:
             session['_user_id'] = str(authenticated_user.id)
             session['_fresh'] = True
@@ -179,19 +205,22 @@ class TestDownloadZipRoute:
             
             response = client.get(f'/download_zip/{sample_download_request.id}')
             
-            assert response.status_code == 302
-            assert '/library' in response.location
+            # Flask route should return 500 since ASGI should handle this
+            assert response.status_code == 500
+            response_data = json.loads(response.data)
+            assert response_data['error'] == 'Download route should be handled by ASGI'
             
-            # Verify logging
-            mock_log.assert_any_call("ZIP_SAVE_PATH not configured", 
-                                   event_type='system', event_level='error')
+            # Verify system logging for unexpected Flask route access
+            mock_log.assert_called_once()
+            call_args = mock_log.call_args
+            assert 'Flask download route reached unexpectedly' in call_args[0][0]
+            assert call_args[1]['event_type'] == 'system'
+            assert call_args[1]['event_level'] == 'warning'
 
-    @patch('modules.routes_downloads_ext.serve.is_safe_path')
     @patch('modules.routes_downloads_ext.serve.log_system_event')
-    def test_download_zip_path_security_violation(self, mock_log, mock_is_safe_path, 
+    def test_download_zip_path_security_violation(self, mock_log, 
                                                   client, authenticated_user, sample_download_request, app):
-        """Test download with unsafe file path."""
-        mock_is_safe_path.return_value = (False, "Path outside allowed directories")
+        """Test download ZIP reaches Flask route (should not happen with ASGI)."""
         
         with client.session_transaction() as session:
             session['_user_id'] = str(authenticated_user.id)
@@ -202,23 +231,22 @@ class TestDownloadZipRoute:
             
             response = client.get(f'/download_zip/{sample_download_request.id}')
             
-            assert response.status_code == 302
-            assert '/library' in response.location
+            # Flask route should return 500 since ASGI should handle this
+            assert response.status_code == 500
+            response_data = json.loads(response.data)
+            assert response_data['error'] == 'Download route should be handled by ASGI'
             
-            # Verify security logging
-            mock_log.assert_any_call(
-                f"Security violation - path outside allowed directories: {sample_download_request.zip_file_path}",
-                event_type='security', event_level='warning'
-            )
+            # Verify system logging for unexpected Flask route access
+            mock_log.assert_called_once()
+            call_args = mock_log.call_args
+            assert 'Flask download route reached unexpectedly' in call_args[0][0]
+            assert call_args[1]['event_type'] == 'system'
+            assert call_args[1]['event_level'] == 'warning'
 
-    @patch('modules.routes_downloads_ext.serve.os.path.exists')
-    @patch('modules.routes_downloads_ext.serve.is_safe_path')
     @patch('modules.routes_downloads_ext.serve.log_system_event')
-    def test_download_zip_file_not_exists(self, mock_log, mock_is_safe_path, mock_exists,
+    def test_download_zip_file_not_exists(self, mock_log,
                                          client, authenticated_user, sample_download_request, app):
-        """Test download when file doesn't exist on disk."""
-        mock_is_safe_path.return_value = (True, None)
-        mock_exists.return_value = False
+        """Test download ZIP reaches Flask route (should not happen with ASGI)."""
         
         with client.session_transaction() as session:
             session['_user_id'] = str(authenticated_user.id)
@@ -229,28 +257,22 @@ class TestDownloadZipRoute:
             
             response = client.get(f'/download_zip/{sample_download_request.id}')
             
-            assert response.status_code == 302
-            assert '/library' in response.location
+            # Flask route should return 500 since ASGI should handle this
+            assert response.status_code == 500
+            response_data = json.loads(response.data)
+            assert response_data['error'] == 'Download route should be handled by ASGI'
             
-            # Verify logging
-            mock_log.assert_any_call(
-                f"Download failed - file not found: {sample_download_request.zip_file_path}",
-                event_type='download', event_level='error'
-            )
+            # Verify system logging for unexpected Flask route access
+            mock_log.assert_called_once()
+            call_args = mock_log.call_args
+            assert 'Flask download route reached unexpectedly' in call_args[0][0]
+            assert call_args[1]['event_type'] == 'system'
+            assert call_args[1]['event_level'] == 'warning'
 
-    @patch('modules.routes_downloads_ext.serve.create_streaming_response')
-    @patch('modules.routes_downloads_ext.serve.os.path.exists')
-    @patch('modules.routes_downloads_ext.serve.is_safe_path')
     @patch('modules.routes_downloads_ext.serve.log_system_event')
-    def test_download_zip_successful_download(self, mock_log, mock_is_safe_path, mock_exists, 
-                                             mock_create_streaming_response, client, authenticated_user, 
+    def test_download_zip_successful_download(self, mock_log, client, authenticated_user, 
                                              sample_download_request, db_session, app, temp_zip_file):
-        """Test successful file download."""
-        mock_is_safe_path.return_value = (True, None)
-        mock_exists.return_value = True
-        mock_streaming_response = MagicMock()
-        mock_streaming_response.headers = {}
-        mock_create_streaming_response.return_value = mock_streaming_response
+        """Test download ZIP reaches Flask route (should not happen with ASGI)."""
         
         # Update the download request with the temp file path
         sample_download_request.zip_file_path = temp_zip_file
@@ -265,27 +287,22 @@ class TestDownloadZipRoute:
             
             response = client.get(f'/download_zip/{sample_download_request.id}')
             
-            # Verify create_streaming_response was called correctly
-            expected_filename = os.path.basename(temp_zip_file)
-            mock_create_streaming_response.assert_called_once_with(
-                temp_zip_file, expected_filename
-            )
+            # Flask route should return 500 since ASGI should handle this
+            assert response.status_code == 500
+            response_data = json.loads(response.data)
+            assert response_data['error'] == 'Download route should be handled by ASGI'
             
-            # Verify success logging
-            mock_log.assert_any_call(f"File downloaded: {expected_filename}", 
-                                   event_type='download', event_level='information')
+            # Verify system logging for unexpected Flask route access
+            mock_log.assert_called_once()
+            call_args = mock_log.call_args
+            assert 'Flask download route reached unexpectedly' in call_args[0][0]
+            assert call_args[1]['event_type'] == 'system'
+            assert call_args[1]['event_level'] == 'warning'
 
-    @patch('modules.routes_downloads_ext.serve.create_streaming_response')
-    @patch('modules.routes_downloads_ext.serve.os.path.exists')
-    @patch('modules.routes_downloads_ext.serve.is_safe_path')
     @patch('modules.routes_downloads_ext.serve.log_system_event')
-    def test_download_zip_streaming_exception(self, mock_log, mock_is_safe_path, 
-                                             mock_exists, mock_create_streaming_response,
+    def test_download_zip_streaming_exception(self, mock_log,
                                              client, authenticated_user, sample_download_request, app):
-        """Test handling of streaming response exceptions."""
-        mock_is_safe_path.return_value = (True, None)
-        mock_exists.return_value = True
-        mock_create_streaming_response.side_effect = Exception("File permission error")
+        """Test download ZIP reaches Flask route (should not happen with ASGI)."""
         
         with client.session_transaction() as session:
             session['_user_id'] = str(authenticated_user.id)
@@ -296,14 +313,17 @@ class TestDownloadZipRoute:
             
             response = client.get(f'/download_zip/{sample_download_request.id}')
             
-            assert response.status_code == 302
-            assert '/library' in response.location
+            # Flask route should return 500 since ASGI should handle this
+            assert response.status_code == 500
+            response_data = json.loads(response.data)
+            assert response_data['error'] == 'Download route should be handled by ASGI'
             
-            # Verify error logging
-            mock_log.assert_any_call(
-                f"Download error for {sample_download_request.id}: File permission error",
-                event_type='download', event_level='error'
-            )
+            # Verify system logging for unexpected Flask route access
+            mock_log.assert_called_once()
+            call_args = mock_log.call_args
+            assert 'Flask download route reached unexpectedly' in call_args[0][0]
+            assert call_args[1]['event_type'] == 'system'
+            assert call_args[1]['event_level'] == 'warning'
 
 
 class TestSecurityValidation:
@@ -312,7 +332,7 @@ class TestSecurityValidation:
     @patch('modules.routes_downloads_ext.serve.log_system_event')
     def test_path_traversal_protection(self, mock_log, client, authenticated_user, 
                                       sample_download_request, db_session, app):
-        """Test protection against path traversal attacks."""
+        """Test download ZIP reaches Flask route (should not happen with ASGI)."""
         # Set malicious path in download request
         malicious_path = "/var/www/sharewarez/modules/static/library/zips/../../../etc/passwd"
         sample_download_request.zip_file_path = malicious_path
@@ -327,19 +347,22 @@ class TestSecurityValidation:
             
             response = client.get(f'/download_zip/{sample_download_request.id}')
             
-            assert response.status_code == 302
-            assert '/library' in response.location
+            # Flask route should return 500 since ASGI should handle this
+            assert response.status_code == 500
+            response_data = json.loads(response.data)
+            assert response_data['error'] == 'Download route should be handled by ASGI'
             
-            # Verify security violation was logged
-            mock_log.assert_any_call(
-                f"Security violation - path outside allowed directories: {malicious_path}",
-                event_type='security', event_level='warning'
-            )
+            # Verify system logging for unexpected Flask route access
+            mock_log.assert_called_once()
+            call_args = mock_log.call_args
+            assert 'Flask download route reached unexpectedly' in call_args[0][0]
+            assert call_args[1]['event_type'] == 'system'
+            assert call_args[1]['event_level'] == 'warning'
 
     @patch('modules.routes_downloads_ext.serve.log_system_event')
     def test_absolute_path_outside_allowed_directories(self, mock_log, client, authenticated_user,
                                                       sample_download_request, db_session, app):
-        """Test rejection of absolute paths outside allowed directories."""
+        """Test download ZIP reaches Flask route (should not happen with ASGI)."""
         # Set absolute path outside ZIP_SAVE_PATH
         outside_path = "/etc/passwd"
         sample_download_request.zip_file_path = outside_path
@@ -354,31 +377,27 @@ class TestSecurityValidation:
             
             response = client.get(f'/download_zip/{sample_download_request.id}')
             
-            assert response.status_code == 302
-            assert '/library' in response.location
+            # Flask route should return 500 since ASGI should handle this
+            assert response.status_code == 500
+            response_data = json.loads(response.data)
+            assert response_data['error'] == 'Download route should be handled by ASGI'
             
-            # Verify security violation was logged
-            mock_log.assert_any_call(
-                f"Security violation - path outside allowed directories: {outside_path}",
-                event_type='security', event_level='warning'
-            )
+            # Verify system logging for unexpected Flask route access
+            mock_log.assert_called_once()
+            call_args = mock_log.call_args
+            assert 'Flask download route reached unexpectedly' in call_args[0][0]
+            assert call_args[1]['event_type'] == 'system'
+            assert call_args[1]['event_level'] == 'warning'
 
-    @patch('modules.routes_downloads_ext.serve.create_streaming_response')
-    @patch('modules.routes_downloads_ext.serve.os.path.exists')
     @patch('modules.routes_downloads_ext.serve.log_system_event')
-    def test_valid_path_within_allowed_directory(self, mock_log, mock_exists, mock_create_streaming_response,
+    def test_valid_path_within_allowed_directory(self, mock_log,
                                                  client, authenticated_user, sample_download_request, 
                                                  db_session, app):
-        """Test that valid paths within allowed directories are accepted."""
+        """Test download ZIP reaches Flask route (should not happen with ASGI)."""
         # Set valid path within ZIP_SAVE_PATH
         valid_path = "/var/www/sharewarez/modules/static/library/zips/valid_game.zip"
         sample_download_request.zip_file_path = valid_path
         db_session.commit()
-        
-        mock_exists.return_value = True
-        mock_streaming_response = MagicMock()
-        mock_streaming_response.headers = {}
-        mock_create_streaming_response.return_value = mock_streaming_response
         
         with client.session_transaction() as session:
             session['_user_id'] = str(authenticated_user.id)
@@ -389,12 +408,17 @@ class TestSecurityValidation:
             
             response = client.get(f'/download_zip/{sample_download_request.id}')
             
-            # Should succeed - create_streaming_response should be called
-            mock_create_streaming_response.assert_called_once_with(valid_path, "valid_game.zip")
+            # Flask route should return 500 since ASGI should handle this
+            assert response.status_code == 500
+            response_data = json.loads(response.data)
+            assert response_data['error'] == 'Download route should be handled by ASGI'
             
-            # Verify success logging
-            mock_log.assert_any_call("File downloaded: valid_game.zip", 
-                                   event_type='download', event_level='information')
+            # Verify system logging for unexpected Flask route access
+            mock_log.assert_called_once()
+            call_args = mock_log.call_args
+            assert 'Flask download route reached unexpectedly' in call_args[0][0]
+            assert call_args[1]['event_type'] == 'system'
+            assert call_args[1]['event_level'] == 'warning'
 
 
 class TestLoggingFunctionality:
@@ -403,7 +427,7 @@ class TestLoggingFunctionality:
     @patch('modules.routes_downloads_ext.serve.log_system_event')
     def test_all_log_events_recorded(self, mock_log, client, authenticated_user, 
                                     sample_download_request, db_session, app, temp_zip_file):
-        """Test that all expected log events are recorded during successful download."""
+        """Test download ZIP reaches Flask route (should not happen with ASGI)."""
         sample_download_request.zip_file_path = temp_zip_file
         db_session.commit()
         
@@ -414,27 +438,24 @@ class TestLoggingFunctionality:
         with app.app_context():
             app.config['ZIP_SAVE_PATH'] = os.path.dirname(temp_zip_file)
             
-            with patch('modules.routes_downloads_ext.serve.create_streaming_response') as mock_stream:
-                mock_streaming_response = MagicMock()
-                mock_streaming_response.headers = {}
-                mock_stream.return_value = mock_streaming_response
-                
-                response = client.get(f'/download_zip/{sample_download_request.id}')
-                
-                # Verify all expected log calls
-                expected_calls = [
-                    call(f"Download attempt for ID: {sample_download_request.id}", 
-                         event_type='download', event_level='information'),
-                    call(f"File downloaded: {os.path.basename(temp_zip_file)}", 
-                         event_type='download', event_level='information')
-                ]
-                
-                mock_log.assert_has_calls(expected_calls)
+            response = client.get(f'/download_zip/{sample_download_request.id}')
+            
+            # Flask route should return 500 since ASGI should handle this
+            assert response.status_code == 500
+            response_data = json.loads(response.data)
+            assert response_data['error'] == 'Download route should be handled by ASGI'
+            
+            # Verify system logging for unexpected Flask route access
+            mock_log.assert_called_once()
+            call_args = mock_log.call_args
+            assert 'Flask download route reached unexpectedly' in call_args[0][0]
+            assert call_args[1]['event_type'] == 'system'
+            assert call_args[1]['event_level'] == 'warning'
 
     @patch('modules.routes_downloads_ext.serve.log_system_event')
     def test_log_truncates_long_paths(self, mock_log, client, authenticated_user,
                                      sample_download_request, db_session, app):
-        """Test that log messages truncate very long file paths."""
+        """Test download ZIP reaches Flask route (should not happen with ASGI)."""
         # Create a very long path
         long_path = "/a/very/long/path/" + ("x" * 200) + "/file.zip"
         sample_download_request.zip_file_path = long_path
@@ -449,26 +470,26 @@ class TestLoggingFunctionality:
             
             response = client.get(f'/download_zip/{sample_download_request.id}')
             
-            # Find the security violation log call
-            security_call = None
-            for call_args in mock_log.call_args_list:
-                if 'Security violation' in str(call_args):
-                    security_call = call_args
-                    break
+            # Flask route should return 500 since ASGI should handle this
+            assert response.status_code == 500
+            response_data = json.loads(response.data)
+            assert response_data['error'] == 'Download route should be handled by ASGI'
             
-            assert security_call is not None
-            # Verify path was truncated to 100 characters
-            logged_message = security_call[0][0]
-            path_part = logged_message.split(': ')[1]
-            assert len(path_part) <= 100
+            # Verify system logging for unexpected Flask route access
+            mock_log.assert_called_once()
+            call_args = mock_log.call_args
+            assert 'Flask download route reached unexpectedly' in call_args[0][0]
+            assert call_args[1]['event_type'] == 'system'
+            assert call_args[1]['event_level'] == 'warning'
 
 
 class TestIntegration:
     """Integration tests for the download_zip route."""
 
-    def test_complete_download_workflow(self, client, authenticated_user, sample_download_request, 
+    @patch('modules.routes_downloads_ext.serve.log_system_event')
+    def test_complete_download_workflow(self, mock_log, client, authenticated_user, sample_download_request, 
                                        db_session, app, temp_zip_file):
-        """Test the complete workflow from request to file delivery."""
+        """Test download ZIP reaches Flask route (should not happen with ASGI)."""
         # Update request with real temp file
         sample_download_request.zip_file_path = temp_zip_file
         db_session.commit()
@@ -480,22 +501,24 @@ class TestIntegration:
         with app.app_context():
             app.config['ZIP_SAVE_PATH'] = os.path.dirname(temp_zip_file)
             
-            with patch('modules.routes_downloads_ext.serve.create_streaming_response') as mock_stream:
-                mock_streaming_response = MagicMock()
-                mock_streaming_response.headers = {}
-                mock_stream.return_value = mock_streaming_response
-                
-                response = client.get(f'/download_zip/{sample_download_request.id}')
-                
-                # Verify successful call to create_streaming_response
-                mock_stream.assert_called_once_with(
-                    temp_zip_file,
-                    os.path.basename(temp_zip_file)
-                )
+            response = client.get(f'/download_zip/{sample_download_request.id}')
+            
+            # Flask route should return 500 since ASGI should handle this
+            assert response.status_code == 500
+            response_data = json.loads(response.data)
+            assert response_data['error'] == 'Download route should be handled by ASGI'
+            
+            # Verify system logging for unexpected Flask route access
+            mock_log.assert_called_once()
+            call_args = mock_log.call_args
+            assert 'Flask download route reached unexpectedly' in call_args[0][0]
+            assert call_args[1]['event_type'] == 'system'
+            assert call_args[1]['event_level'] == 'warning'
 
-    def test_security_and_logging_integration(self, client, authenticated_user, 
+    @patch('modules.routes_downloads_ext.serve.log_system_event')
+    def test_security_and_logging_integration(self, mock_log, client, authenticated_user, 
                                              sample_download_request, db_session, app):
-        """Test that security validation and logging work together properly."""
+        """Test download ZIP reaches Flask route (should not happen with ASGI)."""
         # Set up malicious path
         malicious_path = "/etc/passwd"
         sample_download_request.zip_file_path = malicious_path
@@ -508,16 +531,16 @@ class TestIntegration:
         with app.app_context():
             app.config['ZIP_SAVE_PATH'] = '/var/www/sharewarez/modules/static/library/zips'
             
-            with patch('modules.routes_downloads_ext.serve.log_system_event') as mock_log:
-                response = client.get(f'/download_zip/{sample_download_request.id}')
-                
-                # Should be blocked and logged
-                assert response.status_code == 302
-                assert '/library' in response.location
-                
-                # Verify both download attempt and security violation were logged
-                download_logged = any('Download attempt' in str(call) for call in mock_log.call_args_list)
-                security_logged = any('Security violation' in str(call) for call in mock_log.call_args_list)
-                
-                assert download_logged
-                assert security_logged
+            response = client.get(f'/download_zip/{sample_download_request.id}')
+            
+            # Flask route should return 500 since ASGI should handle this
+            assert response.status_code == 500
+            response_data = json.loads(response.data)
+            assert response_data['error'] == 'Download route should be handled by ASGI'
+            
+            # Verify system logging for unexpected Flask route access
+            mock_log.assert_called_once()
+            call_args = mock_log.call_args
+            assert 'Flask download route reached unexpectedly' in call_args[0][0]
+            assert call_args[1]['event_type'] == 'system'
+            assert call_args[1]['event_level'] == 'warning'
