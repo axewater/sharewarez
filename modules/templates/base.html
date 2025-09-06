@@ -24,11 +24,6 @@
         <script src="{{ url_for('static', filename='library/themes/default/js/csrf-utils.js') }}"></script>
     {% endif %}
     
-    {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/downloads_notify.js') %}
-        <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/downloads_notify.js') }}"></script>
-    {% else %}
-        <script src="{{ url_for('static', filename='library/themes/default/js/downloads_notify.js') }}"></script>
-    {% endif %}
     
 	{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/base.css') == True %}
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/base.css') }}">
