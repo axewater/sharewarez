@@ -131,11 +131,10 @@ python3 app.py (only need to run this 1 time)
 ### Windows 
 
 ```powershell
-python3 app.py (only need to run this 1 time)
+python3 app.py (only need to run this 1 time. You will get some errors, ignore them, it initializes the db)
 ./startweb_windows.cmd
 ```
 
-- You will get errors when running app.py, ignore them, it initializes the db
 - Runs with uvicorn and 4 workers for optimal performance
 - Automatically handles database migrations and initialization
 - Starts on port 5006 by default
@@ -172,6 +171,7 @@ docker pull kapitanczarnobrod/sharewarez:latest
 ## 📝 3rd party code
 - 💭 Thanks to BinBashBanana's webretro we can now run ROMs in the browser.
 - 🌐 Check out his project here: https://github.com/BinBashBanana/webretro
+
 
 
 
