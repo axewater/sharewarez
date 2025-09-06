@@ -54,7 +54,7 @@ Invite your friends securely and share your favorite games!
 - Postgresql server
 
 #### 🪟 Windows Requirements
-- Python 3.11 ([Download Python for Windows](https://www.python.org/downloads/windows/))
+- Python 3.11 - Install by typing python in powershell, it will open the Window Store, or you cand download manually here: ([Download Python for Windows](https://www.python.org/downloads/windows/))
 - pip (comes with Python these days)
 - git ([Download Git for Windows](https://gitforwindows.org/)))
 - Microsoft Visual C++ 14.0+ ([Download Visual Studio Tools](https://visualstudio.microsoft.com/downloads/))
@@ -153,4 +153,5 @@ docker pull kapitanczarnobrod/sharewarez:latest
 ## 📝 3rd party code
 - 💭 Thanks to BinBashBanana's webretro we can now run ROMs in the browser.
 - 🌐 Check out his project here: https://github.com/BinBashBanana/webretro
+
 
