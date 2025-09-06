@@ -1,4 +1,4 @@
-flask-mail
+flask_mail
 flask-wtf
 flask-sqlalchemy
 flask-login
@@ -16,4 +16,5 @@ email-validator
 uvicorn[standard]
 asgiref
 aiofiles
+
 zipstream-new
