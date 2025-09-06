@@ -20,15 +20,108 @@ from modules.platform import LibraryPlatform
 
 
 def safe_cleanup_database(db_session):
-    """Safely clean up database records respecting foreign key constraints."""
-    from sqlalchemy import delete
+    """Completely clean up ALL test data - this is a test database, nuke everything!"""
+    from sqlalchemy import text, delete
+    from modules.models import (
+        Game, User, Library, DownloadRequest, Newsletter, 
+        SystemEvents, InviteToken, Image, GameURL, ScanJob,
+        UnmatchedFolder, GameUpdate, GameExtra, GlobalSettings,
+        AllowedFileType, IgnoredFileType, Genre, Platform, Developer,
+        Publisher, Theme, GameMode, PlayerPerspective, MultiplayerMode
+    )
     
-    # Delete in proper order to respect foreign key constraints
-    # SystemEvents must be deleted before Users
-    db_session.execute(delete(SystemEvents))
-    db_session.execute(delete(InviteToken)) 
-    db_session.execute(delete(User))
-    db_session.commit()
+    try:
+        # First ensure the session is in good state
+        if db_session.is_active:
+            db_session.rollback()
+        
+        # Try the aggressive approach first
+        db_session.execute(text("SET session_replication_role = replica;"))
+        
+        # Delete all junction table data first
+        junction_tables = ['user_favorites', 'game_genre_association', 'game_platform_association', 
+                          'game_game_mode_association', 'game_theme_association', 
+                          'game_player_perspective_association', 'game_multiplayer_mode_association']
+        
+        for table in junction_tables:
+            try:
+                db_session.execute(text(f"TRUNCATE TABLE {table} CASCADE"))
+            except Exception:
+                pass  # Table might not exist or be locked
+        
+        # Delete all main table data including the models that have unique constraints
+        main_tables = ['game_updates', 'game_extras', 'images', 'game_urls', 'unmatched_folders', 
+                      'scan_jobs', 'download_requests', 'newsletters', 'system_events', 
+                      'invite_tokens', 'games', 'users', 'libraries', 'genres', 'platforms', 
+                      'developers', 'publishers', 'themes', 'game_modes', 'player_perspectives',
+                      'multiplayer_modes', 'global_settings', 'allowed_file_types', 'ignored_file_types']
+        
+        for table in main_tables:
+            try:
+                db_session.execute(text(f"TRUNCATE TABLE {table} RESTART IDENTITY CASCADE"))
+            except Exception:
+                pass  # Table might not exist
+        
+        # Re-enable foreign key checks
+        db_session.execute(text("SET session_replication_role = DEFAULT;"))
+        
+        db_session.commit()
+        print("✅ Nuked all test database data!")
+        
+    except Exception as e:
+        db_session.rollback()
+        print(f"❌ Error during aggressive cleanup: {e}")
+        
+        # Fallback: Use model-based deletes if truncate fails
+        try:
+            db_session.execute(text("SET session_replication_role = DEFAULT;"))
+            
+            # Delete in proper order to respect foreign key constraints
+            db_session.execute(delete(SystemEvents))
+            db_session.execute(delete(InviteToken))
+            db_session.execute(delete(DownloadRequest))
+            db_session.execute(delete(GameUpdate))
+            db_session.execute(delete(GameExtra))
+            db_session.execute(delete(Image))
+            db_session.execute(delete(GameURL))
+            db_session.execute(delete(Game))
+            db_session.execute(delete(User))
+            db_session.execute(delete(Library))
+            db_session.execute(delete(Genre))
+            db_session.execute(delete(Platform))
+            db_session.execute(delete(Developer))
+            db_session.execute(delete(Publisher))
+            db_session.execute(delete(Theme))
+            db_session.execute(delete(GameMode))
+            db_session.execute(delete(PlayerPerspective))
+            db_session.execute(delete(MultiplayerMode))
+            db_session.execute(delete(ScanJob))
+            db_session.execute(delete(UnmatchedFolder))
+            db_session.execute(delete(Newsletter))
+            db_session.execute(delete(GlobalSettings))
+            db_session.execute(delete(AllowedFileType))
+            db_session.execute(delete(IgnoredFileType))
+            
+            db_session.commit()
+            print("✅ Cleaned database with model deletes")
+            
+        except Exception as e2:
+            db_session.rollback()
+            print(f"❌ Fallback cleanup also failed: {e2}")
+            # Try one more time with explicit session handling
+            try:
+                db_session.close()
+                db_session.begin()
+                db_session.commit()
+            except:
+                pass
+
+
+@pytest.fixture(autouse=True)
+def cleanup_after_each_test(db_session):
+    """Automatically clean up after each test - no test data should persist!"""
+    yield  # Let the test run first
+    safe_cleanup_database(db_session)  # Clean up after
 
 
 def get_or_create_platform(db_session, name):

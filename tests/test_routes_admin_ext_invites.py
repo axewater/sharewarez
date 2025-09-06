@@ -100,14 +100,16 @@ def invite_token_used(db_session, regular_user, admin_user):
 class TestManageInvitesAuthentication:
     """Test authentication and authorization for manage_invites route."""
 
-    def test_unauthenticated_get_redirects_to_login(self, client):
+    def test_unauthenticated_get_redirects_to_login(self, client, admin_user):
         """Test that unauthenticated users are redirected to login."""
+        # Need at least one user in DB to avoid setup redirect
         response = client.get('/admin/manage_invites')
         assert response.status_code == 302
         assert '/login' in response.location
 
-    def test_unauthenticated_post_redirects_to_login(self, client):
+    def test_unauthenticated_post_redirects_to_login(self, client, admin_user):
         """Test that unauthenticated POST requests are redirected to login."""
+        # Need at least one user in DB to avoid setup redirect
         response = client.post('/admin/manage_invites', data={
             'user_id': 'test_id',
             'invites_number': '5'
@@ -432,49 +434,41 @@ class TestManageInvitesEdgeCases:
     @patch('modules.routes_admin_ext.invites.render_template')
     def test_database_error_handling_get(self, mock_render, client, admin_user, regular_user, monkeypatch):
         """Test that database errors in GET request are handled gracefully."""
-        # Mock a database error
-        def mock_execute_error(*args, **kwargs):
-            raise Exception("Database connection failed")
-        
         mock_render.return_value = 'mocked_template'
         
         with client.session_transaction() as sess:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
 
-        # Patch the db.session.execute method to raise an error
-        from modules import db
-        monkeypatch.setattr(db.session, 'execute', mock_execute_error)
+        # Mock the select function to throw an exception
+        with patch('modules.routes_admin_ext.invites.select') as mock_select:
+            mock_select.side_effect = Exception("Database connection failed")
 
-        # This should now handle the database error gracefully
-        response = client.get('/admin/manage_invites')
-        assert response.status_code == 200
-        
-        # Check that template was called with empty data due to error
-        mock_render.assert_called_once()
-        args, kwargs = mock_render.call_args
-        assert kwargs['users'] == []
-        assert kwargs['user_unused_invites'] == {}
+            # This should now handle the database error gracefully
+            response = client.get('/admin/manage_invites')
+            assert response.status_code == 200
+            
+            # Check that template was called with empty data due to error
+            mock_render.assert_called_once()
+            args, kwargs = mock_render.call_args
+            assert kwargs['users'] == []
+            assert kwargs['user_unused_invites'] == {}
 
     def test_database_error_handling_post(self, client, admin_user, regular_user, monkeypatch):
         """Test that database errors in POST request are handled gracefully."""
-        # Mock database error during user lookup
-        def mock_execute_error(*args, **kwargs):
-            raise Exception("Database connection failed")
-        
         with client.session_transaction() as sess:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
 
-        # Patch the db.session.execute method to raise an error
-        from modules import db
-        monkeypatch.setattr(db.session, 'execute', mock_execute_error)
+        # Mock the select function to throw an exception during user lookup
+        with patch('modules.routes_admin_ext.invites.select') as mock_select:
+            mock_select.side_effect = Exception("Database connection failed")
 
-        # This should handle the database error and redirect
-        response = client.post('/admin/manage_invites', data={
-            'user_id': regular_user.user_id,
-            'invites_number': '5'
-        })
-        
-        assert response.status_code == 302  # Redirect due to error
-        assert 'manage_invites' in response.location
+            # This should handle the database error and redirect
+            response = client.post('/admin/manage_invites', data={
+                'user_id': regular_user.user_id,
+                'invites_number': '5'
+            })
+            
+            assert response.status_code == 302  # Redirect due to error
+            assert 'manage_invites' in response.location
