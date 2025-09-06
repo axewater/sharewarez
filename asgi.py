@@ -18,7 +18,7 @@ load_dotenv()
 
 from modules import create_app, db
 from modules.models import User, DownloadRequest, Game
-from modules.async_streaming import create_async_streaming_response
+from modules.async_streaming import create_async_streaming_response, async_generate_zipstream_response
 from modules.utils_security import is_safe_path, get_allowed_base_directories
 from modules.utils_logging import log_system_event
 from sqlalchemy import select
@@ -96,9 +96,24 @@ class LazyASGIApp:
                 await self._handle_rom_download(scope, receive, send, path)
                 
         except Exception as e:
-            log_system_event(f"Error in async download handler: {str(e)}", 
-                           event_type='download', event_level='error')
-            await self._send_error(send, 500, "Internal Server Error")
+            # Use print instead of log_system_event to avoid context issues
+            print(f"Error in async download handler: {str(e)}")
+            
+            # Try to send error response, but handle case where response already started
+            try:
+                await self._send_error(send, 500, "Internal Server Error")
+            except Exception as error_e:
+                print(f"Could not send error response (response may have already started): {str(error_e)}")
+                # Try to close connection gracefully
+                try:
+                    await send({
+                        "type": "http.response.body",
+                        "body": b"",
+                        "more_body": False
+                    })
+                except Exception:
+                    # Connection handling failed, nothing more we can do
+                    pass
     
     async def _handle_zip_download(self, scope, receive, send, path):
         """Handle ZIP file downloads"""
@@ -131,6 +146,11 @@ class LazyASGIApp:
                 return
             
             file_path = download_request.zip_file_path
+            
+            # Check if this is a streaming download (source path is a directory)
+            if os.path.isdir(file_path):
+                await self._handle_streaming_download(send, download_request, file_path)
+                return
             
             # Security validation - different logic for ZIP files vs direct files
             zip_save_path = self._flask_app.config.get('ZIP_SAVE_PATH')
@@ -327,6 +347,88 @@ class LazyASGIApp:
                            event_type='download', event_level='error')
             # If we haven't started the response yet, send an error
             await self._send_error(send, 500, "Error streaming file")
+    
+    async def _handle_streaming_download(self, send, download_request, source_path):
+        """Handle zipstream downloads for multi-file games"""
+        try:
+            # Validate source path is within allowed directories
+            allowed_bases = get_allowed_base_directories(self._flask_app)
+            if not allowed_bases:
+                await self._send_error(send, 500, "Server configuration error")
+                return
+                
+            is_safe, error_message = is_safe_path(source_path, allowed_bases)
+            if not is_safe:
+                # Use print instead of log_system_event to avoid context issues
+                print(f"Security violation - streaming source outside allowed directories: {source_path[:100]}")
+                await self._send_error(send, 403, "Access denied")
+                return
+            
+            if not os.path.exists(source_path):
+                await self._send_error(send, 404, "Source path not found")
+                return
+            
+            # Get configuration parameters
+            chunk_size = self._flask_app.config.get('ZIPSTREAM_CHUNK_SIZE', 65536)
+            compression_level = self._flask_app.config.get('ZIPSTREAM_COMPRESSION_LEVEL', 0)
+            enable_zip64 = self._flask_app.config.get('ZIPSTREAM_ENABLE_ZIP64', True)
+            
+            # Generate filename
+            game = download_request.game
+            filename = f"{game.name}.zip" if game else "download.zip"
+            
+            print(f"Starting zipstream download: {filename}")
+            
+            # Create zipstream response
+            async_generator, headers = async_generate_zipstream_response(
+                source_path, filename, chunk_size, compression_level, enable_zip64
+            )
+            
+            # Send HTTP response start
+            await send({
+                "type": "http.response.start",
+                "status": 200,
+                "headers": [(k.encode(), v.encode()) for k, v in headers.items()]
+            })
+            
+            # Stream ZIP chunks
+            async for chunk in async_generator:
+                await send({
+                    "type": "http.response.body",
+                    "body": chunk,
+                    "more_body": True
+                })
+            
+            # End response
+            await send({
+                "type": "http.response.body",
+                "body": b"",
+                "more_body": False
+            })
+            
+            print(f"Completed zipstream download: {filename}")
+            
+        except Exception as e:
+            # Use print and handle potential undefined filename
+            error_filename = locals().get('filename', 'unknown')
+            print(f"Error streaming ZIP {error_filename}: {str(e)}")
+            
+            # Check if response has started - if so, we can only close the connection
+            # Cannot send error response after http.response.start has been sent
+            try:
+                # If we haven't sent the response start yet, send an error
+                await self._send_error(send, 500, "Error streaming ZIP file")
+            except Exception:
+                # Response already started, just close the connection gracefully
+                try:
+                    await send({
+                        "type": "http.response.body",
+                        "body": b"",
+                        "more_body": False
+                    })
+                except Exception:
+                    # Connection already closed, nothing more we can do
+                    pass
     
     async def _send_error(self, send, status_code, message):
         """Send an HTTP error response"""

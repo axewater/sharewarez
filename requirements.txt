@@ -16,3 +16,4 @@ email-validator
 uvicorn[standard]
 asgiref
 aiofiles
+zipstream-new

@@ -5,6 +5,8 @@ from typing import Tuple
 from modules.utils_filename import sanitize_filename
 from modules.models import DownloadRequest, GlobalSettings, db
 from modules.utils_security import is_safe_path, get_allowed_base_directories
+from modules.utils_zipstream import should_use_zipstream, get_zipstream_info
+from modules.async_streaming import get_zipstream_download_info
 from sqlalchemy import select
 
 def zip_game(download_request_id, app, zip_file_path):
@@ -45,7 +47,14 @@ def zip_game(download_request_id, app, zip_file_path):
             update_download_request(download_request, 'available', zip_file_path)
             return
         
-        # Only proceed with ZIP creation logic if it's not a single file
+        # Check if we should use zipstream for multi-file games
+        if should_use_zipstream(source_path):
+            print(f"Using zipstream for multi-file game: {game.name}")
+            safe_name = sanitize_filename(os.path.basename(zip_file_path))
+            prepare_streaming_download(download_request, source_path, safe_name)
+            return
+        
+        # Only proceed with traditional ZIP creation logic if it's not suitable for streaming
         zip_save_path = app.config['ZIP_SAVE_PATH']
         safe_name = sanitize_filename(os.path.basename(zip_file_path))
         zip_file_path = os.path.join(os.path.dirname(zip_file_path), safe_name)
@@ -140,9 +149,15 @@ def zip_folder(download_request_id, app, file_location, file_name):
             print(f"Source is a file, providing direct link: {source_path}")
             update_download_request(download_request, 'available', source_path)
             return
+        
+        # Check if we should use zipstream for multi-file folders
+        if should_use_zipstream(source_path):
+            print(f"Using zipstream for folder: {file_name}")
+            safe_name = sanitize_filename(f"{file_name}.zip")
+            prepare_streaming_download(download_request, source_path, safe_name)
+            return
 
-
-        # Proceed to zip the folder
+        # Proceed to zip the folder with traditional method
         try:           
             if not os.path.exists(zip_save_path):
                 os.makedirs(zip_save_path)
@@ -225,3 +240,32 @@ def delete_zip_file_safely(zip_file_path: str, zip_save_path: str) -> Tuple[bool
         return True, f"ZIP file deleted successfully: {zip_file_path}"
     except OSError as e:
         return False, f"Error deleting ZIP file: {str(e)}"
+
+
+def prepare_streaming_download(download_request, source_path, filename):
+    """
+    Set up streaming metadata for zipstream downloads.
+    
+    Args:
+        download_request: DownloadRequest object to update
+        source_path: Path to the source files to stream
+        filename: Filename for the download
+    """
+    try:
+        # Generate streaming metadata
+        stream_info = get_zipstream_info(source_path, filename)
+        
+        # Update download request with streaming status
+        download_request.status = 'available'
+        download_request.zip_file_path = source_path  # Store source path for streaming
+        download_request.completion_time = datetime.now(timezone.utc)
+        
+        print(f"Download request prepared for streaming: {download_request}")
+        db.session.commit()
+        
+    except Exception as e:
+        error_message = str(e)
+        print(f"Error preparing streaming download: {error_message}")
+        update_download_request(download_request, 'failed', f"Error: {error_message}")
+
+
