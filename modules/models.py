@@ -518,6 +518,10 @@ class GlobalSettings(db.Model):
     turbo_download_batch_size = db.Column(db.Integer, default=200)
     # Scan Thread Settings  
     scan_thread_count = db.Column(db.Integer, default=4)
+    # Setup State Tracking
+    setup_in_progress = db.Column(db.Boolean, default=False)
+    setup_current_step = db.Column(db.Integer, default=1) 
+    setup_completed = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'

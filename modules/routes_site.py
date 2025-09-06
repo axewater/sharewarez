@@ -41,9 +41,12 @@ def logout():
 @site_bp.route('/', methods=['GET', 'POST'])
 @site_bp.route('/index', methods=['GET', 'POST'])
 def index():
-    # Check if setup is required
-    if not db.session.execute(select(User)).scalars().first():
-        return redirect(url_for('setup.setup'))
+    from modules.utils_setup import is_setup_required, is_setup_in_progress, get_setup_redirect_url
+    
+    # Check if setup is required or in progress
+    if is_setup_required() or is_setup_in_progress():
+        setup_url = get_setup_redirect_url()
+        return redirect(setup_url)
         
     # If not authenticated, redirect to login
     if not current_user.is_authenticated:

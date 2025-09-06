@@ -4,6 +4,7 @@ from modules import db
 from sqlalchemy import select
 from modules.forms import SetupForm, IGDBSetupForm
 from modules.models import User, GlobalSettings
+from modules.utils_setup import is_setup_required, set_setup_step, mark_setup_complete, get_current_setup_step
 from uuid import uuid4
 from datetime import datetime, timezone
 from modules.utils_logging import log_system_event
@@ -12,20 +13,20 @@ setup_bp = Blueprint('setup', __name__)
 
 @setup_bp.route('/setup', methods=['GET'])
 def setup():    
-    # Clear any existing session data when starting setup
-    session.clear()
-    session['setup_step'] = 1
-
-    if db.session.execute(select(User)).scalars().first():
+    # Check if setup is required
+    if not is_setup_required():
         flash('Setup has already been completed.', 'warning')
         return redirect(url_for('login.login'))
+
+    # Set setup step to 1 (admin account creation)
+    set_setup_step(1)
 
     form = SetupForm()
     return render_template('setup/setup.html', form=form, is_setup_mode=True)
 
 @setup_bp.route('/setup/submit', methods=['POST'])
 def setup_submit():
-    if db.session.execute(select(User)).scalars().first():
+    if not is_setup_required():
         flash('Setup has already been completed.', 'warning')
         return redirect(url_for('login.login'))
 
@@ -48,7 +49,7 @@ def setup_submit():
         try:
             db.session.add(user)
             db.session.commit()
-            session['setup_step'] = 2  # Move to SMTP setup
+            set_setup_step(2)  # Move to SMTP setup
             log_system_event("Admin account created during setup", event_type='setup', event_level='information')
             flash('Admin account created successfully! Please configure your SMTP settings.', 'success')
             return redirect(url_for('setup.setup_smtp'))
@@ -64,20 +65,20 @@ def setup_submit():
 @setup_bp.route('/setup/smtp', methods=['GET', 'POST'])
 def setup_smtp():
     # Ensure we're in the correct setup step
-    setup_step = session.get('setup_step')
+    current_step = get_current_setup_step()
     
-    if setup_step is None:
+    if current_step is None:
         flash('Setup already completed.', 'warning')
         return redirect(url_for('login.login'))
     
-    if setup_step != 2:
+    if current_step != 2:
         flash('Please complete the admin account setup first.', 'warning')
         return redirect(url_for('setup.setup'))
 
     if request.method == 'POST':
         # Check if skip button was clicked
         if 'skip_smtp' in request.form:
-            session['setup_step'] = 3  # Move to IGDB setup even when skipping
+            set_setup_step(3)  # Move to IGDB setup even when skipping
             flash('SMTP setup skipped. Please configure your IGDB settings.', 'info')
             return redirect(url_for('setup.setup_igdb'))
 
@@ -96,7 +97,7 @@ def setup_smtp():
 
         try:
             db.session.commit()
-            session['setup_step'] = 3  # Move to IGDB setup
+            set_setup_step(3)  # Move to IGDB setup
             log_system_event("SMTP settings configured during setup", event_type='setup', event_level='information')
             flash('SMTP settings saved successfully! Please configure your IGDB settings.', 'success')
             return redirect(url_for('setup.setup_igdb'))
@@ -108,7 +109,9 @@ def setup_smtp():
 
 @setup_bp.route('/setup/igdb', methods=['GET', 'POST'])
 def setup_igdb():
-    if not session.get('setup_step') == 3:
+    current_step = get_current_setup_step()
+    
+    if current_step != 3:
         flash('Please complete the SMTP setup first.', 'warning')
         return redirect(url_for('setup.setup'))
 
@@ -124,7 +127,7 @@ def setup_igdb():
         
         try:
             db.session.commit()
-            session.pop('setup_step', None)  # Clear setup progress
+            mark_setup_complete()  # Mark setup as fully completed
             log_system_event("IGDB settings configured - Setup completed", event_type='setup', event_level='information')
             flash('Setup completed successfully! Please create your first game library.', 'success')
             from modules.init_data import initialize_library_folders, insert_default_filters, initialize_default_settings, initialize_allowed_file_types, initialize_discovery_sections
