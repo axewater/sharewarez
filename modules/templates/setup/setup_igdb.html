@@ -33,7 +33,7 @@
                     {{ form.csrf_token }}
                     <div class="form-group">
                         <label for="igdb_client_id">{{ form.igdb_client_id.label }}</label>
-                        {{ form.igdb_client_id(class="form-control", id="igdb_client_id") }}
+                        {{ form.igdb_client_id(class="form-control", id="igdb_client_id", autocomplete="off") }}
                         {% if form.igdb_client_id.errors %}
                             {% for error in form.igdb_client_id.errors %}
                                 <span class="error-message">{{ error }}</span>
@@ -43,7 +43,7 @@
                     
                     <div class="form-group">
                         <label for="igdb_client_secret">{{ form.igdb_client_secret.label }}</label>
-                        {{ form.igdb_client_secret(class="form-control", id="igdb_client_secret") }}
+                        {{ form.igdb_client_secret(class="form-control", id="igdb_client_secret", autocomplete="off") }}
                         {% if form.igdb_client_secret.errors %}
                             {% for error in form.igdb_client_secret.errors %}
                                 <span class="error-message">{{ error }}</span>

@@ -53,7 +53,7 @@
         
         <div class="form-group">
             <label for="smtp_password">Password</label>
-            <input type="password" id="smtp_password" value="{{ settings.smtp_password if settings else '' }}" class="form-control">
+            <input type="password" id="smtp_password" value="{{ settings.smtp_password if settings else '' }}" class="form-control" autocomplete="off">
         </div>
         
         <div class="form-group">
@@ -63,7 +63,7 @@
         
         <div class="form-group">
             <label for="smtp_default_sender">Default Sender Email</label>
-            <input type="email" id="smtp_default_sender" value="{{ settings.smtp_default_sender if settings else '' }}" class="form-control">
+            <input type="email" id="smtp_default_sender" value="{{ settings.smtp_default_sender if settings else '' }}" class="form-control" autocomplete="email">
         </div>
         
         {% if settings and settings.smtp_last_tested %}

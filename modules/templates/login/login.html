@@ -24,9 +24,9 @@
                 <form action="/login" method="post">
                     {{ form.hidden_tag() }}
                     <label for="username" class="label-large-text">User name:</label><br>
-                    <input type="text" class="input-glass" id="username" name="username"><br>
+                    <input type="text" class="input-glass" id="username" name="username" autocomplete="username"><br>
                     <label for="password" class="label-large-text">Secret Password:</label><br>
-                    <input type="password" class="input-glass" id="password" name="password"><br>
+                    <input type="password" class="input-glass" id="password" name="password" autocomplete="current-password"><br>
                     
                     <div class="container-buttons-login">
                         <input type="submit" value="Login" class="btn btn-primary button-login">
