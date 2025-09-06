@@ -29,12 +29,10 @@ def setup_database(app, force_setup=False):
             db.create_all()
             print("Database reset complete.")
             
-            # Get all users and delete them individually to handle cascade deletion
-            users = db.session.execute(select(User)).scalars().all()
-            for user in users:
-                db.session.delete(user)
-            db.session.commit()
-            print("Setup wizard will be forced on next startup")
+            # Reset setup state in database
+            from modules.utils_setup import reset_setup_state
+            reset_setup_state()
+            print("Setup state reset - setup wizard will be forced on next startup")
 
 # Run migrations and initialization once before creating app (only in main process)
 if __name__ == "__main__":

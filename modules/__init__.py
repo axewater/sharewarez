@@ -110,6 +110,32 @@ def create_app():
             current_theme = 'default'
         return dict(current_theme=current_theme)
 
+    @app.before_request
+    def check_setup_status():
+        """Check if setup is required and redirect accordingly."""
+        from flask import request, redirect, url_for
+        from modules.utils_setup import should_redirect_to_setup, get_setup_redirect_url
+        
+        # Skip setup checks for certain endpoints
+        exempt_endpoints = {
+            'setup.setup', 'setup.setup_submit', 'setup.setup_smtp', 'setup.setup_igdb',
+            'static', 'favicon', 'site.favicon'
+        }
+        
+        # Skip setup checks for API endpoints (they should handle their own authentication)
+        if request.endpoint and (
+            request.endpoint in exempt_endpoints or
+            request.endpoint.startswith('apis.') or
+            request.path.startswith('/api/')
+        ):
+            return
+        
+        # Check if we need to redirect to setup
+        if should_redirect_to_setup():
+            setup_url = get_setup_redirect_url()
+            if request.endpoint and request.path != setup_url:
+                return redirect(setup_url)
+
     with app.app_context():
         # Import models and routes
         from . import routes, models
