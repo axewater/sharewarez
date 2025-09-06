@@ -64,7 +64,7 @@ Invite your friends securely and share your favorite games!
 
 #### 1️⃣ Clone Repository
 ```bash
-git clone https://github.com/axewater/sharewarez/
+git clone --depth 1 https://github.com/axewater/sharewarez.git
 cd sharewarez
 ```
 
@@ -153,3 +153,4 @@ docker pull kapitanczarnobrod/sharewarez:latest
 ## 📝 3rd party code
 - 💭 Thanks to BinBashBanana's webretro we can now run ROMs in the browser.
 - 🌐 Check out his project here: https://github.com/BinBashBanana/webretro
+
