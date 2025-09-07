@@ -9,36 +9,46 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target.classList.contains('delete-game')) {
             event.stopPropagation();
             const gameUuid = event.target.getAttribute('data-game-uuid');
-			const game_library_uuid = event.target.getAttribute('data-game-library-uuid');
-			const urlParams = new URLSearchParams(window.location.search);
-			const library_uuid = urlParams.get('library_uuid');
-            console.log(`Deleting game UUID: ${gameUuid}`);
+            console.log(`Removing game from library UUID: ${gameUuid}`);
 
             fetch(`/delete_game/${gameUuid}`, {
                 method: 'POST',
-                headers: CSRFUtils.getHeaders(),
-                body: {}
+                headers: CSRFUtils.getHeaders({
+                    'Content-Type': 'application/json'
+                })
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok.');
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Game removed successfully');
+                    $.notify(data.message, "success");
+                    
+                    // Remove the game card with fade out animation (same as delete from disk)
+                    const gameCard = document.querySelector(`[data-game-uuid="${gameUuid}"]`).closest('.game-card-container');
+                    if (gameCard) {
+                        gameCard.style.transition = 'opacity 0.3s ease';
+                        gameCard.style.opacity = '0';
+                        setTimeout(() => {
+                            gameCard.remove();
+                            
+                            // Check if this was the last game and show empty message if needed
+                            const remainingCards = document.querySelectorAll('.game-card-container');
+                            if (remainingCards.length === 0) {
+                                const container = document.querySelector('.game-library-container');
+                                if (container) {
+                                    container.innerHTML = '<p>No games found in this library.</p>';
+                                }
+                            }
+                        }, 300);
+                    }
+                } else {
+                    console.error('Error removing game:', data.message);
+                    $.notify(data.message, "error");
                 }
-                return response.text();
-            })
-            .then(() => {
-                console.log('Game deleted successfully');
-				if (library_uuid) {
-					window.location.href = '/library?library_uuid=' + library_uuid;
-				}
-				else if (game_library_uuid) {
-					window.location.href = '/library?library_uuid=' + game_library_uuid;
-				}
-				else {
-					window.location.href = '/library';
-				}
             })
             .catch(error => {
                 console.error('There has been a problem with your fetch operation:', error);
+                $.notify("An error occurred while removing the game.", "error");
             });
         }
 

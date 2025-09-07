@@ -575,10 +575,14 @@ def delete_game_route(game_uuid):
     
     if is_scan_job_running():
         print(f"Error: Attempt to delete game UUID: {game_uuid} while scan job is running")
-        flash('Cannot delete the game while a scan job is running. Please try again later.', 'error')
-        return redirect(url_for('library.library'))
-    delete_game(game_uuid)
-    return redirect(url_for('library.library'))
+        return jsonify({'success': False, 'message': 'Cannot delete the game while a scan job is running. Please try again later.'}), 403
+    
+    try:
+        delete_game(game_uuid)
+        return jsonify({'success': True, 'message': 'Game removed from library successfully.'}), 200
+    except Exception as e:
+        print(f"Error deleting game {game_uuid}: {e}")
+        return jsonify({'success': False, 'message': f'Error removing game: {str(e)}'}), 500
 
 
 @bp.route('/delete_folder', methods=['POST'])
