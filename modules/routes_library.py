@@ -9,8 +9,27 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy import select, func
 from modules.utils_processors import get_global_settings
 from modules import cache
+import json
+import urllib.parse
 
 library_bp = Blueprint('library', __name__)
+
+def get_saved_filters_from_cookie():
+    """Parse saved filters from the libraryFilters cookie"""
+    try:
+        cookie_value = request.cookies.get('libraryFilters')
+        if not cookie_value:
+            return {}
+        
+        # Decode URL-encoded cookie value and parse JSON
+        decoded_value = urllib.parse.unquote(cookie_value)
+        saved_filters = json.loads(decoded_value)
+        
+        # Return only non-empty filter values
+        return {k: v for k, v in saved_filters.items() if v}
+    except (json.JSONDecodeError, ValueError, TypeError) as e:
+        print(f"Error parsing saved filters cookie: {e}")
+        return {}
 
 @library_bp.context_processor
 @cache.cached(timeout=500, key_prefix='global_settings')
@@ -44,17 +63,20 @@ def library():
     sort_by = current_user.preferences.default_sort if current_user.preferences else 'name'
     sort_order = current_user.preferences.default_sort_order if current_user.preferences else 'asc'
 
-    # Extract filters from request arguments
+    # Get saved filters from cookie (fallback if no URL params)
+    saved_filters = get_saved_filters_from_cookie()
+    
+    # Extract filters from request arguments (URL params take priority over cookie)
     page = request.args.get('page', 1, type=int)
-    library_uuid = request.args.get('library_uuid')
+    library_uuid = request.args.get('library_uuid') or saved_filters.get('library_uuid')
     library_name = request.args.get('library_name')
     # Only override per_page, sort_by, and sort_order if the URL parameters are provided
     per_page = request.args.get('per_page', type=int) or per_page
-    genre = request.args.get('genre')
-    rating = request.args.get('rating', type=int)
-    game_mode = request.args.get('game_mode')
-    player_perspective = request.args.get('player_perspective')
-    theme = request.args.get('theme')
+    genre = request.args.get('genre') or saved_filters.get('genre')
+    rating = request.args.get('rating', type=int) or (int(saved_filters.get('rating')) if saved_filters.get('rating') and str(saved_filters.get('rating')).isdigit() else None)
+    game_mode = request.args.get('game_mode') or saved_filters.get('game_mode')
+    player_perspective = request.args.get('player_perspective') or saved_filters.get('player_perspective')
+    theme = request.args.get('theme') or saved_filters.get('theme')
     sort_by = request.args.get('sort_by') or sort_by
     sort_order = request.args.get('sort_order') or sort_order
 
