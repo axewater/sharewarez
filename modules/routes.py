@@ -560,7 +560,7 @@ def refresh_game_images(game_uuid):
     # Check if the request is an AJAX request
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         # Return a JSON response for AJAX requests
-        return jsonify({f"message": "Game images refresh process started for {game_name}.", "status": "info"})
+        return jsonify({"message": f"Game images refresh process started for {game_name}.", "status": "info"})
     else:
         # For non-AJAX requests, perform the usual redirec
         flash(f"Game images refresh process started for {game_name}.", "info")

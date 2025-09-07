@@ -390,10 +390,12 @@ $(document).ready(function() {
             <button type="button" class="menu-button trigger-delete-disk-modal delete-game-from-disk" data-game-uuid="${game.uuid}">Delete Game from Disk</button>
         </div>`;
         }
-        menuHtml += `
+        if (game.url) {
+            menuHtml += `
         <div class="menu-item">
-            <button type="submit" onclick="window.open('{{ game.url }}', 'target=_new')" class="menu-button">Open IGDB Page</button>
+            <button type="submit" onclick="window.open('${game.url}', '_blank')" class="menu-button">Open IGDB Page</button>
         </div>`;
+        }
         
         if (discordConfigured && discordManualTrigger && isAdmin) {
             menuHtml += `
