@@ -350,36 +350,7 @@ $(document).ready(function() {
         });
     }
 
-    function createGameCardHtml(game) {
-        var genres = game.genres ? game.genres.join(', ') : 'No Genres';
-        var defaultCover = 'newstyle/default_cover.jpg';
-        var fullCoverUrl = !game.cover_url || game.cover_url === defaultCover ? '/static/' + defaultCover : '/static/library/images/' + game.cover_url;
-        var popupMenuHtml = createPopupMenuHtml(game);
-        var gameCardHtml = `
-    <div class="game-card-container">
-        <div class="game-card" onmouseover="showDetails(this, '${game.uuid}')" onmouseout="hideDetails()" data-name="${game.name}" data-size="${game.size}" data-genres="${genres}">
-            <button id="menuButton-${game.uuid}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
-            <button class="favorite-btn" data-game-uuid="${game.uuid}" data-is-favorite="${game.is_favorite}">
-                <i class="fas fa-heart"></i>
-            </button>
-            ${popupMenuHtml}
-            
-            <div class="game-cover">
-                <a href="/game_details/${game.uuid}">
-                <img src="${fullCoverUrl}" alt="${game.name}" class="game-cover">
-                </a>
-            </div>
-            <div id="details-${game.uuid}" class="popup-game-details hidden">
-                <!-- Details and screenshots will be injected here by JavaScript -->
-            </div>
-        </div>
-    </div>
-    `;
-        return gameCardHtml;
-    }
-
     function createPopupMenuHtml(game) {
-        // update the popup_menu.html template as well
         const csrfToken = CSRFUtils.getToken();
         const enableDeleteGameOnDisk = document.body.getAttribute('data-enable-delete-game-on-disk') === 'true';
         const discordConfigured = document.body.getAttribute('data-discord-configured') === 'true';
@@ -436,6 +407,35 @@ $(document).ready(function() {
     `;
         return menuHtml;
     }
+
+    function createGameCardHtml(game) {
+        var genres = game.genres ? game.genres.join(', ') : 'No Genres';
+        var defaultCover = 'newstyle/default_cover.jpg';
+        var fullCoverUrl = !game.cover_url || game.cover_url === defaultCover ? '/static/' + defaultCover : '/static/library/images/' + game.cover_url;
+        var popupMenuHtml = createPopupMenuHtml(game);
+        var gameCardHtml = `
+    <div class="game-card-container">
+        <div class="game-card" onmouseover="showDetails(this, '${game.uuid}')" onmouseout="hideDetails()" data-name="${game.name}" data-size="${game.size}" data-genres="${genres}">
+            <button id="menuButton-${game.uuid}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
+            <button class="favorite-btn" data-game-uuid="${game.uuid}" data-is-favorite="${game.is_favorite}">
+                <i class="fas fa-heart"></i>
+            </button>
+            ${popupMenuHtml}
+            
+            <div class="game-cover">
+                <a href="/game_details/${game.uuid}">
+                <img src="${fullCoverUrl}" alt="${game.name}" class="game-cover">
+                </a>
+            </div>
+            <div id="details-${game.uuid}" class="popup-game-details hidden">
+                <!-- Details and screenshots will be injected here by JavaScript -->
+            </div>
+        </div>
+    </div>
+    `;
+        return gameCardHtml;
+    }
+
 
     $('#sortOrderToggle').click(function() {
         sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
@@ -546,6 +546,12 @@ document.body.addEventListener('click', function(event) {
         const gameUuid = event.target.getAttribute('data-game-uuid');
         console.log(`Refreshing images for game UUID: ${gameUuid}`);
 
+        // Close the popup menu
+        const popupMenu = document.getElementById(`popupMenu-${gameUuid}`);
+        if (popupMenu) {
+            popupMenu.style.display = 'none';
+        }
+
         fetch(`/refresh_game_images/${gameUuid}`, {
             method: 'POST',
             headers: CSRFUtils.getHeaders({ 
@@ -571,91 +577,16 @@ document.body.addEventListener('click', function(event) {
         })
         .then(data => {
             console.log('Game images refreshed successfully', data);
+            if (data.message) {
+                $.notify(data.message, "success");
+            }
         })
         .catch(error => {
             console.error('There has been a problem with your fetch operation:', error);
+            $.notify("An error occurred while refreshing game images.", "error");
         });
     }
 
-    if (event.target.classList.contains('move-library')) {
-        event.stopPropagation();
-        
-        const gameUuid = event.target.getAttribute('data-game-uuid');
-        const submenuContainer = event.target.closest('.move-library-container').querySelector('.submenu-libraries');
-        
-        // Close any other open libraries submenu
-        if (currentLibrariesSubmenu && currentLibrariesSubmenu !== submenuContainer) {
-            currentLibrariesSubmenu.style.display = 'none';
-        }
-        
-        // Toggle the submenu
-        if (submenuContainer.style.display === 'none') {
-            submenuContainer.style.display = 'block';
-            currentLibrariesSubmenu = submenuContainer;
-            
-            // Show loading indicator
-            const loadingElement = submenuContainer.querySelector('.loading-libraries');
-            const librariesList = submenuContainer.querySelector('.libraries-list');
-            loadingElement.style.display = 'block';
-            librariesList.style.display = 'none';
-            
-            // Fetch libraries
-            fetch('/api/get_libraries')
-                .then(response => response.json())
-                .then(libraries => {
-                    // Hide loading, show libraries list
-                    loadingElement.style.display = 'none';
-                    librariesList.style.display = 'block';
-                    
-                    // Clear previous libraries
-                    librariesList.innerHTML = '';
-                    
-                    // Add libraries to the submenu
-                    libraries.forEach(library => {
-                        const libraryItem = document.createElement('div');
-                        libraryItem.className = 'library-item';
-                        libraryItem.textContent = library.name;
-                        libraryItem.setAttribute('data-library-uuid', library.uuid);
-                        libraryItem.setAttribute('data-game-uuid', gameUuid);
-                        
-                        libraryItem.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            const targetLibraryUuid = this.getAttribute('data-library-uuid');
-                            const gameUuid = this.getAttribute('data-game-uuid');
-                            
-                            // Confirm with the user
-                            if (confirm(`Are you sure you want to move this game to the "${library.name}" library?`)) {
-                                // Send request to move the game
-                                fetch('/api/move_game_to_library', {
-                                    method: 'POST',
-                                    headers: CSRFUtils.getHeaders({ 'Content-Type': 'application/json' }),
-                                    body: JSON.stringify({
-                                        game_uuid: gameUuid,
-                                        target_library_uuid: targetLibraryUuid
-                                    })
-                                })
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data.success) {
-                                        window.location.reload();
-                                    } else {
-                                        alert('Error: ' + data.message);
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error moving game:', error);
-                                    alert('An error occurred while moving the game.');
-                                });
-                            }
-                        });
-                        librariesList.appendChild(libraryItem);
-                    });
-                });
-        } else {
-            submenuContainer.style.display = 'none';
-            currentLibrariesSubmenu = null;
-        }
-    }
 });
 
 window.addEventListener('click', function() {

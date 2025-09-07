@@ -142,6 +142,20 @@ class DatabaseManager:
                 ALTER TYPE status_enum ADD VALUE 'Cancelled';
             END IF;
         END $$;
+
+        -- Add unique index to prevent duplicate cover images (but allow multiple screenshots)
+        DO $$
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM pg_class c
+                JOIN pg_namespace n ON n.oid = c.relnamespace
+                WHERE c.relname = 'unique_game_cover_image' AND n.nspname = 'public'
+            ) THEN
+                CREATE UNIQUE INDEX unique_game_cover_image 
+                ON images (game_uuid) 
+                WHERE image_type = 'cover';
+            END IF;
+        END $$;
         
         """
         print("Upgrading database to the latest schema")

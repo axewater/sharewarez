@@ -102,7 +102,7 @@ def browse_games():
     # Get game data
     game_data = []
     for game in games:
-        cover_image = db.session.execute(select(Image).filter_by(game_uuid=game.uuid, image_type='cover')).scalar_one_or_none()
+        cover_image = db.session.execute(select(Image).filter_by(game_uuid=game.uuid, image_type='cover')).scalars().first()
         cover_url = cover_image.url if cover_image else 'newstyle/default_cover.jpg'
         genres = [genre.name for genre in game.genres]
         game_size_formatted = format_size(game.size)
@@ -322,7 +322,7 @@ def edit_game_images(game_uuid):
     if is_scan_job_running():
         flash('Image editing is restricted while a scan job is running. Please try again later.', 'warning')
     game = db.session.execute(select(Game).filter_by(uuid=game_uuid)).scalar_one_or_none() or abort(404)
-    cover_image = db.session.execute(select(Image).filter_by(game_uuid=game_uuid, image_type='cover')).scalar_one_or_none()
+    cover_image = db.session.execute(select(Image).filter_by(game_uuid=game_uuid, image_type='cover')).scalars().first()
     screenshots = db.session.execute(select(Image).filter_by(game_uuid=game_uuid, image_type='screenshot')).scalars().all()
     return render_template('games/game_edit_images.html', game=game, cover_image=cover_image, images=screenshots)
 
@@ -375,7 +375,7 @@ def upload_image(game_uuid):
     # Handle cover image logic
     if image_type == 'cover':
         # Check if a cover image already exists
-        existing_cover = db.session.execute(select(Image).filter_by(game_uuid=game_uuid, image_type='cover')).scalar_one_or_none()
+        existing_cover = db.session.execute(select(Image).filter_by(game_uuid=game_uuid, image_type='cover')).scalars().first()
         if existing_cover:
             # If exists, delete the old cover image file and record
             old_cover_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], existing_cover.url)
@@ -632,25 +632,25 @@ def delete_full_game():
     print(f"Route: /delete_full_game - Game UUID: {game_uuid}")
     if not game_uuid:
         print(f"Route: /delete_full_game - Game UUID is required.")
-        return jsonify({'status': 'error', 'message': 'Game UUID is required.'}), 400
+        return jsonify({'success': False, 'message': 'Game UUID is required.'}), 400
 
     if is_scan_job_running():
         print(f"Error: Attempt to delete full game UUID: {game_uuid} while scan job is running")
-        return jsonify({'status': 'error', 'message': 'Cannot delete the game while a scan job is running. Please try again later.'}), 403
+        return jsonify({'success': False, 'message': 'Cannot delete the game while a scan job is running. Please try again later.'}), 403
 
     game_to_delete = db.session.execute(select(Game).filter_by(uuid=game_uuid)).scalar_one_or_none()
     print(f"Route: /delete_full_game - Game to delete: {game_to_delete}")
 
     if not game_to_delete:
         print(f"Route: /delete_full_game - Game not found.")
-        return jsonify({'status': 'error', 'message': 'Game not found.'}), 404
+        return jsonify({'success': False, 'message': 'Game not found.'}), 404
 
     full_path = game_to_delete.full_disk_path
     print(f"Route: /delete_full_game - Full path: {full_path}")
 
     if not os.path.exists(full_path):
         print(f"Route: /delete_full_game - Game does not exist on disk.")
-        return jsonify({'status': 'error', 'message': 'Game does not exist on disk.'}), 404
+        return jsonify({'success': False, 'message': 'Game does not exist on disk.'}), 404
 
     try:
         is_directory = os.path.isdir(full_path)

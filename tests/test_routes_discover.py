@@ -239,12 +239,12 @@ class TestGameDetails:
         game_without_image = test_games[4]  # Last game has no image
         
         # Test game with cover image
-        cover_image = db.session.execute(select(Image).filter_by(game_uuid=game_with_image.uuid, image_type='cover')).scalar_one_or_none()
+        cover_image = db.session.execute(select(Image).filter_by(game_uuid=game_with_image.uuid, image_type='cover')).scalars().first()
         assert cover_image is not None
         assert '/static/covers/' in cover_image.url
         
         # Test game without cover image
-        no_cover = db.session.execute(select(Image).filter_by(game_uuid=game_without_image.uuid, image_type='cover')).scalar_one_or_none()
+        no_cover = db.session.execute(select(Image).filter_by(game_uuid=game_without_image.uuid, image_type='cover')).scalars().first()
         assert no_cover is None
 
     def test_game_attributes(self, test_games):

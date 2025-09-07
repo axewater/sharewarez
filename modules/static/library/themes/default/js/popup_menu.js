@@ -23,23 +23,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Game removed successfully');
                     $.notify(data.message, "success");
                     
-                    // Remove the game card with fade out animation (same as delete from disk)
-                    const gameCard = document.querySelector(`[data-game-uuid="${gameUuid}"]`).closest('.game-card-container');
-                    if (gameCard) {
-                        gameCard.style.transition = 'opacity 0.3s ease';
-                        gameCard.style.opacity = '0';
+                    // Check if we're on game details page by looking for game-specific elements
+                    const isGameDetailsPage = document.querySelector('.game-card-q1, .game-card-q2') !== null;
+                    
+                    if (isGameDetailsPage) {
+                        // On game details page, redirect to library after a short delay to show the notification
                         setTimeout(() => {
-                            gameCard.remove();
-                            
-                            // Check if this was the last game and show empty message if needed
-                            const remainingCards = document.querySelectorAll('.game-card-container');
-                            if (remainingCards.length === 0) {
-                                const container = document.querySelector('.game-library-container');
-                                if (container) {
-                                    container.innerHTML = '<p>No games found in this library.</p>';
+                            window.location.href = '/library';
+                        }, 1000);
+                    } else {
+                        // On library page, remove the game card with fade out animation
+                        const gameCard = document.querySelector(`[data-game-uuid="${gameUuid}"]`).closest('.game-card-container');
+                        if (gameCard) {
+                            gameCard.style.transition = 'opacity 0.3s ease';
+                            gameCard.style.opacity = '0';
+                            setTimeout(() => {
+                                gameCard.remove();
+                                
+                                // Check if this was the last game and show empty message if needed
+                                const remainingCards = document.querySelectorAll('.game-card-container');
+                                if (remainingCards.length === 0) {
+                                    const container = document.querySelector('.game-library-container');
+                                    if (container) {
+                                        container.innerHTML = '<p>No games found in this library.</p>';
+                                    }
                                 }
-                            }
-                        }, 300);
+                            }, 300);
+                        }
                     }
                 } else {
                     console.error('Error removing game:', data.message);

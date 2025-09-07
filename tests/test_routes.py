@@ -792,7 +792,10 @@ class TestMainBlueprint:
             sess['_user_id'] = str(admin_user.id)
         
         response = client.post(f'/delete_game/{test_game.uuid}')
-        assert response.status_code == 302  # Redirect
+        assert response.status_code == 200
+        
+        data = json.loads(response.data)
+        assert data['success'] == True
         mock_delete_game.assert_called_once_with(test_game.uuid)
 
     @patch('flask_login.current_user')
@@ -809,7 +812,11 @@ class TestMainBlueprint:
             sess['_user_id'] = str(admin_user.id)
         
         response = client.post(f'/delete_game/{test_game.uuid}')
-        assert response.status_code == 302  # Redirect
+        assert response.status_code == 403
+        
+        data = json.loads(response.data)
+        assert data['success'] == False
+        assert 'Cannot delete the game while a scan job is running' in data['message']
 
     @patch('flask_login.current_user')
     @patch('modules.routes.os.path.exists')
@@ -877,7 +884,7 @@ class TestMainBlueprint:
         mock_current_user.name = admin_user.name
         mock_is_scan_running.return_value = False
         mock_isdir.return_value = True
-        mock_exists.return_value = False  # Folder deleted successfully
+        mock_exists.side_effect = [True, False]  # First check: exists, after deletion: doesn't exist
         
         with client.session_transaction() as sess:
             sess['_user_id'] = str(admin_user.id)
@@ -887,7 +894,7 @@ class TestMainBlueprint:
         assert response.status_code == 200
         
         data = json.loads(response.data)
-        assert data['status'] == 'success'
+        assert data['success'] == True
         mock_rmtree.assert_called_once()
         mock_delete_game.assert_called_once_with(test_game.uuid)
 
@@ -906,6 +913,9 @@ class TestMainBlueprint:
         response = client.post('/delete_full_game', 
                               json={'game_uuid': test_game.uuid})
         assert response.status_code == 403
+        
+        data = json.loads(response.data)
+        assert data['success'] == False
 
     @patch('flask_login.current_user')
     @patch('modules.routes.is_scan_job_running')
@@ -921,6 +931,9 @@ class TestMainBlueprint:
         
         response = client.post('/delete_full_game', json={})
         assert response.status_code == 400
+        
+        data = json.loads(response.data)
+        assert data['success'] == False
 
     @patch('flask_login.current_user')
     def test_delete_full_library(self, mock_current_user, 
@@ -1059,6 +1072,9 @@ class TestErrorHandling:
                 response = client.post('/delete_full_game', 
                                       json={'game_uuid': test_game.uuid})
                 assert response.status_code == 404
+                
+                data = json.loads(response.data)
+                assert data['success'] == False
 
     @patch('flask_login.current_user')
     def test_delete_all_unmatched_folders_db_error(self, mock_current_user, client, app, db_session, admin_user):
