@@ -666,11 +666,11 @@ def delete_full_game():
         print(f"Database and image cleanup complete.")
         
         success_message = 'Game and its folder have been deleted successfully.' if is_directory else 'Game file has been deleted successfully.'
-        return jsonify({'status': 'success', 'message': success_message}), 200
+        return jsonify({'success': True, 'message': success_message}), 200
     except Exception as e:
         error_message = f"Error deleting game from disk: {e}"
         print(error_message)
-        return jsonify({'status': 'error', 'message': error_message}), 500
+        return jsonify({'success': False, 'message': error_message}), 500
 
 
 @bp.route('/delete_library_progress/<job_id>')

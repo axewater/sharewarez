@@ -80,8 +80,25 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     $.notify(data.message, "success");
-                    // Optionally remove the game card from the DOM or reload the page
-                    window.location.reload();
+                    
+                    // Remove the game card with fade out animation (like favorites page)
+                    const gameCard = document.querySelector(`[data-game-uuid="${gameUuid}"]`).closest('.game-card-container');
+                    if (gameCard) {
+                        gameCard.style.transition = 'opacity 0.3s ease';
+                        gameCard.style.opacity = '0';
+                        setTimeout(() => {
+                            gameCard.remove();
+                            
+                            // Check if this was the last game and show empty message if needed
+                            const remainingCards = document.querySelectorAll('.game-card-container');
+                            if (remainingCards.length === 0) {
+                                const container = document.querySelector('.game-library-container');
+                                if (container) {
+                                    container.innerHTML = '<p>No games found in this library.</p>';
+                                }
+                            }
+                        }, 300);
+                    }
                 } else {
                     $.notify(data.message, "error");
                 }
