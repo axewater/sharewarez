@@ -10,8 +10,8 @@ from . import apis_bp
 @apis_bp.route('/get_libraries')
 @login_required
 def get_libraries():
-    # Direct query to the Library model
-    libraries_query = db.session.execute(select(Library)).scalars().all()
+    # Direct query to the Library model, ordered alphabetically by name
+    libraries_query = db.session.execute(select(Library).order_by(Library.name.asc())).scalars().all()
     libraries = [
         {
             'uuid': lib.uuid,

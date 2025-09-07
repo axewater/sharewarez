@@ -21,7 +21,7 @@ def _get_filter_data(model_class: Type[db.Model], filter_type: str) -> Tuple[Res
         Tuple of JSON response and HTTP status code
     """
     try:
-        results = db.session.execute(select(model_class)).scalars().all()
+        results = db.session.execute(select(model_class).order_by(model_class.name.asc())).scalars().all()
         data_list = [{'id': item.id, 'name': item.name} for item in results]
         
         return jsonify(data_list), 200
