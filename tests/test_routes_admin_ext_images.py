@@ -170,11 +170,11 @@ class TestImageQueueStatsAPI:
             is_downloaded=False
         )
         
-        cover_downloaded = Image(
+        screenshot_downloaded = Image(
             game_uuid=sample_game.uuid,
-            image_type='cover',
-            download_url='https://example.com/cover2.jpg',
-            url='cover2.jpg',
+            image_type='screenshot',
+            download_url='https://example.com/screenshot2.jpg',
+            url='screenshot2.jpg',
             is_downloaded=True
         )
         
@@ -186,7 +186,7 @@ class TestImageQueueStatsAPI:
             is_downloaded=False
         )
         
-        db_session.add_all([cover_pending, cover_downloaded, screenshot_pending])
+        db_session.add_all([cover_pending, screenshot_downloaded, screenshot_pending])
         db_session.flush()
 
         response = client.get('/admin/api/image_queue_stats')
@@ -420,9 +420,11 @@ class TestImageQueueListAPI:
         
         # Create multiple images
         for i in range(25):
+            # First image is cover, rest are screenshots
+            image_type = 'cover' if i == 0 else 'screenshot'
             image = Image(
                 game_uuid=sample_game.uuid,
-                image_type='cover',
+                image_type=image_type,
                 download_url=f'https://example.com/image{i}.jpg',
                 url=f'image{i}.jpg',
                 is_downloaded=False
@@ -890,11 +892,13 @@ class TestClearDownloadedQueueAPI:
         
         # Create downloaded images
         for i in range(3):
+            # First image is cover, rest are screenshots
+            image_type = 'cover' if i == 0 else 'screenshot'
             downloaded_image = Image(
                 game_uuid=sample_game.uuid,
-                image_type='cover',
-                download_url=f'https://example.com/cover{i}.jpg',
-                url=f'cover{i}.jpg',
+                image_type=image_type,
+                download_url=f'https://example.com/image{i}.jpg',
+                url=f'image{i}.jpg',
                 is_downloaded=True
             )
             db_session.add(downloaded_image)
