@@ -49,6 +49,22 @@ var csrfToken;
 var sortOrder = 'asc'; 
 $('#sortOrderToggle').text(sortOrder === 'asc' ? '^' : '~');
 $(document).ready(function() {
+    // Get server-rendered filter data
+    var currentFilters = {};
+    var currentPageFromServer = 1;
+    var totalPagesFromServer = 0;
+    
+    try {
+        var filtersData = $('body').data('current-filters');
+        currentFilters = filtersData || {};
+        currentPageFromServer = $('body').data('current-page') || 1;
+        totalPagesFromServer = $('body').data('total-pages') || 0;
+        console.log('Server-provided filters:', currentFilters);
+        console.log('Server pagination:', currentPageFromServer, '/', totalPagesFromServer);
+    } catch (e) {
+        console.error('Error reading server filter data:', e);
+    }
+    
     var savedFilters = getCookie('libraryFilters');
     if (savedFilters) {
         try {
@@ -66,12 +82,46 @@ $(document).ready(function() {
             resetFilters();
         }
     }
+    
+    // Function to compare if saved filters match server filters
+    function filtersMatch(savedFilters, currentFilters) {
+        if (!savedFilters || !currentFilters) return false;
+        
+        var keyMappings = {
+            'library_uuid': 'library_uuid',
+            'genre': 'genre', 
+            'theme': 'theme',
+            'game_mode': 'game_mode',
+            'player_perspective': 'player_perspective',
+            'rating': 'rating'
+        };
+        
+        for (var key in keyMappings) {
+            var savedVal = savedFilters[key] || '';
+            var currentVal = currentFilters[keyMappings[key]] || '';
+            
+            // Convert to strings for comparison
+            if (String(savedVal) !== String(currentVal)) {
+                console.log(`Filter mismatch on ${key}: saved="${savedVal}" vs current="${currentVal}"`);
+                return false;
+            }
+        }
+        return true;
+    }
     var userPerPage = $('body').data('user-per-page');
     var userDefaultSort = $('body').data('user-default-sort');
     var userDefaultSortOrder = $('body').data('user-default-sort-order');
     console.log("User preferences:", userPerPage, userDefaultSort, userDefaultSortOrder);
-    var currentPage = 1;
-    var totalPages = 0;
+    
+    // Initialize pagination from server data
+    var currentPage = currentPageFromServer;
+    var totalPages = totalPagesFromServer;
+    
+    // Initialize pagination display
+    if (totalPages > 0) {
+        $('#currentPageInfo').text(currentPage + '/' + totalPages);
+        updatePaginationControls();
+    }
     csrfToken = CSRFUtils.getToken();
     if (userPerPage) {
         $('#perPageSelect').val(userPerPage.toString());
@@ -123,7 +173,8 @@ $(document).ready(function() {
             paramName: 'library_uuid',
             callback: callback
         }).done(function() {
-            fetchFilteredGames();
+            // Skip initial fetchFilteredGames() - server already rendered correct games
+            console.log('Libraries populated, skipping initial fetch since server already rendered filtered games');
         });
     }
 
@@ -466,10 +517,21 @@ $(document).ready(function() {
                             $('#ratingSlider').val(savedFilters.rating || 0);
                             $('#ratingValue').text(savedFilters.rating || 0);
 
-                            // Now fetch games with restored filters
-                            fetchFilteredGames();
+                            // Only fetch games if saved filters don't match server-rendered filters
+                            if (!filtersMatch(savedFilters, currentFilters)) {
+                                console.log('Filters changed from server-rendered, fetching updated games');
+                                fetchFilteredGames();
+                            } else {
+                                console.log('Filters match server-rendered data, skipping redundant fetch');
+                            }
                         } else {
-                            fetchFilteredGames();
+                            // No saved filters, check if server has any filters applied
+                            var hasServerFilters = Object.keys(currentFilters).length > 0;
+                            if (hasServerFilters) {
+                                console.log('No saved filters but server has filters, skipping redundant fetch');
+                            } else {
+                                console.log('No filters anywhere, server should have rendered all games already');
+                            }
                         }
                     });
                 });
