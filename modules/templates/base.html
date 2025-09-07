@@ -49,6 +49,12 @@
         <script src="{{ url_for('static', filename='library/themes/default/js/preferences_modal.js') }}"></script>
     {% endif %}
     
+    {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/delete_game_modal.js') %}
+        <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/delete_game_modal.js') }}"></script>
+    {% else %}
+        <script src="{{ url_for('static', filename='library/themes/default/js/delete_game_modal.js') }}"></script>
+    {% endif %}
+    
     
     {% endblock %}
 </head>

@@ -644,22 +644,33 @@ def delete_full_game():
     full_path = game_to_delete.full_disk_path
     print(f"Route: /delete_full_game - Full path: {full_path}")
 
-    if not os.path.isdir(full_path):
-        print(f"Route: /delete_full_game - Game folder does not exist.")
-        return jsonify({'status': 'error', 'message': 'Game folder does not exist.'}), 404
+    if not os.path.exists(full_path):
+        print(f"Route: /delete_full_game - Game does not exist on disk.")
+        return jsonify({'status': 'error', 'message': 'Game does not exist on disk.'}), 404
 
     try:
-        print(f"Deleting game folder: {full_path}")
-        shutil.rmtree(full_path)
+        is_directory = os.path.isdir(full_path)
+        
+        if is_directory:
+            print(f"Deleting game folder: {full_path}")
+            shutil.rmtree(full_path)
+        else:
+            print(f"Deleting game file: {full_path}")
+            os.remove(full_path)
+        
         if os.path.exists(full_path):
-            raise Exception("Folder deletion failed")
-        print(f"Game folder deleted: {full_path} initiating database cleanup.")
+            raise Exception("Deletion failed - file/folder still exists")
+        
+        print(f"Game deleted from disk: {full_path} - initiating database cleanup.")
         delete_game(game_uuid)
         print(f"Database and image cleanup complete.")
-        return jsonify({'status': 'success', 'message': 'Game and its folder have been deleted successfully.'}), 200
+        
+        success_message = 'Game and its folder have been deleted successfully.' if is_directory else 'Game file has been deleted successfully.'
+        return jsonify({'status': 'success', 'message': success_message}), 200
     except Exception as e:
-        print(f"Error deleting game and folder: {e}")
-        return jsonify({'status': 'error', 'message': f'Error deleting game and folder: {e}'}), 500
+        error_message = f"Error deleting game from disk: {e}"
+        print(error_message)
+        return jsonify({'status': 'error', 'message': error_message}), 500
 
 
 @bp.route('/delete_library_progress/<job_id>')

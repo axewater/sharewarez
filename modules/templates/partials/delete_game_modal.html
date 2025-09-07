@@ -3,7 +3,7 @@
         <span class="close-button">&times;</span>
         <h2>Warning!</h2>
         <p>This action will DELETE THE GAME FROM DISK! This action cannot be undone.</p>
-        <form action="#" method="post" id="deleteGameForm">
+        <form action="/delete_full_game" method="post" id="deleteGameForm">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="game_uuid" id="deleteGameUuid">
             <button type="submit" class="delete-confirm btn btn-danger">Delete Game</button>
