@@ -358,7 +358,7 @@ def fetch_and_store_game_urls(game_uuid, igdb_id):
                 
                 new_url = GameURL(
                     game_uuid=game_uuid,
-                    url_type=website_category_to_string(website.get('category')),
+                    url_type=website_category_to_string(website.get('category'), website.get('url')),
                     url=website.get('url')
                 )
                 db.session.add(new_url)

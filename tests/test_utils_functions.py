@@ -514,19 +514,35 @@ class TestWebsiteCategoryToString:
         """Test website_category_to_string with known category IDs."""
         assert website_category_to_string(1) == "official"
         assert website_category_to_string(4) == "facebook"
+        assert website_category_to_string(7) == "website"  # Test the newly added category ID 7
         assert website_category_to_string(9) == "youtube"
         assert website_category_to_string(13) == "steam"
         assert website_category_to_string(18) == "discord"
     
     def test_website_category_to_string_unknown_id(self):
         """Test website_category_to_string with unknown category ID."""
-        assert website_category_to_string(999) == "unknown"
-        assert website_category_to_string(0) == "unknown"
-        assert website_category_to_string(-1) == "unknown"
+        assert website_category_to_string(999) == "website"
+        assert website_category_to_string(0) == "website"
+        assert website_category_to_string(-1) == "website"
     
     def test_website_category_to_string_none_input(self):
         """Test website_category_to_string with None input."""
-        assert website_category_to_string(None) == "unknown"
+        assert website_category_to_string(None) == "website"
+        
+    def test_website_category_to_string_with_url_fallback(self):
+        """Test website_category_to_string with URL pattern matching fallback."""
+        # Test unknown category ID but recognizable URL patterns
+        assert website_category_to_string(999, "https://store.steampowered.com/app/123") == "steam"
+        assert website_category_to_string(0, "https://www.gog.com/game/example") == "gog"
+        assert website_category_to_string(-1, "https://youtube.com/watch?v=abc") == "youtube"
+        assert website_category_to_string(999, "https://twitter.com/example") == "twitter"
+        assert website_category_to_string(999, "https://some-unknown-site.com") == "website"
+        
+    def test_website_category_to_string_known_id_with_url(self):
+        """Test that known category IDs take precedence over URL patterns."""
+        # Should return mapped value, not URL-based detection
+        assert website_category_to_string(13, "https://youtube.com/example") == "steam"  # 13 = steam
+        assert website_category_to_string(4, "https://twitter.com/example") == "facebook"  # 4 = facebook
 
 
 class TestPlatformIds:
