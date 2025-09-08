@@ -1,4 +1,5 @@
 import uuid
+import os
 from flask import render_template, jsonify, abort
 from flask_login import login_required, current_user
 from modules.forms import CsrfForm
@@ -11,6 +12,27 @@ from modules.utils_security import sanitize_path_for_logging
 from modules.utils_logging import log_system_event
 
 from . import games_bp
+
+
+def get_path_size(file_path):
+    """Calculate size of a file or directory in bytes."""
+    try:
+        if os.path.isfile(file_path):
+            return os.path.getsize(file_path)
+        elif os.path.isdir(file_path):
+            total_size = 0
+            for dirpath, dirnames, filenames in os.walk(file_path):
+                for filename in filenames:
+                    filepath = os.path.join(dirpath, filename)
+                    try:
+                        total_size += os.path.getsize(filepath)
+                    except (OSError, IOError):
+                        # Skip files that can't be read
+                        pass
+            return total_size
+    except (OSError, IOError):
+        pass
+    return 0
 
 
 @games_bp.route('/game_details/<string:game_uuid>')
@@ -60,14 +82,16 @@ def game_details(game_uuid):
                 "file_path": update.file_path,
                 "times_downloaded": update.times_downloaded,
                 "created_at": update.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-                "nfo_content": update.nfo_content
+                "nfo_content": update.nfo_content,
+                "file_size": format_size(get_path_size(update.file_path))
             } for update in game.updates],
             "extras": [{
                 "id": extra.id,
                 "file_path": extra.file_path,
                 "times_downloaded": extra.times_downloaded,
                 "created_at": extra.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-                "nfo_content": extra.nfo_content
+                "nfo_content": extra.nfo_content,
+                "file_size": format_size(get_path_size(extra.file_path))
             } for extra in game.extras],
             "cover": game.cover,
             "first_release_date": game.first_release_date.strftime('%Y-%m-%d') if game.first_release_date else 'Not available',

@@ -24,7 +24,6 @@ def try_add_game(game_name, full_disk_path, scan_job_id, library_uuid, check_exi
     from modules.utils_game_core import (
         retrieve_and_save_game
     )
-    print(f"try_add_game: {game_name} at {full_disk_path} with scan job ID: {scan_job_id}, check_exists: {check_exists}, and library UUID: {library_uuid}")
     
     # Fetch the library details using the library_uuid, if necessary
     library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalar_one_or_none()
@@ -78,20 +77,15 @@ def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_u
 
     print(f'Game does not exist in database: {game_name} at {full_disk_path}')
     # Try to add the game, now using library_uuid
-    print(f"[GAME MATCH] Attempting to match game: '{game_name}' at {full_disk_path}")
     if not try_add_game(game_name, full_disk_path, scan_job_id, library_uuid=library_uuid, check_exists=False):
-        print(f"[GAME MATCH] Initial match failed for '{game_name}', trying fallback names...")
         # Attempt fallback game name processing
         parts = game_name.split()
         for i in range(len(parts) - 1, 0, -1):
             fallback_name = ' '.join(parts[:i])
-            print(f"[GAME MATCH] Trying fallback name: '{fallback_name}'")
             if try_add_game(fallback_name, full_disk_path, scan_job_id, library_uuid=library_uuid, check_exists=False):
                 print(f"[GAME MATCH] Success with fallback name: '{fallback_name}'")
                 return True
-        print(f"[GAME MATCH] All fallback attempts failed for '{game_name}'")
     else:
-        print(f"[GAME MATCH] Success with initial name: '{game_name}'")
         return True
 
     # If the game does not match, log it as unmatched
@@ -159,12 +153,9 @@ def process_game_updates(game_name, full_disk_path, updates_folder, library_uuid
         significant_files = [f for f in os.listdir(update_path) if not f.lower().endswith(('.sfv', '.nfo'))]
         print(f"Significant files in update folder: {significant_files}")
 
-        if len(significant_files) == 1:
-            file_path = os.path.join(update_path, significant_files[0])
-            print(f"Single significant file update: {file_path}")
-        else:
-            file_path = update_path
-            print(f"Multiple files update, using folder path: {file_path}")
+        # Always store the folder path to display the proper folder name in UI
+        file_path = update_path
+        print(f"Using update folder path: {file_path}")
 
         # Create or update GameUpdate record
         game_update = db.session.execute(select(GameUpdate).filter_by(game_uuid=game.uuid, file_path=file_path)).scalar_one_or_none()

@@ -10,6 +10,7 @@ from modules.utils_security import is_safe_path, get_allowed_base_directories
 from modules.utils_filename import sanitize_filename
 from modules import db
 from modules.utils_logging import log_system_event
+from modules.routes_games_ext.details import get_path_size
 from . import download_bp
 
 @download_bp.route('/download_game/<game_uuid>', methods=['GET'])
@@ -174,12 +175,15 @@ def download_other(file_type, game_uuid, file_id):
             zip_file_path = file_path
             status = 'available'  # Ready for streaming
             
+        # Calculate actual file size for display on downloads page
+        calculated_size = get_path_size(file_path) if os.path.exists(file_path) else 0
+            
         # Create download request
         new_request = DownloadRequest(
             user_id=current_user.id,
             game_uuid=game_uuid,
             status=status,
-            download_size=0,  # Size will be determined during streaming
+            download_size=calculated_size,  # Use calculated size instead of 0
             file_location=file_path,
             zip_file_path=zip_file_path
         )

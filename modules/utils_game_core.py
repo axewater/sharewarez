@@ -201,7 +201,6 @@ def store_image_url_for_download(game_uuid, image_data, image_type='cover'):
             is_downloaded=False
         )
         db.session.add(image)
-        print(f"Stored {image_type} URL for game {game_uuid}: {download_url}")
         
     except Exception as e:
         print(f"Error storing image URL for {image_type} {image_data}: {e}")
@@ -230,7 +229,6 @@ def smart_process_images_for_game(game_uuid, cover_data=None, screenshots_data=N
             if settings and settings.use_turbo_image_downloads:
                 # TURBO MODE - Download immediately with parallel processing
                 threads = settings.turbo_download_threads or 8
-                print(f"🚀 TURBO MODE: Processing images for game {game_uuid} with {threads} threads")
                 return download_images_for_game_turbo(game_uuid, app, max_workers=threads)
             else:
                 # SINGLE THREAD MODE - Download one by one
@@ -255,8 +253,6 @@ def download_images_for_game_turbo(game_uuid, app=None, max_workers=5):
                 print(f"No pending images for game {game_uuid}.")
                 return 0
             
-            print(f"🚀 TURBO downloading {len(pending_images)} images for game {game_uuid} with {max_workers} threads")
-            
             downloaded_count = 0
             successful_images = []
             
@@ -274,7 +270,6 @@ def download_images_for_game_turbo(game_uuid, app=None, max_workers=5):
                         if result['success']:
                             successful_images.append(image.id)
                             downloaded_count += 1
-                            print(f"✅ Downloaded {result['image_type']}: {result['url']}")
                     except Exception as e:
                         print(f"❌ Failed downloading image {image.id}: {e}")
             
@@ -285,7 +280,7 @@ def download_images_for_game_turbo(game_uuid, app=None, max_workers=5):
                 )
                 db.session.commit()
             
-            print(f"🔥 TURBO download complete for game {game_uuid}: {downloaded_count} images")
+            print(f"🚀 Downloaded {downloaded_count} images for game {game_uuid[:8]}...")
             return downloaded_count
             
     except Exception as e:
@@ -376,19 +371,15 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
         print(f"retrieve_and_save_game Library with UUID {library_uuid} not found.")
         return None
     
-    print(f"retrieve_and_save_game Finding a way to add {game_name} on {full_disk_path} to the library with UUID {library_uuid}.")
 
     existing_game_by_path = check_existing_game_by_path(full_disk_path)
     if existing_game_by_path:
         return existing_game_by_path 
 
-    print(f"retrieve_and_save_game No existing game found for {game_name} on {full_disk_path}. Proceeding to retrieve game data from IGDB API.")
     platform_id = PLATFORM_IDS.get(library.platform.name)
-    print(f"retrieve_and_save_game Platform ID for {library.platform.name}: {platform_id}")
-    if platform_id is None:
-        print(f"No platform ID found for platform {library.platform.name}. Proceeding without a platform-specific search.")
-    else:
-        print(f"Performing a platform-specific search for {game_name} on platform ID: {platform_id}.")
+    # Platform-specific search logic
+    if platform_id is not None:
+        pass  # Continue with platform-specific search
     query_fields = """fields id, name, cover, summary, url, release_dates.date, platforms.name, genres.name, themes.name, game_modes.name,
                       screenshots, videos.video_id, first_release_date, aggregated_rating, involved_companies, player_perspectives.name,
                       aggregated_rating_count, rating, rating_count, slug, status, category, total_rating, 
@@ -398,7 +389,6 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
         query_filter += f' where platforms = ({platform_id});'
 
     response_json = make_igdb_api_request(current_app.config['IGDB_API_ENDPOINT'], query_fields + query_filter)
-    print(f"retrieve_and_save Response JSON: {response_json}")
     if 'error' not in response_json and response_json:
         igdb_id = response_json[0].get('id')
         print(f"Found game {game_name} with IGDB ID {igdb_id}")
@@ -411,9 +401,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
             log_unmatched_folder(scan_job_id, full_disk_path, matched_status, library_uuid=library_uuid)
             return None
         else:
-            print(f"attempting to read NFO content for game {game_name} on {full_disk_path}.")
             nfo_content = read_first_nfo_content(full_disk_path)            
-            print(f"Calculating folder size for {full_disk_path}.")
             folder_size_bytes = get_folder_size_in_bytes_updates(full_disk_path)
             print(f"Folder size for {full_disk_path}: {format_size(folder_size_bytes)}")
             new_game = create_game_instance(game_data=response_json[0], full_disk_path=full_disk_path, folder_size_bytes=folder_size_bytes, library_uuid=library.uuid)
@@ -535,7 +523,6 @@ def check_existing_game_by_igdb_id(igdb_id):
 
 
 def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
-    print(f"Enumerating companies for game {game_instance.name} with IGDB ID {igdb_game_id}.")
     if not involved_company_ids:
         print("No company IDs provided for enumeration.")
         return
@@ -554,7 +541,6 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
             print(f"Unexpected response structure: {response_json}")
             return
 
-        print(f"Involved companies response: {response_json}")
         for company_data in response_json:
             company_info = company_data.get('company')
             if not isinstance(company_info, dict) or 'name' not in company_info:
@@ -567,10 +553,8 @@ def enumerate_companies(game_instance, igdb_game_id, involved_company_ids):
 
             if is_developer:
                 # print(f"Company {company_name} is a developer.")
-                print(f"Creating or finding developer: {company_name}")
                 developer = get_or_create_entity(Developer, name=company_name)
 
-                print(f"Assigning developer {developer.name} to game {game_instance.name}.")
                 game_instance.developer = developer
 
             if is_publisher:
@@ -831,18 +815,13 @@ def turbo_download_images(batch_size=100, max_workers=5, app=None):
     if app is None:
         app = current_app._get_current_object()
     
-    print(f"🚀 TURBO DOWNLOAD MODE ACTIVATED - {max_workers} threads, {batch_size} images, NO MERCY!")
-    
     try:
         with app.app_context():
             # Get pending images
             pending_images = db.session.execute(select(Image).filter_by(is_downloaded=False).limit(batch_size)).scalars().all()
             
             if not pending_images:
-                print("No pending images to download.")
                 return {'downloaded': 0, 'failed': 0, 'message': 'No pending images'}
-            
-            print(f"Found {len(pending_images)} pending images. UNLEASHING THE THREADS!")
             
             downloaded_count = 0
             failed_count = 0
@@ -865,7 +844,6 @@ def turbo_download_images(batch_size=100, max_workers=5, app=None):
                         if result['success']:
                             successful_images.append(image.id)
                             downloaded_count += 1
-                            print(f"✅ Downloaded {result['image_type']} for game {result['game_uuid']}: {result['url']}")
                         else:
                             failed_count += 1
                             print(f"❌ Failed to download image {result['image_id']}: {result['error']}")
@@ -876,14 +854,14 @@ def turbo_download_images(batch_size=100, max_workers=5, app=None):
             
             # Update database - mark successful downloads as completed
             if successful_images:
-                print(f"Updating database for {len(successful_images)} successful downloads...")
                 db.session.execute(
                     update(Image).filter(Image.id.in_(successful_images)).values(is_downloaded=True)
                 )
                 db.session.commit()
             
-            result_message = f"TURBO DOWNLOAD COMPLETE! ✅ {downloaded_count} downloaded, ❌ {failed_count} failed"
-            print(result_message)
+            result_message = f"🚀 Downloaded {downloaded_count} images ({failed_count} failed)" if failed_count > 0 else f"🚀 Downloaded {downloaded_count} images"
+            if downloaded_count > 0:
+                print(result_message)
             
             return {
                 'downloaded': downloaded_count,

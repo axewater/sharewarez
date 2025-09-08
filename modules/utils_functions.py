@@ -183,7 +183,6 @@ def get_folder_size_in_bytes_updates(folder_path, timeout=300):
 
 def read_first_nfo_content(full_disk_path):
     """Read the content of the first NFO file found in the given path."""
-    print(f"Searching for NFO file in: {full_disk_path}")
     
     # Validate folder path security (only if we're in an application context)
     try:
@@ -210,13 +209,11 @@ def read_first_nfo_content(full_disk_path):
         for file in os.listdir(full_disk_path):
             if file.lower().endswith('.nfo'):
                 nfo_path = os.path.join(full_disk_path, file)
-                print(f"Found NFO file: {nfo_path}")
                 
                 try:
                     with open(nfo_path, 'r', encoding='utf-8', errors='ignore') as nfo_file:
                         content = nfo_file.read()
                         sanitized_content = content.replace('\x00', '')
-                        print(f"Successfully read NFO content (length: {len(sanitized_content)})")
                         return sanitized_content
                 except Exception as e:
                     print(f"Error reading NFO file {nfo_path}: {str(e)}")
