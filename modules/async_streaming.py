@@ -4,10 +4,88 @@ Replaces the synchronous streaming system with async I/O using aiofiles.
 """
 
 import os
+import mimetypes
 import aiofiles
 from werkzeug.utils import secure_filename
 from modules.utils_logging import log_system_event
 from modules.utils_zipstream import async_generate_zipstream_chunks
+
+
+def get_content_type_for_file(file_path, filename):
+    """
+    Determine the appropriate content-type for a file based on its extension.
+    
+    Args:
+        file_path (str): Path to the file
+        filename (str): Name of the file
+        
+    Returns:
+        str: MIME type string
+    """
+    # ROM file extension mappings for common emulator formats
+    rom_mime_types = {
+        # Nintendo formats
+        '.nes': 'application/octet-stream',
+        '.nez': 'application/octet-stream', 
+        '.smc': 'application/octet-stream',
+        '.sfc': 'application/octet-stream',
+        '.n64': 'application/octet-stream',
+        '.z64': 'application/octet-stream',
+        '.v64': 'application/octet-stream',
+        '.gb': 'application/octet-stream',
+        '.gbc': 'application/octet-stream',
+        '.gba': 'application/octet-stream',
+        '.nds': 'application/octet-stream',
+        '.3ds': 'application/octet-stream',
+        
+        # Sega formats  
+        '.smd': 'application/octet-stream',
+        '.gen': 'application/octet-stream',
+        '.32x': 'application/octet-stream',
+        '.sms': 'application/octet-stream',
+        '.gg': 'application/octet-stream',
+        '.sg': 'application/octet-stream',
+        '.bin': 'application/octet-stream',
+        '.cue': 'text/plain',
+        '.iso': 'application/octet-stream',
+        
+        # PlayStation formats
+        '.psx': 'application/octet-stream',
+        '.pbp': 'application/octet-stream',
+        '.chd': 'application/octet-stream',
+        
+        # Atari formats
+        '.a26': 'application/octet-stream',
+        '.a52': 'application/octet-stream', 
+        '.a78': 'application/octet-stream',
+        '.lnx': 'application/octet-stream',
+        '.j64': 'application/octet-stream',
+        
+        # Other formats
+        '.rom': 'application/octet-stream',
+        '.ws': 'application/octet-stream',
+        '.wsc': 'application/octet-stream',
+        '.col': 'application/octet-stream',
+        '.vec': 'application/octet-stream',
+        
+        # Archive formats
+        '.zip': 'application/zip',
+        '.7z': 'application/x-7z-compressed',
+        '.rar': 'application/vnd.rar',
+    }
+    
+    # Get file extension
+    _, ext = os.path.splitext(filename.lower())
+    
+    # Check ROM-specific mappings first
+    if ext in rom_mime_types:
+        return rom_mime_types[ext]
+    
+    # Fall back to system MIME type detection
+    mime_type, _ = mimetypes.guess_type(filename)
+    
+    # Default to binary stream if we can't determine the type
+    return mime_type if mime_type else 'application/octet-stream'
 
 
 async def async_generate_file_chunks(file_path, chunk_size=2097152):
@@ -83,9 +161,12 @@ async def create_async_streaming_response(file_path, filename, chunk_size=209715
         # Get file size for Content-Length header
         file_size = os.path.getsize(file_path)
         
+        # Determine correct content-type based on file extension
+        content_type = get_content_type_for_file(file_path, filename)
+        
         # Create headers for download
         headers = {
-            'content-type': 'application/zip',
+            'content-type': content_type,
             'content-disposition': f'attachment; filename="{secure_name}"',
             'content-length': str(file_size),
             'cache-control': 'no-cache'

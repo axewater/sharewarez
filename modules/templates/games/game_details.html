@@ -382,6 +382,7 @@
                                         // Check if platform is supported
                                         if (!supportedPlatforms.includes(libraryData.platform)) {
                                             // Hide the play button if platform is not supported
+                                            console.log(`Platform '${libraryData.platform}' is not supported by WebRetro`);
                                             const playButton = document.getElementById('play-now-button');
                                             if (playButton) {
                                                 playButton.style.display = 'none';
@@ -391,13 +392,30 @@
                                         
                                         // Get emulators for this platform
                                         const emulatorsResponse = await fetch(`/api/emulators/${libraryData.platform}`);
-                                        const emulators = await emulatorsResponse.json();
+                                        const emulatorsData = await emulatorsResponse.json();
+                                        const emulators = emulatorsData.emulators || [];
                                         
-                                        // Return the first emulator or 'auto' if none found
-                                        return emulators.length > 0 ? emulators[0] : 'auto';
+                                        // Only return a valid emulator core if we have one
+                                        if (emulators.length > 0) {
+                                            console.log(`Using emulator core '${emulators[0]}' for platform '${libraryData.platform}'`);
+                                            return emulators[0];
+                                        } else {
+                                            // No emulators available for this platform - hide play button
+                                            console.log(`No emulators configured for platform '${libraryData.platform}'`);
+                                            const playButton = document.getElementById('play-now-button');
+                                            if (playButton) {
+                                                playButton.style.display = 'none';
+                                            }
+                                            return null;
+                                        }
                                     } catch (error) {
                                         console.error('Error fetching emulator core:', error);
-                                        return 'auto'; // Default fallback
+                                        // Hide play button on error
+                                        const playButton = document.getElementById('play-now-button');
+                                        if (playButton) {
+                                            playButton.style.display = 'none';
+                                        }
+                                        return null;
                                     }
                                 }
 
@@ -408,8 +426,13 @@
                                     
                                     const emulatorCore = await getEmulatorCore();
                                     // Only set up the button if we have a valid emulator core
-                                    if (emulatorCore) {
+                                    if (emulatorCore && emulatorCore !== 'auto') {
                                         playButton.href = `/static/vendor/webretro/webretro.html?guid={{ game.uuid }}&core=${emulatorCore}`;
+                                        console.log(`Play button configured with WebRetro URL: ${playButton.href}`);
+                                    } else {
+                                        // Hide the button if no valid emulator core is available
+                                        console.log('Play button hidden - no valid emulator core available');
+                                        playButton.style.display = 'none';
                                     }
                                 });
                                 </script>
