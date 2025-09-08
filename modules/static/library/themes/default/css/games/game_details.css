@@ -126,7 +126,7 @@ body.modal-open {
 
 
 .button-glass-download {
-    padding: 10px 50px;
+    padding: 10px 30px;
     background: rgba(11, 200, 11, 0.999);
     border: none;
     border-radius: 8px;
@@ -168,7 +168,7 @@ body.modal-open {
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-top: 10px;
+    margin-right: 10px;
     user-select: none;
 }
 

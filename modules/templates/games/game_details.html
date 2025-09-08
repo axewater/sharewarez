@@ -274,7 +274,7 @@
                         {% endif %}
                         <div class="download-buttons">
                             <form action="{{ url_for('download.download_game', game_uuid=game.uuid) }}" method="get" class="download-form">
-                                <input type="submit" value="Download Now!" class="button-glass-download" data-game-uuid="{{ game.uuid }}">
+                                <input type="submit" value="Download" class="button-glass-download" data-game-uuid="{{ game.uuid }}">
                                 {{ form.csrf_token }}
                             </form>
 
