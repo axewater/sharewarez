@@ -151,39 +151,104 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
-// Handle modal cleanup for Updates & Extras modal
-document.addEventListener('DOMContentLoaded', function() {
-    const extrasModal = document.getElementById('extrasModal');
-    let modalScrollPos = 0;
+// Extras Modal functionality - Custom Implementation
+let extrasModalState = {
+    modalOpen: false,
+    originalScrollPosition: 0,
+    bodyOverflowOriginal: ''
+};
 
-    if (extrasModal) {
-        extrasModal.addEventListener('show.bs.modal', function () {
-            // Store current scroll position
-            modalScrollPos = window.scrollY;
-            
-            // Reset scroll position and prevent body scrolling
-            window.scrollTo(0, 0);
-            document.body.style.overflow = 'hidden';
-        });
+function openExtrasModal() {
+    const modal = document.getElementById("extrasModal");
+    if (!modal) return;
 
-        extrasModal.addEventListener('hidden.bs.modal', function () {
-            // Clean up modal
-            const modalBackdrops = document.querySelectorAll('.modal-backdrop');
-            modalBackdrops.forEach(backdrop => backdrop.remove());
-            
-            // Remove modal-open class from body
-            document.body.classList.remove('modal-open');
-            
-            // Reset body styles
-            document.body.style.paddingRight = '';
-            
-            // Restore scrolling and position
-            document.body.style.overflow = 'auto';
-            window.scrollTo(0, modalScrollPos);
-            modalScrollPos = 0;
-        });
+    extrasModalState.originalScrollPosition = window.scrollY;
+    extrasModalState.modalOpen = true;
+    
+    modal.style.display = "flex";
+    document.body.classList.add('modal-open');
+    
+    // Prevent background scrolling
+    extrasModalState.bodyOverflowOriginal = document.body.style.overflow;
+    document.body.style.position = 'fixed';
+    document.body.style.overflow = 'hidden';
+    document.body.style.width = '100%';
+    document.body.style.top = `-${extrasModalState.originalScrollPosition}px`;
+    
+    // Add escape key listener
+    addExtrasEscapeKeyListener();
+    
+    // Add click handler for backdrop
+    modal.addEventListener('click', handleExtrasModalClick);
+}
+
+function closeExtrasModal() {
+    const modal = document.getElementById("extrasModal");
+    if (!modal) return;
+
+    cleanupExtrasModal();
+    modal.style.display = "none";
+    document.body.classList.remove('modal-open');
+    
+    // Restore body position and scrolling
+    removeExtrasEscapeKeyListener();
+    document.body.style.position = '';
+    document.body.style.overflow = extrasModalState.bodyOverflowOriginal;
+    document.body.style.width = '';
+    document.body.style.top = '';
+    window.scrollTo(0, extrasModalState.originalScrollPosition);
+    
+    extrasModalState.modalOpen = false;
+}
+
+function handleExtrasModalClick(event) {
+    if (event.target.id === "extrasModal") {
+        closeExtrasModal();
     }
-});
+}
+
+function cleanupExtrasModal() {
+    const modal = document.getElementById("extrasModal");
+    if (modal) {
+        modal.removeEventListener('click', handleExtrasModalClick);
+    }
+}
+
+function addExtrasEscapeKeyListener() {
+    document.addEventListener('keydown', extrasEscapeKeyHandler);
+}
+
+function removeExtrasEscapeKeyListener() {
+    document.removeEventListener('keydown', extrasEscapeKeyHandler);
+}
+
+function extrasEscapeKeyHandler(event) {
+    if (event.key === 'Escape' && extrasModalState.modalOpen) {
+        closeExtrasModal();
+    }
+}
+
+function showExtrasTab(tabName) {
+    // Remove active class from all tab buttons
+    const tabButtons = document.querySelectorAll('.extras-tab-button');
+    tabButtons.forEach(button => button.classList.remove('active'));
+    
+    // Hide all tab content
+    const tabContents = document.querySelectorAll('.extras-tab-content');
+    tabContents.forEach(content => content.classList.remove('active'));
+    
+    // Show selected tab content
+    const selectedContent = document.getElementById(tabName + '-content');
+    if (selectedContent) {
+        selectedContent.classList.add('active');
+    }
+    
+    // Activate the clicked tab button
+    const clickedButton = event.target;
+    if (clickedButton) {
+        clickedButton.classList.add('active');
+    }
+}
 
 // NFO Modal functionality
 let nfoModalState = {

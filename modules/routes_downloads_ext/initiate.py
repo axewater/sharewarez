@@ -1,15 +1,12 @@
 import os
-from flask import redirect, url_for, flash, current_app, copy_current_request_context, abort
+from flask import redirect, url_for, flash, current_app, abort
 from flask_login import login_required, current_user
-from threading import Thread
-from uuid import uuid4
 import re
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import select
 from modules.models import Game, DownloadRequest, GameUpdate, GameExtra, GlobalSettings
-from modules.utils_download import zip_game, zip_folder, update_download_request
+from modules.utils_download import zip_game
 from modules.utils_game_core import get_game_by_uuid
-from modules.utils_functions import get_folder_size_in_bytes
 from modules.utils_security import is_safe_path, get_allowed_base_directories
 from modules.utils_filename import sanitize_filename
 from modules import db
@@ -164,25 +161,28 @@ def download_other(file_type, game_uuid, file_id):
         return redirect(url_for('download.downloads'))
     
     try:
-        # Create sanitized filename for ZIP
-        base_name = os.path.basename(file_record.file_path)
-        sanitized_name = sanitize_filename(f"{uuid4()}_{base_name}.zip")
-        zip_file_path = os.path.join(current_app.config['ZIP_SAVE_PATH'], sanitized_name)
+        # Extract necessary data from file_record while still in session context
+        file_path = file_record.file_path
+        base_name = os.path.basename(file_path)
         
-        # Determine status based on file type
-        if os.path.isfile(file_record.file_path) and file_record.file_path.lower().endswith('.zip'):
-            zip_file_path = file_record.file_path
+        # Determine how to handle this file/folder for streaming download
+        if os.path.isfile(file_path) and file_path.lower().endswith('.zip'):
+            # Already a ZIP file - can be served directly
+            zip_file_path = file_path
             status = 'available'
         else:
-            status = 'processing'
+            # File or folder that needs to be zipped on-the-fly via streaming
+            # Store the source path for the ASGI handler to stream
+            zip_file_path = file_path
+            status = 'available'  # Ready for streaming
             
         # Create download request
         new_request = DownloadRequest(
             user_id=current_user.id,
             game_uuid=game_uuid,
             status=status,
-            download_size=0,  # Will be set by zip_folder()
-            file_location=file_record.file_path,
+            download_size=0,  # Size will be determined during streaming
+            file_location=file_path,
             zip_file_path=zip_file_path
         )
         
@@ -190,18 +190,9 @@ def download_other(file_type, game_uuid, file_id):
         file_record.times_downloaded += 1
         db.session.commit()
 
-        log_system_event(f"Download request created for {file_type}: {base_name}", event_type='game', event_level='information')
+        log_system_event(f"Download request created for {file_type}: {base_name} (streaming enabled)", event_type='game', event_level='information')
         
-        # Use the secure zip_folder function instead of inline zipping
-        if status == 'processing':
-            @copy_current_request_context
-            def thread_function():
-                log_system_event(f"Starting zip process for {file_type} download request {new_request.id}", event_type='game', event_level='information')
-                zip_folder(new_request.id, current_app._get_current_object(), file_record.file_path, base_name)
-
-            thread = Thread(target=thread_function, daemon=True)
-            thread.start()
-
+        # No background thread needed - ASGI handler will manage the streaming
         return redirect(url_for('download.downloads'))
         
     except SQLAlchemyError as e:
