@@ -14,22 +14,22 @@
 {% macro get_file_icon(file_name) %}
     {% set file_extension = file_name.split('.')[-1] if '.' in file_name else '' %}
     {% set icon_mapping = {
-        '': 'folder',
-        'exe': 'filetype-exe',
-        'rar': 'file-zip',
-        'zip': 'file-zip',
-        'iso': 'disc',
-        'doc': 'filetype-doc',
-        'docx': 'filetype-docx',
-        'json': 'filetype-json',
-        'pdf': 'filetype-pdf',
-        'png': 'filetype-png',
-        'txt': 'filetype-txt',
-        'gif': 'filetype-gif',
-        'jpg': 'filetype-jpg',
-        'jpeg': 'filetype-jpg'
+        '': 'fa-folder',
+        'exe': 'fa-file-code',
+        'rar': 'fa-file-archive',
+        'zip': 'fa-file-archive',
+        'iso': 'fa-compact-disc',
+        'doc': 'fa-file-word',
+        'docx': 'fa-file-word',
+        'json': 'fa-file-code',
+        'pdf': 'fa-file-pdf',
+        'png': 'fa-file-image',
+        'txt': 'fa-file-lines',
+        'gif': 'fa-file-image',
+        'jpg': 'fa-file-image',
+        'jpeg': 'fa-file-image'
     } %}
-    <i class="bi bi-{{ icon_mapping.get(file_extension, 'file') }}"></i>
+    <i class="fas {{ icon_mapping.get(file_extension, 'fa-file') }}"></i>
 {% endmacro %}
 
 {% macro render_file_row(file, game_uuid, file_type) %}
@@ -83,7 +83,6 @@
 
 {# Load Theme Resources #}
 <link rel="stylesheet" href="{{ theme_resource('/css/games/game_details.css') }}">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <script src="{{ theme_resource('/js/popup_menu.js') }}"></script>
 <script src="{{ theme_resource('/js/game_details.js') }}"></script>
 <script src="{{ theme_resource('/js/favorites_manager.js') }}"></script>

@@ -831,6 +831,30 @@ pre {
     color: #007bff;
 }
 
+/* Override Bootstrap table styling for extras modal */
+.extras-table.table {
+    background-color: transparent !important;
+    color: #fff !important;
+}
+
+.extras-table.table tbody,
+.extras-table.table tr,
+.extras-table.table th,
+.extras-table.table td {
+    background-color: transparent !important;
+    border-color: #555 !important;
+}
+
+.extras-table.table-hover tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+}
+
+/* Make file icons white in extras modal */
+.extras-table i.fas {
+    color: #fff;
+}
+
 .modal-extras .close {
     position: absolute;
     top: 10px;
