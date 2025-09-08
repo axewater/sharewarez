@@ -405,19 +405,49 @@ pre {
 
 .rating-container {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     width: 100%;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
     border-radius: 5px;
+    gap: 8px;
+}
+
+.rating-row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 5px;
+}
+
+.rating-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 3px;
 }
 
 .rating-bar {
-    height: 25px;
+    height: 20px;
     max-width: 100px;
-    border-radius: 5px;
-    background: linear-gradient(to right, red, yellow, green);
-    margin-left: 10px;
-    margin-right: 10px;
+    min-width: 20px;
+    border-radius: 10px;
+    background: linear-gradient(to right, #ff4444, #ffaa44, #44ff44);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rating-value {
+    color: #efeaea;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    min-width: 50px;
+}
+
+.emptyrating {
+    color: #aaa;
+    font-style: italic;
+    font-size: 14px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .game-card-chips-list {

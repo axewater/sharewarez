@@ -71,12 +71,17 @@
 {% endmacro %}
 
 {% macro show_rating(rating_value, label) %}
-    <div class="game-card-labels-rating">{{ label }}</div>
-    {% if rating_value %}
-        <div class="rating-bar" style="width: {{ rating_value }}%;"></div>
-    {% else %}
-        <div class="emptyrating">Not rated</div>
-    {% endif %}
+    <div class="rating-row">
+        <div class="game-card-labels-rating">{{ label }}</div>
+        {% if rating_value %}
+            <div class="rating-display">
+                <div class="rating-bar" style="width: {{ rating_value }}%;"></div>
+                <div class="rating-value">{{ "%.1f"|format(rating_value) }}/100</div>
+            </div>
+        {% else %}
+            <div class="emptyrating">Not rated</div>
+        {% endif %}
+    </div>
 {% endmacro %}
 
 
@@ -230,8 +235,8 @@
 
                         {# Ratings #}
                         <div class="rating-container">
-                            {{ show_rating(game.rating, 'IGDB') }}
-                            {{ show_rating(game.aggregated_rating, 'Other') }}
+                            {{ show_rating(game.rating, 'Critics') }}
+                            {{ show_rating(game.aggregated_rating, 'Users') }}
                         </div>
 
                         {# Web Links #}
