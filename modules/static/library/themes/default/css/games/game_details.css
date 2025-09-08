@@ -39,7 +39,7 @@ body.modal-open {
 .game-card-topq {
     display: flex;
     flex-direction: row;
-    height: 730px;
+    min-height: 730px;
 }
 
 .game-card-meta {
@@ -488,6 +488,8 @@ pre {
     overflow-x: auto;
     gap: 10px;
     padding: 10px 0;
+    margin-top: 5px;
+    clear: both;
 }
 
 .screenshot-image {
