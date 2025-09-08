@@ -373,9 +373,14 @@ class LazyASGIApp:
             compression_level = self._flask_app.config.get('ZIPSTREAM_COMPRESSION_LEVEL', 0)
             enable_zip64 = self._flask_app.config.get('ZIPSTREAM_ENABLE_ZIP64', True)
             
-            # Generate filename
-            game = download_request.game
-            filename = f"{game.name}.zip" if game else "download.zip"
+            # Generate filename from the original file/folder name
+            if download_request.file_location:
+                base_name = os.path.basename(download_request.file_location)
+                filename = f"{base_name}.zip" if not base_name.lower().endswith('.zip') else base_name
+            else:
+                # Fallback to game name if file_location is not available
+                game = download_request.game
+                filename = f"{game.name}.zip" if game else "download.zip"
             
             print(f"Starting zipstream download: {filename}")
             

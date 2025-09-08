@@ -5,7 +5,6 @@ import re
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import select
 from modules.models import Game, DownloadRequest, GameUpdate, GameExtra, GlobalSettings
-from modules.utils_download import zip_game
 from modules.utils_game_core import get_game_by_uuid
 from modules.utils_security import is_safe_path, get_allowed_base_directories
 from modules.utils_filename import sanitize_filename
@@ -45,6 +44,7 @@ def download_game(game_uuid):
         return redirect(url_for('download.downloads'))
     
     try:
+        # Determine how to handle the game for instant streaming download
         if os.path.isdir(game.full_disk_path):
             settings = db.session.execute(select(GlobalSettings)).scalars().first()
             files_in_directory = []
@@ -57,23 +57,29 @@ def download_game(game_uuid):
                     continue
                 if os.path.isfile(full_path):
                     files_in_directory.append(f)
-            # Filter out .nfo, .sfv files after excluding special folders
-            significant_files = [f for f in files_in_directory if not f.lower().endswith(('.nfo', '.sfv')) and not f.lower() == 'file_id.diz']
-
-            # If more than one significant file remains, create a zip file
-            if len(significant_files) > 1:
-                zip_save_path = current_app.config['ZIP_SAVE_PATH']
-                sanitized_name = sanitize_filename(f"{game.name}.zip")
-                zip_file_path = os.path.join(zip_save_path, sanitized_name)
-            else:
+            
+            # Filter out .nfo, .sfv, file_id.diz files - these don't count as significant
+            significant_files = [f for f in files_in_directory 
+                               if not f.lower().endswith(('.nfo', '.sfv')) 
+                               and not f.lower() == 'file_id.diz']
+            
+            if len(significant_files) == 1:
+                # Single significant file - direct download (no zipping)
                 zip_file_path = os.path.join(game.full_disk_path, significant_files[0])
+            else:
+                # Multiple files or empty - stream as ZIP on-the-fly
+                zip_file_path = game.full_disk_path
         else:
+            # Already a single file - direct download
             zip_file_path = game.full_disk_path
             
+        status = 'available'  # Always instant for streaming
+            
+        # Create download request - instantly available for streaming
         new_request = DownloadRequest(
             user_id=current_user.id,
             game_uuid=game.uuid,
-            status='processing',  
+            status=status,  # Always 'available' for instant download
             download_size=game.size,
             file_location=game.full_disk_path,
             zip_file_path=zip_file_path
@@ -82,17 +88,9 @@ def download_game(game_uuid):
         game.times_downloaded += 1
         db.session.commit()
 
-        log_system_event(f"Download request created for game: {game.name}", event_type='game', event_level='information')
+        log_system_event(f"Download request created for game: {game.name} (instant streaming)", event_type='game', event_level='information')
         
-        # Start the download process in a thread - zip_game() handles all security validation
-        @copy_current_request_context
-        def thread_function():
-            log_system_event(f"Starting zip process for download request {new_request.id}", event_type='game', event_level='information')
-            zip_game(new_request.id, current_app._get_current_object(), zip_file_path)
-
-        thread = Thread(target=thread_function, daemon=True)
-        thread.start()
-
+        # No background processing needed - ASGI handler manages streaming
         return redirect(url_for('download.downloads'))
         
     except Exception as e:
