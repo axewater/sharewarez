@@ -157,21 +157,32 @@ body.modal-open {
 }
 
 .button-glass-extras {
-    padding: 10px 20px;
-    background: rgba(64, 64, 64, 0.8);
-    border: none;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
     cursor: pointer;
-    transition: transform 0.3s;
-    font-size: 1rem;
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    margin: 5px;
+    transition: all 0.3s ease;
+    font-size: 12px;
+    color: #efeaea;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 10px;
+    user-select: none;
 }
 
 .button-glass-extras:hover {
-    background: rgba(84, 84, 84, 0.9);
-    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.button-glass-extras:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .download-buttons {

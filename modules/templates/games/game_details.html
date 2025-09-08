@@ -1,14 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
 
-{# Display Update and Extra Counts #}
-{% if game and (game.updates or game.extras) %}
-<div style="text-align: right; font-size: 0.8em; color: #888; margin-right: 20px; margin-top: 10px;">
-    {% if game.updates %}Updates: {{ game.updates|length }}{% endif %}
-    {% if game.updates and game.extras %} | {% endif %}
-    {% if game.extras %}Extras: {{ game.extras|length }}{% endif %}
-</div>
-{% endif %}
 
 {# Helper Macros #}
 {% macro theme_resource(resource_path) %}
@@ -367,7 +359,10 @@
                             
                             {% if (enable_game_updates and game.updates) or (enable_game_extras and game.extras) %}
                                 <button type="button" class="button-glass-extras" onclick="openExtrasModal()">
-                                    <i class="fas fa-puzzle-piece"></i> Updates & Extras
+                                    Updates & Extras
+                                    {% if game.updates or game.extras %}
+                                        ({% if game.updates %}{{ game.updates|length }}{% endif %}{% if game.updates and game.extras %} + {% endif %}{% if game.extras %}{{ game.extras|length }}{% endif %})
+                                    {% endif %}
                                 </button>
                             {% endif %}
                         </div>
