@@ -26,3 +26,65 @@ CLAUDE.md
 .claude/settings.local.json
 letsrebuild.md
 .claude/settings.local.json
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+ENV/
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Environment & Config
+.env
+.env.*
+
+config.backup
+config.py.backup
+config.portainer
+*.env
+
+# Database
+db_data/
+*.db
+instance/
+
+# Logs
+logs/
+*.log
+
+# Development
+.git/
+.gitignore
+.github/
+.claude/
+.codebuddy/
+CLAUDE.md
+letsrebuild.md
+*.md
+!README.md
+.vscode
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing (keep tests/ for unit testing, but exclude test artifacts)
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Static uploads (these should be mounted as volumes)
+modules/static/library/images/
+modules/static/library/zips/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -39,6 +39,7 @@ CLAUDE.md
 letsrebuild.md
 *.md
 !README.md
+.vscode
 
 # IDE
 .vscode/
