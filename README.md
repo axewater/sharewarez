@@ -168,16 +168,4 @@ docker pull kapitanczarnobrod/sharewarez:latest
 
 ## 📝 3rd party code
 - 💭 Thanks to BinBashBanana's webretro we can now run ROMs in the browser.
-<<<<<<< HEAD
 - 🌐 Check out his project here: https://github.com/BinBashBanana/webretro
-=======
-- 🌐 Check out his project here: https://github.com/BinBashBanana/webretro
-
-
-
-
-
-
-
-
->>>>>>> 8a63c31a2781ac6eb7034fcf2557e837a86eb761
