@@ -125,13 +125,11 @@ CREATE DATABASE sharewarez;
 
 ```bash
 chmod +x startweb.sh
-python3 app.py (only need to run this 1 time)
 ./startweb.sh
 ```
 ### Windows 
 
 ```powershell
-python3 app.py (only need to run this 1 time. You will get some errors, ignore them, it initializes the db)
 ./startweb_windows.cmd
 ```
 
@@ -171,6 +169,7 @@ docker pull kapitanczarnobrod/sharewarez:latest
 ## 📝 3rd party code
 - 💭 Thanks to BinBashBanana's webretro we can now run ROMs in the browser.
 - 🌐 Check out his project here: https://github.com/BinBashBanana/webretro
+
 
 
 
