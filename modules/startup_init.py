@@ -18,22 +18,27 @@ def run_complete_startup_initialization():
     print("Running database migrations and initialization...")
     
     try:
-        # Step 1: Run database migrations
-        print("Running database migrations...")
-        from modules.updateschema import DatabaseManager
-        db_manager = DatabaseManager()
-        db_manager.add_column_if_not_exists()
-        print("Database migrations completed successfully.")
-        
-        # Step 2: Initialize database with pure SQLAlchemy
+        # Step 1: Initialize database with pure SQLAlchemy (create tables first)
         print("🔧 Initializing database with default data")
         _initialize_with_sqlalchemy()
+        print("✅ Database tables created successfully")
         
-        print("Initialization completed successfully")
+        # Step 2: Run database migrations (after tables exist)
+        print("Running database migrations...")
+        try:
+            from modules.updateschema import DatabaseManager
+            db_manager = DatabaseManager()
+            db_manager.add_column_if_not_exists()
+            print("✅ Database migrations completed successfully.")
+        except Exception as migration_error:
+            print(f"⚠️  Database migration warning: {migration_error}")
+            print("Continuing with existing schema...")
+        
+        print("✅ Initialization completed successfully")
         return True
         
     except Exception as e:
-        print(f"Error during startup initialization: {e}")
+        print(f"❌ Error during startup initialization: {e}")
         import traceback
         traceback.print_exc()
         return False

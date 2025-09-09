@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.7.4
+# 🎮 SharewareZ v2.7.5
 
 SharewareZ transforms any game folder into a searchable library with IGDB integration, adding cover images, screenshots, and metadata for enhanced filtering.
 Invite your friends securely and share your favorite games!
@@ -125,13 +125,11 @@ CREATE DATABASE sharewarez;
 
 ```bash
 chmod +x startweb.sh
-python3 app.py (only need to run this 1 time)
 ./startweb.sh
 ```
 ### Windows 
 
 ```powershell
-python3 app.py (only need to run this 1 time. You will get some errors, ignore them, it initializes the db)
 ./startweb_windows.cmd
 ```
 
@@ -171,10 +169,3 @@ docker pull kapitanczarnobrod/sharewarez:latest
 ## 📝 3rd party code
 - 💭 Thanks to BinBashBanana's webretro we can now run ROMs in the browser.
 - 🌐 Check out his project here: https://github.com/BinBashBanana/webretro
-
-
-
-
-
-
-

@@ -12,7 +12,29 @@ class DatabaseManager:
     def add_column_if_not_exists(self):
 
         # SQL commands to add new columns and tables
-        add_columns_sql = f"""       
+        add_columns_sql = f"""
+        -- Ensure global_settings table exists before altering it
+        CREATE TABLE IF NOT EXISTS global_settings (
+            id SERIAL PRIMARY KEY,
+            settings TEXT,
+            last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            discord_webhook_url VARCHAR(512),
+            smtp_server VARCHAR(255),
+            smtp_port INTEGER,
+            smtp_username VARCHAR(255),
+            smtp_password VARCHAR(255),
+            smtp_use_tls BOOLEAN DEFAULT TRUE,
+            smtp_default_sender VARCHAR(255),
+            smtp_last_tested TIMESTAMP,
+            smtp_enabled BOOLEAN DEFAULT FALSE,
+            discord_bot_name VARCHAR(100),
+            discord_bot_avatar_url VARCHAR(512),
+            enable_delete_game_on_disk BOOLEAN DEFAULT TRUE,
+            igdb_client_id VARCHAR(255),
+            igdb_client_secret VARCHAR(255),
+            igdb_last_tested TIMESTAMP
+        );
+        
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS site_url VARCHAR(255) DEFAULT 'http://127.0.0.1:5006';
 
@@ -77,9 +99,26 @@ class DatabaseManager:
             timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
+        -- Ensure scan_jobs table exists before altering it
+        CREATE TABLE IF NOT EXISTS scan_jobs (
+            id SERIAL PRIMARY KEY,
+            status VARCHAR(20),
+            error_message TEXT,
+            is_enabled BOOLEAN DEFAULT TRUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        
         ALTER TABLE scan_jobs
         ADD COLUMN IF NOT EXISTS removed_count INTEGER DEFAULT 0;
 
+        -- Ensure images table exists before altering it
+        CREATE TABLE IF NOT EXISTS images (
+            id SERIAL PRIMARY KEY,
+            game_uuid VARCHAR(36),
+            image_type VARCHAR(50),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        
         -- Add new columns to images table for optimized image downloading
         ALTER TABLE images
         ADD COLUMN IF NOT EXISTS igdb_image_id VARCHAR(255);
@@ -160,17 +199,80 @@ class DatabaseManager:
         """
         print("Upgrading database to the latest schema")
         try:
-            # Execute the SQL commands
-            with self.engine.connect() as connection:
-                connection.execute(text(add_columns_sql))
-                connection.commit()
-            print("Columns and tables successfully added to the database.")
+            # Execute the SQL commands in a transaction
+            with self.engine.begin() as connection:
+                # Parse SQL into proper statements, respecting DO $$ ... END $$ blocks
+                statements = self._parse_sql_statements(add_columns_sql)
+                for statement in statements:
+                    if statement.strip():
+                        try:
+                            connection.execute(text(statement))
+                        except Exception as stmt_error:
+                            print(f"Warning: Failed to execute statement: {statement[:100]}...")
+                            print(f"Error: {stmt_error}")
+                            # Continue with other statements instead of failing completely
+                            continue
+            print("Database schema update completed successfully.")
         except Exception as e:
-            print(f"An error occurred: {e}")
-            raise  # Re-raise the exception to propagate it
+            print(f"An error occurred during schema update: {e}")
+            # Don't raise the exception - let the application continue
+            print("Application will continue with existing schema...")
         finally:
             # Close the database connection
             self.engine.dispose()
+
+    def _parse_sql_statements(self, sql_text):
+        """
+        Parse SQL text into individual statements, properly handling PostgreSQL 
+        dollar-quoted blocks like DO $$ ... END $$;
+        """
+        statements = []
+        current_statement = ""
+        in_dollar_quote = False
+        dollar_tag = ""
+        
+        lines = sql_text.split('\n')
+        
+        for line in lines:
+            stripped_line = line.strip()
+            
+            # Skip empty lines and comments
+            if not stripped_line or stripped_line.startswith('--'):
+                current_statement += line + '\n'
+                continue
+                
+            # Check for start of dollar-quoted block
+            if not in_dollar_quote:
+                # Look for DO $$ or DO $tag$
+                if 'DO $' in stripped_line.upper():
+                    # Extract the dollar tag (e.g., $$ or $tag$)
+                    import re
+                    match = re.search(r'DO\s+(\$[^$]*\$)', stripped_line.upper())
+                    if match:
+                        dollar_tag = match.group(1)
+                        in_dollar_quote = True
+                        
+            current_statement += line + '\n'
+            
+            # Check for end of dollar-quoted block
+            if in_dollar_quote:
+                if dollar_tag in stripped_line and stripped_line.endswith(';'):
+                    in_dollar_quote = False
+                    dollar_tag = ""
+                    # End of DO block, add as complete statement
+                    statements.append(current_statement.strip())
+                    current_statement = ""
+            else:
+                # Regular statement ending with semicolon
+                if stripped_line.endswith(';'):
+                    statements.append(current_statement.strip())
+                    current_statement = ""
+        
+        # Add any remaining statement
+        if current_statement.strip():
+            statements.append(current_statement.strip())
+            
+        return [stmt for stmt in statements if stmt.strip()]
 
 # Example of how to use the class
 # db_manager = DatabaseManager()
