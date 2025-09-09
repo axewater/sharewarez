@@ -147,7 +147,7 @@ python3 app.py --force-setup
 
 > 📝 **Note**: `app.py` is now primarily for CLI operations like `--force-setup`. For normal web application operation, always use `./startweb.sh`
 
-### 🐳 Docker Alternative
+### 🐳 Docker Alternative NOT FUNCTIONAL AT THIS TIME - SORRY, COMING SOON
 ```bash
 docker pull kapitanczarnobrod/sharewarez:latest
 ```
