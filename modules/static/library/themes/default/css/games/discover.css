@@ -94,8 +94,9 @@
 
 
 .library-cover {
-    max-width: 250px;
-    height: auto;
+    width: 250px;
+    height: 332px;
+    object-fit: contain;
     display: block;
     margin: 0 auto;
     padding: 5px;
