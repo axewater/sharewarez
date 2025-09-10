@@ -1,0 +1,349 @@
+/* Library Image Editor Styles */
+
+.library-image-upload-section {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgb(49, 49, 49);
+}
+
+/* Compact Horizontal Drop Zone */
+.library-image-drop-zone-compact {
+    border: 2px dashed #666;
+    border-radius: 8px;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(42, 44, 53, 0.5);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 50px;
+}
+
+.library-image-drop-zone-compact:hover {
+    border-color: #4CAF50;
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.library-image-drop-zone-compact.highlight {
+    border-color: #4CAF50;
+    background: rgba(76, 175, 80, 0.2);
+    transform: scale(1.01);
+}
+
+.drop-zone-compact-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.drop-zone-icon {
+    font-size: 20px;
+    color: #666;
+}
+
+.drop-zone-text {
+    font-size: 16px;
+    color: #ccc;
+}
+
+.drop-zone-hint {
+    font-size: 13px;
+    color: #999;
+}
+
+.library-image-editor-container {
+    display: none;
+    margin-top: 20px;
+}
+
+/* Single Editor Layout - Canvas and Controls Side by Side */
+.editor-single-layout {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+    justify-content: center;
+}
+
+.canvas-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 15px;
+    border: 1px solid rgb(49, 49, 49);
+}
+
+.library-image-editor-canvas {
+    border: 1px solid #666;
+    border-radius: 3px;
+    cursor: grab;
+    background: #2a2c35;
+}
+
+.library-image-editor-canvas:active {
+    cursor: grabbing;
+}
+
+/* Controls Next to Canvas */
+.editor-controls-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgb(49, 49, 49);
+    min-width: 120px;
+    align-items: stretch;
+}
+
+.editor-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    background: #4CAF50;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.editor-btn:hover {
+    background: #45a049;
+    transform: translateY(-1px);
+}
+
+.editor-btn:active {
+    transform: translateY(0);
+}
+
+.editor-btn.secondary {
+    background: #666;
+}
+
+.editor-btn.secondary:hover {
+    background: #777;
+}
+
+.zoom-controls {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.crop-info {
+    text-align: center;
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    font-family: monospace;
+}
+
+.crop-coordinates {
+    color: #ccc;
+    font-size: 12px;
+}
+
+/* File input styling */
+.library-image-input {
+    display: none;
+}
+
+/* Loading overlay */
+.editor-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    color: white;
+    font-size: 14px;
+}
+
+.loading-spinner {
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #4CAF50;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+/* Mobile responsive design */
+@media (max-width: 768px) {
+    .library-image-drop-zone-compact {
+        padding: 10px 15px;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .drop-zone-compact-content {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    /* Stack canvas and controls vertically on mobile */
+    .editor-single-layout {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .editor-controls-inline {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        min-width: auto;
+        gap: 8px;
+    }
+    
+    .editor-btn {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+    
+    .canvas-container {
+        padding: 10px;
+    }
+    
+    .library-image-editor-canvas {
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Keep mobile stacking but ensure proper button layout */
+    .editor-single-layout {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .editor-controls-inline {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        min-width: auto;
+    }
+    
+    .zoom-controls {
+        justify-content: center;
+        gap: 5px;
+    }
+    
+    .editor-btn {
+        padding: 8px 12px;
+        font-size: 14px;
+        min-width: auto;
+    }
+    
+    .library-image-upload-section {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .library-image-drop-zone-compact {
+        padding: 15px 10px;
+    }
+    
+    .drop-zone-text {
+        font-size: 14px;
+    }
+    
+    .drop-zone-hint {
+        font-size: 11px;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .library-image-editor-canvas {
+        cursor: default;
+    }
+    
+    .editor-btn {
+        padding: 12px 16px;
+        font-size: 16px;
+    }
+    
+    .library-image-drop-zone-compact {
+        padding: 20px;
+        min-height: 60px;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .library-image-drop-zone-compact {
+        border-color: #fff;
+        background: rgba(0, 0, 0, 0.8);
+    }
+    
+    .library-image-drop-zone-compact:hover,
+    .library-image-drop-zone-compact.highlight {
+        border-color: #4CAF50;
+        background: rgba(76, 175, 80, 0.3);
+    }
+    
+    .canvas-container,
+    .editor-controls-inline {
+        border-color: #fff;
+        background: rgba(0, 0, 0, 0.8);
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .library-image-drop-zone-compact,
+    .editor-btn {
+        transition: none;
+    }
+    
+    .library-image-drop-zone-compact.highlight {
+        transform: none;
+    }
+    
+    .editor-btn:hover {
+        transform: none;
+    }
+    
+    .loading-spinner {
+        animation: none;
+    }
+}
+
+/* Focus styles for accessibility */
+.library-image-drop-zone-compact:focus,
+.editor-btn:focus {
+    outline: 2px solid #4CAF50;
+    outline-offset: 2px;
+}
