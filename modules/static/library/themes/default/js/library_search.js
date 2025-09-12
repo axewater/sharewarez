@@ -16,17 +16,46 @@ $(document).ready(function() {
     
 
     var selectedIndex = -1; // No selection initially
+    var accumulatedChars = ''; // For accumulating rapid keypresses
+    var modalOpening = false; // Track if modal is in process of opening
+    var accumTimeout; // Timeout to clear accumulated chars
 
     $(document).on('keypress', function(e) {
         if (!$("input, textarea").is(":focus")) {
-            $('#searchModal').modal('show');
-            $('#searchInput').focus().val(String.fromCharCode(e.which)); // Convert key code to character and set as value
+            e.preventDefault(); // Prevent default to avoid double character input
+            var char = String.fromCharCode(e.which);
+            
+            // Accumulate the character
+            accumulatedChars += char;
+            
+            // Clear any existing timeout
+            clearTimeout(accumTimeout);
+            
+            // Only open modal if it's not already opening
+            if (!modalOpening) {
+                modalOpening = true;
+                $('#searchModal').modal('show');
+            }
+            
+            // Set timeout to clear accumulated chars if user stops typing
+            accumTimeout = setTimeout(function() {
+                accumulatedChars = '';
+                modalOpening = false;
+            }, 1000); // Reset after 1 second of no typing
         }
     });
 
     $('#searchModal').on('shown.bs.modal', function() {
         console.log("Search modal shown");
-        $('#searchInput').focus();
+        if (accumulatedChars) {
+            $('#searchInput').focus().val(accumulatedChars);
+            // Clear accumulated characters and reset state
+            accumulatedChars = '';
+            modalOpening = false;
+            clearTimeout(accumTimeout);
+        } else {
+            $('#searchInput').focus();
+        }
     });
 
     $('#searchInput').on('input', function() {
