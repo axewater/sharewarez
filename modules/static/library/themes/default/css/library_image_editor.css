@@ -347,3 +347,97 @@
     outline: 2px solid #4CAF50;
     outline-offset: 2px;
 }
+
+/* Primary button styling for Save Image */
+.editor-btn.primary {
+    background: #2196F3;
+    color: white;
+    font-weight: 600;
+}
+
+.editor-btn.primary:hover {
+    background: #1976D2;
+}
+
+.editor-btn.primary:disabled {
+    background: #666;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Image Preview Container */
+.image-preview-container {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgb(49, 49, 49);
+    text-align: center;
+}
+
+.image-preview-container h4 {
+    margin: 0 0 15px 0;
+    color: #ccc;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.preview-content {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 120px;
+}
+
+.preview-image {
+    max-width: 250px;
+    max-height: 332px;
+    border: 1px solid #666;
+    border-radius: 5px;
+    background: #2a2c35;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.preview-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: #ccc;
+    font-size: 14px;
+}
+
+.preview-loading .loading-spinner {
+    border: 2px solid #333;
+    border-top: 2px solid #2196F3;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+    margin: 0;
+}
+
+/* Mobile responsive for preview */
+@media (max-width: 768px) {
+    .image-preview-container {
+        padding: 15px;
+        margin-top: 15px;
+    }
+    
+    .preview-image {
+        max-width: 200px;
+        max-height: 266px;
+    }
+}
+
+@media (max-width: 480px) {
+    .preview-image {
+        max-width: 180px;
+        max-height: 240px;
+    }
+    
+    .preview-loading {
+        font-size: 13px;
+    }
+}

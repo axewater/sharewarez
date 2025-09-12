@@ -24,6 +24,7 @@
 	</div>
 	<form class="admin_manage_library_create-form" action="" method="post" enctype="multipart/form-data">
 		{{ form.hidden_tag() }}
+		{{ form.processed_image_url() }}
 		<div class="admin_manage_library_create-form-name mb-3">
 			{{ form.name.label(class="form-label") }}
 			{{ form.name(class="form-control") }}
@@ -62,11 +63,24 @@
 						</div>
 						<button type="button" id="fit-btn" class="editor-btn">📐 Fit</button>
 						<button type="button" id="reset-btn" class="editor-btn secondary">🔄 Reset</button>
+						<button type="button" id="save-image-btn" class="editor-btn primary">💾 Save Image</button>
 					</div>
 				</div>
 				
 				<!-- Crop Info Below Everything -->
 				<div id="crop-info" class="crop-info"></div>
+				
+				<!-- Image Preview Container -->
+				<div id="image-preview-container" class="image-preview-container" style="display: none;">
+					<h4>Preview:</h4>
+					<div class="preview-content">
+						<img id="preview-image" src="" alt="Processed image preview" class="preview-image">
+						<div id="preview-loading" class="preview-loading" style="display: none;">
+							<div class="loading-spinner"></div>
+							<span>Processing image...</span>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 		

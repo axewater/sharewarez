@@ -392,6 +392,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let editor = null;
     let currentFile = null;
     let cropData = null;
+    let processedImageUrl = null;
     
     // Initialize editor
     function initEditor() {
@@ -476,17 +477,172 @@ document.addEventListener('DOMContentLoaded', function() {
     const zoomOutBtn = document.getElementById('zoom-out-btn');
     const resetBtn = document.getElementById('reset-btn');
     const fitBtn = document.getElementById('fit-btn');
+    const saveImageBtn = document.getElementById('save-image-btn');
     
     if (zoomInBtn) zoomInBtn.addEventListener('click', () => editor && editor.zoomIn());
     if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => editor && editor.zoomOut());
     if (resetBtn) resetBtn.addEventListener('click', () => editor && editor.reset());
     if (fitBtn) fitBtn.addEventListener('click', () => editor && editor.fit());
+    if (saveImageBtn) saveImageBtn.addEventListener('click', () => handleSaveImage());
+    
+    // Handle Save Image button click
+    function handleSaveImage() {
+        console.log('=== DEBUG: handleSaveImage called ===');
+        console.log('Current processedImageUrl before processing:', processedImageUrl);
+        
+        if (!editor || !currentFile || !cropData) {
+            alert('Please load an image first.');
+            return;
+        }
+        
+        const previewContainer = document.getElementById('image-preview-container');
+        const previewImage = document.getElementById('preview-image');
+        const previewLoading = document.getElementById('preview-loading');
+        
+        // Show loading state
+        previewContainer.style.display = 'block';
+        previewLoading.style.display = 'flex';
+        previewImage.style.display = 'none';
+        
+        // Disable save button during processing
+        saveImageBtn.disabled = true;
+        saveImageBtn.textContent = '⏳ Processing...';
+        
+        // Read the current file as base64
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imageData = e.target.result;
+            
+            // Prepare data for AJAX call
+            const requestData = {
+                image_data: imageData,
+                crop_x: cropData.x,
+                crop_y: cropData.y,
+                crop_width: cropData.width,
+                crop_height: cropData.height,
+                original_width: cropData.imageWidth,
+                original_height: cropData.imageHeight
+            };
+            
+            console.log('=== DEBUG: JavaScript crop data ===');
+            console.log('Crop coordinates:', {
+                x: cropData.x,
+                y: cropData.y,
+                width: cropData.width,
+                height: cropData.height
+            });
+            console.log('Original dimensions:', {
+                width: cropData.imageWidth,
+                height: cropData.imageHeight
+            });
+            console.log('Editor transform state:', {
+                scale: editor.scale,
+                offsetX: editor.offsetX,
+                offsetY: editor.offsetY,
+                targetWidth: editor.targetWidth,
+                targetHeight: editor.targetHeight
+            });
+            console.log('=== END DEBUG ===');
+            
+            // Make AJAX call to process image
+            fetch('/admin/library/process-image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('=== DEBUG: AJAX Response ===');
+                console.log('Full response data:', data);
+                console.log('data.success:', data.success);
+                console.log('data.image_url:', data.image_url);
+                
+                if (data.success) {
+                    // Store processed image URL directly in the form field
+                    const processedUrlField = document.querySelector('input[name="processed_image_url"]');
+                    if (processedUrlField) {
+                        processedUrlField.value = data.image_url;
+                        console.log('Set processed_image_url field to:', data.image_url);
+                    } else {
+                        console.error('processed_image_url field not found in form');
+                    }
+                    
+                    // Also store in variable for backwards compatibility
+                    processedImageUrl = data.image_url;
+                    console.log('Setting processedImageUrl to:', processedImageUrl);
+                    
+                    // Show processed image
+                    previewImage.src = data.image_url;
+                    previewImage.style.display = 'block';
+                    previewLoading.style.display = 'none';
+                    
+                    console.log('processedImageUrl after preview update:', processedImageUrl);
+                } else {
+                    // Show error
+                    alert('Error processing image: ' + (data.error || 'Unknown error'));
+                    previewContainer.style.display = 'none';
+                }
+                console.log('=== END AJAX RESPONSE DEBUG ===');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to process image. Please try again.');
+                previewContainer.style.display = 'none';
+            })
+            .finally(() => {
+                // Re-enable save button
+                saveImageBtn.disabled = false;
+                saveImageBtn.textContent = '💾 Save Image';
+            });
+        };
+        
+        reader.readAsDataURL(currentFile);
+    }
+    
+    // Helper function to get CSRF token
+    function getCsrfToken() {
+        const csrfToken = document.querySelector('input[name="csrf_token"]');
+        return csrfToken ? csrfToken.value : '';
+    }
     
     // Form submission handler
     const form = document.querySelector('form');
     if (form) {
         form.addEventListener('submit', function(e) {
-            if (cropData && currentFile) {
+            console.log('=== DEBUG: Form Submission ===');
+            
+            // Check if we have a processed image URL in the form field
+            const processedUrlField = document.querySelector('input[name="processed_image_url"]');
+            const processedUrl = processedUrlField ? processedUrlField.value : '';
+            
+            console.log('processedImageUrl variable:', processedImageUrl);
+            console.log('processed_image_url field value:', processedUrl);
+            console.log('cropData:', cropData);
+            console.log('currentFile:', currentFile);
+            
+            // If we have a processed image URL from "Save Image", let form submit normally
+            if (processedUrl) {
+                console.log('Using processed image URL path - field contains:', processedUrl);
+                
+                // Debug: Log all form fields before submission
+                console.log('=== ALL FORM FIELDS BEFORE SUBMISSION ===');
+                const formData = new FormData(form);
+                for (let [key, value] of formData.entries()) {
+                    console.log(`${key}: ${value}`);
+                }
+                console.log('=== END FORM FIELDS ===');
+                
+                // Let form submit normally - no need to prevent default
+                return true;
+            }
+            // Fallback to original logic if no processed image (user didn't click "Save Image")
+            else if (cropData && currentFile) {
+                console.log('Using crop data processing path');
+                e.preventDefault();
+                
                 // Add crop data as hidden fields
                 ['x', 'y', 'width', 'height', 'imageWidth', 'imageHeight'].forEach(prop => {
                     const input = document.createElement('input');
@@ -505,14 +661,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     input.value = e.target.result;
                     form.appendChild(input);
                     
+                    console.log('Added crop data and image data to form');
+                    
                     // Submit the form
                     form.submit();
                 };
                 reader.readAsDataURL(currentFile);
                 
-                e.preventDefault();
                 return false;
             }
+            // If no image editing was done, let form submit normally
+            else {
+                console.log('No image editing - normal form submission');
+            }
+            console.log('=== END FORM DEBUG ===');
         });
     }
 });

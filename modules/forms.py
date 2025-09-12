@@ -272,6 +272,7 @@ class LibraryForm(FlaskForm):
     crop_imageWidth = HiddenField('Original Image Width', validators=[Optional()])
     crop_imageHeight = HiddenField('Original Image Height', validators=[Optional()])
     image_data = HiddenField('Image Data', validators=[Optional()])
+    processed_image_url = HiddenField('Processed Image URL', validators=[Optional()])
 
 class ThemeUploadForm(FlaskForm):
     theme_zip = FileField('Theme ZIP File', validators=[
