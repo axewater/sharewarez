@@ -263,6 +263,15 @@ class LibraryForm(FlaskForm):
     name = StringField('Library Name', validators=[DataRequired()])
     platform = SelectField('Platform', choices=[(choice.value, choice.name) for choice in LibraryPlatform], validators=[DataRequired()])
     image = FileField('Library Image', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif'], 'Images only!')])
+    
+    # Crop coordinate fields for interactive editor
+    crop_x = HiddenField('Crop X', validators=[Optional()])
+    crop_y = HiddenField('Crop Y', validators=[Optional()])
+    crop_width = HiddenField('Crop Width', validators=[Optional()])
+    crop_height = HiddenField('Crop Height', validators=[Optional()])
+    crop_imageWidth = HiddenField('Original Image Width', validators=[Optional()])
+    crop_imageHeight = HiddenField('Original Image Height', validators=[Optional()])
+    image_data = HiddenField('Image Data', validators=[Optional()])
 
 class ThemeUploadForm(FlaskForm):
     theme_zip = FileField('Theme ZIP File', validators=[

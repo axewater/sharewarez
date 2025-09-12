@@ -7,6 +7,12 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_library_create.css') }}">
 {% endif %}
 
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/library_image_editor.css') == True %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/library_image_editor.css') }}">
+{% else %}
+	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/library_image_editor.css') }}">
+{% endif %}
+
 <div class="container">
     <div class="glass-panel">
         <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
@@ -26,41 +32,62 @@
 			{{ form.platform.label(class="form-label") }}
 			{{ form.platform(class="form-select") }}
 		</div>
-		<div class="admin_manage_library_create-form-library-image mb-3">
-			{{ form.image.label(class="form-label") }}
-			{{ form.image(class="form-control", id="imageInput") }}
+		<div class="library-image-upload-section">
+			<h3>{{ form.image.label.text }}</h3>
+
+			<!-- File Input (Hidden) -->
+			<input type="file" id="library-image-input" class="library-image-input" name="image" accept="image/*">
+
+			<!-- Compact Drop Zone -->
+			<div id="library-image-drop-zone" class="library-image-drop-zone-compact">
+				<div class="drop-zone-compact-content">
+					<span class="drop-zone-icon">📁</span>
+					<span class="drop-zone-text">Click or drag image here</span>
+					<span class="drop-zone-hint">(JPG, PNG, GIF • Max 10MB)</span>
+				</div>
+			</div>
+
+			<!-- Single Interactive Editor -->
+			<div id="library-image-editor-container" class="library-image-editor-container">
+				<div class="editor-single-layout">
+					<div class="canvas-container">
+						<canvas id="library-image-editor-canvas" class="library-image-editor-canvas"></canvas>
+					</div>
+					
+					<!-- Controls Next to Canvas -->
+					<div id="editor-controls" class="editor-controls-inline">
+						<div class="zoom-controls">
+							<button type="button" id="zoom-out-btn" class="editor-btn secondary">🔍−</button>
+							<button type="button" id="zoom-in-btn" class="editor-btn secondary">🔍+</button>
+						</div>
+						<button type="button" id="fit-btn" class="editor-btn">📐 Fit</button>
+						<button type="button" id="reset-btn" class="editor-btn secondary">🔄 Reset</button>
+					</div>
+				</div>
+				
+				<!-- Crop Info Below Everything -->
+				<div id="crop-info" class="crop-info"></div>
+			</div>
 		</div>
+		
 		<div class="admin_manage_library_create-current-platform mb-3">
 			<p>Current Platform: {{ library.platform.value if library else 'Not set' }}</p>
 		</div>
-		<div class="admin_manage_library_create-image mb-3">
-			<img id="imagePreview" src="{{ library.image_url if library and library.image_url else url_for('static', filename='newstyle/default_library.jpg') }}" alt="Image preview" style="max-width: 200px;">
+		
+		{% if library and library.image_url %}
+		<div class="admin_manage_library_create-current-image mb-3">
+			<h4>Current Library Image:</h4>
+			<img src="{{ library.image_url }}" alt="Current library image" style="max-width: 250px; max-height: 332px; border: 1px solid #666; border-radius: 5px;">
 		</div>
+		{% endif %}
 		<button type="submit" class="admin_manage_library_create-save-btn btn btn-primary">Save Library</button>
 	</form>
 </div>
 
 
-<script>
-document.getElementById('imageInput').addEventListener('change', function(event) {
-    const file = event.target.files[0];
-    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
-    
-    if (file && file.size > maxSize) {
-        alert('File is too large! Maximum size is 10MB.');
-        event.target.value = ''; // Clear the file input
-        document.getElementById('imagePreview').src = '{{ library.image_url if library and library.image_url else url_for("static", filename="newstyle/default_library.jpg") }}';
-        return;
-    }
-    
-    if (file) {
-        var reader = new FileReader();
-        reader.onload = function() {
-            var output = document.getElementById('imagePreview');
-            output.src = reader.result;
-        };
-        reader.readAsDataURL(file);
-    }
-});
-</script>
+{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/library_image_editor.js') == True %}
+<script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/library_image_editor.js') }}"></script>
+{% else %}
+<script src="{{ url_for('static', filename='library/themes/default/js/library_image_editor.js') }}"></script>
+{% endif %}
 {% endblock %}
