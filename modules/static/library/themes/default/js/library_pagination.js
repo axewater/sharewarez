@@ -119,7 +119,7 @@ $(document).ready(function() {
     
     // Initialize pagination display
     if (totalPages > 0) {
-        $('#currentPageInfo').text(currentPage + '/' + totalPages);
+        $('#currentPageInfo, #currentPageInfoBottom').text(currentPage + '/' + totalPages);
         updatePaginationControls();
     }
     csrfToken = CSRFUtils.getToken();
@@ -266,7 +266,7 @@ $(document).ready(function() {
             success: function(response) {
                 totalPages = response.pages;
                 currentPage = response.current_page;
-                $('#currentPageInfo').text(currentPage + '/' + totalPages);
+                $('#currentPageInfo, #currentPageInfoBottom').text(currentPage + '/' + totalPages);
                 updateGamesContainer(response.games);
                 updatePaginationControls();
             },
@@ -447,6 +447,13 @@ $(document).ready(function() {
     });
 
     function updatePaginationControls() {
+        // Update top pagination controls
+        $('#firstPage, #firstPageBottom').prop('disabled', currentPage <= 1);
+        $('#prevPage, #prevPageBottom').prop('disabled', currentPage <= 1);
+        $('#nextPage, #nextPageBottom').prop('disabled', currentPage >= totalPages);
+        $('#lastPage, #lastPageBottom').prop('disabled', currentPage >= totalPages);
+
+        // Legacy support for old pagination
         $('#prevPage').parent().toggleClass('disabled', currentPage <= 1);
         $('#nextPage').parent().toggleClass('disabled', currentPage >= totalPages);
     }
@@ -456,17 +463,37 @@ $(document).ready(function() {
         console.log('perPageSelect changed to ' + $(this).val());
     });
 
-    $('#prevPage').click(function(e) {
+    // First page handlers
+    $('#firstPage, #firstPageBottom').click(function(e) {
+        e.preventDefault();
+        if (currentPage > 1) {
+            currentPage = 1;
+            fetchFilteredGames(currentPage);
+        }
+    });
+
+    // Previous page handlers
+    $('#prevPage, #prevPageBottom').click(function(e) {
         e.preventDefault();
         if (currentPage > 1) {
             fetchFilteredGames(--currentPage);
         }
     });
 
-    $('#nextPage').click(function(e) {
+    // Next page handlers
+    $('#nextPage, #nextPageBottom').click(function(e) {
         e.preventDefault();
         if (currentPage < totalPages) {
             fetchFilteredGames(++currentPage);
+        }
+    });
+
+    // Last page handlers
+    $('#lastPage, #lastPageBottom').click(function(e) {
+        e.preventDefault();
+        if (currentPage < totalPages) {
+            currentPage = totalPages;
+            fetchFilteredGames(currentPage);
         }
     });
 

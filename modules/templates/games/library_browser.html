@@ -47,14 +47,39 @@
 
 
     <div class="glass-panel">
-        <select id="perPageSelect" class="dropdown-perpage">
-            <option value="16" {% if user_per_page == 16 %}selected{% endif %}>16</option>
-            <option value="20" {% if user_per_page == 20 %}selected{% endif %}>20</option>
-            <option value="50" {% if user_per_page == 50 %}selected{% endif %}>50</option>
-            <option value="100" {% if user_per_page == 100 %}selected{% endif %}>100</option>
-            <option value="500" {% if user_per_page == 500 %}selected{% endif %}>500</option>
-            <option value="1000" {% if user_per_page == 1000 %}selected{% endif %}>1000</option>
-        </select>
+        <!-- Top Pagination Bar -->
+        <div class="pagination-header">
+            <div class="pagination-controls-left">
+                <span class="pagination-label">Items per page:</span>
+                <select id="perPageSelect" class="dropdown-perpage">
+                    <option value="16" {% if user_per_page == 16 %}selected{% endif %}>16</option>
+                    <option value="20" {% if user_per_page == 20 %}selected{% endif %}>20</option>
+                    <option value="50" {% if user_per_page == 50 %}selected{% endif %}>50</option>
+                    <option value="100" {% if user_per_page == 100 %}selected{% endif %}>100</option>
+                    <option value="500" {% if user_per_page == 500 %}selected{% endif %}>500</option>
+                    <option value="1000" {% if user_per_page == 1000 %}selected{% endif %}>1000</option>
+                </select>
+            </div>
+            <div class="pagination-controls-right">
+                <nav aria-label="Page navigation" class="pagination-nav">
+                    <div class="pagination-controls">
+                        <button class="btn-pagination" id="firstPage" aria-label="First page">
+                            <i class="fas fa-angle-double-left"></i>
+                        </button>
+                        <button class="btn-pagination" id="prevPage" aria-label="Previous page">
+                            <i class="fas fa-angle-left"></i>
+                        </button>
+                        <div class="page-info" id="currentPageInfo">Loading...</div>
+                        <button class="btn-pagination" id="nextPage" aria-label="Next page">
+                            <i class="fas fa-angle-right"></i>
+                        </button>
+                        <button class="btn-pagination" id="lastPage" aria-label="Last page">
+                            <i class="fas fa-angle-double-right"></i>
+                        </button>
+                    </div>
+                </nav>
+            </div>
+        </div>
         
         
         <!-- Search Modal -->
@@ -77,24 +102,6 @@
   
         <!-- The deleteGameModal is now included globally in base.html -->
 
-        <!-- Pagination Controls -->
-        <div class="container-pagination">
-            <nav aria-label="Page navigation" class="text-center">
-                <ul class="pagination pagination-style">
-                <li class="page-item">
-                    <a class="page-link" href="#" aria-label="Previous" id="prevPage">
-                    <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>
-                <li class="page-item"><span class="page-link" id="currentPageInfo">Loading...</span></li>
-                <li class="page-item">
-                    <a class="page-link" href="#" aria-label="Next" id="nextPage">
-                    <span aria-hidden="true">&raquo;</span>
-                    </a>
-                </li>
-                </ul>
-            </nav>
-        </div>
         <div class="game-library-container" id="gamesContainer">
             {% for game in games %}
             <div class="game-card-container">
@@ -125,7 +132,28 @@
             </div>
             {% endfor %}
         </div>
-        
+
+        <!-- Bottom Pagination Bar -->
+        <div class="pagination-footer">
+            <nav aria-label="Page navigation" class="pagination-nav">
+                <div class="pagination-controls">
+                    <button class="btn-pagination" id="firstPageBottom" aria-label="First page">
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button class="btn-pagination" id="prevPageBottom" aria-label="Previous page">
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                    <div class="page-info" id="currentPageInfoBottom">Loading...</div>
+                    <button class="btn-pagination" id="nextPageBottom" aria-label="Next page">
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button class="btn-pagination" id="lastPageBottom" aria-label="Last page">
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                </div>
+            </nav>
+        </div>
+
     </div>
 
 
