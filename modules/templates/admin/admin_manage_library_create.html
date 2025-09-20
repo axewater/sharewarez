@@ -18,17 +18,53 @@
 	</div>
 	<form class="admin_manage_library_create-form" action="" method="post" enctype="multipart/form-data">
 		{{ form.hidden_tag() }}
+
+		<!-- Display form validation errors -->
+		{% if form.errors %}
+			<div class="alert alert-danger mb-3">
+				<strong>Please correct the following errors:</strong>
+				<ul class="mb-0">
+					{% for field, errors in form.errors.items() %}
+						{% for error in errors %}
+							<li>{{ form[field].label.text }}: {{ error }}</li>
+						{% endfor %}
+					{% endfor %}
+				</ul>
+			</div>
+		{% endif %}
+
 		<div class="admin_manage_library_create-form-name mb-3">
 			{{ form.name.label(class="form-label") }}
 			{{ form.name(class="form-control") }}
+			{% if form.name.errors %}
+				<div class="text-danger small mt-1">
+					{% for error in form.name.errors %}
+						<div>{{ error }}</div>
+					{% endfor %}
+				</div>
+			{% endif %}
 		</div>
 		<div class="admin_manage_library_create-form-platform mb-3">
 			{{ form.platform.label(class="form-label") }}
 			{{ form.platform(class="form-select") }}
+			{% if form.platform.errors %}
+				<div class="text-danger small mt-1">
+					{% for error in form.platform.errors %}
+						<div>{{ error }}</div>
+					{% endfor %}
+				</div>
+			{% endif %}
 		</div>
 		<div class="admin_manage_library_create-form-library-image mb-3">
 			{{ form.image.label(class="form-label") }}
 			{{ form.image(class="form-control", id="imageInput") }}
+			{% if form.image.errors %}
+				<div class="text-danger small mt-1">
+					{% for error in form.image.errors %}
+						<div>{{ error }}</div>
+					{% endfor %}
+				</div>
+			{% endif %}
 		</div>
 		<div class="admin_manage_library_create-current-platform mb-3">
 			<p>Current Platform: {{ library.platform.value if library else 'Not set' }}</p>

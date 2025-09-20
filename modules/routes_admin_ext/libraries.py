@@ -82,7 +82,7 @@ def add_library():
     print("Adding new library")
 
     form.platform.choices = [(platform.name, platform.value) for platform in LibraryPlatform]
-    print(f"Platform choices: {form.platform.choices}")
+    # print(f"Platform choices: {form.platform.choices}")
 
     if form.validate_on_submit():
         library = Library(uuid=str(uuid4()))  # Generate a new UUID for new libraries
@@ -103,6 +103,11 @@ def add_library():
         # Save library
         if _save_library(library, is_new=True):
             return redirect(url_for('library.libraries'))
+    else:
+        # Form validation failed
+        if form.errors:
+            flash('Please correct the errors below.', 'error')
+            print(f"Form validation errors: {form.errors}")
 
     return render_template('admin/admin_manage_library_create.html', form=form, library=None, page_title=page_title)
 
@@ -117,7 +122,7 @@ def edit_library(library_uuid):
     print(f"Editing library: {library.name}, Platform: {library.platform.name}")
 
     form.platform.choices = [(platform.name, platform.value) for platform in LibraryPlatform]
-    print(f"Platform choices: {form.platform.choices}")
+    # print(f"Platform choices: {form.platform.choices}")
 
     # Set the initial value for existing library
     form.platform.data = library.platform.name
@@ -141,6 +146,11 @@ def edit_library(library_uuid):
         # Save library
         if _save_library(library, is_new=False):
             return redirect(url_for('library.libraries'))
+    else:
+        # Form validation failed
+        if form.errors:
+            flash('Please correct the errors below.', 'error')
+            print(f"Form validation errors: {form.errors}")
 
     return render_template('admin/admin_manage_library_create.html', form=form, library=library, page_title=page_title)
 
