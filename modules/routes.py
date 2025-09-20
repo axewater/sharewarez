@@ -541,6 +541,37 @@ def clear_unmatched_entry(folder_id):
         flash(f'Error clearing unmatched folder entry: {str(e)}', 'error')
     return redirect(url_for('main.scan_management'))
 
+@bp.route('/toggle_ignore_status/<folder_id>', methods=['POST'])
+@login_required
+@admin_required
+def toggle_ignore_status(folder_id):
+    """Toggle the ignore status of an unmatched folder."""
+    try:
+        folder = db.session.get(UnmatchedFolder, folder_id) or abort(404)
+        # Toggle between 'Ignore' and the original status (likely 'Unmatched' or 'Duplicate')
+        if folder.status == 'Ignore':
+            # Restore to Unmatched or keep as Duplicate if that was the original status
+            folder.status = 'Unmatched'  # Default to Unmatched when un-ignoring
+        else:
+            folder.status = 'Ignore'
+
+        db.session.commit()
+
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({
+                'status': 'success',
+                'new_status': folder.status,
+                'message': f'Status changed to {folder.status}'
+            })
+        flash(f'Folder status changed to {folder.status}.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'status': 'error', 'message': str(e)}), 500
+        flash(f'Error toggling ignore status: {str(e)}', 'error')
+
+    return redirect(url_for('main.scan_management'))
+
 
 @bp.route('/refresh_game_images/<game_uuid>', methods=['POST'])
 @login_required

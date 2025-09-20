@@ -377,7 +377,10 @@ document.addEventListener('DOMContentLoaded', function() {
     window.toggleIgnoreStatus = function(folderId, button) {
         fetch(`/toggle_ignore_status/${folderId}`, {
             method: 'POST',
-            headers: CSRFUtils.getHeaders({ 'Content-Type': 'application/json' })
+            headers: CSRFUtils.getHeaders({
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            })
         })
         .then(response => response.json())
         .then(data => {
@@ -395,7 +398,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (confirm('Remove this entry from the unmatched list?')) {
             fetch(`/clear_unmatched_entry/${folderId}`, {
                 method: 'POST',
-                headers: CSRFUtils.getHeaders({ 'Content-Type': 'application/json' })
+                headers: CSRFUtils.getHeaders({
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                })
             })
             .then(response => response.json())
             .then(data => {
