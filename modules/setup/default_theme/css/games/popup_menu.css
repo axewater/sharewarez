@@ -1,0 +1,29 @@
+.submenu-libraries {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    background-color: #2e2929;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    padding: 8px;
+    z-index: 13;
+    min-width: 150px;
+}
+
+.loading-libraries {
+    padding: 8px;
+    color: #ddd;
+}
+
+.library-item {
+    padding: 8px;
+    cursor: pointer;
+    color: #ddd;
+}
+
+.library-item:hover {
+    background-color: #505563;
+}
+
+.move-library-container {
+    position: relative;
+}

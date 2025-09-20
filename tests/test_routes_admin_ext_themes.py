@@ -562,60 +562,50 @@ class TestResetDefaultThemesRoute:
 
     @patch('modules.routes_admin_ext.themes.log_system_event')
     @patch('os.path.exists')
-    def test_reset_default_themes_missing_zip(self, mock_exists, mock_log, client, admin_user):
-        """Test reset default themes when themes.zip is missing."""
+    def test_reset_default_themes_missing_source(self, mock_exists, mock_log, client, admin_user):
+        """Test reset default themes when source directory is missing."""
         with client.session_transaction() as sess:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
-        
+
         mock_exists.return_value = False
-        
+
         response = client.post('/admin/themes/reset')
         assert response.status_code == 302  # Redirect after error
         mock_log.assert_called()
 
     @patch('modules.routes_admin_ext.themes.log_system_event')
-    @patch('os.path.exists')
-    @patch('zipfile.ZipFile')
-    def test_reset_default_themes_success(self, mock_zipfile, mock_exists, mock_log, client, admin_user):
+    @patch('shutil.copytree')
+    @patch('shutil.rmtree')
+    @patch('pathlib.Path.exists')
+    @patch('pathlib.Path.mkdir')
+    def test_reset_default_themes_success(self, mock_mkdir, mock_exists, mock_rmtree, mock_copytree, mock_log, client, admin_user):
         """Test successful reset of default themes."""
         with client.session_transaction() as sess:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
-        
+
         mock_exists.return_value = True
-        mock_zip_instance = MagicMock()
-        mock_zipfile.return_value.__enter__.return_value = mock_zip_instance
-        mock_zip_instance.namelist.return_value = ['themes/default/theme.json', 'themes/default/css/style.css']
-        
+
         response = client.post('/admin/themes/reset')
         assert response.status_code == 302  # Redirect after success
+        mock_copytree.assert_called_once()
         mock_log.assert_called()
 
     @patch('modules.routes_admin_ext.themes.log_system_event')
-    @patch('os.path.exists')
-    @patch('zipfile.ZipFile')
-    def test_reset_default_themes_partial_failure(self, mock_zipfile, mock_exists, mock_log, client, admin_user):
-        """Test reset default themes with partial failures during extraction."""
+    @patch('shutil.copytree')
+    @patch('pathlib.Path.exists')
+    def test_reset_default_themes_copy_failure(self, mock_exists, mock_copytree, mock_log, client, admin_user):
+        """Test reset default themes with failure during copying."""
         with client.session_transaction() as sess:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
-        
+
         mock_exists.return_value = True
-        mock_zip_instance = MagicMock()
-        mock_zipfile.return_value.__enter__.return_value = mock_zip_instance
-        mock_zip_instance.namelist.return_value = ['file1.txt', 'file2.txt']
-        
-        def extract_side_effect(file, path):
-            if file == 'file1.txt':
-                return  # Success
-            else:
-                raise Exception("Extraction failed")
-        
-        mock_zip_instance.extract.side_effect = extract_side_effect
-        
+        mock_copytree.side_effect = Exception("Copy failed")
+
         response = client.post('/admin/themes/reset')
-        assert response.status_code == 302  # Redirect after partial success
+        assert response.status_code == 302
         mock_log.assert_called()
 
     @patch('modules.routes_admin_ext.themes.log_system_event')

@@ -81,26 +81,32 @@ def _initialize_with_sqlalchemy():
 def _initialize_library_folders(session):
     """Initialize library folders and themes (filesystem operations)."""
     print("Initializing library folders...")
-    
+
     # This mirrors the original init_data.initialize_library_folders() function
     library_path = os.path.join('modules', 'static', 'library')
     themes_path = os.path.join(library_path, 'themes')
     images_path = os.path.join(library_path, 'images')
     zips_path = os.path.join(library_path, 'zips')
-    
+
     # Check if default theme exists
-    if not os.path.exists(os.path.join(themes_path, 'default', 'theme.json')):
-        # Extract themes.zip
-        themes_zip = os.path.join('modules', 'setup', 'themes.zip')
-        if os.path.exists(themes_zip):
-            import zipfile
-            with zipfile.ZipFile(themes_zip, 'r') as zip_ref:
-                zip_ref.extractall(library_path)
-            print("Themes extracted successfully")
+    default_theme_target = os.path.join(themes_path, 'default')
+    if not os.path.exists(os.path.join(default_theme_target, 'theme.json')):
+        # Copy default theme from source directory
+        default_theme_source = os.path.join('modules', 'setup', 'default_theme')
+        if os.path.exists(default_theme_source):
+            try:
+                import shutil
+                # Create themes directory if it doesn't exist
+                os.makedirs(themes_path, exist_ok=True)
+                # Copy the entire default theme directory
+                shutil.copytree(default_theme_source, default_theme_target)
+                print("Default theme copied successfully")
+            except Exception as e:
+                print(f"Error copying default theme: {str(e)}")
         else:
-            print("Warning: themes.zip not found in modules/setup/")
+            print("Warning: default theme source not found in modules/setup/default_theme")
     else:
-        print("Default theme found, skipping themes.zip extraction")
+        print("Default theme found, skipping copy")
         
     # Create images folder if it doesn't exist
     if not os.path.exists(images_path):

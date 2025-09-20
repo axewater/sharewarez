@@ -1,5 +1,5 @@
 import os
-import zipfile
+import shutil
 from modules import db
 from modules.models import DiscoverySection
 from sqlalchemy import select
@@ -63,19 +63,28 @@ def initialize_library_folders():
     zips_path = os.path.join(library_path, 'zips')
     
     # Check if default theme exists
-    if not os.path.exists(os.path.join(themes_path, 'default', 'theme.json')):
-        print(f"Default theme not found at {os.path.join(themes_path, 'default', 'theme.json')}")
-        log_system_event(f"Default theme not found at {os.path.join(themes_path, 'default', 'theme.json')}", event_type='startup', event_level='warning', audit_user='system')
-        # Extract themes.zip
-        themes_zip = os.path.join('modules', 'setup', 'themes.zip')
-        if os.path.exists(themes_zip):
-            with zipfile.ZipFile(themes_zip, 'r') as zip_ref:
-                zip_ref.extractall(library_path)
-            print("Themes extracted successfully")
+    default_theme_target = os.path.join(themes_path, 'default')
+    if not os.path.exists(os.path.join(default_theme_target, 'theme.json')):
+        print(f"Default theme not found at {os.path.join(default_theme_target, 'theme.json')}")
+        log_system_event(f"Default theme not found at {os.path.join(default_theme_target, 'theme.json')}", event_type='startup', event_level='warning', audit_user='system')
+        # Copy default theme from source directory
+        default_theme_source = os.path.join('modules', 'setup', 'default_theme')
+        if os.path.exists(default_theme_source):
+            try:
+                # Create themes directory if it doesn't exist
+                os.makedirs(themes_path, exist_ok=True)
+                # Copy the entire default theme directory
+                shutil.copytree(default_theme_source, default_theme_target)
+                print("Default theme copied successfully")
+                log_system_event("Default theme copied successfully from source directory", event_type='startup', event_level='info', audit_user='system')
+            except Exception as e:
+                print(f"Error copying default theme: {str(e)}")
+                log_system_event(f"Error copying default theme: {str(e)}", event_type='startup', event_level='error', audit_user='system')
         else:
-            print("Warning: themes.zip not found in modules/setup/")
+            print("Warning: default theme source not found in modules/setup/default_theme")
+            log_system_event("Warning: default theme source not found in modules/setup/default_theme", event_type='startup', event_level='warning', audit_user='system')
     else:
-        print("Default theme found, skipping themes.zip extraction")
+        print("Default theme found, skipping copy")
     # Create images folder if it doesn't exist
     if not os.path.exists(images_path):
         os.makedirs(images_path)

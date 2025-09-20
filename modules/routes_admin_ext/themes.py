@@ -5,7 +5,7 @@ from modules.forms import ThemeUploadForm
 from modules.utils_themes import ThemeManager
 from modules.utils_logging import log_system_event
 import os
-import zipfile
+import shutil
 from pathlib import Path
 from typing import Optional, Union
 from . import admin2_bp
@@ -242,16 +242,16 @@ def delete_theme(theme_name: str):
 @login_required
 @admin_required
 def reset_default_themes():
-    """Reset themes to default by extracting from themes.zip.
-    
+    """Reset themes to default by copying from source directory.
+
     Returns:
         Response: Redirect to themes management page
     """
     try:
-        themes_zip = Path('modules') / 'setup' / 'themes.zip'
-        if not themes_zip.exists():
-            error_msg = "Failed to reset default themes: themes.zip not found"
-            flash('Error: themes.zip not found in modules/setup/', 'error')
+        default_theme_source = Path('modules') / 'setup' / 'default_theme'
+        if not default_theme_source.exists():
+            error_msg = "Failed to reset default themes: source directory not found"
+            flash('Error: default theme source not found in modules/setup/default_theme', 'error')
             log_system_event(
                 error_msg,
                 event_type='themes',
@@ -259,47 +259,45 @@ def reset_default_themes():
             )
             return redirect(url_for('admin2.manage_themes'))
 
-        library_path = Path('modules') / 'static' / 'library'
-        log_details = []
-        
+        default_theme_target = Path('modules') / 'static' / 'library' / 'themes' / 'default'
+
         log_system_event(
             "Starting default themes reset...",
             event_type='themes',
             event_level='information'
         )
-        
-        with zipfile.ZipFile(themes_zip, 'r') as zip_ref:
-            files_list = zip_ref.namelist()
+
+        # Remove existing default theme if it exists
+        if default_theme_target.exists():
+            try:
+                shutil.rmtree(default_theme_target)
+                log_system_event(
+                    "Removed existing default theme directory",
+                    event_type='themes',
+                    event_level='information'
+                )
+            except Exception as e:
+                error_message = f"Failed to remove existing default theme: {str(e)}"
+                flash(error_message, 'error')
+                log_system_event(error_message, event_type='themes', event_level='error')
+                return redirect(url_for('admin2.manage_themes'))
+
+        # Create themes directory if it doesn't exist
+        default_theme_target.parent.mkdir(parents=True, exist_ok=True)
+
+        # Copy default theme from source
+        try:
+            shutil.copytree(default_theme_source, default_theme_target)
             log_system_event(
-                f"Found {len(files_list)} files in themes.zip",
+                "Default theme copied successfully from source directory",
                 event_type='themes',
                 event_level='information'
             )
-            
-            for file in files_list:
-                try:
-                    zip_ref.extract(file, library_path)
-                    log_message = f"Successfully extracted: {file}"
-                    log_details.append(log_message)
-                except Exception as e:
-                    error_message = f"Failed to extract {file}: {str(e)}"
-                    log_details.append(error_message)
-
-        successful_extracts = len([log for log in log_details if log.startswith("Successfully")])
-        failed_extracts = len([log for log in log_details if log.startswith("Failed")])
-        
-        summary = f"Default themes reset: {successful_extracts} files extracted successfully, {failed_extracts} failed"
-        full_log = "\n".join(log_details)
-        log_system_event(
-            f"{summary}\nDetails:\n{full_log}",
-            event_type='themes',
-            event_level='information' if failed_extracts == 0 else 'warning'
-        )
-
-        if failed_extracts == 0:
             flash('Default themes have been reset successfully!', 'success')
-        else:
-            flash(f'Default themes reset completed with {failed_extracts} errors. Check system logs for details.', 'warning')
+        except Exception as e:
+            error_message = f"Failed to copy default theme: {str(e)}"
+            flash(error_message, 'error')
+            log_system_event(error_message, event_type='themes', event_level='error')
 
     except Exception as e:
         error_message = f"Error resetting default themes: {str(e)}"
