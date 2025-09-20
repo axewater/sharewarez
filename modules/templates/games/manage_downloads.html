@@ -2,11 +2,7 @@
 
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/games/manage_downloads.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/games/manage_downloads.css') }}">
-{% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/games/manage_downloads.css') }}">
-{% endif %}
+<link rel="stylesheet" href="{{ 'css/games/manage_downloads.css'|theme_asset }}">
 
 
 <div class="glass-panel">
@@ -60,10 +56,6 @@
         {{ form.csrf_token }}
     </div>
 </div>
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/downloads_manager.js') %}
-<script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/downloads_manager.js') }}"></script>
-{% else %}
-<script src="{{ url_for('static', filename='library/themes/default/js/downloads_manager.js') }}"></script>
-{% endif %}
+<script src="{{ 'js/downloads_manager.js'|theme_asset }}"></script>
 
 {% endblock %}

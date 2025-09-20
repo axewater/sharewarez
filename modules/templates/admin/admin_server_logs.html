@@ -2,11 +2,7 @@
 {% block content %}
 
 <!-- Include the custom CSS file -->
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_system_logs.css') %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_system_logs.css') }}">
-{% else %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_system_logs.css') }}">
-{% endif %}
+<link rel="stylesheet" href="{{ 'css/admin/admin_system_logs.css'|theme_asset }}">
 
 <!-- Move DataTables CSS to head -->
 {% block head %}

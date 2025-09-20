@@ -2,11 +2,7 @@
 
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/settings/settings_panel.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/settings/settings_panel.css') }}">
-{% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/settings/settings_panel.css') }}">
-{% endif %}
+<link rel="stylesheet" href="{{ 'css/settings/settings_panel.css'|theme_asset }}">
 
 <div class="glass-panel">
     <div class="container my-4">

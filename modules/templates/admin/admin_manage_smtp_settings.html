@@ -2,11 +2,7 @@
 {% block content %}
 
 <meta name="csrf-token" content="{{ csrf_token() }}">
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_manage_smtp_settings.css') == True %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_manage_smtp_settings.css') }}">
-{% else %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_smtp_settings.css') }}">
-{% endif %}
+<link rel="stylesheet" href="{{ 'css/admin/admin_manage_smtp_settings.css'|theme_asset }}">
 
 <div class="container">
     <div class="glass-panel">
@@ -121,10 +117,6 @@
     </div>
 </div>
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin_manage_smtp_settings.js') %}
-    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin_manage_smtp_settings.js') }}"></script>
-{% else %}
-    <script src="{{ url_for('static', filename='library/themes/default/js/admin_manage_smtp_settings.js') }}"></script>
-{% endif %}
+<script src="{{ 'js/admin_manage_smtp_settings.js'|theme_asset }}"></script>
 
 {% endblock %}

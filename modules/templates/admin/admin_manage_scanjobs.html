@@ -7,11 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 {% endblock %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_manage_scanjobs.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_manage_scanjobs.css') }}">
-{% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_manage_scanjobs.css') }}">
-{% endif %}
+<link rel="stylesheet" href="{{ 'css/admin/admin_manage_scanjobs.css'|theme_asset }}">
 
 <meta name="active-tab" content="{{ active_tab }}">
 <meta name="selected-library-uuid" content="{{ selected_library_uuid }}">
@@ -356,11 +352,7 @@
         </div>
     </div>        
 </div>
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin_manage_scanjobs.js') %}
-<script type="module" src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin_manage_scanjobs.js') }}"></script>
-{% else %}
-<script type="module" src="{{ url_for('static', filename='library/themes/default/js/admin_manage_scanjobs.js') }}"></script>
-{% endif %}
+<script type="module" src="{{ 'js/admin_manage_scanjobs.js'|theme_asset }}"></script>
 
 <script>
     function onLibraryChange(libraryUuid, scanType) {

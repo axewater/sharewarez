@@ -1,11 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/games/playrom.css') == True %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/games/playrom.css') }}">
-{% else %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/games/playrom.css') }}">
-{% endif %}
+<link rel="stylesheet" href="{{ 'css/games/playrom.css'|theme_asset }}">
 
 <div class="emulator-container">
     

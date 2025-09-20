@@ -1,11 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/readme_theme.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/readme_theme.css') }}">
-{% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/readme_theme.css') }}">
-{% endif %}
+<link rel="stylesheet" href="{{ 'css/admin/readme_theme.css'|theme_asset }}">
 
 {% with messages = get_flashed_messages() %}
 {% if messages %}
@@ -48,13 +44,37 @@
         </section>
         <section>
             <h2>Creating the ZIP File</h2>
+            <p><strong>Important:</strong> The ZIP file must contain the theme files at the root level, not inside a subfolder.</p>
             <ol>
-                <li>Create a folder with your theme name</li>
+                <li>Create a folder with your theme name for organization</li>
                 <li>Add the <code>theme.json</code> file to this folder</li>
                 <li>Create a <code>css</code> subfolder and add your CSS files</li>
                 <li>Optionally, create an <code>images</code> subfolder for any theme-specific images</li>
-                <li>Zip all the files and folders that you have inside the theme folder you created</li>
+                <li><strong>Important:</strong> When creating the ZIP file, select all the <em>contents</em> of your theme folder (theme.json, css/, images/, etc.) and zip those files directly - do NOT zip the theme folder itself</li>
             </ol>
+
+            <h3>Correct ZIP Structure</h3>
+            <p>Your ZIP file should contain:</p>
+            <pre><code>
+mytheme.zip
+├── theme.json          ← At root level
+├── css/               ← At root level
+│   ├── base.css
+│   ├── components.css
+│   └── admin/
+│       └── admin_dashboard.css
+└── js/                ← Optional, at root level
+    └── custom.js
+            </code></pre>
+
+            <h3>Incorrect ZIP Structure (will fail)</h3>
+            <pre><code>
+mytheme.zip
+└── mytheme/           ← Extra folder layer causes upload to fail
+    ├── theme.json
+    ├── css/
+    └── js/
+            </code></pre>
         </section>
         <section>
             <h2>Uploading Your Theme</h2>

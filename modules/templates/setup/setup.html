@@ -1,11 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/setup/setup.css') == True %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/setup/setup.css') }}">
-{% else %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/setup/setup.css') }}">
-{% endif %}
+<link rel="stylesheet" href="{{ 'css/setup/setup.css'|theme_asset }}">
 
 <div class="container-login">
     <div class="content-login">

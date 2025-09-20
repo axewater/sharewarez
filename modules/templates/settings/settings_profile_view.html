@@ -2,11 +2,7 @@
 
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/settings/settings_profile_view.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/settings/settings_profile_view.css') }}">
-{% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/settings/settings_profile_view.css') }}">
-{% endif %}
+<link rel="stylesheet" href="{{ 'css/settings/settings_profile_view.css'|theme_asset }}">
 
 <div class="container my-4">
 

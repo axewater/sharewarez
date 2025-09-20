@@ -1,11 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_dashboard.css') == True %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_dashboard.css') }}">
-{% else %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_dashboard.css') }}">
-{% endif %}
+<link rel="stylesheet" href="{{ 'css/admin/admin_dashboard.css'|theme_asset }}">
 
 <div class="container-settings-dashboard">
 

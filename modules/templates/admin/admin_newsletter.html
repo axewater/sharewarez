@@ -2,11 +2,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_newsletter.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_newsletter.css') }}">
-{% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_newsletter.css') }}">
-{% endif %}
+<link rel="stylesheet" href="{{ 'css/admin/admin_newsletter.css'|theme_asset }}">
 
 
 <!-- Back to Dashboard Button -->

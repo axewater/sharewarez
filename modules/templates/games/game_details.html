@@ -3,13 +3,6 @@
 
 
 {# Helper Macros #}
-{% macro theme_resource(resource_path) %}
-    {% if verify_file('./modules/static/library/themes/' + current_theme + resource_path) %}
-        {{ url_for('static', filename='library/themes/' + current_theme + resource_path) }}
-    {% else %}
-        {{ url_for('static', filename='library/themes/default' + resource_path) }}
-    {% endif %}
-{% endmacro %}
 
 {% macro get_file_icon(file_name) %}
     {% set file_extension = file_name.split('.')[-1] if '.' in file_name else '' %}
@@ -87,10 +80,10 @@
 
 
 {# Load Theme Resources #}
-<link rel="stylesheet" href="{{ theme_resource('/css/games/game_details.css') }}">
-<script src="{{ theme_resource('/js/popup_menu.js') }}"></script>
-<script src="{{ theme_resource('/js/game_details.js') }}"></script>
-<script src="{{ theme_resource('/js/favorites_manager.js') }}"></script>
+<link rel="stylesheet" href="{{ 'css/games/game_details.css'|theme_asset }}">
+<script src="{{ 'js/popup_menu.js'|theme_asset }}"></script>
+<script src="{{ 'js/game_details.js'|theme_asset }}"></script>
+<script src="{{ 'js/favorites_manager.js'|theme_asset }}"></script>
 
 
 {# Modals #}

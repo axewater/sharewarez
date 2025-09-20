@@ -4,17 +4,9 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/admin/admin_discovery_sections.css') == True %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin/admin_discovery_sections.css') }}">
-{% else %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_discovery_sections.css') }}">
-{% endif %}
+<link rel="stylesheet" href="{{ 'css/admin/admin_discovery_sections.css'|theme_asset }}">
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin/discovery_sections.js') %}
-    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin/discovery_sections.js') }}"></script>
-{% else %}
-    <script src="{{ url_for('static', filename='library/themes/default/js/admin/discovery_sections.js') }}"></script>
-{% endif %}
+<script src="{{ 'js/admin/discovery_sections.js'|theme_asset }}"></script>
 
 <div class="container">
     <div class="row">

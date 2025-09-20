@@ -304,10 +304,6 @@
 <script id="currentSettings" type="application/json">{{ current_settings|tojson }}</script>
 <script id="csrf_token" type="application/json">{{ csrf_token() }}</script>
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin_manage_server_settings.js') %}
-<script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin_manage_server_settings.js') }}"></script>
-{% else %}
-<script src="{{ url_for('static', filename='library/themes/default/js/admin_manage_server_settings.js') }}"></script>
-{% endif %}
+<script src="{{ 'js/admin_manage_server_settings.js'|theme_asset }}"></script>
 
 {% endblock %}

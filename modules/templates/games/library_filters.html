@@ -1,10 +1,6 @@
 <!-- in templates/games/library_filters.html -->
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/games/library_filters.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/games/library_filters.css') }}">
-{% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/games/library_filters.css') }}">
-{% endif %}
+<link rel="stylesheet" href="{{ 'css/games/library_filters.css'|theme_asset }}">
 
 <div class="container-filtersandsort">
   <!-- Sorting Dropdown -->

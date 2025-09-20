@@ -933,9 +933,28 @@ def check_deletion_progress(job_id):
         return jsonify({'status': 'not_found', 'message': 'Job not found'}), 404
 
     
-@bp.add_app_template_global  
+@bp.add_app_template_global
 def verify_file(full_path):
     if os.path.exists(full_path) or os.access(full_path, os.R_OK):
         return True
     else:
         return False
+
+@bp.app_template_filter('theme_asset')
+def theme_asset_filter(path):
+    """Convert a relative theme path to the correct themed URL with fallback to default"""
+    from flask_login import current_user
+
+    # Get current theme from user preferences or default
+    if current_user.is_authenticated and hasattr(current_user, 'preferences') and current_user.preferences:
+        current_theme = current_user.preferences.theme or 'default'
+    else:
+        current_theme = 'default'
+
+    # Check if themed asset exists
+    full_path = f'./modules/static/library/themes/{current_theme}/{path}'
+    if os.path.exists(full_path):
+        return url_for('static', filename=f'library/themes/{current_theme}/{path}')
+
+    # Fallback to default theme
+    return url_for('static', filename=f'library/themes/default/{path}')

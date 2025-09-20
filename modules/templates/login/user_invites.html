@@ -1,11 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/login/user_invites.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/login/user_invites.css') }}">
-{% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/login/user_invites.css') }}">
-{% endif %}
+<link rel="stylesheet" href="{{ 'css/login/user_invites.css'|theme_asset }}">
 
 {% if not smtp_enabled %}
 <div class="alert alert-warning" role="alert">
@@ -96,9 +92,5 @@
 <script id="csrf_token" type="application/json">{{ csrf_token() }}</script>
 
 <!-- External JavaScript for invite management functionality -->
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/user_invites.js') == True %}
-    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/user_invites.js') }}"></script>
-{% else %}
-    <script src="{{ url_for('static', filename='library/themes/default/js/user_invites.js') }}"></script>
-{% endif %}
+<script src="{{ 'js/user_invites.js'|theme_asset }}"></script>
 {% endblock %}

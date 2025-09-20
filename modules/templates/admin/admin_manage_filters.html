@@ -76,10 +76,6 @@
     </table>
 </div>
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/admin_manage_filters.js') %}
-    <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin_manage_filters.js') }}"></script>
-{% else %}
-    <script src="{{ url_for('static', filename='library/themes/default/js/admin_manage_filters.js') }}"></script>
-{% endif %}
+<script src="{{ 'js/admin_manage_filters.js'|theme_asset }}"></script>
 
 {% endblock %}

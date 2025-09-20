@@ -2,11 +2,7 @@
 
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + 'css/site/restricted_area.css') == True %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + 'css/site/restricted_area.css') }}">
-{% else %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/site/restricted_area.css') }}">
-{% endif %}
+<link rel="stylesheet" href="{{ 'css/site/restricted_area.css'|theme_asset }}">
 
 <div class="container-base">
 

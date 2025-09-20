@@ -2,11 +2,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/games/game_edit_images.css') == True %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/games/game_edit_images.css') }}">
-{% else %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/games/game_edit_images.css') }}">
-{% endif %}
+<link rel="stylesheet" href="{{ 'css/games/game_edit_images.css'|theme_asset }}">
 
 <html>
     <head>
@@ -73,11 +69,7 @@
             <script>
                 var gameUuid = "{{ game.uuid }}";
             </script>
-            {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/game_edit_images.js') %}
-                <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/game_edit_images.js') }}"></script>
-            {% else %}
-                <script src="{{ url_for('static', filename='library/themes/default/js/game_edit_images.js') }}"></script>
-            {% endif %}
+            <script src="{{ 'js/game_edit_images.js'|theme_asset }}"></script>
             <button id="upload-button" class="btn btn-primary">Upload</button>
         </div>
     </body>

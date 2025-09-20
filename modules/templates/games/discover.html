@@ -2,23 +2,11 @@
 
 {% block content %}
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/games/discover.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/games/discover.css') }}">
-{% else %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/games/discover.css') }}">
-{% endif %}
+<link rel="stylesheet" href="{{ 'css/games/discover.css'|theme_asset }}">
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/library_slideshow.js') %}
-<script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/library_slideshow.js') }}"></script>
-{% else %}
-<script src="{{ url_for('static', filename='library/themes/default/js/library_slideshow.js') }}"></script>
-{% endif %}
+<script src="{{ 'js/library_slideshow.js'|theme_asset }}"></script>
 
-{% if verify_file('./modules/static/library/themes/' + current_theme + '/js/popup_menu.js') %}
-<script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/popup_menu.js') }}"></script>
-{% else %}
-<script src="{{ url_for('static', filename='library/themes/default/js/popup_menu.js') }}"></script>
-{% endif %}
+<script src="{{ 'js/popup_menu.js'|theme_asset }}"></script>
 
 
 <body>

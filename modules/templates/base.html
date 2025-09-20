@@ -22,42 +22,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 
     <!-- CSRF Token Management Utility - Load before other local scripts -->
-    {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/csrf-utils.js') %}
-        <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/csrf-utils.js') }}"></script>
-    {% else %}
-        <script src="{{ url_for('static', filename='library/themes/default/js/csrf-utils.js') }}"></script>
-    {% endif %}
-    
-    
-	{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/base.css') == True %}
-	<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/base.css') }}">
-	{% else %}
-		<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/base.css') }}">
-	{% endif %}
+    <script src="{{ 'js/csrf-utils.js'|theme_asset }}"></script>
 
-	{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/site/sidebar.css') == True %}
-		<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/site/sidebar.css') }}">
-	{% else %}
-		<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/site/sidebar.css') }}">
-	{% endif %}
+    <link rel="stylesheet" href="{{ 'css/base.css'|theme_asset }}">
+    <link rel="stylesheet" href="{{ 'css/site/sidebar.css'|theme_asset }}">
+    <link rel="stylesheet" href="{{ 'css/components.css'|theme_asset }}">
     
-	{% if verify_file('./modules/static/library/themes/' + current_theme + '/css/components.css') == True %}
-		<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/components.css') }}">
-	{% else %}
-		<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/components.css') }}">
-	{% endif %}
-    
-    {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/preferences_modal.js') %}
-        <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/preferences_modal.js') }}"></script>
-    {% else %}
-        <script src="{{ url_for('static', filename='library/themes/default/js/preferences_modal.js') }}"></script>
-    {% endif %}
-    
-    {% if verify_file('./modules/static/library/themes/' + current_theme + '/js/delete_game_modal.js') %}
-        <script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/delete_game_modal.js') }}"></script>
-    {% else %}
-        <script src="{{ url_for('static', filename='library/themes/default/js/delete_game_modal.js') }}"></script>
-    {% endif %}
+    <script src="{{ 'js/preferences_modal.js'|theme_asset }}"></script>
+    <script src="{{ 'js/delete_game_modal.js'|theme_asset }}"></script>
     
     
     {% endblock %}
