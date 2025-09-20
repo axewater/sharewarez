@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, current_app, abort
+from flask import render_template, request, redirect, url_for, flash, current_app, abort, jsonify
 from flask_login import login_required
 from modules.utils_auth import admin_required
 from modules.models import Library, LibraryPlatform
@@ -10,6 +10,8 @@ from PIL import Image as PILImage
 from uuid import uuid4
 from werkzeug.utils import secure_filename
 import os
+import base64
+import io
 from . import admin2_bp
 
 def _process_library_image(file, library):
@@ -153,4 +155,50 @@ def edit_library(library_uuid):
             print(f"Form validation errors: {form.errors}")
 
     return render_template('admin/admin_manage_library_create.html', form=form, library=library, page_title=page_title)
+
+@admin2_bp.route('/api/library/preview-cropped-image', methods=['POST'])
+@login_required
+@admin_required
+def preview_cropped_image():
+    """Process cropped image and return preview URL for immediate feedback."""
+    try:
+        data = request.get_json()
+
+        if not data or 'image_data' not in data:
+            return jsonify({'error': 'No image data provided'}), 400
+
+        # Extract base64 image data
+        image_data = data['image_data']
+        if image_data.startswith('data:image'):
+            # Remove data URL prefix
+            image_data = image_data.split(',')[1]
+
+        # Decode base64 image
+        image_bytes = base64.b64decode(image_data)
+
+        # Process image
+        with PILImage.open(io.BytesIO(image_bytes)) as img:
+            img = img.convert('RGBA')
+
+            # Resize if necessary (same logic as _process_library_image)
+            if img.width > 1024 or img.height > 1024:
+                img.thumbnail((1024, 1024), PILImage.LANCZOS)
+
+            # Convert back to base64 for preview
+            output_buffer = io.BytesIO()
+            img.save(output_buffer, 'PNG')
+            output_buffer.seek(0)
+
+            processed_image_data = base64.b64encode(output_buffer.getvalue()).decode()
+            preview_url = f"data:image/png;base64,{processed_image_data}"
+
+            return jsonify({
+                'status': 'success',
+                'preview_url': preview_url,
+                'message': 'Image processed successfully'
+            })
+
+    except Exception as e:
+        print(f"Error processing cropped image: {e}")
+        return jsonify({'error': 'Failed to process image'}), 500
 
