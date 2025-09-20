@@ -123,6 +123,111 @@
     font-weight: bold;
 }
 
+.status-pending {
+    color: #007bff;
+    font-weight: bold;
+}
+
+.status-duplicate {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Status-based row background colors for unmatched folders table */
+.simple-unmatched-table tr[data-status="Unmatched"] {
+    background-color: rgba(253, 126, 20, 0.15) !important;
+}
+
+.simple-unmatched-table tr[data-status="Duplicate"] {
+    background-color: rgba(220, 53, 69, 0.15) !important;
+}
+
+.simple-unmatched-table tr[data-status="Ignore"] {
+    background-color: rgba(108, 117, 125, 0.15) !important;
+}
+
+.simple-unmatched-table tr[data-status="Pending"] {
+    background-color: rgba(0, 123, 255, 0.15) !important;
+}
+
+/* Filter controls styling */
+.unmatched-filters {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-btn {
+    padding: 6px 12px;
+    font-size: 0.875rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.filter-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.filter-btn.active {
+    background: rgba(0, 123, 255, 0.8);
+    border-color: #007bff;
+    color: #fff;
+}
+
+.search-container {
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 0.875rem;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #007bff;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Results counter */
+.results-info {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.875rem;
+    font-style: italic;
+}
+
 /* Progress bars */
 .scan-progress .progress {
     background-color: rgba(255, 255, 255, 0.2);

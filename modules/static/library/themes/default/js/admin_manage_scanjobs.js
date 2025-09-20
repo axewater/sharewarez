@@ -249,9 +249,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     `;
                     
                     const row = document.createElement('tr');
+                    row.setAttribute('data-status', folder.status);
+                    row.setAttribute('data-folder-path', folder.folder_path.toLowerCase());
+                    row.setAttribute('data-library-name', folder.library_name.toLowerCase());
+                    row.setAttribute('data-platform-name', folder.platform_name.toLowerCase());
                     row.innerHTML = `
                         <td><i class="fas fa-folder"></i> ${folder.folder_path}</td>
-                        <td>${folder.status}</td>
+                        <td><span class="status-${folder.status.toLowerCase()}">${folder.status}</span></td>
                         <td>${folder.library_name}</td>
                         <td>${folder.platform_name}</td>
                         <td>${actionsColumn}</td>
@@ -260,6 +264,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 // Attach event listeners to the new forms
                 attachDeleteFolderFormListeners();
+
+                // Update results counter after data load
+                updateResultsCounter();
             })
             .catch(error => {
                 console.error('Error fetching unmatched folders:', error);
@@ -269,13 +276,102 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     };
 
+    // Filtering functionality
+    let currentFilter = 'all';
+    let currentSearch = '';
+
+    function filterUnmatchedRows() {
+        const unmatchedRows = document.querySelectorAll('#unmatchedFoldersTableBody tr');
+        let visibleCount = 0;
+
+        unmatchedRows.forEach(row => {
+            const status = row.getAttribute('data-status');
+            const folderPath = row.getAttribute('data-folder-path') || '';
+            const libraryName = row.getAttribute('data-library-name') || '';
+            const platformName = row.getAttribute('data-platform-name') || '';
+
+            // Check status filter
+            const statusMatch = currentFilter === 'all' || status === currentFilter;
+
+            // Check search filter
+            const searchMatch = currentSearch === '' ||
+                folderPath.includes(currentSearch) ||
+                libraryName.includes(currentSearch) ||
+                platformName.includes(currentSearch);
+
+            if (statusMatch && searchMatch) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        updateResultsCounter(visibleCount, unmatchedRows.length);
+    }
+
+    function updateResultsCounter(visible = null, total = null) {
+        const resultsInfo = document.getElementById('resultsInfo');
+        if (!resultsInfo) return;
+
+        if (visible === null || total === null) {
+            const unmatchedRows = document.querySelectorAll('#unmatchedFoldersTableBody tr');
+            total = unmatchedRows.length;
+            visible = Array.from(unmatchedRows).filter(row => row.style.display !== 'none').length;
+        }
+
+        if (currentFilter === 'all' && currentSearch === '') {
+            resultsInfo.textContent = `Showing all ${total} entries`;
+        } else {
+            const filterText = currentFilter !== 'all' ? ` (${currentFilter})` : '';
+            const searchText = currentSearch ? ` matching "${currentSearch}"` : '';
+            resultsInfo.textContent = `Showing ${visible} of ${total} entries${filterText}${searchText}`;
+        }
+    }
+
+    function setupUnmatchedFilters() {
+        // Filter button event listeners
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from all buttons
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+
+                // Add active class to clicked button
+                this.classList.add('active');
+
+                // Update current filter
+                currentFilter = this.getAttribute('data-filter');
+
+                // Apply filtering
+                filterUnmatchedRows();
+            });
+        });
+
+        // Search input event listener
+        const searchInput = document.getElementById('unmatchedSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                currentSearch = this.value.toLowerCase();
+                filterUnmatchedRows();
+            });
+        }
+    }
+
+    // Set up filter controls
+    setupUnmatchedFilters();
+
     // Run immediately on load
     updateScanJobs();
     updateUnmatchedFolders();
 
     // Set up periodic updates
     setInterval(updateScanJobs, 3000);  // Update every 3 seconds
-    setInterval(updateUnmatchedFolders, 30000);  // Update every 30 seconds
+    setInterval(() => {
+        updateUnmatchedFolders().then(() => {
+            // Reapply current filters after periodic refresh
+            filterUnmatchedRows();
+        });
+    }, 30000);  // Update every 30 seconds
 
     // Global functions for table interactions
     window.toggleIgnoreStatus = function(folderId, button) {
@@ -286,7 +382,10 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                updateUnmatchedFolders();
+                updateUnmatchedFolders().then(() => {
+                    // Reapply current filters after data refresh
+                    filterUnmatchedRows();
+                });
             }
         })
         .catch(error => console.error('Error toggling ignore status:', error));
@@ -301,7 +400,10 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    updateUnmatchedFolders();
+                    updateUnmatchedFolders().then(() => {
+                        // Reapply current filters after data refresh
+                        filterUnmatchedRows();
+                    });
                 }
             })
             .catch(error => console.error('Error clearing entry:', error));

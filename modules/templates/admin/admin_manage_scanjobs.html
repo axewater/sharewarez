@@ -313,6 +313,28 @@
                             <button type="submit" class="admin_manage_scanjobs-clearunmatched-btn btn btn-warning" data-toggle="tooltip" title="Remove only folders with 'Unmatched' status, keeping identified items" onclick="return confirm('Are you sure you want to clear all unmatched folders? This cannot be undone.');">Clear Unmatched</button>
                         </form>
                     </div>
+
+                    <!-- Filter Controls -->
+                    <div class="unmatched-filters">
+                        <div class="filter-row">
+                            <div class="filter-buttons">
+                                <button class="filter-btn active" data-filter="all">All</button>
+                                <button class="filter-btn" data-filter="Unmatched">Unmatched</button>
+                                <button class="filter-btn" data-filter="Duplicate">Duplicates</button>
+                                <button class="filter-btn" data-filter="Ignore">Ignored</button>
+                                <button class="filter-btn" data-filter="Pending">Pending</button>
+                            </div>
+                            <div class="search-container">
+                                <input type="text"
+                                       id="unmatchedSearch"
+                                       class="search-input"
+                                       placeholder="Search folder path, library, or platform...">
+                            </div>
+                        </div>
+                        <div class="results-info" id="resultsInfo">
+                            Showing all entries
+                        </div>
+                    </div>
                     <table id="unmatchedTable" class="simple-unmatched-table" style="border-radius: 15px;">
                         <thead>
                             <tr>
