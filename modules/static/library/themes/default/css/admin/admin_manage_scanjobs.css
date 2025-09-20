@@ -228,6 +228,54 @@
     font-style: italic;
 }
 
+/* Row animations */
+.row-fade-out {
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: all 0.3s ease-out;
+    pointer-events: none;
+}
+
+.simple-unmatched-table tr {
+    transition: all 0.3s ease;
+}
+
+/* Success notification */
+.success-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(40, 167, 69, 0.95);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+}
+
+.success-notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.success-notification i {
+    font-size: 1.1rem;
+}
+
+.success-notification.hide {
+    opacity: 0;
+    transform: translateX(100%);
+}
+
 /* Progress bars */
 .scan-progress .progress {
     background-color: rgba(255, 255, 255, 0.2);

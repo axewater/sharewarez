@@ -280,6 +280,34 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentFilter = 'all';
     let currentSearch = '';
 
+    // Notification system
+    function showSuccessNotification(message) {
+        // Remove any existing notification
+        const existingNotification = document.querySelector('.success-notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+
+        // Create new notification
+        const notification = document.createElement('div');
+        notification.className = 'success-notification';
+        notification.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span>${message}</span>
+        `;
+
+        document.body.appendChild(notification);
+
+        // Show notification
+        setTimeout(() => notification.classList.add('show'), 10);
+
+        // Hide and remove notification after 3 seconds
+        setTimeout(() => {
+            notification.classList.add('hide');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
     function filterUnmatchedRows() {
         const unmatchedRows = document.querySelectorAll('#unmatchedFoldersTableBody tr');
         let visibleCount = 0;
@@ -299,8 +327,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 libraryName.includes(currentSearch) ||
                 platformName.includes(currentSearch);
 
-            if (statusMatch && searchMatch) {
+            // Special handling for ignored items
+            let shouldShow = statusMatch && searchMatch;
+
+            // For Option 2 behavior: Hide ignored items unless viewing "All" or "Ignored"
+            if (status === 'Ignore' && currentFilter !== 'all' && currentFilter !== 'Ignore') {
+                shouldShow = false;
+            }
+
+            if (shouldShow) {
                 row.style.display = '';
+                row.classList.remove('row-fade-out'); // Remove fade-out class if present
                 visibleCount++;
             } else {
                 row.style.display = 'none';
@@ -375,6 +412,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Global functions for table interactions
     window.toggleIgnoreStatus = function(folderId, button) {
+        const row = button.closest('tr');
+        const currentStatus = row.getAttribute('data-status');
+        const isBeingIgnored = currentStatus !== 'Ignore';
+
+        // Show immediate visual feedback
+        if (isBeingIgnored) {
+            // If we're ignoring the item and not viewing "All" or "Ignored", hide it immediately
+            if (currentFilter !== 'all' && currentFilter !== 'Ignore') {
+                row.classList.add('row-fade-out');
+                setTimeout(() => {
+                    row.style.display = 'none';
+                    updateResultsCounter();
+                }, 300);
+            }
+        }
+
         fetch(`/toggle_ignore_status/${folderId}`, {
             method: 'POST',
             headers: CSRFUtils.getHeaders({
@@ -385,17 +438,46 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
+                // Show success notification
+                const action = isBeingIgnored ? 'ignored' : 'un-ignored';
+                showSuccessNotification(`Folder ${action} successfully`);
+
+                // Update table data in background
                 updateUnmatchedFolders().then(() => {
                     // Reapply current filters after data refresh
                     filterUnmatchedRows();
                 });
+            } else {
+                // If there was an error, restore the row if it was hidden
+                if (isBeingIgnored && currentFilter !== 'all' && currentFilter !== 'Ignore') {
+                    row.classList.remove('row-fade-out');
+                    row.style.display = '';
+                }
+                console.error('Error toggling ignore status:', data.message);
             }
         })
-        .catch(error => console.error('Error toggling ignore status:', error));
+        .catch(error => {
+            // If there was an error, restore the row if it was hidden
+            if (isBeingIgnored && currentFilter !== 'all' && currentFilter !== 'Ignore') {
+                row.classList.remove('row-fade-out');
+                row.style.display = '';
+            }
+            console.error('Error toggling ignore status:', error);
+        });
     };
 
     window.clearEntry = function(folderId) {
         if (confirm('Remove this entry from the unmatched list?')) {
+            const button = event.target.closest('button');
+            const row = button.closest('tr');
+
+            // Immediate visual feedback - fade out the row
+            row.classList.add('row-fade-out');
+            setTimeout(() => {
+                row.style.display = 'none';
+                updateResultsCounter();
+            }, 300);
+
             fetch(`/clear_unmatched_entry/${folderId}`, {
                 method: 'POST',
                 headers: CSRFUtils.getHeaders({
@@ -406,13 +488,26 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
+                    showSuccessNotification('Entry removed successfully');
+
+                    // Update table data in background
                     updateUnmatchedFolders().then(() => {
                         // Reapply current filters after data refresh
                         filterUnmatchedRows();
                     });
+                } else {
+                    // If there was an error, restore the row
+                    row.classList.remove('row-fade-out');
+                    row.style.display = '';
+                    console.error('Error clearing entry:', data.message);
                 }
             })
-            .catch(error => console.error('Error clearing entry:', error));
+            .catch(error => {
+                // If there was an error, restore the row
+                row.classList.remove('row-fade-out');
+                row.style.display = '';
+                console.error('Error clearing entry:', error);
+            });
         }
     };
 });
