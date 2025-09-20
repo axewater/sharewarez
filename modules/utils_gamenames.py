@@ -56,23 +56,97 @@ def get_game_name_by_uuid(uuid):
         return None
     
     
+def detect_goty_pattern(filename):
+    """
+    Detect if filename contains GOTY or G.O.T.Y. patterns.
+    Returns tuple: (has_goty, standardized_name)
+    """
+    # Check for various GOTY patterns (case-insensitive)
+    goty_patterns = [
+        r'\bg\.o\.t\.y\.?(?=\s|$|\.|-)',    # g.o.t.y or g.o.t.y. (followed by space, end, dot, or hyphen)
+        r'(?:^|[^a-zA-Z])goty(?=\s|$|-|\.|_)',  # goty (not preceded by letter, followed by space, end, hyphen, dot, or underscore)
+    ]
+
+    for i, pattern in enumerate(goty_patterns):
+        match = re.search(pattern, filename, re.IGNORECASE)
+        if match:
+            start, end = match.span()
+            if i == 1:  # Special handling for the second pattern that includes preceding character
+                # Check if match starts with a non-letter character
+                if match.start() > 0 and not filename[match.start()].isalpha():
+                    # Keep the preceding character
+                    cleaned = filename[:start+1] + 'GOTY' + filename[end:]
+                else:
+                    cleaned = filename[:start] + 'GOTY' + filename[end:]
+            else:
+                # Standard replacement for first pattern
+                cleaned = filename[:start] + 'GOTY' + filename[end:]
+            return True, cleaned
+
+    return False, filename
+
+
+def generate_goty_variants(base_name):
+    """
+    Generate GOTY search variants for a game name containing GOTY.
+    Returns list of variants to try.
+    """
+    if 'GOTY' not in base_name:
+        return [base_name]
+
+    # Generate variants
+    variants = []
+
+    # Try with GOTY
+    variants.append(base_name)
+
+    # Try with G.O.T.Y.
+    goty_variant = base_name.replace('GOTY', 'G.O.T.Y.')
+    variants.append(goty_variant)
+
+    # Try without GOTY as fallback
+    no_goty_variant = base_name.replace('GOTY', '').strip()
+    # Clean up any double spaces
+    no_goty_variant = re.sub(r'\s+', ' ', no_goty_variant).strip()
+    if no_goty_variant:  # Only add if not empty
+        variants.append(no_goty_variant)
+
+    return variants
+
+
 def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
     # print(f"Original filename: {filename}")
-    
+
     # Check and remove 'setup' at the start, case-insensitive
     if filename.lower().startswith('setup'):
         filename = filename[len('setup'):].lstrip("_").lstrip("-").lstrip()
         # print(f"After removing 'setup': {filename}")
 
+    # Detect and preserve GOTY patterns early, before dot processing
+    has_goty, filename = detect_goty_pattern(filename)
+
     # First handle version numbers and known patterns that should be removed
     filename = re.sub(r'v\d+(\.\d+)*', '', filename)  # Remove version numbers like v1.0.3
+    filename = re.sub(r'(?:^|_|\s)\d+(\.\d+){2,}(?=_|\s|$)', '', filename)  # Remove complex version numbers like 1.9.23494.3
     filename = re.sub(r'\b\d+(\.\d+)+\b', '', filename)  # Remove standalone version numbers like 1.0.3
-    
-    # Handle dots between single letters (like A.Tale -> A Tale)
-    filename = re.sub(r'(?<=\b[A-Z])\.(?=[A-Z]\b|\s|$)', ' ', filename)
-    
-    # Replace remaining dots and underscores with spaces, but preserve dots in known patterns
-    filename = re.sub(r'(?<!^)(?<![\d])\.|_', ' ', filename)
+    filename = re.sub(r'_\(\d+\)_', '_', filename)  # Replace build numbers in parentheses like _(51906)_ with single underscore
+    filename = re.sub(r'_?\(\d+\)_?', '', filename)  # Remove any remaining build numbers in parentheses
+
+    # Handle dots between single letters (like A.Tale -> A Tale), but preserve GOTY if present
+    if not has_goty or 'GOTY' not in filename:
+        filename = re.sub(r'(?<=\b[A-Z])\.(?=[A-Z]\b|\s|$)', ' ', filename)
+    else:
+        # More careful dot handling when GOTY is present
+        filename = re.sub(r'(?<=\b[A-Z])\.(?=[A-Z]\b|\s|$)(?!.*GOTY)', ' ', filename)
+
+    # Replace remaining dots and underscores with spaces, but preserve GOTY
+    if has_goty and 'GOTY' in filename:
+        # Temporarily replace GOTY to protect it from dot processing
+        filename = filename.replace('GOTY', 'GOTYPLACEHOLDER')
+        filename = re.sub(r'(?<!^)(?<![\d])\.|_', ' ', filename)
+        filename = filename.replace('GOTYPLACEHOLDER', 'GOTY')
+    else:
+        filename = re.sub(r'(?<!^)(?<![\d])\.|_', ' ', filename)
 
     # Define a regex pattern for version numbers
     version_pattern = r'\bv?\d+(\.\d+){1,3}'
@@ -107,9 +181,46 @@ def clean_game_name(filename, insensitive_patterns, sensitive_patterns):
     # Remove trailing numbers enclosed in brackets
     filename = re.sub(r'\(\d+\)$', '', filename).strip()
 
+    # Smart cleanup of trailing numbers - keep only one meaningful number at the end
+    # Split by spaces and work backwards from the end
+    words = filename.split()
+    if len(words) > 1:
+        # Find trailing numeric/garbage words
+        trailing_numbers = []
+        clean_words = []
+
+        for word in reversed(words):
+            # Check if word is purely numeric or obvious garbage
+            if (word.isdigit() and len(word) <= 2) or word.lower() in ['win', 'gog', 'steam']:
+                trailing_numbers.append(word)
+            else:
+                # Keep this word and stop looking
+                clean_words = words[:len(words) - len(trailing_numbers)]
+                break
+
+        # If we found trailing garbage words, clean them up
+        if trailing_numbers:
+            # Look for a valid game sequel number (typically 1-20)
+            valid_sequel = None
+            for num_word in reversed(trailing_numbers):
+                if num_word.isdigit() and 1 <= int(num_word) <= 20:
+                    valid_sequel = num_word
+                    break
+
+            # Rebuild filename with cleaned words plus optional valid sequel number
+            if valid_sequel:
+                filename = ' '.join(clean_words + [valid_sequel])
+            else:
+                filename = ' '.join(clean_words)
+
     # Normalize whitespace and re-title
     filename = re.sub(r'\s+', ' ', filename).strip()
     cleaned_name = ' '.join(filename.split()).title()
+
+    # Preserve GOTY in uppercase after title case conversion
+    if has_goty:
+        cleaned_name = re.sub(r'\bGoty\b', 'GOTY', cleaned_name)
+
     # print(f"Final cleaned name: {cleaned_name}")
 
     return cleaned_name

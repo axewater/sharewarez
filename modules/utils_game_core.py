@@ -19,6 +19,7 @@ from modules.utils_functions import (
     get_folder_size_in_bytes_updates
 )
 from modules.utils_igdb_api import make_igdb_api_request
+from modules.utils_gamenames import generate_goty_variants
 from modules.utils_discord import discord_webhook
 from modules.utils_scanning import log_unmatched_folder, delete_game_images
 from modules.utils_logging import log_system_event
@@ -364,6 +365,26 @@ def fetch_and_store_game_urls(game_uuid, igdb_id):
         
 
     
+def search_igdb_for_game(search_name, platform_id):
+    """
+    Helper function to search IGDB for a game with the given name and platform.
+    Returns the API response or None if no match found.
+    """
+    query_fields = """fields id, name, cover, summary, url, release_dates.date, platforms.name, genres.name, themes.name, game_modes.name,
+                      screenshots, videos.video_id, first_release_date, aggregated_rating, involved_companies, player_perspectives.name,
+                      aggregated_rating_count, rating, rating_count, slug, status, category, total_rating,
+                      total_rating_count;"""
+    query_filter = f'search "{search_name}"; limit 1;'
+    if platform_id is not None:
+        query_filter += f' where platforms = ({platform_id});'
+
+    response_json = make_igdb_api_request(current_app.config['IGDB_API_ENDPOINT'], query_fields + query_filter)
+
+    if 'error' not in response_json and response_json:
+        return response_json
+    return None
+
+
 def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_uuid=None):
     # print(f"retrieve_and_save_game Retrieving and saving game: {game_name} on {full_disk_path} to library with UUID {library_uuid}.")
     library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalar_one_or_none()
@@ -377,21 +398,30 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
         return existing_game_by_path 
 
     platform_id = PLATFORM_IDS.get(library.platform.name)
-    # Platform-specific search logic
-    if platform_id is not None:
-        pass  # Continue with platform-specific search
-    query_fields = """fields id, name, cover, summary, url, release_dates.date, platforms.name, genres.name, themes.name, game_modes.name,
-                      screenshots, videos.video_id, first_release_date, aggregated_rating, involved_companies, player_perspectives.name,
-                      aggregated_rating_count, rating, rating_count, slug, status, category, total_rating, 
-                      total_rating_count;"""
-    query_filter = f'search "{game_name}"; limit 1;'
-    if platform_id is not None:
-        query_filter += f' where platforms = ({platform_id});'
 
-    response_json = make_igdb_api_request(current_app.config['IGDB_API_ENDPOINT'], query_fields + query_filter)
-    if 'error' not in response_json and response_json:
+    # Generate GOTY variants to try different search combinations
+    search_variants = generate_goty_variants(game_name)
+    print(f"Generated search variants for '{game_name}': {search_variants}")
+
+    response_json = None
+    successful_search_name = None
+
+    # Try each variant until we find a match
+    for search_name in search_variants:
+        print(f"Trying IGDB search with: '{search_name}'")
+        response_json = search_igdb_for_game(search_name, platform_id)
+        if response_json:
+            successful_search_name = search_name
+            print(f"Successfully found match with search variant: '{search_name}'")
+            break
+        else:
+            print(f"No match found for variant: '{search_name}'")
+    if response_json and 'error' not in response_json:
         igdb_id = response_json[0].get('id')
-        print(f"Found game {game_name} with IGDB ID {igdb_id}")
+        if successful_search_name != game_name:
+            print(f"Found game '{game_name}' using search variant '{successful_search_name}' with IGDB ID {igdb_id}")
+        else:
+            print(f"Found game {game_name} with IGDB ID {igdb_id}")
 
         # Check for existing game with the same IGDB ID but different folder path
         existing_game_with_same_igdb_id = db.session.execute(select(Game).filter(Game.igdb_id == igdb_id, Game.full_disk_path != full_disk_path)).scalar_one_or_none()
@@ -480,7 +510,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
                     print("Failed to save game due to a duplicate entry.")
             return new_game
     else:
-        if 'error' in response_json:
+        if response_json and 'error' in response_json:
             # Check specifically for authentication error
             if response_json.get('error') == 'Failed to retrieve access token':
                 error_msg = 'IGDB API Authentication Failed'

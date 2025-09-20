@@ -9,10 +9,12 @@ from flask import Flask
 from modules import create_app, db
 from modules.models import Game
 from modules.utils_gamenames import (
-    get_game_names_from_folder, 
-    get_game_names_from_files, 
+    get_game_names_from_folder,
+    get_game_names_from_files,
     get_game_name_by_uuid,
-    clean_game_name
+    clean_game_name,
+    detect_goty_pattern,
+    generate_goty_variants
 )
 
 
@@ -406,10 +408,10 @@ class TestCleanGameName:
     def test_trailing_numbers_in_brackets_removal(self):
         """Test removal of trailing numbers in brackets."""
         test_cases = [
-            ('Game Name (1)', 'Game Name ( 1'),  # Regex removes )$ but not the number
-            ('Game Name (123)', 'Game Name ( 123'),
-            ('Game Name (1) Extra', 'Game Name ( 1 Extra'),  # Parentheses processing affects all
-            ('Game Name(456)', 'Game Name( 456')  # Partial removal
+            ('Game Name (1)', 'Game Name'),  # Complete removal of trailing brackets with numbers
+            ('Game Name (123)', 'Game Name'),  # Complete removal
+            ('Game Name (1) Extra', 'Game Name Extra'),  # Middle brackets removed
+            ('Game Name(456)', 'Game Name')  # Complete removal
         ]
         
         for input_name, expected in test_cases:
@@ -532,3 +534,225 @@ class TestIntegrationScenarios:
         """Clean up database after each test."""
         yield
         safe_cleanup_database(db_session)
+
+
+class TestDetectGotyPattern:
+    """Test cases for detect_goty_pattern function."""
+
+    def test_detect_goty_variants(self):
+        """Test detection of various GOTY patterns."""
+        test_cases = [
+            # (input, expected_has_goty, expected_cleaned_name)
+            ('Game Name GOTY', True, 'Game Name GOTY'),
+            ('Game Name goty', True, 'Game Name GOTY'),
+            ('Game Name G.O.T.Y.', True, 'Game Name GOTY'),
+            ('Game Name g.o.t.y.', True, 'Game Name GOTY'),
+            ('Game Name G.O.T.Y', True, 'Game Name GOTY'),
+            ('Game Name g.o.t.y', True, 'Game Name GOTY'),
+            ('Super Game GOTY Edition', True, 'Super Game GOTY Edition'),
+            ('Game Name', False, 'Game Name'),
+            ('Game Name Got', False, 'Game Name Got'),  # Should not match partial
+            ('Game Name GOT', False, 'Game Name GOT'),  # Should not match partial
+        ]
+
+        for input_name, expected_has_goty, expected_cleaned in test_cases:
+            has_goty, cleaned = detect_goty_pattern(input_name)
+            assert has_goty == expected_has_goty, f"GOTY detection failed for '{input_name}'"
+            assert cleaned == expected_cleaned, f"Name cleaning failed for '{input_name}': got '{cleaned}', expected '{expected_cleaned}'"
+
+    def test_goty_case_insensitive(self):
+        """Test that GOTY detection is case-insensitive."""
+        test_cases = [
+            'Game GOTY',
+            'Game goty',
+            'Game Goty',
+            'Game GoTy',
+        ]
+
+        for input_name in test_cases:
+            has_goty, cleaned = detect_goty_pattern(input_name)
+            assert has_goty, f"Case-insensitive GOTY detection failed for '{input_name}'"
+            assert 'GOTY' in cleaned, f"GOTY not standardized in '{cleaned}'"
+
+    def test_dotted_goty_patterns(self):
+        """Test detection of G.O.T.Y. patterns with various dot placements."""
+        test_cases = [
+            'Game G.O.T.Y.',
+            'Game g.o.t.y.',
+            'Game G.O.T.Y',
+            'Game g.o.t.y',
+            'Game G.o.T.y.',
+        ]
+
+        for input_name in test_cases:
+            has_goty, cleaned = detect_goty_pattern(input_name)
+            assert has_goty, f"Dotted GOTY detection failed for '{input_name}'"
+            assert 'GOTY' in cleaned, f"GOTY not standardized in '{cleaned}'"
+
+
+class TestGenerateGotyVariants:
+    """Test cases for generate_goty_variants function."""
+
+    def test_goty_variants_generation(self):
+        """Test generation of GOTY search variants."""
+        input_name = 'Super Game GOTY'
+        expected_variants = [
+            'Super Game GOTY',
+            'Super Game G.O.T.Y.',
+            'Super Game'
+        ]
+
+        variants = generate_goty_variants(input_name)
+        assert variants == expected_variants, f"Expected {expected_variants}, got {variants}"
+
+    def test_non_goty_game_unchanged(self):
+        """Test that non-GOTY games return single variant."""
+        input_name = 'Regular Game'
+        variants = generate_goty_variants(input_name)
+        assert variants == [input_name], f"Non-GOTY game should return single variant: {variants}"
+
+    def test_multiple_goty_handling(self):
+        """Test handling of games with multiple GOTY occurrences."""
+        input_name = 'GOTY Game GOTY Edition'
+        variants = generate_goty_variants(input_name)
+
+        # Should contain original, G.O.T.Y. variant, and no-GOTY variant
+        assert len(variants) == 3, f"Expected 3 variants, got {len(variants)}: {variants}"
+        assert 'GOTY Game GOTY Edition' in variants
+        assert 'G.O.T.Y. Game G.O.T.Y. Edition' in variants
+        assert 'Game Edition' in variants
+
+    def test_empty_after_goty_removal(self):
+        """Test handling when removing GOTY results in empty string."""
+        input_name = 'GOTY'
+        variants = generate_goty_variants(input_name)
+
+        # Should contain original and G.O.T.Y. variant, but not empty string
+        assert len(variants) == 2, f"Expected 2 variants (no empty string), got {len(variants)}: {variants}"
+        assert 'GOTY' in variants
+        assert 'G.O.T.Y.' in variants
+
+
+class TestGotyIntegration:
+    """Integration tests for GOTY handling in clean_game_name."""
+
+    def test_goty_preservation_in_cleaning(self):
+        """Test that GOTY is preserved during name cleaning."""
+        test_cases = [
+            # (input, expected_output)
+            ('Game.Name.GOTY.v1.2', 'Game Name GOTY'),
+            ('Game_Name_goty-REPACK', 'Game Name GOTY'),
+            ('setupGame.G.O.T.Y.Edition', 'Game GOTY'),
+            ('Super.Game.g.o.t.y.+5DLCs', 'Super Game GOTY'),
+        ]
+
+        insensitive_patterns = ['REPACK', 'v1.2']
+        sensitive_patterns = []
+
+        for input_name, expected in test_cases:
+            result = clean_game_name(input_name, insensitive_patterns, sensitive_patterns)
+            # Check that GOTY is preserved and result contains expected core elements
+            assert 'GOTY' in result, f"GOTY not preserved in result: '{result}' from input: '{input_name}'"
+
+    def test_complex_goty_scenarios(self):
+        """Test complex real-world GOTY scenarios."""
+        insensitive_patterns = ['REPACK', 'GOG', 'FITGIRL']
+        sensitive_patterns = [('PROPER', True)]
+
+        test_cases = [
+            ('Witcher.3.g.o.t.y.Complete.Edition-GOG', 'GOTY'),
+            ('Skyrim.GOTY.Legendary.Edition.REPACK', 'GOTY'),
+            ('setupFallout.4.G.O.T.Y.+AllDLC-FITGIRL', 'GOTY'),
+        ]
+
+        for input_name, should_contain in test_cases:
+            result = clean_game_name(input_name, insensitive_patterns, sensitive_patterns)
+            assert should_contain in result, f"Expected '{should_contain}' in result: '{result}' from input: '{input_name}'"
+
+
+class TestNumberHandling:
+    """Test cases for improved number handling in clean_game_name function."""
+
+    def test_complex_version_number_removal(self):
+        """Test removal of complex version numbers with underscores."""
+        test_cases = [
+            ('Stronghold_Warlords_1.9.23494.3_win_gog', 'Stronghold Warlords'),  # Platform names removed
+            ('Game_Name_2.1.45678.9_steam', 'Game Name'),  # Platform names removed
+            ('Adventure_3.0.12345.67_repack', 'Adventure'),  # Repack removed by existing patterns
+            ('Title_1.2.3.4.5_extra', 'Title Extra'),
+        ]
+
+        for input_name, expected in test_cases:
+            result = clean_game_name(input_name, [], [])
+            assert result == expected, f"Input: '{input_name}' -> Expected: '{expected}' -> Got: '{result}'"
+
+    def test_build_number_removal(self):
+        """Test removal of build numbers in parentheses."""
+        test_cases = [
+            ('Game_Name_(12345)_win', 'Game Name'),  # Platform name also removed
+            ('Adventure_(98765)', 'Adventure'),
+            ('Title_v2.0_(54321)_gog', 'Title'),  # Platform name also removed
+            ('Game_(123)_and_more', 'Game And More'),
+        ]
+
+        for input_name, expected in test_cases:
+            result = clean_game_name(input_name, [], [])
+            assert result == expected, f"Input: '{input_name}' -> Expected: '{expected}' -> Got: '{result}'"
+
+    def test_trailing_number_cleanup(self):
+        """Test smart cleanup of multiple trailing numbers."""
+        test_cases = [
+            ('Stronghold Warlords 1 3 Win Gog', 'Stronghold Warlords 1'),  # Keep first valid sequel number
+            ('Game Name 2 5 9 Steam', 'Game Name 2'),  # Keep valid sequel number
+            ('Adventure 1 Steam', 'Adventure 1'),  # Keep single valid number
+            ('Title 25 Win', 'Title'),  # Remove number > 20 (not a typical sequel)
+            ('Game 3 4 5 6', 'Game 3'),  # Keep first valid sequel number
+            ('Puzzle 0 1 2', 'Puzzle 1'),  # Keep valid number, skip 0
+        ]
+
+        for input_name, expected in test_cases:
+            result = clean_game_name(input_name, [], [])
+            assert result == expected, f"Input: '{input_name}' -> Expected: '{expected}' -> Got: '{result}'"
+
+    def test_platform_name_removal(self):
+        """Test removal of platform names from trailing position."""
+        test_cases = [
+            ('Game Win', 'Game'),
+            ('Adventure Gog', 'Adventure'),
+            ('Title Steam', 'Title'),
+            ('Game 2 Win', 'Game 2'),  # Keep sequel number, remove platform
+            ('Adventure Steam Win', 'Adventure'),  # Remove multiple platform names
+        ]
+
+        for input_name, expected in test_cases:
+            result = clean_game_name(input_name, [], [])
+            assert result == expected, f"Input: '{input_name}' -> Expected: '{expected}' -> Got: '{result}'"
+
+    def test_real_world_complex_scenarios(self):
+        """Test real-world complex filename scenarios."""
+        test_cases = [
+            ('Stronghold_Warlords_1.9.23494.3_(51906)_win_gog', 'Stronghold Warlords'),
+            ('Cyberpunk_2077_1.52.16789.0_(98765)_steam', 'Cyberpunk 2077'),  # Keep year, remove version
+            ('FIFA_2023_v3.1.2_(12345)_gog', 'Fifa 2023'),  # Keep year
+            ('Doom_3_BFG_1.4.567.89_(99999)_win', 'Doom 3 Bfg'),  # Keep sequel number
+            ('setupPortal_2_v2.1.3_(55555)_steam_repack', 'Portal 2'),  # Keep sequel, remove everything else
+        ]
+
+        insensitive_patterns = ['REPACK']  # BFG should not be removed as it's part of the game name
+        for input_name, expected in test_cases:
+            result = clean_game_name(input_name, insensitive_patterns, [])
+            assert result == expected, f"Input: '{input_name}' -> Expected: '{expected}' -> Got: '{result}'"
+
+    def test_preserve_valid_game_numbers(self):
+        """Test that valid game numbers are preserved correctly."""
+        test_cases = [
+            ('Portal 2', 'Portal 2'),  # Simple sequel
+            ('Civilization 6', 'Civilization 6'),  # Single digit sequel
+            ('FIFA 2023', 'Fifa 2023'),  # Year should be preserved
+            ('Doom 1993', 'Doom 1993'),  # Original release year
+            ('Game 1 2 3', 'Game 1'),  # Multiple numbers, keep first valid one
+        ]
+
+        for input_name, expected in test_cases:
+            result = clean_game_name(input_name, [], [])
+            assert result == expected, f"Input: '{input_name}' -> Expected: '{expected}' -> Got: '{result}'"
