@@ -151,7 +151,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     menu.style.display = 'none';
                 }
             });
-    
+
+            // Close any open screenshot slideshows when opening popup menu
+            if (typeof hideDetails === 'function') {
+                hideDetails();
+            }
+
             popupMenu.style.display = popupMenu.style.display === 'block' ? 'none' : 'block';
         }
     });
