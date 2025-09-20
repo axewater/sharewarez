@@ -113,7 +113,7 @@
                     </button>
 
                     {% with game_uuid=game.uuid, game_url=game.url %}
-             
+                        {% include 'games/popup_menu.html' %}
                     {% endwith %}
                     {% if game.cover_url and game.cover_url != 'newstyle/default_cover.jpg' %}
                     <a href="{{ url_for('games.game_details', game_uuid=game.uuid) }}">
