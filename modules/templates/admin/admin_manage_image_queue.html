@@ -2,397 +2,20 @@
 {% block content %}
 
 <link rel="stylesheet" href="{{ url_for('static', filename='library/themes/default/css/admin/admin_dashboard.css') }}">
-<style>
-    .image-queue-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-    
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px;
-    }
-    
-    .stat-card {
-        background: var(--card-background, rgba(40, 40, 40, 0.8));
-        border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
-        border-radius: 8px;
-        padding: 20px;
-        text-align: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }
-    
-    .stat-number {
-        font-size: 2em;
-        font-weight: bold;
-        color: var(--primary-color, #007bff);
-        margin-bottom: 5px;
-    }
-    
-    .stat-label {
-        color: #cccccc;
-        font-size: 0.9em;
-    }
-    
-    .progress-bar {
-        width: 100%;
-        height: 8px;
-        background: var(--bg-light, #e9ecef);
-        border-radius: 4px;
-        overflow: hidden;
-        margin-top: 10px;
-    }
-    
-    .progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #28a745, #20c997);
-        transition: width 0.3s ease;
-    }
-    
-    .controls-section {
-        background: var(--card-background, rgba(40, 40, 40, 0.8));
-        border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 30px;
-    }
-    
-    .controls-section h3 {
-        color: #ffffff;
-        margin-bottom: 15px;
-    }
-    
-    .controls-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
-        margin-bottom: 20px;
-    }
-    
-    .btn-group {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-    
-    .btn {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-    }
-    
-    .btn-primary { background: #007bff; color: white; }
-    .btn-success { background: #28a745; color: white; }
-    .btn-warning { background: #ffc107; color: #212529; }
-    .btn-danger { background: #dc3545; color: white; }
-    .btn-secondary { background: #6c757d; color: white; }
-    
-    .btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    
-    .filters {
-        display: flex;
-        gap: 15px;
-        align-items: center;
-        flex-wrap: wrap;
-        margin-bottom: 20px;
-    }
-    
-    .filter-group {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-    
-    .filter-group label {
-        font-weight: 500;
-        color: #ffffff;
-    }
-    
-    .filter-group select {
-        padding: 5px 10px;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 4px;
-        background: rgba(60, 60, 60, 0.8);
-        color: #ffffff;
-    }
-    
-    .image-queue-table {
-        background: rgba(30, 30, 30, 0.95);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-    }
-    
-    .table {
-        width: 100%;
-        margin: 0;
-        border-collapse: collapse;
-    }
-    
-    .table th,
-    .table td {
-        padding: 12px;
-        text-align: left;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        color: #ffffff !important;
-    }
-    
-    .table td strong,
-    .table td small,
-    .table td span:not(.status-badge):not(.image-type-badge) {
-        color: #ffffff !important;
-    }
-    
-    .table td strong {
-        font-weight: 600;
-        color: #ffffff !important;
-    }
-    
-    .table td small {
-        color: #cccccc !important;
-        font-size: 0.85em;
-    }
-    
-    .table th {
-        background: rgba(30, 30, 30, 0.9);
-        font-weight: 600;
-        color: #ffffff;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
-    
-    .table tbody tr:hover {
-        background: rgba(255, 255, 255, 0.1);
-    }
-    
-    /* Additional fallback styles to ensure text visibility */
-    .table tbody tr td * {
-        color: inherit !important;
-    }
-    
-    .table tbody tr td {
-        background-color: rgba(40, 40, 40, 0.8);
-    }
-    
-    .table tbody tr:hover td {
-        background-color: rgba(255, 255, 255, 0.1);
-    }
-    
-    /* Ensure loading and error states are visible */
-    .loading {
-        color: #ffffff !important;
-        background: rgba(50, 50, 50, 0.8);
-    }
-    
-    .error {
-        background: rgba(220, 53, 69, 0.3) !important;
-        color: #ff6b7d !important;
-        border: 1px solid rgba(220, 53, 69, 0.5);
-    }
-    
-    .status-badge {
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-size: 0.75em;
-        font-weight: 500;
-        text-transform: uppercase;
-    }
-    
-    .status-pending {
-        background: rgba(255, 193, 7, 0.3);
-        color: #ffd700 !important;
-        border: 1px solid rgba(255, 193, 7, 0.5);
-        font-weight: 600;
-    }
-    
-    .status-downloaded {
-        background: rgba(40, 167, 69, 0.3);
-        color: #32cd32 !important;
-        border: 1px solid rgba(40, 167, 69, 0.5);
-        font-weight: 600;
-    }
-    
-    .image-type-badge {
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-size: 0.7em;
-        font-weight: 500;
-        text-transform: uppercase;
-    }
-    
-    .type-cover {
-        background: rgba(0, 123, 255, 0.3);
-        color: #00bfff !important;
-        border: 1px solid rgba(0, 123, 255, 0.5);
-        font-weight: 600;
-    }
-    
-    .type-screenshot {
-        background: rgba(23, 162, 184, 0.3);
-        color: #00d4ff !important;
-        border: 1px solid rgba(23, 162, 184, 0.5);
-        font-weight: 600;
-    }
-    
-    .pagination {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-        margin-top: 20px;
-        padding: 20px;
-    }
-    
-    .pagination button {
-        padding: 8px 12px;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        background: rgba(50, 50, 50, 0.8);
-        border-radius: 4px;
-        cursor: pointer;
-        color: #ffffff;
-    }
-    
-    .pagination button:hover:not(:disabled) {
-        background: rgba(255, 255, 255, 0.1);
-    }
-    
-    .pagination button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-    
-    .pagination .current-page {
-        background: var(--primary-color, #007bff);
-        color: white;
-        border-color: var(--primary-color, #007bff);
-    }
-    
-    .loading {
-        text-align: center;
-        padding: 40px;
-        color: #cccccc;
-    }
-    
-    .error {
-        background: #f8d7da;
-        color: #721c24;
-        padding: 12px;
-        border-radius: 4px;
-        margin: 10px 0;
-    }
-    
-    .success {
-        background: #d4edda;
-        color: #155724;
-        padding: 12px;
-        border-radius: 4px;
-        margin: 10px 0;
-    }
-    
-    .bulk-actions {
-        background: rgba(50, 50, 50, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 4px;
-        padding: 15px;
-        margin-bottom: 20px;
-        display: none;
-        color: #ffffff;
-    }
-    
-    .bulk-actions.active {
-        display: block;
-    }
-    
-    .checkbox-cell {
-        width: 30px;
-        text-align: center;
-    }
-    
-    .action-cell {
-        width: 120px;
-        text-align: center;
-    }
-    
-    .recent-activity {
-        background: rgba(40, 40, 40, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        padding: 20px;
-        margin-top: 30px;
-    }
-    
-    .recent-activity h3 {
-        color: #ffffff;
-        margin-bottom: 15px;
-    }
-    
-    .activity-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        color: #ffffff;
-    }
-    
-    .activity-item:last-child {
-        border-bottom: none;
-    }
-    
-    .activity-time {
-        color: #cccccc;
-        font-size: 0.85em;
-    }
-</style>
 
-<div class="image-queue-container">
+<div class="container mt-4">
+    <div class="glass-panel">
+        <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+
     <div class="hackplanet_titles">
-        <h1><i class="fas fa-images"></i> Image Queue Management</h1>
-        <p>Manage and monitor the image download queue for game covers and screenshots.</p>
+        <h1><i class="fas fa-images"></i> Image Queue</h1>
+        <p>Manage game cover and screenshot downloads.</p>
     </div>
 
-    <!-- Statistics Section -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-number" id="total-images">-</div>
-            <div class="stat-label">Total Images</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" id="pending-images">-</div>
-            <div class="stat-label">Pending Downloads</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" id="downloaded-images">-</div>
-            <div class="stat-label">Downloaded</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" id="download-percentage">-</div>
-            <div class="stat-label">% Complete</div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Controls Section -->
-    <div class="controls-section">
-        <h3><i class="fas fa-cog"></i> Quick Actions</h3>
-        <div class="controls-grid">
+    <!-- Controls -->
+    <div class="row mb-3">
+        <div class="col-md-6">
             <div class="btn-group">
                 <button class="btn btn-success" onclick="downloadBatch(10)">
                     <i class="fas fa-download"></i> Download 10
@@ -403,75 +26,24 @@
                 <button class="btn btn-primary" onclick="downloadBatch(100)">
                     <i class="fas fa-download"></i> Download 100
                 </button>
-            </div>
-            <div class="btn-group">
-                <button class="btn btn-danger" onclick="turboDownload(100, 5)" style="font-weight: bold;">
-                    <i class="fas fa-rocket"></i> 🚀 TURBO 100 (5 threads)
-                </button>
-                <button class="btn btn-danger" onclick="turboDownload(200, 8)" style="font-weight: bold;">
-                    <i class="fas fa-fire"></i> 🔥 INSANE 200 (8 threads)
-                </button>
-            </div>
-            <div class="btn-group">
-                <button class="btn btn-warning" onclick="retryFailed()">
-                    <i class="fas fa-redo"></i> Retry Failed
-                </button>
-                <button class="btn btn-secondary" onclick="refreshStats()">
-                    <i class="fas fa-sync"></i> Refresh Stats
-                </button>
-            </div>
-            <div class="btn-group">
-                <button class="btn btn-primary" onclick="startBackgroundDownloader()">
-                    <i class="fas fa-play"></i> Auto Downloader (60s)
-                </button>
-                <button class="btn btn-danger" onclick="startTurboDownloader()" style="font-weight: bold;">
-                    <i class="fas fa-rocket"></i> 🚀 TURBO AUTO (30s, 4 threads)
+                <button class="btn btn-secondary" onclick="refreshQueue()">
+                    <i class="fas fa-sync"></i> Refresh
                 </button>
             </div>
         </div>
-    </div>
-
-    <!-- Filters and Search -->
-    <div class="filters">
-        <div class="filter-group">
-            <label for="status-filter">Status:</label>
-            <select id="status-filter" onchange="applyFilters()">
-                <option value="all">All Images</option>
-                <option value="pending">Pending Only</option>
-                <option value="downloaded">Downloaded Only</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label for="type-filter">Type:</label>
-            <select id="type-filter" onchange="applyFilters()">
-                <option value="all">All Types</option>
-                <option value="cover">Covers</option>
-                <option value="screenshot">Screenshots</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label for="per-page">Per Page:</label>
-            <select id="per-page" onchange="applyFilters()">
-                <option value="20">20</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- Bulk Actions -->
-    <div class="bulk-actions" id="bulk-actions">
-        <h4>Bulk Actions (<span id="selected-count">0</span> selected)</h4>
-        <div class="btn-group">
-            <button class="btn btn-success" onclick="downloadSelected()">
-                <i class="fas fa-download"></i> Download Selected
-            </button>
-            <button class="btn btn-danger" onclick="deleteSelected()">
-                <i class="fas fa-trash"></i> Delete Selected
-            </button>
-            <button class="btn btn-secondary" onclick="clearSelection()">
-                <i class="fas fa-times"></i> Clear Selection
-            </button>
+        <div class="col-md-6">
+            <div class="d-flex gap-2">
+                <select id="status-filter" class="form-select" onchange="applyFilters()">
+                    <option value="all">All Images</option>
+                    <option value="pending">Pending Only</option>
+                    <option value="downloaded">Downloaded Only</option>
+                </select>
+                <select id="type-filter" class="form-select" onchange="applyFilters()">
+                    <option value="all">All Types</option>
+                    <option value="cover">Covers</option>
+                    <option value="screenshot">Screenshots</option>
+                </select>
+            </div>
         </div>
     </div>
 
@@ -479,25 +51,22 @@
     <div id="messages"></div>
 
     <!-- Image Queue Table -->
-    <div class="image-queue-table">
-        <table class="table">
+    <div class="table-responsive">
+        <table class="table table-dark table-striped">
             <thead>
                 <tr>
-                    <th class="checkbox-cell">
-                        <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
-                    </th>
                     <th>Game</th>
                     <th>Type</th>
                     <th>Status</th>
                     <th>Download URL</th>
                     <th>Created</th>
-                    <th class="action-cell">Actions</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="image-table-body">
                 <tr>
-                    <td colspan="7" class="loading">
-                        <i class="fas fa-spinner fa-spin"></i> Loading image queue...
+                    <td colspan="6" class="text-center">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
                     </td>
                 </tr>
             </tbody>
@@ -505,160 +74,89 @@
     </div>
 
     <!-- Pagination -->
-    <div class="pagination" id="pagination">
-        <!-- Pagination will be inserted here -->
-    </div>
-
-    <!-- Recent Activity -->
-    <div class="recent-activity">
-        <h3><i class="fas fa-history"></i> Recent Downloads</h3>
-        <div id="recent-activity-list">
-            <div class="loading">Loading recent activity...</div>
-        </div>
-    </div>
+    <nav id="pagination-nav" style="display: none;">
+        <ul class="pagination justify-content-center" id="pagination">
+        </ul>
+    </nav>
 </div>
 
 <script>
 let currentPage = 1;
-let selectedImages = new Set();
 
-// Initialize the page
+// Initialize
 document.addEventListener('DOMContentLoaded', function() {
-    refreshStats();
     loadImageQueue();
 });
-
-// Refresh statistics
-async function refreshStats() {
-    try {
-        console.log('Refreshing stats...');
-        const response = await fetch('/admin/api/image_queue_stats');
-        console.log('Response status:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const stats = await response.json();
-        console.log('Received stats:', stats);
-        
-        if (stats.error) {
-            console.error('Server returned error:', stats.error);
-            showMessage('Error loading stats: ' + stats.error, 'error');
-            return;
-        }
-        
-        // Update DOM elements with debug logging
-        console.log('Updating DOM elements...');
-        const totalEl = document.getElementById('total-images');
-        const pendingEl = document.getElementById('pending-images');
-        const downloadedEl = document.getElementById('downloaded-images');
-        const percentageEl = document.getElementById('download-percentage');
-        const progressEl = document.getElementById('progress-fill');
-        
-        if (!totalEl || !pendingEl || !downloadedEl || !percentageEl || !progressEl) {
-            console.error('One or more DOM elements not found');
-            showMessage('Error: DOM elements not found', 'error');
-            return;
-        }
-        
-        totalEl.textContent = stats.total_images || '0';
-        pendingEl.textContent = stats.pending_images || '0';
-        downloadedEl.textContent = stats.downloaded_images || '0';
-        percentageEl.textContent = (stats.download_percentage || 0) + '%';
-        progressEl.style.width = (stats.download_percentage || 0) + '%';
-        
-        console.log('Stats updated successfully');
-        
-        // Update recent activity
-        const activityHtml = (stats.recent_downloads || []).map(item => `
-            <div class="activity-item">
-                <div>
-                    <strong>${item.game_name || 'Unknown'}</strong> - 
-                    <span class="image-type-badge type-${item.image_type || 'unknown'}">${item.image_type || 'unknown'}</span>
-                </div>
-                <div class="activity-time">${item.created_at || 'Unknown'}</div>
-            </div>
-        `).join('');
-        
-        document.getElementById('recent-activity-list').innerHTML = activityHtml || '<div class="loading">No recent downloads</div>';
-        
-    } catch (error) {
-        console.error('Error refreshing stats:', error);
-        showMessage('Error refreshing stats: ' + error.message, 'error');
-    }
-}
 
 // Load image queue with filters
 async function loadImageQueue() {
     const statusFilter = document.getElementById('status-filter').value;
     const typeFilter = document.getElementById('type-filter').value;
-    const perPage = document.getElementById('per-page').value;
-    
+
     const params = new URLSearchParams({
         page: currentPage,
-        per_page: perPage,
+        per_page: 50,
         status: statusFilter,
         type: typeFilter
     });
-    
+
     try {
-        document.getElementById('image-table-body').innerHTML = '<tr><td colspan="7" class="loading"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
-        
+        document.getElementById('image-table-body').innerHTML =
+            '<tr><td colspan="6" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+
         const response = await fetch(`/admin/api/image_queue_list?${params}`);
         const data = await response.json();
-        
+
         if (data.error) {
-            showMessage('Error loading images: ' + data.error, 'error');
+            showMessage('Error loading images: ' + data.error, 'danger');
             return;
         }
-        
+
         renderImageTable(data.images);
         renderPagination(data.pagination);
-        
+
     } catch (error) {
         console.error('Error loading image queue:', error);
-        showMessage('Error loading image queue', 'error');
-        document.getElementById('image-table-body').innerHTML = '<tr><td colspan="7" class="error">Error loading data</td></tr>';
+        showMessage('Error loading image queue', 'danger');
+        document.getElementById('image-table-body').innerHTML =
+            '<tr><td colspan="6" class="text-center text-danger">Error loading data</td></tr>';
     }
 }
 
 // Render image table
 function renderImageTable(images) {
     const tbody = document.getElementById('image-table-body');
-    
+
     if (images.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="loading">No images found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">No images found</td></tr>';
         return;
     }
-    
+
     const html = images.map(image => {
-        const statusClass = image.is_downloaded ? 'status-downloaded' : 'status-pending';
-        const statusText = image.is_downloaded ? 'Downloaded' : 'Pending';
-        const typeClass = `type-${image.image_type}`;
-        
+        const statusBadge = image.is_downloaded ?
+            '<span class="badge bg-success">Downloaded</span>' :
+            '<span class="badge bg-warning">Pending</span>';
+
+        const typeBadge = image.image_type === 'cover' ?
+            '<span class="badge bg-primary">Cover</span>' :
+            '<span class="badge bg-info">Screenshot</span>';
+
+        const downloadUrl = image.download_url ?
+            image.download_url.substring(0, 50) + '...' : 'No URL';
+
         return `
             <tr>
-                <td class="checkbox-cell">
-                    <input type="checkbox" value="${image.id}" onchange="toggleImageSelection(${image.id})">
-                </td>
                 <td>
                     <strong>${image.game_name}</strong>
-                    <br><small>${image.game_uuid}</small>
+                    <br><small class="text-muted">${image.game_uuid}</small>
                 </td>
+                <td>${typeBadge}</td>
+                <td>${statusBadge}</td>
+                <td><small>${downloadUrl}</small></td>
+                <td><small>${image.created_at}</small></td>
                 <td>
-                    <span class="image-type-badge ${typeClass}">${image.image_type}</span>
-                </td>
-                <td>
-                    <span class="status-badge ${statusClass}">${statusText}</span>
-                </td>
-                <td>
-                    <small>${image.download_url ? image.download_url.substring(0, 50) + '...' : 'No URL'}</small>
-                </td>
-                <td>${image.created_at}</td>
-                <td class="action-cell">
                     ${!image.is_downloaded ? `
-                        <button class="btn btn-sm btn-success" onclick="downloadSingle(${image.id})" title="Download">
+                        <button class="btn btn-sm btn-success me-1" onclick="downloadSingle(${image.id})" title="Download">
                             <i class="fas fa-download"></i>
                         </button>
                     ` : ''}
@@ -669,34 +167,52 @@ function renderImageTable(images) {
             </tr>
         `;
     }).join('');
-    
+
     tbody.innerHTML = html;
 }
 
 // Render pagination
 function renderPagination(pagination) {
-    const paginationDiv = document.getElementById('pagination');
-    
+    const paginationNav = document.getElementById('pagination-nav');
+    const paginationUl = document.getElementById('pagination');
+
     if (pagination.pages <= 1) {
-        paginationDiv.innerHTML = '';
+        paginationNav.style.display = 'none';
         return;
     }
-    
+
+    paginationNav.style.display = 'block';
+
     let html = `
-        <button ${!pagination.has_prev ? 'disabled' : ''} onclick="changePage(${pagination.page - 1})">
-            <i class="fas fa-chevron-left"></i> Previous
-        </button>
-        <span>Page ${pagination.page} of ${pagination.pages} (${pagination.total} total)</span>
-        <button ${!pagination.has_next ? 'disabled' : ''} onclick="changePage(${pagination.page + 1})">
-            Next <i class="fas fa-chevron-right"></i>
-        </button>
+        <li class="page-item ${!pagination.has_prev ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${pagination.page - 1})">Previous</a>
+        </li>
     `;
-    
-    paginationDiv.innerHTML = html;
+
+    // Show page numbers (simplified)
+    const startPage = Math.max(1, pagination.page - 2);
+    const endPage = Math.min(pagination.pages, pagination.page + 2);
+
+    for (let i = startPage; i <= endPage; i++) {
+        html += `
+            <li class="page-item ${i === pagination.page ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+            </li>
+        `;
+    }
+
+    html += `
+        <li class="page-item ${!pagination.has_next ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${pagination.page + 1})">Next</a>
+        </li>
+    `;
+
+    paginationUl.innerHTML = html;
 }
 
 // Change page
 function changePage(page) {
+    if (page < 1) return;
     currentPage = page;
     loadImageQueue();
 }
@@ -704,6 +220,11 @@ function changePage(page) {
 // Apply filters
 function applyFilters() {
     currentPage = 1;
+    loadImageQueue();
+}
+
+// Refresh queue
+function refreshQueue() {
     loadImageQueue();
 }
 
@@ -718,42 +239,19 @@ async function downloadBatch(size) {
             },
             body: JSON.stringify({ batch_size: size })
         });
-        
-        // Log response details for debugging
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-        
-        // Get response text first
-        const responseText = await response.text();
-        console.log('Raw response:', responseText);
-        
-        // Check if response is JSON
-        let result;
-        try {
-            result = JSON.parse(responseText);
-        } catch (parseError) {
-            console.error('Failed to parse JSON. HTML response:', responseText);
-            showMessage('Server returned HTML instead of JSON. Check console for details.', 'error');
-            // Also display the HTML in a more readable way
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(responseText, 'text/html');
-            const title = doc.querySelector('title')?.textContent || 'Unknown error';
-            const errorMsg = doc.querySelector('h1, .error, .alert')?.textContent || 'See console for full HTML';
-            showMessage(`Server Error: ${title} - ${errorMsg}`, 'error');
-            return;
-        }
-        
+
+        const result = await response.json();
+
         if (result.success) {
             showMessage(result.message, 'success');
-            refreshStats();
             loadImageQueue();
         } else {
-            showMessage('Download failed: ' + result.message, 'error');
+            showMessage('Download failed: ' + result.message, 'danger');
         }
-        
+
     } catch (error) {
         console.error('Error downloading batch:', error);
-        showMessage('Error downloading batch: ' + error.message, 'error');
+        showMessage('Error downloading batch: ' + error.message, 'danger');
     }
 }
 
@@ -768,20 +266,19 @@ async function downloadSingle(imageId) {
             },
             body: JSON.stringify({ image_ids: [imageId] })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             showMessage(result.message, 'success');
-            refreshStats();
             loadImageQueue();
         } else {
-            showMessage('Download failed: ' + result.message, 'error');
+            showMessage('Download failed: ' + result.message, 'danger');
         }
-        
+
     } catch (error) {
         console.error('Error downloading image:', error);
-        showMessage('Error downloading image', 'error');
+        showMessage('Error downloading image', 'danger');
     }
 }
 
@@ -790,7 +287,7 @@ async function deleteSingle(imageId) {
     if (!confirm('Are you sure you want to delete this image?')) {
         return;
     }
-    
+
     try {
         const response = await fetch(`/admin/api/delete_image/${imageId}`, {
             method: 'DELETE',
@@ -798,276 +295,40 @@ async function deleteSingle(imageId) {
                 'X-CSRFToken': CSRFUtils.getToken()
             }
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             showMessage(result.message, 'success');
-            refreshStats();
             loadImageQueue();
         } else {
-            showMessage('Delete failed: ' + result.message, 'error');
+            showMessage('Delete failed: ' + result.message, 'danger');
         }
-        
+
     } catch (error) {
         console.error('Error deleting image:', error);
-        showMessage('Error deleting image', 'error');
+        showMessage('Error deleting image', 'danger');
     }
-}
-
-// Retry failed images
-async function retryFailed() {
-    try {
-        const response = await fetch('/admin/api/retry_failed_images', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': CSRFUtils.getToken()
-            }
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showMessage(result.message, 'success');
-            refreshStats();
-            loadImageQueue();
-        } else {
-            showMessage('Retry failed: ' + result.message, 'error');
-        }
-        
-    } catch (error) {
-        console.error('Error retrying failed images:', error);
-        showMessage('Error retrying failed images', 'error');
-    }
-}
-
-// Toggle image selection
-function toggleImageSelection(imageId) {
-    const checkbox = document.querySelector(`input[value="${imageId}"]`);
-    
-    if (checkbox.checked) {
-        selectedImages.add(imageId);
-    } else {
-        selectedImages.delete(imageId);
-    }
-    
-    updateBulkActions();
-}
-
-// Toggle select all
-function toggleSelectAll() {
-    const selectAll = document.getElementById('select-all');
-    const checkboxes = document.querySelectorAll('#image-table-body input[type="checkbox"]');
-    
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = selectAll.checked;
-        const imageId = parseInt(checkbox.value);
-        
-        if (selectAll.checked) {
-            selectedImages.add(imageId);
-        } else {
-            selectedImages.delete(imageId);
-        }
-    });
-    
-    updateBulkActions();
-}
-
-// Update bulk actions visibility
-function updateBulkActions() {
-    const bulkActions = document.getElementById('bulk-actions');
-    const selectedCount = document.getElementById('selected-count');
-    
-    selectedCount.textContent = selectedImages.size;
-    
-    if (selectedImages.size > 0) {
-        bulkActions.classList.add('active');
-    } else {
-        bulkActions.classList.remove('active');
-    }
-}
-
-// Download selected images
-async function downloadSelected() {
-    if (selectedImages.size === 0) {
-        showMessage('No images selected', 'error');
-        return;
-    }
-    
-    try {
-        const response = await fetch('/admin/api/download_images', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': CSRFUtils.getToken()
-            },
-            body: JSON.stringify({ image_ids: Array.from(selectedImages) })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showMessage(result.message, 'success');
-            clearSelection();
-            refreshStats();
-            loadImageQueue();
-        } else {
-            showMessage('Download failed: ' + result.message, 'error');
-        }
-        
-    } catch (error) {
-        console.error('Error downloading selected images:', error);
-        showMessage('Error downloading selected images', 'error');
-    }
-}
-
-// Delete selected images
-async function deleteSelected() {
-    if (selectedImages.size === 0) {
-        showMessage('No images selected', 'error');
-        return;
-    }
-    
-    if (!confirm(`Are you sure you want to delete ${selectedImages.size} selected images?`)) {
-        return;
-    }
-    
-    try {
-        for (const imageId of selectedImages) {
-            await fetch(`/admin/api/delete_image/${imageId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRFToken': CSRFUtils.getToken()
-                }
-            });
-        }
-        
-        showMessage(`Deleted ${selectedImages.size} images`, 'success');
-        clearSelection();
-        refreshStats();
-        loadImageQueue();
-        
-    } catch (error) {
-        console.error('Error deleting selected images:', error);
-        showMessage('Error deleting selected images', 'error');
-    }
-}
-
-// Clear selection
-function clearSelection() {
-    selectedImages.clear();
-    document.getElementById('select-all').checked = false;
-    document.querySelectorAll('#image-table-body input[type="checkbox"]').forEach(cb => {
-        cb.checked = false;
-    });
-    updateBulkActions();
 }
 
 // Show message
 function showMessage(message, type = 'info') {
     const messagesDiv = document.getElementById('messages');
     const messageDiv = document.createElement('div');
-    messageDiv.className = type;
-    messageDiv.textContent = message;
-    
+    messageDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    messageDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
     messagesDiv.appendChild(messageDiv);
-    
+
     setTimeout(() => {
-        messageDiv.remove();
+        if (messageDiv.parentNode) {
+            messageDiv.remove();
+        }
     }, 5000);
 }
-
-// TURBO DOWNLOAD - Maximum speed parallel downloading
-async function turboDownload(batchSize = 100, maxWorkers = 5) {
-    try {
-        showMessage(`🚀 TURBO MODE ACTIVATED! ${maxWorkers} threads downloading ${batchSize} images...`, 'success');
-        
-        const response = await fetch('/admin/api/turbo_download', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': CSRFUtils.getToken()
-            },
-            body: JSON.stringify({ 
-                batch_size: batchSize,
-                max_workers: maxWorkers
-            })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showMessage(`🔥 ${result.message}`, 'success');
-            refreshStats();
-            loadImageQueue();
-        } else {
-            showMessage('Turbo download failed: ' + result.message, 'error');
-        }
-        
-    } catch (error) {
-        console.error('Error in turbo download:', error);
-        showMessage('Error in turbo download: ' + error.message, 'error');
-    }
-}
-
-// Start regular background downloader
-async function startBackgroundDownloader() {
-    try {
-        const response = await fetch('/admin/api/start_background_downloader', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': CSRFUtils.getToken()
-            }
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showMessage(result.message, 'success');
-        } else {
-            showMessage('Failed to start background downloader: ' + result.message, 'error');
-        }
-        
-    } catch (error) {
-        console.error('Error starting background downloader:', error);
-        showMessage('Error starting background downloader', 'error');
-    }
-}
-
-// Start TURBO background downloader
-async function startTurboDownloader() {
-    try {
-        showMessage('🚀 Starting TURBO background downloader...', 'success');
-        
-        const response = await fetch('/admin/api/start_turbo_downloader', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': CSRFUtils.getToken()
-            },
-            body: JSON.stringify({
-                max_workers: 4,
-                batch_size: 50,
-                interval: 30
-            })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showMessage(`🔥 ${result.message}`, 'success');
-        } else {
-            showMessage('Failed to start turbo downloader: ' + result.message, 'error');
-        }
-        
-    } catch (error) {
-        console.error('Error starting turbo downloader:', error);
-        showMessage('Error starting turbo downloader', 'error');
-    }
-}
-
-// Auto-refresh stats every 30 seconds
-setInterval(refreshStats, 30000);
 </script>
 
 {% endblock %}
