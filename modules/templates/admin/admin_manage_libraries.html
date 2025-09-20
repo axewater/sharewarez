@@ -55,7 +55,7 @@
         <div class="card">
         <h1>Library Management</h1>
         <h2>Game Libraries</h2>
-        <a href="{{ url_for('admin2.add_edit_library') }}" class="btn btn-primary mb-3">
+        <a href="{{ url_for('admin2.add_library') }}" class="btn btn-primary mb-3">
             <i class="fas fa-plus"></i> Add Library
         </a>
         <table class="table table-hover" id="librariesTable">
@@ -82,7 +82,7 @@
                             <a href="{{ url_for('main.scan_management', library_uuid=library.uuid) }}" class="btn btn-sm btn-secondary">
                                 <i class="fas fa-search"></i> Scan
                             </a>
-                            <a href="{{ url_for('admin2.add_edit_library', library_uuid=library.uuid) }}" class="btn btn-sm btn-primary">
+                            <a href="{{ url_for('admin2.edit_library', library_uuid=library.uuid) }}" class="btn btn-sm btn-primary">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
                             <form action="{{ url_for('main.delete_full_library', library_uuid=library.uuid) }}" method="post" style="display: inline-block;">
