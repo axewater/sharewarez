@@ -101,17 +101,66 @@
             <!-- IGDB Settings Tab -->
             <div class="integrations-tab-pane tab-pane fade" id="igdb" role="tabpanel" aria-labelledby="igdb-tab">
                 <div class="tab-content-wrapper">
-                    <div class="integration-content">
-                        <h4><i class="fas fa-gamepad"></i> IGDB API Settings</h4>
-                        <p>Configure IGDB integration for game metadata and images.</p>
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i>
-                            IGDB provides game metadata, screenshots, and cover images. You'll need Twitch Developer credentials.
+                    <h4><i class="fas fa-gamepad"></i> IGDB API Settings</h4>
+
+                    <div class="instructions-toggle">
+                        <button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#igdbInstructionsPanel" aria-expanded="false" aria-controls="igdbInstructionsPanel">
+                            <i class="fas fa-chevron-down" id="igdbToggleIcon"></i> Show Instructions
+                        </button>
+                    </div>
+
+                    <div class="collapse instructions-panel" id="igdbInstructionsPanel">
+                        <h5>How to Get Your IGDB API Credentials</h5>
+                        <ol>
+                            <li>Go to the <a href="https://dev.twitch.tv/console" target="_blank">Twitch Developer Console</a></li>
+                            <li>Log in with your Twitch account (or create one if needed)</li>
+                            <li>Click on "Register Your Application"</li>
+                            <li>Fill in the application details:
+                                <ul>
+                                    <li>Name: Your choice (e.g., "MySharewareZ")</li>
+                                    <li>OAuth Redirect URL: http://localhost (if testing locally)</li>
+                                    <li>Category: Select "Website Integration"</li>
+                                </ul>
+                            </li>
+                            <li>After registering, you'll receive your Client ID</li>
+                            <li>Click "New Secret" to generate your Client Secret</li>
+                        </ol>
+                        <div class="note">
+                            <strong>Note:</strong> IGDB is owned by Twitch, which is why credentials are obtained through the Twitch Developer Console.
+                            The free tier includes 4 requests per second and 500k requests per month.
                         </div>
-                        <div class="d-flex justify-content-center mt-3">
-                            <a href="{{ url_for('admin2.igdb_settings') }}" class="btn btn-primary btn-lg">
-                                <i class="fas fa-cogs"></i> Configure IGDB Settings
-                            </a>
+                    </div>
+
+                    <div class="settings-form">
+                        <div class="form-group">
+                            <label for="igdb_client_id">Client ID *</label>
+                            <input type="text" id="igdb_client_id" value="{{ settings.igdb_client_id if settings else '' }}" class="form-control input-glass"
+                                minlength="20" maxlength="50">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="igdb_client_secret">Client Secret *</label>
+                            <div class="password-input-container">
+                                <input type="password" id="igdb_client_secret" value="{{ settings.igdb_client_secret if settings else '' }}" class="form-control"
+                                minlength="20" maxlength="50" autocomplete="off">
+                                <button type="button" class="toggle-password" data-input="igdb_client_secret" aria-label="Toggle password visibility">
+                                    <i id="eye-igdb-secret" class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {% if settings and settings.igdb_last_tested %}
+                        <div class="last-tested">
+                            Last tested: {{ settings.igdb_last_tested.strftime('%Y-%m-%d %H:%M:%S') }}
+                        </div>
+                        {% endif %}
+
+                        <div class="button-group">
+                            <button onclick="saveIgdbSettings()" class="btn btn-primary">Save Settings</button>
+                            <button onclick="testIgdbSettings()" class="btn btn-secondary">Test Connection</button>
+                            <div id="igdbLoadingSpinner" class="loading-spinner" style="display: none;">
+                                <img src="/static/newstyle/searching_small.gif" alt="Loading...">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -120,17 +169,74 @@
             <!-- Discord Settings Tab -->
             <div class="integrations-tab-pane tab-pane fade" id="discord" role="tabpanel" aria-labelledby="discord-tab">
                 <div class="tab-content-wrapper">
-                    <div class="integration-content">
-                        <h4><i class="fab fa-discord"></i> Discord Bot Settings</h4>
-                        <p>Configure Discord webhook integration for notifications.</p>
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i>
-                            Set up Discord webhook to receive notifications about new games, downloads, and updates.
+                    <h4><i class="fab fa-discord"></i> Discord Bot Settings
+                        <a href="{{ url_for('admin2.manage_settings') }}" class="btn btn-info btn-sm">
+                            <i class="fas fa-bell"></i> Notification Settings
+                        </a>
+                    </h4>
+
+                    <div class="instructions-toggle">
+                        <button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#discordInstructionsPanel" aria-expanded="false" aria-controls="discordInstructionsPanel">
+                            <i class="fas fa-chevron-down" id="discordToggleIcon"></i> Show Setup Instructions
+                        </button>
+                    </div>
+
+                    <div class="collapse instructions-panel" id="discordInstructionsPanel">
+                        <h5>Setting Up Discord Notifications</h5>
+                        <ol>
+                            <li><strong>Create a Discord Webhook:</strong>
+                                <ul>
+                                    <li>Open your Discord server settings</li>
+                                    <li>Navigate to "Integrations"</li>
+                                    <li>Click on "Create Webhook"</li>
+                                    <li>Name your webhook (e.g., "SharewareZ Notifications")</li>
+                                    <li>Choose the channel where notifications should appear</li>
+                                    <li>Copy the Webhook URL</li>
+                                </ul>
+                            </li>
+                            <li><strong>Configure SharewareZ:</strong>
+                                <ul>
+                                    <li>Paste your Webhook URL below</li>
+                                    <li>Set your preferred bot name</li>
+                                    <li>Optionally, add a bot avatar URL</li>
+                                    <li>Save and test your settings</li>
+                                </ul>
+                            </li>
+                        </ol>
+                        <div class="note">
+                            <strong>Available Notifications:</strong> New games, game updates, downloads, and game extras.
+                            Configure which notifications to send in the <a href="{{ url_for('admin2.manage_settings') }}">Notification Settings</a> page.
                         </div>
-                        <div class="d-flex justify-content-center mt-3">
-                            <a href="{{ url_for('admin2.discord_settings') }}" class="btn btn-primary btn-lg">
-                                <i class="fas fa-cogs"></i> Configure Discord Settings
-                            </a>
+                    </div>
+
+                    <div class="settings-form">
+                        <div class="form-group">
+                            <label for="discord_webhook_url">Discord Webhook URL *</label>
+                            <input type="url" id="discord_webhook_url" value="{{ settings.discord_webhook_url if settings and settings.discord_webhook_url else 'insert_webhook_url_here' }}" class="form-control input-glass" placeholder="https://discord.com/api/webhooks/...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="discord_bot_name">Bot Name</label>
+                            <input type="text" id="discord_bot_name" value="{{ settings.discord_bot_name if settings and settings.discord_bot_name else 'SharewareZ Bot' }}" class="form-control input-glass" placeholder="SharewareZ Bot">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="discord_bot_avatar_url">Bot Avatar URL</label>
+                            <input type="url" id="discord_bot_avatar_url" value="{{ settings.discord_bot_avatar_url if settings and settings.discord_bot_avatar_url else 'insert_bot_avatar_url_here' }}" class="form-control input-glass" placeholder="https://example.com/avatar.png">
+                        </div>
+
+                        {% if settings and settings.discord_last_tested %}
+                        <div class="last-tested">
+                            Last tested: {{ settings.discord_last_tested.strftime('%Y-%m-%d %H:%M:%S') if settings.discord_last_tested else 'Never' }}
+                        </div>
+                        {% endif %}
+
+                        <div class="button-group">
+                            <button onclick="saveDiscordSettings()" class="btn btn-primary">Save Settings</button>
+                            <button onclick="testDiscordWebhook()" class="btn btn-secondary">Test Webhook</button>
+                            <div id="discordLoadingSpinner" class="loading-spinner" style="display: none;">
+                                <img src="/static/newstyle/searching_small.gif" alt="Loading...">
+                            </div>
                         </div>
                     </div>
                 </div>

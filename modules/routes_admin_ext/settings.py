@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from . import admin2_bp
 from modules.utils_logging import log_system_event
 from modules.utils_auth import admin_required
+from modules.utils_igdb_api import make_igdb_api_request
 import logging
 
 # Configuration constants
@@ -266,3 +267,73 @@ def integrations():
     except Exception as e:
         logging.error(f"Error retrieving integrations: {str(e)}")
         abort(500)
+
+
+@admin2_bp.route('/admin/integrations/igdb/save', methods=['POST'])
+@login_required
+@admin_required
+def integrations_igdb_save():
+    """Handle IGDB settings save from integrations page."""
+    try:
+        data = request.json
+        settings = db.session.execute(select(GlobalSettings)).scalars().first()
+
+        if not settings:
+            settings = GlobalSettings()
+            db.session.add(settings)
+
+        # Validate input
+        client_id = data.get('igdb_client_id', '').strip()
+        client_secret = data.get('igdb_client_secret', '').strip()
+
+        if len(client_id) < 20 or len(client_secret) < 20:
+            return jsonify({
+                'status': 'error',
+                'message': 'Client ID and Secret must be at least 20 characters long'
+            }), 400
+
+        settings.igdb_client_id = client_id
+        settings.igdb_client_secret = client_secret
+
+        db.session.commit()
+        log_system_event("IGDB settings updated via integrations page")
+
+        return jsonify({'status': 'success', 'message': 'IGDB settings saved successfully'})
+
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error saving IGDB settings from integrations: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@admin2_bp.route('/admin/integrations/igdb/test', methods=['POST'])
+@login_required
+@admin_required
+def integrations_igdb_test():
+    """Handle IGDB settings test from integrations page."""
+    try:
+        logging.info("Testing IGDB connection from integrations page...")
+        settings = db.session.execute(select(GlobalSettings)).scalars().first()
+
+        if not settings or not settings.igdb_client_id or not settings.igdb_client_secret:
+            return jsonify({
+                'status': 'error',
+                'message': 'IGDB settings not configured. Please save your settings first.'
+            }), 400
+
+        # Test the IGDB API with a simple query
+        response = make_igdb_api_request('https://api.igdb.com/v4/games', 'fields name; limit 1;')
+
+        if isinstance(response, list):
+            logging.info("IGDB API test successful from integrations page")
+            settings.igdb_last_tested = datetime.now(timezone.utc)
+            db.session.commit()
+            log_system_event("IGDB API test successful via integrations page")
+            return jsonify({'status': 'success', 'message': 'IGDB API test successful'})
+        else:
+            logging.warning("IGDB API test failed - invalid response")
+            return jsonify({'status': 'error', 'message': 'Invalid API response'}), 500
+
+    except Exception as e:
+        logging.error(f"Error testing IGDB from integrations: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500

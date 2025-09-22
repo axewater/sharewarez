@@ -356,3 +356,265 @@ input[type="checkbox"] {
     border-color: rgba(23, 162, 184, 0.3);
     color: #fff;
 }
+
+/* IGDB-specific styles for tabbed interface */
+.instructions-toggle {
+    margin-bottom: 1rem;
+}
+
+.instructions-toggle button {
+    width: 100%;
+    text-align: left;
+    position: relative;
+    background-color: rgba(23, 162, 184, 0.2);
+    border: 1px solid rgba(23, 162, 184, 0.3);
+    color: #fff;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.instructions-toggle button:hover {
+    background-color: rgba(23, 162, 184, 0.3);
+    transform: translateY(-1px);
+}
+
+.instructions-toggle button i {
+    position: absolute;
+    right: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.instructions-toggle button[aria-expanded="true"] i {
+    transform: rotate(180deg);
+}
+
+.instructions-panel {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+}
+
+.instructions-panel h5 {
+    color: #0096ff;
+    margin-bottom: 1rem;
+}
+
+.instructions-panel ol {
+    color: rgba(255, 255, 255, 0.9);
+    padding-left: 1.5rem;
+}
+
+.instructions-panel ol li {
+    margin-bottom: 0.5rem;
+}
+
+.instructions-panel ul {
+    margin-top: 0.5rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.instructions-panel .note {
+    background-color: rgba(40, 40, 40, 0.8);
+    padding: 1rem;
+    border-left: 4px solid #17a2b8;
+    margin-top: 1rem;
+    border-radius: 0 4px 4px 0;
+}
+
+.instructions-panel .note strong {
+    color: #17a2b8;
+}
+
+.input-glass {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 0.75rem;
+    border-radius: 8px;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+}
+
+.input-glass:focus {
+    outline: none;
+    border-color: #0096ff;
+    box-shadow: 0 0 10px rgba(0, 150, 255, 0.3);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* Password visibility toggle styling for IGDB */
+.password-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    transition: color 0.3s ease;
+    z-index: 10;
+}
+
+.toggle-password:hover {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.toggle-password:focus {
+    outline: none;
+}
+
+/* Loading spinner styles for IGDB */
+#igdbLoadingSpinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 1rem;
+}
+
+#igdbLoadingSpinner img {
+    border-radius: 8px;
+    max-width: 40px;
+    max-height: 40px;
+}
+
+.loading-spinner {
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Button group for IGDB forms */
+.button-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    align-items: center;
+}
+
+/* Ensure IGDB form inherits proper glassmorphism styling */
+#igdb .settings-form {
+    padding: 0;
+}
+
+#igdb .form-group {
+    margin-bottom: 1.5rem;
+}
+
+#igdb .form-group:last-child {
+    margin-bottom: 0;
+}
+
+/* Discord-specific styles for tabbed interface */
+#discord .settings-form {
+    padding: 0;
+}
+
+#discord .form-group {
+    margin-bottom: 1.5rem;
+}
+
+#discord .form-group:last-child {
+    margin-bottom: 0;
+}
+
+/* Discord loading spinner styles */
+#discordLoadingSpinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 1rem;
+}
+
+#discordLoadingSpinner img {
+    border-radius: 8px;
+    max-width: 40px;
+    max-height: 40px;
+}
+
+/* Discord instructions panel */
+#discordInstructionsPanel {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+}
+
+#discordInstructionsPanel h5 {
+    color: #5865f2; /* Discord brand color */
+    margin-bottom: 1rem;
+}
+
+#discordInstructionsPanel ol {
+    color: rgba(255, 255, 255, 0.9);
+    padding-left: 1.5rem;
+}
+
+#discordInstructionsPanel ol li {
+    margin-bottom: 0.5rem;
+}
+
+#discordInstructionsPanel ul {
+    margin-top: 0.5rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+#discordInstructionsPanel .note {
+    background-color: rgba(40, 40, 40, 0.8);
+    padding: 1rem;
+    border-left: 4px solid #5865f2;
+    margin-top: 1rem;
+    border-radius: 0 4px 4px 0;
+}
+
+#discordInstructionsPanel .note strong {
+    color: #5865f2;
+}
+
+/* Responsive adjustments for IGDB */
+@media (max-width: 768px) {
+    .instructions-toggle button {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .instructions-panel {
+        padding: 1rem;
+    }
+
+    .button-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .button-group .btn {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+
+    #igdbLoadingSpinner {
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+
+    #discordLoadingSpinner {
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+}
