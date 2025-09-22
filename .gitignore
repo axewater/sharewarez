@@ -81,9 +81,10 @@ letsrebuild.md
 .pytest_cache/
 htmlcov/
 
-# Static uploads (these should be mounted as volumes)
+# Static uploads and generated files (these should be mounted as volumes or generated)
 modules/static/library/images/
 modules/static/library/zips/
+modules/static/library/themes/
 
 # OS
 .DS_Store
