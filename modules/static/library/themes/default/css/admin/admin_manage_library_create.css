@@ -1,0 +1,175 @@
+/* Glassmorphic Image Editor Modal Styles */
+.glass-panel-modal {
+    background: rgba(40, 40, 40, 0.95);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.glass-panel-modal-header {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px 15px 0 0;
+    padding: 1rem 1.5rem;
+}
+
+.glass-panel-modal-header .modal-title {
+    color: white;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.glass-panel-modal-body {
+    padding: 2rem;
+    color: white;
+}
+
+.glass-panel-modal-footer {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0 0 15px 15px;
+    padding: 1rem 1.5rem;
+}
+
+/* Image Editor Container */
+.image-editor-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.image-editor-canvas-container {
+    width: 100%;
+    max-width: 600px;
+    height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+}
+
+/* Cropper.js styling adjustments for glassmorphism */
+.cropper-container {
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.cropper-view-box {
+    border-radius: 8px;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+.cropper-face {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.cropper-line {
+    background-color: rgba(255, 255, 255, 0.6);
+}
+
+.cropper-point {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    opacity: 0.8;
+}
+
+.cropper-point:hover {
+    background-color: white;
+    opacity: 1;
+}
+
+/* Button styling for glassmorphism */
+.image-editor-controls .btn {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: white;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.image-editor-controls .btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.image-editor-controls .btn:active {
+    transform: translateY(0);
+}
+
+.image-editor-controls .btn i {
+    margin-right: 0.5rem;
+}
+
+/* Modal button overrides */
+.glass-panel-modal-footer .btn-secondary {
+    background: rgba(108, 117, 125, 0.8);
+    border-color: rgba(108, 117, 125, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.glass-panel-modal-footer .btn-secondary:hover {
+    background: rgba(108, 117, 125, 1);
+    border-color: rgba(108, 117, 125, 1);
+    transform: translateY(-1px);
+}
+
+.glass-panel-modal-footer .btn-primary {
+    background: rgba(13, 110, 253, 0.8);
+    border-color: rgba(13, 110, 253, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.glass-panel-modal-footer .btn-primary:hover {
+    background: rgba(13, 110, 253, 1);
+    border-color: rgba(13, 110, 253, 1);
+    transform: translateY(-1px);
+}
+
+/* Close button styling */
+.btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(200%);
+    opacity: 0.8;
+}
+
+.btn-close-white:hover {
+    opacity: 1;
+}
+
+/* Smooth animations */
+.modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .image-editor-canvas-container {
+        height: 300px;
+        max-width: 100%;
+    }
+
+    .image-editor-controls .btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.875rem;
+    }
+
+    .glass-panel-modal-body {
+        padding: 1rem;
+    }
+}

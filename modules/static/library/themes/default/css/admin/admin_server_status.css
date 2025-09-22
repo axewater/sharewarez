@@ -1,0 +1,161 @@
+.container-settings {
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.container-serverstatus-version {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.info-block {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.info-block h3 {
+    color: #fff;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.info-block h4 {
+    color: #fff;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+}
+
+.progress {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background-color: #4CAF50;
+    transition: width 0.3s ease;
+}
+
+.cpu-details {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.cpu-details p {
+    margin: 5px 0;
+    color: #fff;
+}
+
+.table {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table th {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.table td {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.status-good {
+    background-color: #4CAF50;
+}
+
+.status-warning {
+    background-color: #FFC107;
+}
+
+.status-error {
+    background-color: #F44336;
+}
+
+.chart-container {
+    position: relative;
+    height: 200px;
+    margin-bottom: 20px;
+}
+
+canvas#memoryChart,
+canvas#diskChart,
+canvas#warezDiskChart {
+    max-width: 200px !important;
+    max-height: 200px !important;
+    margin: 0 auto;
+}
+
+.resource-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: transform 0.2s;
+}
+
+.resource-card:hover {
+    transform: translateY(-2px);
+}
+
+.fas {
+    margin-right: 8px;
+}
+
+.btn-secondary {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: none;
+    margin: 10px;
+    transition: background-color 0.3s;
+}
+
+.btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.resource-cards {
+    display: flex;
+    justify-content: space-around;
+    align-items: start;
+}
+
+/* Permission icons styling */
+.permission-icons {
+    float: right;
+    display: inline-flex;
+    gap: 12px;
+    margin-left: 15px;
+}
+
+.permission-icons i {
+    font-size: 1.1em;
+    width: 20px;
+    text-align: center;
+}
+
+.text-success { color: #28a745 !important; }
+.text-danger { color: #dc3545 !important; }
+.text-end { text-align: right !important; }

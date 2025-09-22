@@ -1,0 +1,404 @@
+/* Modern Help Page Styling */
+:root {
+    --primary-blue: #0096ff;
+    --secondary-blue: #1e3a8a;
+    --dark-bg: rgba(30, 30, 30, 0.95);
+    --glass-bg: rgba(40, 40, 40, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.8);
+    --text-muted: rgba(255, 255, 255, 0.6);
+    --accent-glow: rgba(0, 150, 255, 0.3);
+    --success-color: #10b981;
+    --hover-bg: rgba(255, 255, 255, 0.1);
+}
+
+.help-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    color: var(--text-primary);
+}
+
+/* Header Section */
+.help-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    background: var(--dark-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2.5rem;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.help-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.help-title i {
+    font-size: 2.5rem;
+    color: var(--primary-blue);
+    text-shadow: 0 0 20px var(--accent-glow);
+}
+
+.help-title h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    background: linear-gradient(135deg, var(--primary-blue), #60a5fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+    text-shadow: 0 0 30px var(--accent-glow);
+}
+
+.help-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin: 0;
+    font-weight: 300;
+}
+
+/* Content Grid */
+.help-content-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+/* Help Cards */
+.help-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.help-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 150, 255, 0.2);
+    border-color: rgba(0, 150, 255, 0.3);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, rgba(0, 150, 255, 0.1), rgba(0, 150, 255, 0.05));
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.card-header:hover {
+    background: linear-gradient(135deg, rgba(0, 150, 255, 0.15), rgba(0, 150, 255, 0.08));
+}
+
+.card-header i:first-child {
+    font-size: 1.8rem;
+    color: var(--primary-blue);
+    margin-right: 1rem;
+    text-shadow: 0 0 10px var(--accent-glow);
+}
+
+.card-header h2 {
+    flex: 1;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.toggle-icon {
+    margin-left: 1rem;
+}
+
+.toggle-icon i {
+    font-size: 1.2rem;
+    color: var(--primary-blue);
+    transition: transform 0.3s ease;
+}
+
+.card-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+    padding: 0 2rem;
+}
+
+.help-card.expanded .card-content {
+    padding: 2rem;
+}
+
+.help-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border-left: 3px solid var(--primary-blue);
+    transition: all 0.3s ease;
+}
+
+.help-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(5px);
+}
+
+.help-item:last-child {
+    margin-bottom: 0;
+}
+
+.help-item i {
+    font-size: 1.1rem;
+    color: var(--primary-blue);
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+}
+
+.help-item span {
+    color: var(--text-secondary);
+    line-height: 1.5;
+    font-size: 1rem;
+}
+
+.support-description {
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(0, 150, 255, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(0, 150, 255, 0.1);
+}
+
+/* Quick Actions Section */
+.help-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.quick-action-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.quick-action-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-blue), #60a5fa);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.quick-action-card:hover::before {
+    transform: scaleX(1);
+}
+
+.quick-action-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 150, 255, 0.25);
+    border-color: rgba(0, 150, 255, 0.4);
+}
+
+.quick-action-card i {
+    font-size: 3rem;
+    color: var(--primary-blue);
+    margin-bottom: 1rem;
+    text-shadow: 0 0 20px var(--accent-glow);
+}
+
+.quick-action-card h3 {
+    font-size: 1.3rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.quick-action-card p {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.action-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, var(--primary-blue), #1e40af);
+    color: white;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 150, 255, 0.3);
+}
+
+.action-button:hover {
+    background: linear-gradient(135deg, #1e40af, var(--primary-blue));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 150, 255, 0.4);
+    color: white;
+}
+
+.action-button i {
+    font-size: 0.9rem;
+    transition: transform 0.3s ease;
+}
+
+.action-button:hover i {
+    transform: translateX(3px);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.help-card {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.help-card:nth-child(1) { animation-delay: 0.1s; }
+.help-card:nth-child(2) { animation-delay: 0.2s; }
+.help-card:nth-child(3) { animation-delay: 0.3s; }
+.help-card:nth-child(4) { animation-delay: 0.4s; }
+
+.quick-action-card {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.quick-action-card:nth-child(1) { animation-delay: 0.5s; }
+.quick-action-card:nth-child(2) { animation-delay: 0.6s; }
+.quick-action-card:nth-child(3) { animation-delay: 0.7s; }
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .help-content-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .help-quick-actions {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .help-container {
+        padding: 1rem;
+    }
+    
+    .help-header {
+        padding: 2rem 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .help-title h1 {
+        font-size: 2.2rem;
+    }
+    
+    .help-title {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .card-header {
+        padding: 1rem 1.5rem;
+    }
+    
+    .help-card.expanded .card-content {
+        padding: 1.5rem;
+    }
+    
+    .quick-action-card {
+        padding: 1.5rem;
+    }
+    
+    .help-content-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .help-quick-actions {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .help-title h1 {
+        font-size: 1.8rem;
+    }
+    
+    .help-subtitle {
+        font-size: 1rem;
+    }
+    
+    .card-header h2 {
+        font-size: 1.2rem;
+    }
+    
+    .help-item {
+        padding: 0.75rem;
+    }
+    
+    .quick-action-card i {
+        font-size: 2.5rem;
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus states for better accessibility */
+.card-header:focus,
+.action-button:focus {
+    outline: 2px solid var(--primary-blue);
+    outline-offset: 2px;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: light) {
+    /* Keep dark theme as default since the app uses dark theme */
+}

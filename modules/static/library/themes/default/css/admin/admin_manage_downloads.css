@@ -1,0 +1,117 @@
+.content-download {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.card {
+    margin-bottom: 20px;
+    background: rgba(0, 0, 0, 0.6) !important;
+}
+
+.card.h-100 {
+    height: 100% !important;
+    min-height: 300px;
+}
+
+.card-header {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.storage-overview {
+    min-height: 300px;
+    padding: 20px;
+}
+
+canvas {
+    max-height: 250px !important;  /* Force smaller chart height */
+    width: auto !important;
+    margin: auto;
+    display: block;
+}
+
+.stats-details {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    margin-top: 10px;
+    height: 100%;
+}
+
+.stats-details p {
+    margin: 10px 0;
+    color: white;
+}
+
+.table-responsive {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    padding: 10px;
+    height: 200px;  /* Fixed height for chart containers */
+}
+
+.card-body {
+    max-height: 250px;  /* Limit card body height */
+}
+
+/* DataTables Dark Theme Customization */
+.dataTables_wrapper {
+    color: white;
+    padding: 20px;
+}
+
+.dataTables_filter input,
+.dataTables_length select {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 5px;
+}
+
+.dataTables_info,
+.dataTables_paginate {
+    color: white !important;
+    margin-top: 15px;
+}
+
+.paginate_button {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.paginate_button.current {
+    background: rgba(0, 123, 255, 0.5) !important;
+    color: white !important;
+}
+
+.paginate_button:hover {
+    background: rgba(0, 123, 255, 0.3) !important;
+    color: white !important;
+}
+
+.admin_manage_downloads-table-header {
+    background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+.admin_manage_downloads-tr-headings th {
+    color: white !important;
+    font-weight: bold;
+}
+
+.sorting, .sorting_asc, .sorting_desc {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+.admin_manage_downloads-th-headings-8 {
+    background-color: black !important;
+    color: white !important;
+}

@@ -1,0 +1,171 @@
+.discovery-library-label, .discovery-latest-games-label, .discovery-last-updated-label, .discovery-most-downloaded-label, .discovery-highest-rated-label  {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.discovery-latest-games-container {
+	display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	justify-items:center;
+}
+
+.discovery-most-downloaded-container {
+	display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	justify-items:center;
+
+    
+}
+
+.discovery-highest-rated-container {
+	display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	justify-items:center;
+    
+}
+
+
+.discovery-last-updated-container {
+	display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	justify-items:center;
+    
+}
+
+.discovery-most-favorited-container {
+	display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	justify-items:center;
+    
+}
+
+.discovery-most-favorited-label {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+
+.libraries-list {
+	display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	justify-items:center;
+
+}
+
+.libraries-list .game-cover {
+    max-width: 150px; /* Max width for library images */
+    height: auto; /* Keep aspect ratio intact */
+    display: block; /* If you want images to be block level elements */
+    margin: 0 auto; /* This centers the image within its container */
+
+}
+
+.library-item {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.library-link {
+    text-decoration: none; /* Removes underline from links */
+    color: inherit; /* Ensures the link color is consistent with the surrounding text */
+    display: block; /* Block display to enable better control over layout */
+}
+
+.library-name {
+    display: block;
+    background-color: black;
+    color: white;
+    border: 1px solid white;
+    border-radius: 15px;
+    padding: 5px 5px;
+    margin-top: 8px;
+    max-width: calc(100% - 20px);
+    box-sizing: border-box;
+    white-space: normal;
+    overflow-wrap: break-word; 
+    font-size: 1.3em; 
+}
+
+
+.library-cover {
+    width: 250px;
+    height: 332px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+    padding: 5px;
+    border: 1px solid rgb(49, 49, 49);
+    border-radius: 15px;
+    background-color: #2a2c35;
+}
+
+.library-cover:hover {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transform: scale(1.1);
+}
+
+
+.favorite-count {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+}
+
+.favorite-count i {
+    color: #ff6b6b;
+    font-size: 18px;
+    position: absolute;
+}
+
+.favorite-number {
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 16;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.favorite-count:hover {
+    transform: scale(1.1);
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+.discovery-header {
+	text-align: center;
+}
+
+.discovery-panel {
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px;
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    justify-content: space-between;
+    box-shadow: 0 9px 16px rgba(17, 2, 2, 2);
+    padding-bottom: 50px;
+}
+
+.game-cover-container {
+    position: relative;
+    display: inline-block;
+}
