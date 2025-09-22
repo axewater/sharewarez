@@ -34,7 +34,7 @@
     display: flex;
     align-items: center;
     text-decoration: none !important;
-    font-size: 22px;
+    font-size: var(--font-size-22px);
     color: var(--color-gray-ddd);
     transition: font-size var(--transition-normal), background-color var(--transition-normal);
     padding-left: var(--spacing-lg);
@@ -85,7 +85,7 @@
     border: none;
     color: var(--color-gray-ddd);
     cursor: pointer;
-    font-size: 24px;
+    font-size: var(--font-size-24px);
     display: inline-block;
 
 }
@@ -134,7 +134,7 @@
     display: block;
     color: var(--color-gray-ddd);
     padding: var(--spacing-8) var(--spacing-md);
-    font-size: 14px;
+    font-size: var(--font-size-14px);
     text-decoration: none !important;
     margin-left: var(--spacing-lg);
     transition: background-color var(--transition-normal);
@@ -146,7 +146,7 @@
 
 .sidebar-sublink .sidebar-sublink {
     margin-left: var(--spacing-xxl);
-    font-size: 13px;
+    font-size: var(--font-size-13px);
 }
 
 .submenu {

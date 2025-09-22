@@ -17,37 +17,31 @@
 /* Form controls now use unified system from base.css */
 
 /* Button styles now use unified .btn-primary and .btn-info from base.css */
-    border: 1px solid rgba(23, 162, 184, 0.8);
-    color: #fff;
-}
-
-.btn-info:hover {
-    background: rgba(23, 162, 184, 0.8);
-}
+/* Orphaned styles removed - using unified button system */
 
 .alert {
-    background: rgba(40, 40, 40, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-radius: 4px;
+    background: var(--table-bg-40-alt);
+    border: 1px solid var(--border-light);
+    color: var(--text-white);
+    padding: var(--spacing-rem-md);
+    margin-bottom: var(--spacing-rem-md);
+    border-radius: var(--border-radius-sm);
 }
 
 .alert-success {
-    background-color: rgba(40, 167, 69, 0.2);
-    border-color: rgba(40, 167, 69, 0.3);
+    background-color: var(--alert-success-bg);
+    border-color: var(--btn-success-border);
 }
 
 .alert-danger {
-    background-color: rgba(220, 53, 69, 0.2);
-    border-color: rgba(220, 53, 69, 0.3);
+    background-color: var(--alert-danger-bg);
+    border-color: var(--btn-danger-border);
 }
 
 .extenstions-table {
-    background-color: rgba(0, 0, 0, 0.6);
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    background-color: var(--datatable-wrapper-bg);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-glass);
     backdrop-filter: blur(10px);
     border-bottom: 2px solid rgba(255, 255, 255, 0.1);
     padding: 12px;

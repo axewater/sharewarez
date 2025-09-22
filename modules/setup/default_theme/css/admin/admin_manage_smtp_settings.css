@@ -1,32 +1,33 @@
+/* Using unified admin-section container from admin-components.css */
 .smtp-settings-container {
     max-width: 800px;
-    margin: 2rem auto;
-    padding: 2rem;
+    margin: var(--spacing-rem-xl) auto;
+    padding: var(--spacing-rem-xl);
     background: var(--container-dark-primary);
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-glass);
 }
 
 .smtp-settings-container h2 {
-    color: #fff;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-white);
+    margin-bottom: var(--spacing-rem-xl);
+    padding-bottom: var(--spacing-rem-md);
+    border-bottom: 1px solid var(--border-light);
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
 .smtp-settings-container h2 .btn-info {
-    font-size: 0.8em;
+    font-size: var(--font-size-sm);
     padding: 0.3em 0.6em;
-    margin-left: 1em;
-    background-color: rgba(23, 162, 184, 0.5);
-    border: 1px solid rgba(23, 162, 184, 0.8);
+    margin-left: var(--spacing-rem-md);
+    background-color: var(--btn-info);
+    border: 1px solid var(--btn-info-border);
 }
 
 .smtp-settings-container h2 .btn-info:hover {
-    background-color: rgba(23, 162, 184, 0.8);
+    background-color: var(--btn-info-hover);
 }
 
 /* Modal styling moved to modal-components.css */
@@ -34,7 +35,7 @@
 .settings-form {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: var(--spacing-rem-lg);
 }
 
 .form-group {
