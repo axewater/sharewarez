@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% block content %}
+
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
+<link rel="stylesheet" href="{{ 'css/admin/admin_access_management.css'|theme_asset }}">
+
+<!-- Back to Dashboard Button -->
+<div class="container">
+    <div class="glass-panel">
+        <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+
+<div class="access-management-container">
+    <!-- Header with stats cards -->
+    <div class="stats-header">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ stats.total_users }}</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ stats.active_users }}</div>
+                <div class="stat-label">Active Users</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ stats.whitelist_count }}</div>
+                <div class="stat-label">Whitelisted</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-envelope-open-text"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-value">{{ stats.total_invites_available }}</div>
+                <div class="stat-label">Total Invites</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main split-view container -->
+    <div class="split-view-container">
+        <!-- Left Panel: Master List -->
+        <div class="master-panel" id="masterPanel">
+            <!-- Search/Filter Bar -->
+            <div class="search-controls">
+                <div class="search-input-group">
+                    <input type="text" id="userSearch" class="form-control search-input" placeholder="Search users..." autocomplete="off">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+
+                <div class="filter-controls">
+                    <select id="roleFilter" class="form-control filter-select">
+                        <option value="">All Roles</option>
+                        <option value="admin">Admins</option>
+                        <option value="user">Users</option>
+                    </select>
+
+                    <select id="statusFilter" class="form-control filter-select">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+
+                <div class="bulk-actions" id="bulkActions" style="display: none;">
+                    <button class="btn btn-sm btn-primary" id="bulkWhitelistBtn">
+                        <i class="fas fa-user-shield"></i> Whitelist
+                    </button>
+                    <button class="btn btn-sm btn-warning" id="bulkInviteBtn">
+                        <i class="fas fa-envelope"></i> Add Invites
+                    </button>
+                    <button class="btn btn-sm btn-danger" id="bulkDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+
+            <!-- User List -->
+            <div class="user-list" id="userList">
+                {% for user in users %}
+                <div class="user-item" data-user-id="{{ user.id }}" data-role="{{ user.role }}" data-status="{{ 'active' if user.status else 'inactive' }}">
+                    <div class="user-checkbox">
+                        <input type="checkbox" class="user-select-checkbox" value="{{ user.id }}">
+                    </div>
+
+                    <div class="user-avatar-container">
+                        <img src="{{ user.avatar }}" alt="Avatar" class="user-avatar">
+                        {% if not user.status %}
+                        <div class="status-overlay inactive">
+                            <i class="fas fa-ban"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="user-info">
+                        <div class="user-name">{{ user.name }}</div>
+                        <div class="user-email">{{ user.email }}</div>
+                        <div class="user-indicators">
+                            {% if user.whitelist_status %}
+                            <span class="indicator whitelist-indicator" title="Whitelisted">
+                                <i class="fas fa-check-circle"></i>
+                            </span>
+                            {% endif %}
+
+                            <span class="indicator invite-indicator" title="Invites Available">
+                                <i class="fas fa-envelope"></i>
+                                <span class="invite-count">{{ user.invites_used }}/{{ user.invite_quota }}</span>
+                            </span>
+
+                            {% if user.role == 'admin' %}
+                            <span class="indicator role-indicator" title="Administrator">
+                                <i class="fas fa-crown"></i>
+                            </span>
+                            {% endif %}
+
+                            {% if not user.email_verified %}
+                            <span class="indicator email-unverified" title="Email Not Verified">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Resize handle -->
+        <div class="resize-handle" id="resizeHandle"></div>
+
+        <!-- Right Panel: Detail View -->
+        <div class="detail-panel" id="detailPanel">
+            <div class="detail-placeholder">
+                <div class="placeholder-content">
+                    <i class="fas fa-user-cog placeholder-icon"></i>
+                    <h3>Select a User</h3>
+                    <p>Choose a user from the list to view and manage their access settings.</p>
+                    <div class="placeholder-features">
+                        <div class="feature-item">
+                            <i class="fas fa-edit"></i>
+                            <span>Edit user information</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-user-shield"></i>
+                            <span>Manage whitelist status</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>Control invite quotas</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Action Modals -->
+<div class="modal fade" id="bulkInviteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Invites to Selected Users</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="bulkInviteCount" class="form-label">Number of invites to add:</label>
+                    <input type="number" class="form-control" id="bulkInviteCount" min="1" max="100" value="5">
+                </div>
+                <div class="selected-users-preview" id="selectedUsersPreview"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmBulkInvites">Add Invites</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="bulkDeleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Selected Users</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Warning:</strong> This action cannot be undone. The selected users will be permanently deleted.
+                </div>
+                <div class="selected-users-preview" id="deleteUsersPreview"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmBulkDelete">Delete Users</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay" style="display: none;">
+    <div class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Loading...</span>
+    </div>
+</div>
+
+<script src="{{ 'js/admin_access_management.js'|theme_asset }}"></script>
+
+{% endblock %}

@@ -30,27 +30,15 @@
         </div>
 
 
-        <!-- User Management Section -->
+        <!-- Access Management Section -->
         <div class="admin-section">
             <h3><i class="fas fa-users"></i> Access Management</h3>
             <div class="admin-buttons">
-                <div class="admin-button-item" data-toggle="tooltip" title="Manage user accounts">
-                    <a href="{{ url_for('admin2.manage_users') }}" class="btn btn-circle">
+                <div class="admin-button-item" data-toggle="tooltip" title="Unified access management: users, whitelist, and invites">
+                    <a href="{{ url_for('admin2.access_management') }}" class="btn btn-circle">
                         <i class="fas fa-users-cog"></i>
                     </a>
-                    <span class="button-label">Users</span>
-                </div>
-                <div class="admin-button-item" data-toggle="tooltip" title="Manage email whitelist">
-                    <a href="{{ url_for('admin2.whitelist') }}" class="btn btn-circle">
-                        <i class="fas fa-user-shield"></i>
-                    </a>
-                    <span class="button-label">Whitelist</span>
-                </div>
-                <div class="admin-button-item" data-toggle="tooltip" title="Manage user invites">
-                    <a href="{{ url_for('admin2.manage_invites') }}" class="btn btn-circle">
-                        <i class="fas fa-envelope-open-text"></i>
-                    </a>
-                    <span class="button-label">Invites</span>
+                    <span class="button-label">Access Control</span>
                 </div>
             </div>
         </div>

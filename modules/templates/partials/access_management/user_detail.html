@@ -1,0 +1,245 @@
+<div class="detail-content" data-user-id="{{ user.id }}">
+    <!-- User Header -->
+    <div class="detail-header">
+        <div class="detail-avatar-section">
+            <img src="{{ user.avatar }}" alt="Avatar" class="detail-avatar">
+            {% if not user.status %}
+            <div class="status-badge inactive">
+                <i class="fas fa-ban"></i> Inactive
+            </div>
+            {% else %}
+            <div class="status-badge active">
+                <i class="fas fa-check-circle"></i> Active
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="detail-user-info">
+            <h3 class="detail-user-name">{{ user.name }}</h3>
+            <p class="detail-user-email">{{ user.email }}</p>
+            <div class="detail-user-meta">
+                <span class="role-badge role-{{ user.role }}">
+                    {% if user.role == 'admin' %}
+                    <i class="fas fa-crown"></i> Administrator
+                    {% else %}
+                    <i class="fas fa-user"></i> User
+                    {% endif %}
+                </span>
+                {% if user.email_verified %}
+                <span class="verification-badge verified">
+                    <i class="fas fa-check-circle"></i> Verified
+                </span>
+                {% else %}
+                <span class="verification-badge unverified">
+                    <i class="fas fa-exclamation-triangle"></i> Unverified
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="detail-actions">
+            <button class="btn btn-sm btn-primary" id="editUserBtn">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+            {% if user.id != 1 %}
+            <button class="btn btn-sm btn-danger" id="deleteUserBtn">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Access Settings Sections -->
+    <div class="access-sections">
+        <!-- Account Settings -->
+        <div class="glass-card" id="accountSection">
+            <div class="card-header">
+                <h4><i class="fas fa-user-cog"></i> Account Settings</h4>
+                <div class="card-actions">
+                    <button class="btn btn-sm btn-outline-light" id="editAccountBtn">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-content">
+                <div class="info-grid" id="accountInfo">
+                    <div class="info-item">
+                        <label>Username:</label>
+                        <span class="editable-field" data-field="name">{{ user.name }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Email:</label>
+                        <span class="editable-field" data-field="email">{{ user.email }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Role:</label>
+                        <span class="editable-field" data-field="role">{{ user.role }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Status:</label>
+                        <span class="editable-field" data-field="status">{{ 'Active' if user.status else 'Inactive' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>About:</label>
+                        <span class="editable-field" data-field="about">{{ user.about or 'No description' }}</span>
+                    </div>
+                </div>
+
+                <div class="edit-form" id="accountEditForm" style="display: none;">
+                    <form id="userEditForm">
+                        <div class="form-group">
+                            <label for="editUserName">Username:</label>
+                            <input type="text" class="form-control" id="editUserName" value="{{ user.name }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="editUserEmail">Email:</label>
+                            <input type="email" class="form-control" id="editUserEmail" value="{{ user.email }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="editUserRole">Role:</label>
+                            <select class="form-control" id="editUserRole">
+                                <option value="user" {{ 'selected' if user.role == 'user' else '' }}>User</option>
+                                <option value="admin" {{ 'selected' if user.role == 'admin' else '' }}>Admin</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editUserStatus">Status:</label>
+                            <select class="form-control" id="editUserStatus">
+                                <option value="true" {{ 'selected' if user.status else '' }}>Active</option>
+                                <option value="false" {{ 'selected' if not user.status else '' }}>Inactive</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editUserAbout">About:</label>
+                            <textarea class="form-control" id="editUserAbout" rows="2">{{ user.about or '' }}</textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <button type="button" class="btn btn-secondary" id="cancelAccountEdit">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Whitelist Management -->
+        <div class="glass-card" id="whitelistSection">
+            <div class="card-header">
+                <h4><i class="fas fa-user-shield"></i> Whitelist Status</h4>
+                <div class="card-actions">
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="whitelistToggle" {{ 'checked' if user.whitelist_status else '' }}>
+                        <label for="whitelistToggle" class="toggle-label"></label>
+                    </div>
+                </div>
+            </div>
+            <div class="card-content">
+                <div class="whitelist-info">
+                    {% if user.whitelist_status %}
+                    <div class="status-indicator whitelisted">
+                        <i class="fas fa-check-circle"></i>
+                        <span>This user is whitelisted and can self-register</span>
+                    </div>
+                    {% else %}
+                    <div class="status-indicator not-whitelisted">
+                        <i class="fas fa-times-circle"></i>
+                        <span>This user is not whitelisted and requires an invite</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="whitelist-description">
+                    <p>Whitelisted users can register on the platform without requiring an invitation. Toggle this setting to grant or revoke whitelist access.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invite Management -->
+        <div class="glass-card" id="inviteSection">
+            <div class="card-header">
+                <h4><i class="fas fa-envelope-open-text"></i> Invite Management</h4>
+                <div class="card-actions">
+                    <button class="btn btn-sm btn-outline-light" id="editInvitesBtn">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-content">
+                <div class="invite-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ user.invite_quota }}</div>
+                        <div class="stat-label">Total Quota</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ user.invites_available }}</div>
+                        <div class="stat-label">Available</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ user.invites_used }}</div>
+                        <div class="stat-label">Used</div>
+                    </div>
+                </div>
+
+                <div class="invite-quota-edit" id="inviteQuotaEdit" style="display: none;">
+                    <div class="form-group">
+                        <label for="newInviteQuota">New Invite Quota:</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="newInviteQuota" value="{{ user.invite_quota }}" min="0" max="1000">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" id="saveInviteQuota">Save</button>
+                                <button class="btn btn-secondary" id="cancelInviteEdit">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if user.recent_invites %}
+                <div class="recent-invites">
+                    <h5>Recent Invites</h5>
+                    <div class="invite-list">
+                        {% for invite in user.recent_invites %}
+                        <div class="invite-item">
+                            <div class="invite-info">
+                                <span class="invite-token">{{ invite.token }}</span>
+                                {% if invite.recipient_email %}
+                                <span class="invite-recipient">→ {{ invite.recipient_email }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="invite-status">
+                                {% if invite.used %}
+                                <span class="badge bg-success">Used</span>
+                                {% else %}
+                                <span class="badge bg-warning">Pending</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="glass-card" id="activitySection">
+            <div class="card-header">
+                <h4><i class="fas fa-history"></i> Account Activity</h4>
+            </div>
+            <div class="card-content">
+                <div class="activity-info">
+                    {% if user.last_login %}
+                    <div class="activity-item">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Last login: {{ user.last_login }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user.created_at %}
+                    <div class="activity-item">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Account created: {{ user.created_at }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
