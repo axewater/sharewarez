@@ -246,22 +246,7 @@ input[type="checkbox"] {
     color: var(--text-white);
 }
 
-/* DataTables Form Elements */
-.dataTables_filter input {
-    background: var(--datatable-input-bg) !important;
-    color: var(--text-white) !important;
-    border: 1px solid var(--datatable-border) !important;
-    border-radius: var(--border-radius-sm);
-    padding: var(--spacing-xs) var(--spacing-sm);
-}
-
-.dataTables_length select {
-    background: var(--datatable-input-bg) !important;
-    color: var(--text-white) !important;
-    border: 1px solid var(--datatable-border) !important;
-    border-radius: var(--border-radius-sm);
-    padding: var(--spacing-xs) var(--spacing-sm);
-}
+/* DataTables styling moved to table-components.css */
 
 /* Dropdown Styling */
 .dropdown-perpage {

@@ -51,13 +51,7 @@
 }
 
 /* Table styling */
-.table {
-    background: var(--bg-dark-30);
-    color: var(--text-white);
-    border-radius: var(--border-radius-sm);
-    overflow: hidden;
-    margin-bottom: var(--spacing-lg);
-}
+/* Table styling inherited from table-components.css */
 
 .table thead th {
     background: var(--bg-dark-tertiary);

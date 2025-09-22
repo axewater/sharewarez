@@ -90,7 +90,6 @@ body.modal-open {
     margin-bottom: var(--spacing-sm);
     line-height: normal;
     box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-    border-radius: var(--border-radius-lg);
     border: 1px solid #080707;
     position: relative;
 }
@@ -535,7 +534,8 @@ pre {
 /* Ensure modal content is properly positioned */
 
 
-.modal-content {
+/* Image modal specific styling */
+.image-modal .modal-content {
     display: flex;
     justify-content: center;
     align-items: center;

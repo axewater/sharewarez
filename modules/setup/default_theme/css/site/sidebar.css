@@ -36,8 +36,7 @@
     text-decoration: none !important;
     font-size: 22px;
     color: #ddd;
-    transition: font-size var(--transition-normal); 
-    transition: background-color var(--transition-normal);
+    transition: font-size var(--transition-normal), background-color var(--transition-normal);
     padding-left: var(--spacing-lg);
     padding-right: var(--spacing-sm);
 

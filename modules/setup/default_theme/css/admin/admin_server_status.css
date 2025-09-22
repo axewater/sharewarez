@@ -59,12 +59,7 @@
     color: #fff;
 }
 
-.table {
-    background: rgba(255, 255, 255, 0.05);
-    color: #fff;
-    border-radius: 8px;
-    overflow: hidden;
-}
+/* Table styling inherited from table-components.css */
 
 .table th {
     background: rgba(255, 255, 255, 0.1);

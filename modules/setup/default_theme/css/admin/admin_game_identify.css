@@ -38,12 +38,7 @@
 }
 
 /* Form controls */
-.form-control {
-    background: var(--bg-light-overlay);
-    border: 1px solid var(--border-light-strong);
-    color: var(--text-white);
-    padding: var(--spacing-sm);
-}
+/* Form control styling in form-components.css */
 
 .form-control:focus {
     background: rgba(255, 255, 255, 0.15);

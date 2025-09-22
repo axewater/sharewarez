@@ -118,11 +118,7 @@
 }
 
 /* Form Controls */
-.form-control {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-}
+/* Form control styling in form-components.css */
 
 .form-control:focus {
     background: rgba(255, 255, 255, 0.15);
