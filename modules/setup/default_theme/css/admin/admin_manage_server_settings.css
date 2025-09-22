@@ -1,15 +1,15 @@
 /* Add this to make table headers white */
 .table thead th {
-    background: rgba(0, 0, 0, 0.2);
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-    padding: 12px;
-    color: white; /* Add this line to make the text white */
+    background: var(--bg-dark-tertiary);
+    border-bottom: 2px solid var(--border-light);
+    padding: var(--spacing-12);
+    color: var(--text-white);
 }
 
 /* Style the icons in the headers */
 .table thead th i {
-    color: white; /* Make icons white too */
-    margin-right: 8px; /* Add some spacing between icon and text */
+    color: var(--text-white);
+    margin-right: var(--spacing-8);
 }
 
 /* Hide beta scanning features */
@@ -23,67 +23,67 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
-    padding: 15px;
-    background: rgba(40, 40, 40, 0.8);
-    border-radius: 10px;
+    margin-bottom: var(--spacing-xl);
+    padding: var(--spacing-md);
+    background: var(--bg-dark-40);
+    border-radius: var(--border-radius-md);
 }
 
 /* Info blocks styling */
 .info-block {
-    background: rgba(40, 40, 40, 0.5);
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 25px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-dark-40);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-25);
+    border: 1px solid var(--border-light);
 }
 
 .info-block h3 {
-    color: #fff;
+    color: var(--text-white);
     font-size: 1.3em;
-    margin-bottom: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 10px;
+    margin-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: var(--spacing-sm);
 }
 
 .info-block h3 i {
-    margin-right: 10px;
+    margin-right: var(--spacing-sm);
 }
 
 /* Table styling */
 .table {
-    background: rgba(30, 30, 30, 0.3);
-    color: #fff;
-    border-radius: 8px;
+    background: var(--bg-dark-30);
+    color: var(--text-white);
+    border-radius: var(--border-radius-sm);
     overflow: hidden;
-    margin-bottom: 20px;
+    margin-bottom: var(--spacing-lg);
 }
 
 .table thead th {
-    background: rgba(0, 0, 0, 0.2);
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-    padding: 12px;
+    background: var(--bg-dark-tertiary);
+    border-bottom: 2px solid var(--border-light);
+    padding: var(--spacing-12);
 }
 
 .table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-transparent-5);
 }
 
 .table td {
-    padding: 12px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: var(--spacing-12);
+    border-top: 1px solid var(--border-light);
 }
 
 /* System resources section */
 .row {
     display: flex;
     flex-wrap: wrap;
-    margin: -10px;
+    margin: calc(-1 * var(--spacing-sm));
 }
 
 .col-md-4, .col-md-6 {
     flex: 1;
-    padding: 10px;
+    padding: var(--spacing-sm);
     min-width: 250px;
 }
 
@@ -95,9 +95,9 @@
 }
 
 .col-md-4 p, .col-md-6 p {
-    color: #fff;
-    background: rgba(0, 0, 0, 0.2);
-    padding: 10px;
+    color: var(--text-white);
+    background: var(--bg-dark-tertiary);
+    padding: var(--spacing-sm);
     border-radius: 6px;
     margin: 0;
 }
@@ -109,10 +109,10 @@
 
 /* Progress bar styling */
 .progress {
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
+    background-color: var(--bg-dark-tertiary);
+    border-radius: var(--border-radius-md);
     overflow: hidden;
-    margin-top: 10px;
+    margin-top: var(--spacing-sm);
 }
 
 .progress-bar {
@@ -121,18 +121,18 @@
     line-height: 25px;
     color: white;
     font-weight: bold;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+    text-shadow: 1px 1px 1px var(--shadow-dark);
 }
 
 /* Responsive design */
 @media (max-width: 768px) {
     .container-status-page {
-        margin: 10px;
-        padding: 15px;
+        margin: var(--spacing-sm);
+        padding: var(--spacing-md);
     }
 
     .info-block {
-        padding: 15px;
+        padding: var(--spacing-md);
     }
 
     .col-md-4, .col-md-6 {
@@ -150,6 +150,6 @@
     }
 
     .container-serverstatus-version > div {
-        margin-bottom: 10px;
+        margin-bottom: var(--spacing-sm);
     }
 }
