@@ -88,6 +88,18 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("Activating unmatchedFolders tab.");
             new bootstrap.Tab(document.querySelector('#unmatchedFolders-tab')).show();
             break;
+        case 'scan_filters':
+            console.log("Activating scanFilters tab.");
+            new bootstrap.Tab(document.querySelector('#scanFilters-tab')).show();
+            break;
+        case 'file_extensions':
+            console.log("Activating fileExtensions tab.");
+            new bootstrap.Tab(document.querySelector('#fileExtensions-tab')).show();
+            break;
+        case 'image_queue':
+            console.log("Activating imageQueue tab.");
+            new bootstrap.Tab(document.querySelector('#imageQueue-tab')).show();
+            break;
         case 'deleteLibrary':
             console.log("Activating deleteLibrary tab.");
             new bootstrap.Tab(document.querySelector('#deleteLibrary-tab')).show();
@@ -96,6 +108,38 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("Defaulting to activating autoScan tab.");
             new bootstrap.Tab(document.querySelector('#autoScan-tab')).show();
     }
+
+    // Add event listeners to all tab links to update URL when clicked
+    document.querySelectorAll('.admin_manage_scanjobs-nav-tabs .nav-link').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(event) {
+            const tabId = event.target.getAttribute('href').substring(1); // Remove # from href
+            let activeTabValue = 'auto';
+
+            switch(tabId) {
+                case 'manualScan':
+                    activeTabValue = 'manual';
+                    break;
+                case 'unmatchedFolders':
+                    activeTabValue = 'unmatched';
+                    break;
+                case 'scanFilters':
+                    activeTabValue = 'scan_filters';
+                    break;
+                case 'fileExtensions':
+                    activeTabValue = 'file_extensions';
+                    break;
+                case 'imageQueue':
+                    activeTabValue = 'image_queue';
+                    break;
+                default:
+                    activeTabValue = 'auto';
+            }
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('active_tab', activeTabValue);
+            window.history.replaceState({}, '', url.toString());
+        });
+    });
 
     // Prevent form submission on pressing Enter and trigger Browse Folders click (Auto Scan Tab)
     const autoScanForm = document.querySelector('#autoScan form');

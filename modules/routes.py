@@ -19,13 +19,15 @@ from PIL import Image as PILImage
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
 from modules.forms import (
-    ScanFolderForm, CsrfProtectForm, 
-    AutoScanForm, UpdateUnmatchedFolderForm, CsrfForm
+    ScanFolderForm, CsrfProtectForm,
+    AutoScanForm, UpdateUnmatchedFolderForm, CsrfForm,
+    ReleaseGroupForm
 )
 from modules.models import (
     Game, Image, ScanJob, UnmatchedFolder,
     Genre, Theme, GameMode, PlayerPerspective,
-    Category, Library, user_favorites
+    Category, Library, user_favorites,
+    ReleaseGroup, AllowedFileType
 )
 from modules.utils_functions import load_release_group_patterns, format_size, PLATFORM_IDS
 from modules.utilities import handle_auto_scan, handle_manual_scan, scan_and_add_games
@@ -188,6 +190,7 @@ def scan_folder():
 def scan_management():
     auto_form = AutoScanForm()
     manual_form = ScanFolderForm()
+    release_group_form = ReleaseGroupForm()
 
     libraries = db.session.execute(select(Library)).scalars().all()
     auto_form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in libraries]
@@ -195,7 +198,7 @@ def scan_management():
 
     selected_library_uuid = request.args.get('library_uuid')
     if selected_library_uuid:
-        auto_form.library_uuid.data = selected_library_uuid 
+        auto_form.library_uuid.data = selected_library_uuid
         manual_form.library_uuid.data = selected_library_uuid
 
     jobs = db.session.execute(select(ScanJob).order_by(ScanJob.last_run.desc())).scalars().all()
@@ -204,7 +207,7 @@ def scan_management():
                         .join(Library)\
                         .with_entities(UnmatchedFolder, Library.name, Library.platform)\
                         .order_by(UnmatchedFolder.status.desc()).all()
-    unmatched_form = UpdateUnmatchedFolderForm() 
+    unmatched_form = UpdateUnmatchedFolderForm()
     # Packaging data with platform details
     unmatched_folders_with_platform = []
     for unmatched, lib_name, lib_platform in unmatched_folders:
@@ -215,8 +218,12 @@ def scan_management():
             "platform_name": lib_platform.name if lib_platform else '',
             "platform_id": platform_id
         })
-        
+
     game_count = db.session.scalar(select(func.count(Game.id)))  # Fetch the game count here
+
+    # Data for new tabs
+    release_groups = db.session.execute(select(ReleaseGroup).order_by(ReleaseGroup.rlsgroup.asc())).scalars().all()
+    allowed_file_types = db.session.execute(select(AllowedFileType).order_by(AllowedFileType.value.asc())).scalars().all()
 
     if request.method == 'POST':
         submit_action = request.form.get('submit')
@@ -228,25 +235,55 @@ def scan_management():
             return handle_delete_unmatched(all=True)
         elif submit_action == 'DeleteOnlyUnmatched':
             return handle_delete_unmatched(all=False)
+        elif submit_action == 'AddReleaseGroup' and release_group_form.validate_on_submit():
+            # Handle adding release group filter
+            rlsgroupcs_value = release_group_form.rlsgroupcs.data == 'yes'
+            new_group = ReleaseGroup(
+                rlsgroup=release_group_form.rlsgroup.data,
+                rlsgroupcs=rlsgroupcs_value
+            )
+            db.session.add(new_group)
+            db.session.commit()
+            flash('New release group filter added.', 'success')
+            session['active_tab'] = 'scan_filters'
+            return redirect(url_for('main.scan_management', active_tab='scan_filters'))
+        elif submit_action == 'DeleteReleaseGroup':
+            # Handle deleting release group filter
+            filter_id = request.form.get('filter_id')
+            if filter_id:
+                group_to_delete = db.session.get(ReleaseGroup, filter_id)
+                if group_to_delete:
+                    db.session.delete(group_to_delete)
+                    db.session.commit()
+                    flash('Release group filter removed.', 'success')
+                else:
+                    flash('Filter not found.', 'error')
+            session['active_tab'] = 'scan_filters'
+            return redirect(url_for('main.scan_management', active_tab='scan_filters'))
         else:
             flash("Unrecognized action.", "error")
             return redirect(url_for('main.scan_management'))
 
     game_paths_dict = session.get('game_paths', {})
     game_names_with_ids = [{'name': name, 'full_path': path} for name, path in game_paths_dict.items()]
-    active_tab = session.get('active_tab', 'auto')
+    # Handle active_tab from URL parameter or session
+    active_tab = request.args.get('active_tab', session.get('active_tab', 'auto'))
 
-    return render_template('admin/admin_manage_scanjobs.html', 
-                           auto_form=auto_form, 
-                           manual_form=manual_form, 
-                           jobs=jobs, 
-                           csrf_form=csrf_form, 
-                           active_tab=active_tab, 
+    return render_template('admin/admin_manage_scanjobs.html',
+                           auto_form=auto_form,
+                           manual_form=manual_form,
+                           jobs=jobs,
+                           csrf_form=csrf_form,
+                           active_tab=active_tab,
                            unmatched_folders=unmatched_folders_with_platform,
                            unmatched_form=unmatched_form,
                            game_count=game_count,
                            libraries=libraries,
-                           game_names_with_ids=game_names_with_ids)
+                           game_names_with_ids=game_names_with_ids,
+                           release_group_form=release_group_form,
+                           release_groups=release_groups,
+                           allowed_file_types=allowed_file_types,
+                           selected_library_uuid=selected_library_uuid)
 
 
 @bp.route('/cancel_scan_job/<job_id>', methods=['POST'])

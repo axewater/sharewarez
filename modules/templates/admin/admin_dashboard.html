@@ -20,29 +20,11 @@
                     </a>
                     <span class="button-label">Libraries</span>
                 </div>
-                <div class="admin-button-item" data-toggle="tooltip" title="Manage your file scanning process">
+                <div class="admin-button-item" data-toggle="tooltip" title="Manage scanning, filters, extensions, and image queue">
                     <a href="{{ url_for('main.scan_management') }}" class="btn btn-circle">
                         <i class="fas fa-search"></i>
                     </a>
                     <span class="button-label">Scan Manager</span>
-                </div>
-                <div class="admin-button-item" data-toggle="tooltip" title="Manage scan filters and release groups">
-                    <a href="{{ url_for('admin2.edit_filters') }}" class="btn btn-circle">
-                        <i class="fas fa-filter"></i>
-                    </a>
-                    <span class="button-label">Scan Filters</span>
-                </div>
-                <div class="admin-button-item" data-toggle="tooltip" title="Manage allowed and ignored file extensions">
-                    <a href="{{ url_for('admin2.extensions') }}" class="btn btn-circle">
-                        <i class="fas fa-puzzle-piece"></i>
-                    </a>
-                    <span class="button-label">File Extensions</span>
-                </div>
-                <div class="admin-button-item" data-toggle="tooltip" title="Manage image download queue">
-                    <a href="{{ url_for('admin2.image_queue') }}" class="btn btn-circle">
-                        <i class="fas fa-images"></i>
-                    </a>
-                    <span class="button-label">Image Queue</span>
                 </div>
             </div>
         </div>
