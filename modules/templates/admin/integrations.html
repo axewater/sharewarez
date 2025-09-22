@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block content %}
+
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<link rel="stylesheet" href="{{ 'css/admin/integrations.css'|theme_asset }}">
+
+<div class="container">
+    <div class="glass-panel">
+        <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+
+<div class="container-settings mt-4">
+    <div class="card">
+        <h2><i class="fas fa-plug"></i> Integrations Management</h2>
+        <p>Manage all your external service integrations in one place.</p>
+
+        <!-- Nav tabs -->
+        <ul class="integrations-nav-tabs nav nav-tabs" id="integrationTabs" role="tablist">
+            <li class="integrations-nav-item nav-item" role="presentation">
+                <button class="integrations-nav-link nav-link active" id="email-tab" data-bs-toggle="tab" data-bs-target="#email" type="button" role="tab" aria-controls="email" aria-selected="true">
+                    <i class="fas fa-envelope"></i> Email Settings
+                </button>
+            </li>
+            <li class="integrations-nav-item nav-item" role="presentation">
+                <button class="integrations-nav-link nav-link" id="igdb-tab" data-bs-toggle="tab" data-bs-target="#igdb" type="button" role="tab" aria-controls="igdb" aria-selected="false">
+                    <i class="fas fa-gamepad"></i> IGDB Settings
+                </button>
+            </li>
+            <li class="integrations-nav-item nav-item" role="presentation">
+                <button class="integrations-nav-link nav-link" id="discord-tab" data-bs-toggle="tab" data-bs-target="#discord" type="button" role="tab" aria-controls="discord" aria-selected="false">
+                    <i class="fab fa-discord"></i> Discord Settings
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab content -->
+        <div class="integrations-tab-content tab-content" id="integrationTabContent">
+
+            <!-- Email Settings Tab -->
+            <div class="integrations-tab-pane tab-pane fade show active" id="email" role="tabpanel" aria-labelledby="email-tab">
+                <div class="tab-content-wrapper">
+                    <h4><i class="fas fa-envelope"></i> SMTP Email Settings <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#smtpHelpModal">
+                        <i class="fas fa-question-circle"></i>
+                    </button></h4>
+
+                    <div class="settings-form">
+                        <div class="form-group">
+                            <label for="smtp_enabled">Enable SMTP</label>
+                            <input type="checkbox" id="smtp_enabled" {% if settings and settings.smtp_enabled %}checked{% endif %}>
+                        </div>
+                        <div class="message">
+                            You must save your settings before testing.
+                        </div>
+
+                        <button type="button" class="btn btn-primary me-2" onclick="saveSettings()">Save Settings</button>
+                        <button type="button" class="btn btn-secondary" onclick="testSettings()">Test Settings</button>
+
+                        <!-- Test results container with improved styling -->
+                        <div id="testResults" class="mt-4"></div>
+                        <div class="form-group">
+                            <label for="smtp_server">SMTP Server *</label>
+                            <input type="text" id="smtp_server" value="{{ settings.smtp_server if settings else '' }}" class="form-control" required>
+                            <div class="invalid-feedback">SMTP server is required when SMTP is enabled</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="smtp_port">Port</label>
+                            <input type="number" id="smtp_port" value="{{ settings.smtp_port if settings else 587 }}" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="smtp_username">Username</label>
+                            <input type="text" id="smtp_username" value="{{ settings.smtp_username if settings else '' }}" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="smtp_password">Password</label>
+                            <input type="password" id="smtp_password" value="{{ settings.smtp_password if settings else '' }}" class="form-control" autocomplete="off">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="smtp_use_tls">Use TLS</label>
+                            <input type="checkbox" id="smtp_use_tls" {% if not settings or settings.smtp_use_tls %}checked{% endif %}>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="smtp_default_sender">Default Sender Email</label>
+                            <input type="email" id="smtp_default_sender" value="{{ settings.smtp_default_sender if settings else '' }}" class="form-control" autocomplete="email">
+                        </div>
+
+                        {% if settings and settings.smtp_last_tested %}
+                        <div class="last-tested">
+                            Last tested: {{ settings.smtp_last_tested.strftime('%Y-%m-%d %H:%M:%S') }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- IGDB Settings Tab -->
+            <div class="integrations-tab-pane tab-pane fade" id="igdb" role="tabpanel" aria-labelledby="igdb-tab">
+                <div class="tab-content-wrapper">
+                    <div class="integration-content">
+                        <h4><i class="fas fa-gamepad"></i> IGDB API Settings</h4>
+                        <p>Configure IGDB integration for game metadata and images.</p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            IGDB provides game metadata, screenshots, and cover images. You'll need Twitch Developer credentials.
+                        </div>
+                        <div class="d-flex justify-content-center mt-3">
+                            <a href="{{ url_for('admin2.igdb_settings') }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-cogs"></i> Configure IGDB Settings
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Discord Settings Tab -->
+            <div class="integrations-tab-pane tab-pane fade" id="discord" role="tabpanel" aria-labelledby="discord-tab">
+                <div class="tab-content-wrapper">
+                    <div class="integration-content">
+                        <h4><i class="fab fa-discord"></i> Discord Bot Settings</h4>
+                        <p>Configure Discord webhook integration for notifications.</p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            Set up Discord webhook to receive notifications about new games, downloads, and updates.
+                        </div>
+                        <div class="d-flex justify-content-center mt-3">
+                            <a href="{{ url_for('admin2.discord_settings') }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-cogs"></i> Configure Discord Settings
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- SMTP Help Modal -->
+<div class="modal fade" id="smtpHelpModal" tabindex="-1" aria-labelledby="smtpHelpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="smtpHelpModalLabel">How to Get SMTP Server Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Option 1: Use Your Internet Service Provider's SMTP Server (Recommended)</h6>
+                <p>Most Internet Service Providers (ISPs) provide SMTP server access. This is typically the most reliable option for most users.</p>
+                <ul>
+                    <li>Check your ISP's support website or documentation</li>
+                    <li>Contact your ISP's customer support</li>
+                    <li>Common format: smtp.yourisp.com</li>
+                </ul>
+
+                <h6>Option 2: Use Gmail SMTP</h6>
+                <p>Gmail provides SMTP access, but requires some additional setup:</p>
+                <ul>
+                    <li>Server: smtp.gmail.com</li>
+                    <li>Port: 587</li>
+                    <li>Security: TLS</li>
+                    <li>You'll need to enable "Less secure app access" or create an App Password</li>
+                </ul>
+
+                <h6>Option 3: Professional SMTP Services</h6>
+                <p>These services offer reliable email delivery with higher limits:</p>
+                <ul>
+                    <li>SendGrid</li>
+                    <li>Amazon Simple Email Service</li>
+                    <li>Mailgun</li>
+                    <li>SMTP2GO</li>
+                </ul>
+
+                <div class="alert alert-info">
+                    <strong>Note:</strong> Always use TLS/SSL encryption when available, and verify the port numbers with your provider.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ 'js/integrations.js'|theme_asset }}"></script>
+
+{% endblock %}

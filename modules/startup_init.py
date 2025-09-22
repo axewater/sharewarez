@@ -9,6 +9,8 @@ from sqlalchemy import create_engine, text, select
 from sqlalchemy.orm import sessionmaker
 from config import Config
 
+# Environment variables are loaded in config.py before the Config class is evaluated
+
 
 def run_complete_startup_initialization():
     """
@@ -82,31 +84,84 @@ def _initialize_library_folders(session):
     """Initialize library folders and themes (filesystem operations)."""
     print("Initializing library folders...")
 
+    # Import config to check DEV_MODE early
+    from config import Config
+    dev_mode = Config.DEV_MODE
+
+    # Add debug logging for DEV_MODE and theme paths
+    print(f"📁 Initializing library folders and theme system")
+    print(f"🔧 DEV_MODE is {'ENABLED' if dev_mode else 'DISABLED'} (value: {dev_mode})")
+
     # This mirrors the original init_data.initialize_library_folders() function
     library_path = os.path.join('modules', 'static', 'library')
     themes_path = os.path.join(library_path, 'themes')
     images_path = os.path.join(library_path, 'images')
     zips_path = os.path.join(library_path, 'zips')
 
-    # Check if default theme exists
+    # Check if default theme exists or if we're in dev mode
     default_theme_target = os.path.join(themes_path, 'default')
-    if not os.path.exists(os.path.join(default_theme_target, 'theme.json')):
+    theme_json_path = os.path.join(default_theme_target, 'theme.json')
+    theme_json_exists = os.path.exists(theme_json_path)
+
+    print(f"📂 Theme target directory: {default_theme_target}")
+    print(f"📄 Theme JSON file: {theme_json_path}")
+    print(f"🔍 Theme JSON exists: {theme_json_exists}")
+
+    should_copy_theme = not theme_json_exists or dev_mode
+
+    if dev_mode:
+        print("🔄 DEV_MODE is enabled - theme files will be refreshed regardless of existence")
+    elif not theme_json_exists:
+        print("➕ Theme doesn't exist - will copy from source")
+    else:
+        print("✅ Theme exists and DEV_MODE is disabled - will skip copy")
+
+    print(f"🎯 Decision: {'WILL COPY' if should_copy_theme else 'WILL SKIP'} theme files")
+
+    if should_copy_theme:
         # Copy default theme from source directory
         default_theme_source = os.path.join('modules', 'setup', 'default_theme')
+        print(f"📁 Theme source directory: {default_theme_source}")
+        print(f"🔍 Source directory exists: {os.path.exists(default_theme_source)}")
+
         if os.path.exists(default_theme_source):
             try:
                 import shutil
                 # Create themes directory if it doesn't exist
                 os.makedirs(themes_path, exist_ok=True)
+                print(f"📁 Created themes directory: {themes_path}")
+
+                # If theme directory exists and we're in dev mode, remove it first
+                if dev_mode and os.path.exists(default_theme_target):
+                    print("🗑️  DEV_MODE: Removing existing theme directory for fresh copy")
+                    shutil.rmtree(default_theme_target)
+                    print("🗑️  DEV_MODE: Theme directory removed successfully")
+
                 # Copy the entire default theme directory
-                shutil.copytree(default_theme_source, default_theme_target)
-                print("Default theme copied successfully")
+                print(f"📋 Copying theme files from {default_theme_source} to {default_theme_target}")
+                shutil.copytree(default_theme_source, default_theme_target, dirs_exist_ok=True)
+
+                if dev_mode:
+                    print("🔄 DEV_MODE: Default theme files refreshed successfully!")
+                else:
+                    print("✅ Default theme copied successfully!")
+
+                # Verify the copy worked
+                if os.path.exists(theme_json_path):
+                    print("✅ Theme installation verified - theme.json found")
+                else:
+                    print("⚠️  Warning: theme.json not found after copy")
+
             except Exception as e:
-                print(f"Error copying default theme: {str(e)}")
+                print(f"❌ Error copying default theme: {str(e)}")
+                import traceback
+                traceback.print_exc()
         else:
-            print("Warning: default theme source not found in modules/setup/default_theme")
+            print("⚠️  Warning: default theme source not found in modules/setup/default_theme")
     else:
-        print("Default theme found, skipping copy")
+        if dev_mode:
+            print("🚫 CRITICAL ERROR: DEV_MODE is enabled but theme copy was skipped!")
+        print("ℹ️  Theme copy skipped - using existing theme files")
         
     # Create images folder if it doesn't exist
     if not os.path.exists(images_path):

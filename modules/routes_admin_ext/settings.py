@@ -232,3 +232,37 @@ def manage_settings():
         return update_settings()
     else:
         return get_settings()
+
+
+# New Settings Management Routes
+
+@admin2_bp.route('/admin/new_server_settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def new_server_settings():
+    """Handle new server settings page - same functionality as original."""
+    if request.method == 'POST':
+        return update_settings()
+    else:
+        try:
+            settings_record = db.session.execute(select(GlobalSettings)).scalars().first()
+            current_settings = build_current_settings(settings_record)
+            return render_template('admin/new_server_settings.html', current_settings=current_settings)
+        except Exception as e:
+            logging.error(f"Error retrieving settings: {str(e)}")
+            abort(500)
+
+
+@admin2_bp.route('/admin/integrations', methods=['GET'])
+@login_required
+@admin_required
+def integrations():
+    """Handle integrations page with tabbed interface for email, IGDB, and discord settings."""
+    try:
+        # Get global settings for all integrations
+        settings_record = db.session.execute(select(GlobalSettings)).scalars().first()
+
+        return render_template('admin/integrations.html', settings=settings_record)
+    except Exception as e:
+        logging.error(f"Error retrieving integrations: {str(e)}")
+        abort(500)

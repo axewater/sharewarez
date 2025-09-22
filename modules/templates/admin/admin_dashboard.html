@@ -169,6 +169,33 @@
             </div>
         </div>
 
+        <!-- New Settings Management Section -->
+        <div class="admin-section">
+            <h3><i class="fas fa-cogs"></i> New Settings Management</h3>
+            <div class="admin-buttons">
+                <div class="admin-button-item" data-toggle="tooltip" title="Manage server settings">
+                    <a href="{{ url_for('admin2.new_server_settings') }}" class="btn btn-circle">
+                        <i class="fas fa-cogs"></i>
+                    </a>
+                    <span class="button-label">Server Settings</span>
+                </div>
+                <div class="admin-button-item" data-toggle="tooltip" title="Manage integrations (Email, IGDB, Discord)">
+                    <a href="{{ url_for('admin2.integrations') }}" class="btn btn-circle">
+                        <i class="fas fa-plug"></i>
+                    </a>
+                    <span class="button-label">Integrations</span>
+                </div>
+                {% if enable_server_status %}
+                <div class="admin-button-item" data-toggle="tooltip" title="View server information">
+                    <a href="{{ url_for('info.new_server_info') }}" class="btn btn-circle">
+                        <i class="fas fa-info"></i>
+                    </a>
+                    <span class="button-label">Server Info</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
 
     </div>
 </div>
