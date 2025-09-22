@@ -28,7 +28,7 @@ body {
 
 .admin-section h3 i {
     margin-right: var(--spacing-sm);
-    color: #0096ff;
+    color: var(--btn-primary);
 }
 
 .admin-buttons {

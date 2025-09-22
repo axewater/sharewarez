@@ -1,0 +1,254 @@
+/* === UNIFIED MODAL SYSTEM === */
+/* Consolidates modal styling duplicated across 6 files (12 occurrences) */
+
+/* Base Modal Styling */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: var(--modal-backdrop);
+}
+
+/* Modal Content Base */
+.modal-content {
+    background: var(--modal-bg);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid var(--modal-border);
+    border-radius: var(--modal-border-radius);
+    box-shadow: var(--modal-shadow);
+    color: var(--text-white);
+    margin: 5% auto;
+    padding: 0;
+    position: relative;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+/* Modal Animation */
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Modal Header */
+.modal-header {
+    border-bottom: 1px solid var(--modal-border);
+    padding: var(--spacing-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2,
+.modal-header h3,
+.modal-header h4 {
+    color: var(--text-white);
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Modal Body */
+.modal-body {
+    padding: var(--spacing-lg);
+    color: var(--text-white);
+}
+
+/* Modal Footer */
+.modal-footer {
+    border-top: 1px solid var(--modal-border);
+    padding: var(--spacing-lg);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+}
+
+/* Close Button */
+.modal-close,
+.close-button {
+    position: absolute;
+    top: var(--spacing-md);
+    right: var(--spacing-lg);
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    z-index: 10;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--border-radius-round);
+}
+
+.modal-close:hover,
+.close-button:hover {
+    color: var(--btn-danger);
+    background: var(--bg-light-overlay);
+    transform: scale(1.1);
+}
+
+/* Modal Size Variants */
+.modal-sm .modal-content {
+    max-width: 400px;
+    width: 90%;
+}
+
+.modal-md .modal-content {
+    max-width: 600px;
+    width: 90%;
+}
+
+.modal-lg .modal-content {
+    max-width: 800px;
+    width: 90%;
+}
+
+.modal-xl .modal-content {
+    max-width: 1200px;
+    width: 95%;
+}
+
+/* Modal Content Search Variant */
+.modal-content-search {
+    background: var(--modal-bg);
+    color: var(--text-white);
+    margin: 25% auto;
+    padding: var(--spacing-lg);
+    border: 15px solid var(--bg-dark-primary);
+    width: 80%;
+    border-radius: var(--border-radius-lg);
+}
+
+/* Delete Game Modal - Special Styling */
+.delete-game-modal {
+    backdrop-filter: blur(5px);
+}
+
+.delete-game-modal .modal-content {
+    background: var(--modal-bg);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid rgba(255, 0, 0, 0.3);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--modal-shadow), 0 0 20px rgba(255, 0, 0, 0.1);
+    color: var(--text-white);
+    max-width: 500px;
+    width: 90%;
+    margin: 10% auto;
+    padding: 0;
+}
+
+.delete-game-modal .modal-content h2 {
+    color: var(--btn-danger);
+    text-shadow: var(--shadow-text);
+    margin: 0 0 var(--spacing-md) 0;
+    font-size: var(--font-size-xl);
+    font-weight: bold;
+    padding: var(--spacing-lg) var(--spacing-lg) 0 var(--spacing-lg);
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.delete-game-modal .modal-content p {
+    color: var(--text-light);
+    font-size: var(--font-size-base);
+    line-height: 1.5;
+    margin: 0 0 var(--spacing-xl) 0;
+    padding: 0 var(--spacing-lg);
+    text-align: center;
+}
+
+.delete-game-modal .modal-content form {
+    padding: 0 var(--spacing-lg) var(--spacing-lg) var(--spacing-lg);
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Modal Button Styling */
+.modal .btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.95rem;
+    font-weight: 500;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-width: 120px;
+}
+
+.modal .btn-danger {
+    background: linear-gradient(45deg, var(--btn-danger), var(--btn-danger-hover));
+    color: var(--text-white);
+    border-color: rgba(220, 53, 69, 0.5);
+}
+
+.modal .btn-danger:hover {
+    background: linear-gradient(45deg, var(--btn-danger-hover), #bd2130);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-button-hover);
+}
+
+.modal .btn-success {
+    background: rgba(40, 167, 69, 0.8);
+    color: var(--text-white);
+    border-color: rgba(40, 167, 69, 0.5);
+    backdrop-filter: blur(5px);
+}
+
+.modal .btn-success:hover {
+    background: var(--btn-success);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+/* Help Modal Specific Styling */
+#smtpHelpModal .modal-content {
+    background: var(--modal-bg);
+    color: var(--text-white);
+}
+
+#smtpHelpModal .alert-info {
+    background-color: var(--alert-info-bg);
+    border-color: rgba(23, 162, 184, 0.3);
+    color: var(--text-white);
+}
+
+/* Responsive Modal Design */
+@media (max-width: 768px) {
+    .modal-content {
+        margin: 2% auto;
+        width: 95%;
+        padding: var(--spacing-sm);
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: var(--spacing-md);
+    }
+
+    .modal .btn {
+        min-width: 100px;
+        padding: var(--spacing-xs) var(--spacing-md);
+    }
+
+    .delete-game-modal .modal-content form {
+        flex-direction: column;
+        align-items: center;
+    }
+}

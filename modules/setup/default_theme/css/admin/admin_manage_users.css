@@ -60,21 +60,7 @@
     margin: 0 0.2rem;
 }
 
-.modal-content {
-    background: rgba(30, 30, 30, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    color: #fff;
-}
-
-.modal-header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.modal-footer {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
+/* Modal styling moved to modal-components.css */
 
 .form-control, .form-select {
     background: rgba(40, 40, 40, 0.5);
@@ -93,26 +79,4 @@
     color: rgba(255, 255, 255, 0.5);
 }
 
-/* DataTables specific styling */
-.dataTables_wrapper {
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(10px);    padding: 20px;
-    border-radius: 10px;
-    margin-top: 20px;
-}
-
-.dataTables_filter input {
-    background: rgba(255, 255, 255, 0.1) !important;
-    color: #fff !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 4px;
-    padding: 5px 10px;
-}
-
-.dataTables_length select {
-    background: rgba(255, 255, 255, 0.1) !important;
-    color: #fff !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 4px;
-    padding: 5px 10px;
-}
+/* DataTables styling moved to table-components.css */

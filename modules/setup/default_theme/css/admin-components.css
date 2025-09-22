@@ -1,0 +1,525 @@
+/* === UNIFIED ADMIN SYSTEM === */
+/* Consolidates admin styling patterns across multiple files */
+
+/* === ADMIN CONTAINERS === */
+
+/* Base Admin Section */
+.admin-section {
+    background: var(--bg-dark-tertiary);
+    backdrop-filter: var(--backdrop-blur);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    max-width: 1200px;
+    box-shadow: var(--shadow-glass-strong);
+    margin-bottom: var(--spacing-lg);
+    border: 1px solid var(--border-light);
+}
+
+/* Admin Container Variants */
+.smtp-settings-container,
+.admin-container,
+.settings-container {
+    max-width: 800px;
+    margin: var(--spacing-rem-xl) auto;
+    padding: var(--spacing-rem-xl);
+    background: var(--container-dark-primary);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-glass);
+    border: 1px solid var(--border-light);
+}
+
+.container-settings {
+    min-width: 800px;
+    margin: var(--spacing-rem-xl) auto;
+    padding: var(--spacing-rem-xl);
+    background-color: var(--bg-dark-primary);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-glass);
+}
+
+/* Admin Panel Glass Effect */
+.glass-panel {
+    background: var(--glass-panel-bg);
+    backdrop-filter: var(--backdrop-blur);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    margin: var(--spacing-lg);
+    box-shadow: var(--glass-panel-shadow);
+    border: var(--glass-panel-border);
+}
+
+.admin-panel {
+    background: var(--container-glass-primary);
+    backdrop-filter: var(--backdrop-blur);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-card);
+    margin-bottom: var(--spacing-lg);
+}
+
+/* === ADMIN LAYOUT HELPERS === */
+
+/* Admin Header */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.admin-header h1,
+.admin-header h2 {
+    color: var(--text-white);
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Admin Content Area */
+.admin-content {
+    background: var(--bg-dark-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
+}
+
+/* Admin Footer */
+.admin-footer {
+    text-align: center;
+    padding: var(--spacing-lg);
+    color: var(--text-light);
+    border-top: 1px solid var(--border-light);
+    margin-top: var(--spacing-xl);
+}
+
+/* === ADMIN TITLES AND HEADINGS === */
+
+.hackplanet_titles {
+    text-align: center;
+    margin-bottom: var(--spacing-xxl);
+}
+
+.hackplanet_titles h1 {
+    color: var(--text-white);
+    font-size: 2.5em;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
+}
+
+.admin-section h3 {
+    color: var(--text-white);
+    font-size: 1.3em;
+    margin-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: var(--spacing-sm);
+}
+
+.admin-section h3 i {
+    margin-right: var(--spacing-sm);
+    color: var(--btn-primary);
+}
+
+.page-title {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+    color: var(--text-white);
+    font-size: var(--font-size-2xl);
+    font-weight: 600;
+}
+
+/* === ADMIN BUTTONS === */
+
+/* Admin Button Layout */
+.admin-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-lg);
+    justify-content: center;
+}
+
+.admin-button-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100px;
+}
+
+/* Circular Admin Buttons */
+.btn-circle {
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    border-radius: var(--border-radius-round);
+    text-align: center;
+    font-size: 24px;
+    line-height: 60px;
+    background: rgba(0, 150, 255, 0.2);
+    color: var(--text-white);
+    border: 1px solid rgba(0, 150, 255, 0.3);
+    transition: all var(--transition-normal);
+    cursor: pointer;
+}
+
+.btn-circle:hover {
+    transform: translateY(-3px);
+    background: rgba(0, 150, 255, 0.4);
+    box-shadow: 0 0 20px rgba(0, 150, 255, 0.3);
+    color: var(--text-white);
+}
+
+.button-label {
+    margin-top: var(--spacing-xs);
+    font-size: 0.9em;
+    color: var(--text-white);
+    text-align: center;
+}
+
+/* Admin Button Variants */
+.btn-admin {
+    background: var(--bg-dark-primary);
+    border: 1px solid var(--border-light);
+    color: var(--text-white);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-admin:hover {
+    background: var(--bg-light-overlay);
+    border-color: var(--border-light-strong);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-button);
+}
+
+.btn-admin-primary {
+    background: linear-gradient(45deg, var(--btn-primary), #0056b3);
+    border-color: var(--btn-primary);
+    color: var(--text-white);
+}
+
+.btn-admin-primary:hover {
+    background: linear-gradient(45deg, #0056b3, #004085);
+}
+
+.btn-admin-danger {
+    background: linear-gradient(45deg, var(--btn-danger), var(--btn-danger-hover));
+    border-color: var(--btn-danger);
+    color: var(--text-white);
+}
+
+.btn-admin-danger:hover {
+    background: linear-gradient(45deg, var(--btn-danger-hover), #bd2130);
+}
+
+/* === PROGRESS COMPONENTS === */
+
+.progress-text {
+    font-size: 14px;
+    margin-bottom: var(--spacing-sm);
+    color: #333;
+    font-weight: 500;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background-color: #f0f0f0;
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    margin-top: var(--spacing-sm);
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--btn-success), #45a049);
+    width: 0%;
+    transition: width var(--transition-normal);
+    border-radius: var(--border-radius-md);
+}
+
+.progress-counter {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: bold;
+    color: #333;
+    text-shadow: 0 0 3px rgba(255,255,255,0.8);
+}
+
+.progress {
+    background-color: var(--bg-dark-tertiary);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    margin-top: var(--spacing-sm);
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+    text-align: center;
+    line-height: 25px;
+    color: var(--text-white);
+    font-weight: bold;
+    text-shadow: var(--shadow-text);
+}
+
+/* === STATUS INDICATORS === */
+
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: var(--border-radius-round);
+    margin-right: var(--spacing-xs);
+}
+
+.status-running {
+    background: var(--status-running);
+    animation: pulse 1.5s infinite;
+}
+
+.status-stopped {
+    background: var(--status-stopped);
+}
+
+.status-pending {
+    background: var(--status-pending);
+}
+
+.status-completed {
+    background: var(--status-completed);
+}
+
+.status-value {
+    color: #18b2dd;
+    font-weight: bold;
+    background-color: #e8ffe8;
+    border: 2px solid #004c00;
+    padding: var(--spacing-2) var(--spacing-xs);
+    border-radius: var(--border-radius-sm);
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* === ADMIN ALERTS === */
+
+.admin-alert {
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: var(--spacing-lg);
+    border-left: 4px solid;
+    backdrop-filter: var(--backdrop-blur-light);
+}
+
+.admin-alert-success,
+.alert-success {
+    background: var(--alert-success-bg);
+    border-left-color: var(--btn-success);
+    color: var(--btn-success);
+}
+
+.admin-alert-warning,
+.alert-warning {
+    background: var(--alert-warning-bg);
+    border-left-color: var(--btn-warning);
+    color: var(--btn-warning);
+}
+
+.admin-alert-danger,
+.alert-danger {
+    background: var(--alert-danger-bg);
+    border-left-color: var(--btn-danger);
+    color: var(--btn-danger);
+}
+
+.admin-alert-info,
+.alert-info {
+    background: var(--alert-info-bg);
+    border-left-color: #17a2b8;
+    color: #17a2b8;
+}
+
+.alert {
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-xs);
+    margin-bottom: var(--spacing-sm);
+    border: 1px solid transparent;
+}
+
+/* === ADMIN SECTIONS SPECIFIC === */
+
+/* Theme Management */
+.theme-upload-section {
+    margin-bottom: var(--spacing-xxl);
+}
+
+.themes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.theme-card {
+    background: var(--container-glass-secondary);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    transition: transform var(--transition-normal);
+    border: 1px solid var(--border-light);
+}
+
+.theme-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-card);
+}
+
+.theme-card h3 {
+    color: var(--text-white);
+    margin-bottom: var(--spacing-sm);
+}
+
+.theme-card p {
+    color: var(--text-light);
+    margin-bottom: var(--spacing-xs);
+}
+
+.default-theme {
+    border: 2px solid var(--btn-warning);
+}
+
+.theme-actions {
+    text-align: center;
+    margin: var(--spacing-lg) 0;
+    padding: var(--spacing-sm);
+    border-top: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--border-light);
+}
+
+/* Info Blocks */
+.info-block {
+    background: var(--bg-dark-40);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    border: 1px solid var(--border-light);
+}
+
+.info-block h3 {
+    color: var(--text-white);
+    font-size: 1.3em;
+    margin-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: var(--spacing-sm);
+}
+
+.info-block h3 i {
+    margin-right: var(--spacing-sm);
+    color: var(--btn-primary);
+}
+
+/* === RESPONSIVE ADMIN DESIGN === */
+
+@media (max-width: 768px) {
+    .admin-panel,
+    .admin-section {
+        padding: var(--spacing-md);
+        margin: var(--spacing-sm);
+    }
+
+    .admin-buttons {
+        gap: var(--spacing-md);
+    }
+
+    .admin-button-item {
+        width: 80px;
+    }
+
+    .btn-circle {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+        line-height: 50px;
+    }
+
+    .button-label {
+        font-size: 0.8em;
+    }
+
+    .smtp-settings-container,
+    .admin-container,
+    .settings-container {
+        margin: var(--spacing-md);
+        padding: var(--spacing-md);
+    }
+
+    .container-settings {
+        min-width: auto;
+        margin: var(--spacing-md);
+        padding: var(--spacing-md);
+    }
+
+    .admin-header {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-sm);
+    }
+
+    .themes-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+
+    .info-block {
+        padding: var(--spacing-md);
+    }
+}
+
+/* === ADMIN UTILITIES === */
+
+/* Flash Messages */
+.flash-messages {
+    margin-bottom: var(--spacing-lg);
+}
+
+/* Hidden Beta Features */
+.hidden-beta-feature {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* Last Tested Info */
+.last-tested {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-top: var(--spacing-md);
+}
+
+/* Card Components in Admin */
+.card-header h2 {
+    color: var(--text-white);
+    font-weight: 500;
+}
+
+.card-body {
+    color: var(--text-white);
+}
+
+/* Admin Help Modal */
+.smtp-settings-container h2 .btn-info {
+    font-size: 0.8em;
+    padding: 0.3em 0.6em;
+    margin-left: var(--spacing-md);
+    background-color: var(--btn-info);
+    border: 1px solid rgba(23, 162, 184, 0.8);
+}
+
+.smtp-settings-container h2 .btn-info:hover {
+    background-color: var(--btn-info-hover);
+}
