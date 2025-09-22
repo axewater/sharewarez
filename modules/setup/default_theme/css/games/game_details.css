@@ -22,7 +22,7 @@ body.modal-open {
 .button-glass-hamburger {
     width: 30px;
     height: 30px;
-    background-color: rgba(176, 173, 173, 0.7);
+    background-color: var(--game-button-bg-1);
     border-radius: var(--border-radius-round);
     padding: var(--spacing-1) var(--spacing-2);
     border: none;
@@ -34,7 +34,7 @@ body.modal-open {
 }
 
 .button-glass-hamburger:hover {
-    background-color: rgba(218, 217, 217, 0.9);
+    background-color: var(--game-button-bg-2);
 }
 
 .game-card-topq {
@@ -89,7 +89,7 @@ body.modal-open {
     border-radius: var(--border-radius-lg);
     margin-bottom: var(--spacing-sm);
     line-height: normal;
-    box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), var(--game-shadow-standard);
     border: 1px solid #080707;
     position: relative;
 }
@@ -105,7 +105,7 @@ body.modal-open {
     border-radius: var(--border-radius-lg);
     margin-bottom: var(--spacing-sm);
     line-height: normal;
-    box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), var(--game-shadow-standard);
     border-radius: var(--border-radius-lg);
     border: 1px solid #080707;
     position: relative;
@@ -120,14 +120,14 @@ body.modal-open {
     padding: var(--spacing-md);
     border: 1px solid black;
     margin-top: auto;
-    box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), var(--game-shadow-standard);
     justify-content: space-between;
 }
 
 
 .button-glass-download {
     padding: var(--spacing-sm) var(--spacing-xl);
-    background: rgba(11, 200, 11, 0.999);
+    background: var(--game-download-bg);
     border: none;
     border-radius: var(--border-radius-sm);
     cursor: pointer;
@@ -142,7 +142,7 @@ body.modal-open {
 
 .button-glass-play {
     padding: 1px 8px;
-    background: rgba(0, 123, 255, 0.999);
+    background: var(--game-info-bg);
     border: none;
     border-radius: var(--border-radius-sm);
     cursor: pointer;
@@ -174,7 +174,7 @@ body.modal-open {
 
 .button-glass-extras:hover {
     background: var(--bg-light-overlay-hover);
-    border-color: rgba(255, 255, 255, 0.4);
+    border-color: var(--border-white-40);
     color: var(--text-white);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -318,7 +318,7 @@ pre {
     font-size: 17px;
     line-height: 1.2;
     border: 1px solid black;
-    box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), var(--game-shadow-standard);
     text-align: justify;
 }
 
@@ -398,7 +398,7 @@ pre {
 }
 
 .game-card-coverimage img {
-    box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), var(--game-shadow-standard);
     border-radius: var(--border-radius-lg);
     border: 1px solid #080707;
 }
@@ -616,7 +616,7 @@ pre {
 
 .nfo-button:hover {
     background: var(--bg-light-overlay-hover);
-    border-color: rgba(255, 255, 255, 0.4);
+    border-color: var(--border-white-40);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
@@ -670,7 +670,7 @@ pre {
     border-radius: 10px;
     padding: 0;
     margin: 2rem auto;
-    box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), var(--game-shadow-standard);
     width: 90%;
     max-width: 800px;
     max-height: 80vh;
@@ -747,7 +747,7 @@ pre {
     border-radius: 10px;
     padding: 0;
     margin: 2rem auto;
-    box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), var(--game-shadow-standard);
     width: 90%;
     max-width: 900px;
     max-height: 80vh;
@@ -902,4 +902,28 @@ pre {
 .modal-extras .close:focus {
     color: #ccc;
     text-decoration: none;
+}
+
+/* === MERGED FROM manage_downloads.css === */
+
+.style1 {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+}
+
+.inline-form {
+    display: inline;
+}
+
+@keyframes bounceWiggle {
+    0% { transform: translateY(0) translateX(0) rotate(0deg); }
+    15% { transform: translateY(-15px) translateX(3px) rotate(3deg); }
+    30% { transform: translateY(-7px) translateX(-2px) rotate(-2deg); }
+    45% { transform: translateY(-4px) translateX(1px) rotate(1deg); }
+    60% { transform: translateY(-2px) translateX(-1px) rotate(-1deg); }
+    75% { transform: translateY(-1px) translateX(0) rotate(0deg); }
+    100% { transform: translateY(0) translateX(0) rotate(0deg); }
+}
+
+.bounce-wiggle {
+    animation: bounceWiggle 1s ease-out;
 }

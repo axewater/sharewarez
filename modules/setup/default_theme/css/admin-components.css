@@ -522,3 +522,55 @@
 .smtp-settings-container h2 .btn-info:hover {
     background-color: var(--btn-info-hover);
 }
+
+/* === MERGED FROM admin_newsletter.css === */
+
+.ck.ck-editor {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.ck-editor__editable {
+    color: var(--text-light) !important;
+    background: var(--bg-light-overlay) !important;
+    border: 1px solid var(--border-light-strong) !important;
+    border-radius: 0 0 5px 5px;
+}
+
+.ck.ck-toolbar {
+    background: var(--bg-light-overlay) !important;
+    border: 1px solid var(--border-light-strong) !important;
+    border-radius: 5px 5px 0 0;
+}
+
+.ck.ck-button,
+.ck.ck-button.ck-on {
+    color: var(--text-white);
+    background: var(--bg-light-overlay);
+}
+
+.ck.ck-button:hover {
+    background: var(--bg-light-overlay-hover) !important;
+}
+
+.ck.ck-toolbar .ck.ck-toolbar__separator {
+    background: var(--bg-light-overlay-hover);
+}
+
+/* === MERGED FROM admin_manage_filters.css === */
+
+.admin_manage_filters-header h2 {
+    color: var(--text-white);
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-md);
+}
+
+.admin_manage_filters-form-group-case {
+    margin: var(--spacing-md) 0;
+    display: flex;
+    align-items: center;
+}
+
+.admin_manage_filters-form-group-case input[type="checkbox"] {
+    margin-right: var(--spacing-sm);
+}

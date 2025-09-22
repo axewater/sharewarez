@@ -4,7 +4,7 @@
   flex-direction: row;
   justify-content: space-between;
   padding: 20px;
-  font-size: 20px;
+  font-size: var(--font-size-20px);
   gap: 20px;
 }
 

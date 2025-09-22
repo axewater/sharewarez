@@ -11,7 +11,7 @@
     border: 1px solid var(--border-light-strong);
     border-radius: var(--border-radius-md);
     overflow: hidden;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.3);
+    box-shadow: var(--shadow-card);
 }
 
 .simple-jobs-table th,
@@ -51,7 +51,7 @@
     overflow-y: auto;
     border: 1px solid var(--border-light-strong);
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--container-glass-primary);
     backdrop-filter: blur(10px);
 }
 
@@ -136,26 +136,26 @@
 
 /* Status-based row background colors for unmatched folders table */
 .simple-unmatched-table tr[data-status="Unmatched"] {
-    background-color: rgba(253, 126, 20, 0.15) !important;
+    background-color: var(--scan-running-bg) !important;
 }
 
 .simple-unmatched-table tr[data-status="Duplicate"] {
-    background-color: rgba(220, 53, 69, 0.15) !important;
+    background-color: var(--scan-error-bg) !important;
 }
 
 .simple-unmatched-table tr[data-status="Ignore"] {
-    background-color: rgba(108, 117, 125, 0.15) !important;
+    background-color: var(--scan-completed-bg) !important;
 }
 
 .simple-unmatched-table tr[data-status="Pending"] {
-    background-color: rgba(0, 123, 255, 0.15) !important;
+    background-color: var(--scan-info-bg) !important;
 }
 
 /* Filter controls styling */
 .unmatched-filters {
     margin-bottom: 20px;
     padding: 15px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-white-05);
     backdrop-filter: blur(10px);
     border: 1px solid var(--border-light);
     border-radius: 10px;
@@ -188,11 +188,11 @@
 
 .filter-btn:hover {
     background: var(--bg-light-overlay-hover);
-    border-color: rgba(255, 255, 255, 0.5);
+    border-color: var(--border-white-50);
 }
 
 .filter-btn.active {
-    background: rgba(0, 123, 255, 0.8);
+    background: var(--scan-info-button);
     border-color: #007bff;
     color: #fff;
 }
@@ -213,7 +213,7 @@
 }
 
 .search-input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-white-60);
 }
 
 .search-input:focus {
@@ -743,7 +743,7 @@
 
 /* Tab styling */
 .admin_manage_scanjobs-nav-panel {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-white-05);
     backdrop-filter: blur(10px);
     border-radius: var(--border-radius-lg);
     padding: 0;
@@ -775,7 +775,7 @@
 }
 
 .admin_manage_scanjobs-nav-link.active {
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--container-glass-primary);
     backdrop-filter: blur(10px);
     border: 1px solid var(--border-light-strong);
     border-bottom: 3px solid #007bff;

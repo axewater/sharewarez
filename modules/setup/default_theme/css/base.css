@@ -81,11 +81,22 @@
     --font-size-3xl: 3rem;
 
     /* Pixel-based Typography (for legacy compatibility) */
+    --font-size-12px: 12px;
     --font-size-13px: 13px;
     --font-size-14px: 14px;
+    --font-size-18px: 18px;
     --font-size-20px: 20px;
     --font-size-22px: 22px;
     --font-size-24px: 24px;
+
+    /* Em-based Typography */
+    --font-size-08em: 0.8em;
+    --font-size-13em: 1.3em;
+
+    /* Additional rem-based Typography */
+    --font-size-095rem: 0.95rem;
+    --font-size-13rem: 1.3rem;
+    --font-size-22rem: 2.2rem;
 
     /* Container Backgrounds (High Usage Patterns) */
     --container-dark-primary: rgba(30, 30, 30, 0.95);
@@ -231,6 +242,26 @@
     --log-info-text: #0d6efd;
     --log-warning-text: #ffc107;
     --log-error-text: #dc3545;
+
+    /* Scan Job Status Colors */
+    --scan-running-bg: rgba(253, 126, 20, 0.15);
+    --scan-error-bg: rgba(220, 53, 69, 0.15);
+    --scan-completed-bg: rgba(108, 117, 125, 0.15);
+    --scan-info-bg: rgba(0, 123, 255, 0.15);
+    --scan-info-button: rgba(0, 123, 255, 0.8);
+
+    /* Additional Common Backgrounds */
+    --bg-white-05: rgba(255, 255, 255, 0.05);
+    --border-white-50: rgba(255, 255, 255, 0.5);
+    --text-white-60: rgba(255, 255, 255, 0.6);
+
+    /* Game UI Colors */
+    --game-button-bg-1: rgba(176, 173, 173, 0.7);
+    --game-button-bg-2: rgba(218, 217, 217, 0.9);
+    --game-shadow-standard: 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    --game-download-bg: rgba(11, 200, 11, 0.999);
+    --game-info-bg: rgba(0, 123, 255, 0.999);
+    --border-white-40: rgba(255, 255, 255, 0.4);
 }
 
 body {

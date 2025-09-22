@@ -221,7 +221,7 @@
 }
 
 .quick-action-card h3 {
-    font-size: 1.3rem;
+    font-size: var(--font-size-13rem);
     color: var(--text-white);
     margin-bottom: 0.5rem;
     font-weight: 600;
@@ -230,7 +230,7 @@
 .quick-action-card p {
     color: var(--text-muted);
     margin-bottom: 1.5rem;
-    font-size: 0.95rem;
+    font-size: var(--font-size-095rem);
 }
 
 .action-button {
@@ -255,7 +255,7 @@
 }
 
 .action-button i {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     transition: transform 0.3s ease;
 }
 
@@ -314,7 +314,7 @@
     }
     
     .help-title h1 {
-        font-size: 2.2rem;
+        font-size: var(--font-size-22rem);
     }
     
     .help-title {

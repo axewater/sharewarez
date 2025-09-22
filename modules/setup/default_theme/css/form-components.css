@@ -310,3 +310,55 @@ input[type="checkbox"] {
 .admin-input:focus {
     transform: translateY(-1px);
 }
+
+/* === MERGED FROM settings_password.css === */
+
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.toggle-password {
+    position: absolute;
+    right: var(--spacing-sm);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-gray-888);
+    padding: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.toggle-password:hover {
+    color: var(--color-dark-333);
+}
+
+.toggle-password:focus {
+    outline: none;
+}
+
+.input-glass {
+    padding-right: 40px;
+}
+
+.settings_password-password {
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-white);
+    font-weight: bold;
+}
+
+.settings_password-password-form {
+    margin-bottom: var(--spacing-lg);
+}
+
+#password-form {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.btn {
+    margin-right: var(--spacing-sm);
+}
