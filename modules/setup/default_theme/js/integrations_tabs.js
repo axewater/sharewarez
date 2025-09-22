@@ -1,14 +1,21 @@
 /**
  * Integrations Tabs Controller
  *
- * Minimal controller for handling tab switching in the integrations page.
+ * Handles tab switching with URL fragment support for persistent tab state.
  * All form functionality is handled by individual integration JS files.
  */
 
 $(document).ready(function() {
     console.log('Integrations tabs controller loaded');
 
-    // Initialize Bootstrap tabs - mostly handled by Bootstrap itself
+    // Map fragments to tab IDs
+    const fragmentTabMap = {
+        '#email': 'email-tab',
+        '#igdb': 'igdb-tab',
+        '#discord': 'discord-tab'
+    };
+
+    // Initialize Bootstrap tabs
     const triggerTabList = [].slice.call(document.querySelectorAll('#integrationTabs button[data-bs-toggle="tab"]'));
 
     triggerTabList.forEach(function (triggerEl) {
@@ -18,14 +25,49 @@ $(document).ready(function() {
 
             console.log('Tab switched to:', targetPaneId);
 
-            // Optional: Add any tab-specific initialization here if needed
-            // All form functionality is handled by individual JS files
+            // Update URL fragment when user manually switches tabs
+            const newFragment = targetPaneId; // e.g. "#email", "#discord"
+            if (window.location.hash !== newFragment) {
+                history.replaceState(null, null, newFragment);
+            }
         });
     });
 
-    // Handle active tab state on page load
-    const activeTab = document.querySelector('#integrationTabs .nav-link.active');
-    if (activeTab) {
-        console.log('Active tab on load:', activeTab.getAttribute('data-bs-target'));
+    // Activate tab based on URL fragment
+    function activateTabFromFragment() {
+        const hash = window.location.hash || '#email'; // Default to email tab
+        const tabId = fragmentTabMap[hash];
+
+        if (tabId) {
+            const tabElement = document.getElementById(tabId);
+            if (tabElement) {
+                // Use Bootstrap's tab API to activate the tab
+                const tab = new bootstrap.Tab(tabElement);
+                tab.show();
+                console.log('Activated tab from fragment:', hash, '-> tab:', tabId);
+                return true;
+            }
+        }
+
+        // Fallback to email tab if fragment is invalid or missing
+        const defaultTab = document.getElementById('email-tab');
+        if (defaultTab) {
+            const tab = new bootstrap.Tab(defaultTab);
+            tab.show();
+            console.log('Activated default email tab');
+        }
+
+        return false;
     }
+
+    // Activate the correct tab on page load
+    activateTabFromFragment();
+
+    // Handle browser back/forward navigation
+    window.addEventListener('hashchange', function() {
+        console.log('Hash changed to:', window.location.hash);
+        activateTabFromFragment();
+    });
+
+    console.log('Tab controller initialized with fragment support');
 });

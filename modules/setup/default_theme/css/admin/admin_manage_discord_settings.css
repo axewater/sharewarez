@@ -108,40 +108,49 @@
 /* Discord Settings Container */
 .discord-settings-container {
     display: flex;
-    flex-direction: column;
-    gap: 2rem;
+    flex-direction: row;
+    gap: 1.5rem;
+    align-items: flex-start;
 }
 
 /* Connection Settings Section */
 .connection-settings-section {
-    margin-bottom: 2rem;
+    flex: 1;
+    min-width: 0; /* Allow shrinking */
 }
 
 .connection-card {
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 10px;
-    padding: 1.5rem;
+    padding: 1rem;
 }
 
 /* Notification Settings Section */
+.notification-settings-section {
+    flex: 1;
+    min-width: 0; /* Allow shrinking */
+}
+
 .notification-settings-section h5 {
     color: #ffffff;
     font-weight: 600;
     margin-bottom: 0.5rem;
+    font-size: 1.1rem;
 }
 
 .notification-settings-section .text-muted {
     color: rgba(255, 255, 255, 0.7) !important;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
 }
 
 /* Notification Cards */
 .notification-card {
     background: rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    padding: 1rem;
+    border-radius: 6px;
+    padding: 0.75rem;
     transition: all 0.3s ease;
     height: 100%;
 }
@@ -176,17 +185,20 @@
     color: #ffffff;
     cursor: pointer;
     font-weight: 500;
+    font-size: 0.9rem;
 }
 
 .notification-card .form-check-label strong {
     display: block;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.2rem;
+    font-size: 0.95rem;
 }
 
 .notification-card .form-text {
     color: rgba(255, 255, 255, 0.6);
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    margin-top: 0.2rem;
+    line-height: 1.2;
 }
 
 /* Icons in notification cards */
@@ -196,17 +208,63 @@
 .notification-card .text-success { color: #28a745 !important; }
 .notification-card .text-secondary { color: #6c757d !important; }
 
+/* Connection form specific styles */
+.connection-card .form-label {
+    color: #fff;
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+}
+
+.connection-card .form-control {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+.connection-card .form-control:focus {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: #0096ff;
+    box-shadow: 0 0 5px rgba(0, 150, 255, 0.3);
+    color: #fff;
+}
+
+.connection-card .d-flex {
+    gap: 0.75rem;
+}
+
+.connection-card .btn {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+}
+
 /* Responsive improvements */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
     .discord-settings-container {
+        flex-direction: column;
         gap: 1.5rem;
     }
 
+    .connection-settings-section,
+    .notification-settings-section {
+        flex: none;
+    }
+}
+
+@media (max-width: 768px) {
     .notification-card {
-        padding: 0.75rem;
+        padding: 0.6rem;
     }
 
     .connection-card {
-        padding: 1rem;
+        padding: 0.75rem;
+    }
+
+    .notification-card .form-text {
+        font-size: 0.75rem;
     }
 }

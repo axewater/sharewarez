@@ -38,15 +38,15 @@ def discord_settings():
         # Check for validation errors
         if not webhook_valid:
             flash(f'Webhook URL error: {webhook_result}', 'error')
-            return redirect(url_for('admin2.discord_settings'))
-        
+            return redirect(url_for('admin2.integrations') + '#discord')
+
         if not bot_name_valid:
             flash(f'Bot name error: {bot_name_result}', 'error')
-            return redirect(url_for('admin2.discord_settings'))
-            
+            return redirect(url_for('admin2.integrations') + '#discord')
+
         if not avatar_valid:
             flash(f'Avatar URL error: {avatar_result}', 'error')
-            return redirect(url_for('admin2.discord_settings'))
+            return redirect(url_for('admin2.integrations') + '#discord')
         
         # If validation passes, update settings with sanitized values
         settings.discord_webhook_url = webhook_result
@@ -59,8 +59,8 @@ def discord_settings():
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating Discord settings: {str(e)}', 'error')
-        
-        return redirect(url_for('admin2.discord_settings'))
+
+        return redirect(url_for('admin2.integrations') + '#discord')
 
     # Set default values if no settings exist or if fields are None
     webhook_url = (settings.discord_webhook_url if settings and settings.discord_webhook_url else 'insert_webhook_url_here')
