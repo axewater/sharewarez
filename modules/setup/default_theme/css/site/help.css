@@ -72,8 +72,8 @@
 
 .help-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0, 150, 255, 0.2);
-    border-color: rgba(0, 150, 255, 0.3);
+    box-shadow: var(--shadow-primary-brand-large);
+    border-color: var(--primary-brand-30);
 }
 
 .card-header {
@@ -81,14 +81,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 1.5rem 2rem;
-    background: linear-gradient(135deg, rgba(0, 150, 255, 0.1), rgba(0, 150, 255, 0.05));
+    background: linear-gradient(135deg, var(--primary-brand-10), var(--primary-brand-05));
     cursor: pointer;
     transition: all 0.3s ease;
     border-bottom: 1px solid var(--border-light);
 }
 
 .card-header:hover {
-    background: linear-gradient(135deg, rgba(0, 150, 255, 0.15), rgba(0, 150, 255, 0.08));
+    background: linear-gradient(135deg, var(--primary-brand-15), var(--bg-white-08));
 }
 
 .card-header i:first-child {
@@ -133,14 +133,14 @@
     gap: 1rem;
     margin-bottom: 1.5rem;
     padding: 1rem;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-white-03);
     border-radius: 12px;
     border-left: 3px solid var(--btn-primary);
     transition: all 0.3s ease;
 }
 
 .help-item:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--bg-white-08);
     transform: translateX(5px);
 }
 
@@ -166,9 +166,9 @@
     font-style: italic;
     margin-bottom: 1.5rem;
     padding: 1rem;
-    background: rgba(0, 150, 255, 0.05);
+    background: var(--primary-brand-05);
     border-radius: 10px;
-    border: 1px solid rgba(0, 150, 255, 0.1);
+    border: 1px solid var(--primary-brand-10);
 }
 
 /* Quick Actions Section */
@@ -209,8 +209,8 @@
 
 .quick-action-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0, 150, 255, 0.25);
-    border-color: rgba(0, 150, 255, 0.4);
+    box-shadow: var(--shadow-primary-brand-xl);
+    border-color: var(--primary-brand-40);
 }
 
 .quick-action-card i {
@@ -244,13 +244,13 @@
     border-radius: 25px;
     font-weight: 500;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 150, 255, 0.3);
+    box-shadow: var(--shadow-primary-brand);
 }
 
 .action-button:hover {
     background: linear-gradient(135deg, #1e40af, var(--btn-primary));
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 150, 255, 0.4);
+    box-shadow: var(--shadow-primary-brand-strong);
     color: white;
 }
 

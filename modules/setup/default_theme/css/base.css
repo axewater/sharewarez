@@ -160,6 +160,67 @@
     --glass-panel-bg: var(--bg-light-overlay);
     --glass-panel-border: 1px solid var(--border-light);
     --glass-panel-shadow: var(--shadow-glass-strong);
+
+    /* Primary Brand Color Variants (for consistent blue theming) */
+    --primary-brand-05: rgba(0, 150, 255, 0.05);
+    --primary-brand-10: rgba(0, 150, 255, 0.1);
+    --primary-brand-15: rgba(0, 150, 255, 0.15);
+    --primary-brand-20: rgba(0, 150, 255, 0.2);
+    --primary-brand-25: rgba(0, 150, 255, 0.25);
+    --primary-brand-30: rgba(0, 150, 255, 0.3);
+    --primary-brand-40: rgba(0, 150, 255, 0.4);
+
+    /* Additional Common Backgrounds */
+    --bg-dark-gradient: rgba(17, 17, 17, 0.9);
+    --bg-dark-50: rgba(50, 50, 50, 0.8);
+    --bg-white-03: rgba(255, 255, 255, 0.03);
+    --bg-white-08: rgba(255, 255, 255, 0.08);
+
+    /* Additional Button Color Variants */
+    --btn-danger-border: rgba(220, 53, 69, 0.5);
+    --btn-success-bg: rgba(40, 167, 69, 0.8);
+    --btn-success-border: rgba(40, 167, 69, 0.5);
+    --btn-info-border: rgba(23, 162, 184, 0.3);
+
+    /* Text Color Variants */
+    --text-dark-80: rgba(0, 0, 0, 0.8);
+
+    /* Additional Shadow Variants */
+    --shadow-box-light: 0 4px 6px rgba(0, 0, 0, 0.2);
+    --shadow-primary-brand: 0 4px 15px rgba(0, 150, 255, 0.3);
+    --shadow-primary-brand-strong: 0 8px 25px rgba(0, 150, 255, 0.4);
+    --shadow-primary-brand-large: 0 15px 40px rgba(0, 150, 255, 0.2);
+    --shadow-primary-brand-xl: 0 20px 40px rgba(0, 150, 255, 0.25);
+    --shadow-success: 0 4px 15px rgba(40, 167, 69, 0.3);
+
+    /* Red Color Variants (for danger/error states) */
+    --red-border: rgba(255, 0, 0, 0.3);
+    --red-glow: rgba(255, 0, 0, 0.1);
+
+    /* Common Color Palette */
+    --color-dark-111: #111;
+    --color-dark-333: #333;
+    --color-gray-888: #888;
+    --color-gray-ccc: #ccc;
+    --color-gray-ddd: #ddd;
+    --color-light-ecf: #ecf0f1;
+    --color-black-e5: #000000e5;
+    --color-black-73: #00000073;
+
+    /* Additional Table Background Variants */
+    --table-bg-40: rgba(40, 40, 40, 0.3);
+    --table-bg-40-alt: rgba(40, 40, 40, 0.5);
+    --table-hover-bg-60: rgba(60, 60, 60, 0.5);
+    --table-hover-bg-light: rgba(0, 0, 0, 0.075);
+    --border-light-30: rgba(255, 255, 255, 0.3);
+
+    /* Log Level Colors */
+    --log-info-bg: rgba(13, 110, 253, 0.05);
+    --log-warning-bg: rgba(255, 193, 7, 0.05);
+    --log-error-bg: rgba(220, 53, 69, 0.05);
+    --log-info-text: #0d6efd;
+    --log-warning-text: #ffc107;
+    --log-error-text: #dc3545;
 }
 
 body {
@@ -173,7 +234,7 @@ body {
 
 .h2 {
     color: white;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    text-shadow: var(--shadow-text);
     }
     
 .container-settings {

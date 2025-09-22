@@ -140,9 +140,9 @@
 .delete-game-modal .modal-content {
     background: var(--modal-bg);
     backdrop-filter: var(--backdrop-blur);
-    border: 1px solid rgba(255, 0, 0, 0.3);
+    border: 1px solid var(--red-border);
     border-radius: var(--border-radius-lg);
-    box-shadow: var(--modal-shadow), 0 0 20px rgba(255, 0, 0, 0.1);
+    box-shadow: var(--modal-shadow), 0 0 20px var(--red-glow);
     color: var(--text-white);
     max-width: 500px;
     width: 90%;
@@ -194,7 +194,7 @@
 .modal .btn-danger {
     background: linear-gradient(45deg, var(--btn-danger), var(--btn-danger-hover));
     color: var(--text-white);
-    border-color: rgba(220, 53, 69, 0.5);
+    border-color: var(--btn-danger-border);
 }
 
 .modal .btn-danger:hover {
@@ -204,16 +204,16 @@
 }
 
 .modal .btn-success {
-    background: rgba(40, 167, 69, 0.8);
+    background: var(--btn-success-bg);
     color: var(--text-white);
-    border-color: rgba(40, 167, 69, 0.5);
+    border-color: var(--btn-success-border);
     backdrop-filter: blur(5px);
 }
 
 .modal .btn-success:hover {
     background: var(--btn-success);
     transform: translateY(-1px);
-    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    box-shadow: var(--shadow-success);
 }
 
 /* Help Modal Specific Styling */
@@ -224,7 +224,7 @@
 
 #smtpHelpModal .alert-info {
     background-color: var(--alert-info-bg);
-    border-color: rgba(23, 162, 184, 0.3);
+    border-color: var(--btn-info-border);
     color: var(--text-white);
 }
 

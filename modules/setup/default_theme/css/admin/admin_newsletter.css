@@ -4,28 +4,28 @@
 }
 
 .ck-editor__editable {
-    color: #e0e0e0 !important;
-    background: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: var(--text-light) !important;
+    background: var(--bg-light-overlay) !important;
+    border: 1px solid var(--border-light-strong) !important;
     border-radius: 0 0 5px 5px;
 }
 
 .ck.ck-toolbar {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    background: var(--bg-light-overlay) !important;
+    border: 1px solid var(--border-light-strong) !important;
     border-radius: 5px 5px 0 0;
 }
 
 .ck.ck-button,
 .ck.ck-button.ck-on {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-white);
+    background: var(--bg-light-overlay);
 }
 
 .ck.ck-button:hover {
-    background: rgba(255, 255, 255, 0.2) !important;
+    background: var(--bg-light-overlay-hover) !important;
 }
 
 .ck.ck-toolbar .ck.ck-toolbar__separator {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--bg-light-overlay-hover);
 }
