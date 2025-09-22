@@ -263,7 +263,10 @@ def integrations():
         # Get global settings for all integrations
         settings_record = db.session.execute(select(GlobalSettings)).scalars().first()
 
-        return render_template('admin/integrations.html', settings=settings_record)
+        # Build current settings for JavaScript consumption
+        current_settings = build_current_settings(settings_record)
+
+        return render_template('admin/integrations.html', settings=settings_record, current_settings=current_settings)
     except Exception as e:
         logging.error(f"Error retrieving integrations: {str(e)}")
         abort(500)

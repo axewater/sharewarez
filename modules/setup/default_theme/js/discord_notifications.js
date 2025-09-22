@@ -77,14 +77,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function loadNotificationSettings() {
-        // Get current settings from the global settings that should be loaded by the main page
-        fetch('/admin/settings', {
-            method: 'GET',
-            headers: CSRFUtils.getHeaders()
-        })
-        .then(response => response.json())
-        .then(settings => {
-            console.log("Loaded notification settings:", settings);
+        // Get current settings from the embedded JSON data
+        const currentSettingsElement = document.getElementById('currentSettings');
+        if (!currentSettingsElement) {
+            console.warn("Current settings data not found in page");
+            return;
+        }
+
+        try {
+            const settings = JSON.parse(currentSettingsElement.textContent);
+            console.log("Loaded notification settings from embedded data:", settings);
 
             // Apply settings to checkboxes
             if (settings.discordNotifyNewGames !== undefined) {
@@ -102,9 +104,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (settings.discordNotifyManualTrigger !== undefined) {
                 document.getElementById('discordNotifyManualTrigger').checked = settings.discordNotifyManualTrigger;
             }
-        })
-        .catch(error => {
-            console.warn("Could not load notification settings:", error);
-        });
+        } catch (error) {
+            console.error("Error parsing embedded settings data:", error);
+        }
     }
 });

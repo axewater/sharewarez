@@ -98,6 +98,9 @@
     </div>
 </div>
 
+<!-- Embed current settings as JSON for JavaScript -->
+<script id="currentSettings" type="application/json">{{ current_settings|tojson }}</script>
+
 <!-- Load individual JavaScript files for each integration -->
 <script src="{{ 'js/admin_manage_smtp_settings.js'|theme_asset }}"></script>
 <script src="{{ 'js/password_visibility.js'|theme_asset }}"></script>
