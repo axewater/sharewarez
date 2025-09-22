@@ -19,7 +19,7 @@ login_manager = LoginManager()
 mail = Mail()
 cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 app_start_time = datetime.now()
-app_version = '2.7.5'
+app_version = '2.7.1'
 
 def cleanup_orphaned_scan_jobs():
     """Clean up scan jobs that were left in 'Running' state after server restart."""
