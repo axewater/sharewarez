@@ -1,43 +1,35 @@
 .user-avatar-small {
     width: 60px;
     height: 60px;
-    border-radius: 50%;
+    border-radius: var(--border-radius-round);
     object-fit: cover;
     border: 2px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.card {
-    background-color: rgba(0, 0, 0, 0.6);
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-    padding: 12px;
-    color: white; /* Keep text white */
-}
+/* .card definition removed - using unified version from base.css */
 /* Table header styling */
 .table thead th {
-    background: rgba(0, 0, 0, 0.2);
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-dark-tertiary);
+    border-bottom: 2px solid var(--border-light);
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.875rem;
     padding: 1rem;
-    color: #ffffff; /* Add this line to make the headers white */
+    color: var(--text-white);
 }
 
 .card-header h2 {
-    color: #ffffff;
+    color: var(--text-white);
     font-weight: 500;
 }
 
 .card-body {
-    color: #fff;
+    color: var(--text-white);
 }
 
 .table {
-    color: #fff;
+    color: var(--text-white);
     background: rgba(40, 40, 40, 0.3);
 }
 
@@ -46,15 +38,15 @@
 }
 
 .table thead th {
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-    background: rgba(0, 0, 0, 0.2);
-    color: #ffffff;
+    border-bottom: 2px solid var(--border-light);
+    background: var(--bg-dark-tertiary);
+    color: var(--text-white);
     font-weight: 500;
     text-transform: uppercase;
 }
 
 .table td, .table th {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--border-light);
     vertical-align: middle;
 }
 

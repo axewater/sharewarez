@@ -134,12 +134,17 @@ def browse_games():
 def scan_folder():
     ## to be fixed broken again after update
     form = ScanFolderForm()
-    
+    release_group_form = ReleaseGroupForm()
+
     libraries = db.session.execute(select(Library)).scalars().all()
     form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in libraries]
-    
+
     csrf_form = CsrfProtectForm()
     game_names_with_ids = None
+
+    # Data for template consistency with scan_management
+    release_groups = db.session.execute(select(ReleaseGroup).order_by(ReleaseGroup.rlsgroup.asc())).scalars().all()
+    allowed_file_types = db.session.execute(select(AllowedFileType).order_by(AllowedFileType.value.asc())).scalars().all()
     
     if form.validate_on_submit():
         if form.cancel.data:
@@ -152,18 +157,24 @@ def scan_folder():
         allowed_bases = get_allowed_base_directories(current_app)
         if not allowed_bases:
             flash('Service configuration error: No allowed base directories configured.', 'error')
-            return render_template('admin/admin_manage_scanjobs.html', 
-                                  form=form, manual_form=form, csrf_form=csrf_form, 
-                                  game_names_with_ids=game_names_with_ids)
+            return render_template('admin/admin_manage_scanjobs.html',
+                                  form=form, manual_form=form, csrf_form=csrf_form,
+                                  game_names_with_ids=game_names_with_ids,
+                                  release_group_form=release_group_form,
+                                  release_groups=release_groups,
+                                  allowed_file_types=allowed_file_types)
         
         # Security validation: ensure the folder path is within allowed directories
         is_safe, error_message = is_safe_path(folder_path, allowed_bases)
         if not is_safe:
             print(f"Security error: Scan folder path validation failed for {folder_path}: {error_message}")
             flash(f"Access denied: {error_message}", 'error')
-            return render_template('admin/admin_manage_scanjobs.html', 
-                                  form=form, manual_form=form, csrf_form=csrf_form, 
-                                  game_names_with_ids=game_names_with_ids)
+            return render_template('admin/admin_manage_scanjobs.html',
+                                  form=form, manual_form=form, csrf_form=csrf_form,
+                                  game_names_with_ids=game_names_with_ids,
+                                  release_group_form=release_group_form,
+                                  release_groups=release_groups,
+                                  allowed_file_types=allowed_file_types)
 
         if os.path.exists(folder_path) and os.access(folder_path, os.R_OK):
             print("Folder exists and is accessible.")
@@ -176,11 +187,14 @@ def scan_folder():
             flash("Folder does not exist or cannot be accessed.", "error")
             print("Folder does not exist or cannot be accessed.")
             
-    return render_template('admin/admin_manage_scanjobs.html', 
-                          form=form, 
+    return render_template('admin/admin_manage_scanjobs.html',
+                          form=form,
                           manual_form=form,
-                          csrf_form=csrf_form, 
-                          game_names_with_ids=game_names_with_ids)
+                          csrf_form=csrf_form,
+                          game_names_with_ids=game_names_with_ids,
+                          release_group_form=release_group_form,
+                          release_groups=release_groups,
+                          allowed_file_types=allowed_file_types)
 
 
 

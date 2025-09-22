@@ -1,14 +1,15 @@
-/* Simple Table Styling for Scan Management */
+/* Simple Table Styling for Scan Management - Using unified .table-dark from base.css */
 
 .simple-jobs-table,
 .simple-unmatched-table {
+    /* Using .table-dark class from base.css - remove this file-specific styling */
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
+    margin-bottom: var(--spacing-lg);
+    background: var(--bg-dark-secondary);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid var(--border-light-strong);
+    border-radius: var(--border-radius-md);
     overflow: hidden;
     box-shadow: 0 2px 15px rgba(0,0,0,0.3);
 }
@@ -19,24 +20,24 @@
 .simple-unmatched-table td {
     padding: 12px;
     text-align: left;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-white);
 }
 
 .simple-jobs-table th,
 .simple-unmatched-table th {
-    background-color: rgba(0, 0, 0, 0.6);
-    color: #fff;
+    background-color: var(--bg-dark-primary);
+    color: var(--text-white);
     font-weight: bold;
     position: sticky;
     top: 0;
     z-index: 10;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 2px solid var(--border-light-strong);
 }
 
 .simple-jobs-table tr:hover,
 .simple-unmatched-table tr:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--bg-light-overlay);
 }
 
 .simple-jobs-table tr:nth-child(even),

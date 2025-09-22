@@ -1,22 +1,22 @@
 /* Game Card Component */
 .game-card-container {
     position: relative;
-    transition: transform 0.3s ease;
+    transition: transform var(--transition-normal);
 }
 
 .game-card {
     cursor: pointer;
-    transition: transform 0.3s ease; 
+    transition: transform var(--transition-normal);
     position: relative;
-    margin: 5px;
-	max-width: 250px;
-	max-height: 332px;
+    margin: var(--spacing-xs);
+    max-width: 250px;
+    max-height: 332px;
 }
 
 .game-card:hover {
     transform: scale(1.2);
     z-index: 6;
-    box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.7);
+    box-shadow: 10px 10px 15px var(--shadow-dark-strong);
 }
 
 .game-cover {
@@ -24,12 +24,12 @@
     position: relative;
     width: 100%;
     height: auto;
-    transition: transform 0.3s ease, box-shadow 0.3s ease; 
-    box-shadow: 5px 5px 9px rgba(0, 0, 0, 0.7);
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+    box-shadow: 5px 5px 9px var(--shadow-dark-strong);
     border: 1px solid rgb(49, 49, 49);
-    border-radius: 5px;
-	max-width: 250px;
-	max-height: 332px;
+    border-radius: var(--border-radius-xs);
+    max-width: 250px;
+    max-height: 332px;
 }
 
 /* Shimmer Effect */

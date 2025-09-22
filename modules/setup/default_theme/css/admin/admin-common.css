@@ -1,0 +1,197 @@
+/* === ADMIN COMMON STYLES === */
+/* Shared patterns across all admin pages */
+
+/* Progress Components */
+.progress-text {
+    font-size: 14px;
+    margin-bottom: var(--spacing-sm);
+    color: #333;
+    font-weight: 500;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background-color: #f0f0f0;
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    margin-top: var(--spacing-sm);
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #45a049);
+    width: 0%;
+    transition: width var(--transition-normal);
+    border-radius: var(--border-radius-md);
+}
+
+.progress-counter {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: bold;
+    color: #333;
+    text-shadow: 0 0 3px rgba(255,255,255,0.8);
+}
+
+/* Admin Form Styling */
+.admin-form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.admin-form-label {
+    color: var(--text-white);
+    font-weight: 600;
+    margin-bottom: var(--spacing-xs);
+    display: block;
+}
+
+.admin-input {
+    background: var(--bg-dark-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-white);
+    padding: var(--spacing-sm);
+    width: 100%;
+    transition: border-color var(--transition-fast);
+}
+
+.admin-input:focus {
+    outline: none;
+    border-color: var(--border-light-strong);
+    background: var(--bg-dark-primary);
+}
+
+/* Admin Button Variants */
+.btn-admin {
+    background: var(--bg-dark-primary);
+    border: 1px solid var(--border-light);
+    color: var(--text-white);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-admin:hover {
+    background: var(--bg-light-overlay);
+    border-color: var(--border-light-strong);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-button);
+}
+
+.btn-admin-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border-color: #007bff;
+}
+
+.btn-admin-primary:hover {
+    background: linear-gradient(45deg, #0056b3, #004085);
+}
+
+.btn-admin-danger {
+    background: linear-gradient(45deg, #dc3545, #c82333);
+    border-color: #dc3545;
+}
+
+.btn-admin-danger:hover {
+    background: linear-gradient(45deg, #c82333, #bd2130);
+}
+
+/* Admin Alert/Status Components */
+.admin-alert {
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: var(--spacing-lg);
+    border-left: 4px solid;
+}
+
+.admin-alert-success {
+    background: rgba(40, 167, 69, 0.1);
+    border-left-color: #28a745;
+    color: #28a745;
+}
+
+.admin-alert-warning {
+    background: rgba(255, 193, 7, 0.1);
+    border-left-color: #ffc107;
+    color: #ffc107;
+}
+
+.admin-alert-danger {
+    background: rgba(220, 53, 69, 0.1);
+    border-left-color: #dc3545;
+    color: #dc3545;
+}
+
+.admin-alert-info {
+    background: rgba(23, 162, 184, 0.1);
+    border-left-color: #17a2b8;
+    color: #17a2b8;
+}
+
+/* Status Indicators */
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: var(--border-radius-round);
+    margin-right: var(--spacing-xs);
+}
+
+.status-running {
+    background: #28a745;
+    animation: pulse 1.5s infinite;
+}
+
+.status-stopped {
+    background: #dc3545;
+}
+
+.status-pending {
+    background: #ffc107;
+}
+
+.status-completed {
+    background: #6c757d;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Admin Layout Helpers */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.admin-header h1 {
+    color: var(--text-white);
+    margin: 0;
+}
+
+.admin-content {
+    background: var(--bg-dark-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
+}
+
+.admin-footer {
+    text-align: center;
+    padding: var(--spacing-lg);
+    color: var(--text-light);
+    border-top: 1px solid var(--border-light);
+    margin-top: var(--spacing-xl);
+}

@@ -4,14 +4,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.admin-section {
-    background: rgba(30, 30, 30, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: 15px;
-    padding: 30px;
-    max-width: 1200px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
+/* Use the unified .admin-section from base.css */
 
 .hackplanet_titles {
     text-align: center;
@@ -19,30 +12,22 @@ body {
 }
 
 .hackplanet_titles h1 {
-    color: #fff;
+    color: var(--text-white);
     font-size: 2.5em;
     font-weight: bold;
     text-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
 }
 
-.admin-section {
-    background: rgba(40, 40, 40, 0.5);
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 25px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
 .admin-section h3 {
-    color: #fff;
+    color: var(--text-white);
     font-size: 1.3em;
-    margin-bottom: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 10px;
+    margin-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: var(--spacing-sm);
 }
 
 .admin-section h3 i {
-    margin-right: 10px;
+    margin-right: var(--spacing-sm);
     color: #0096ff;
 }
 
