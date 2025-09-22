@@ -104,3 +104,109 @@
     padding: 12px;
     color: white; /* Keep text white */
 }
+
+/* Discord Settings Container */
+.discord-settings-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Connection Settings Section */
+.connection-settings-section {
+    margin-bottom: 2rem;
+}
+
+.connection-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 1.5rem;
+}
+
+/* Notification Settings Section */
+.notification-settings-section h5 {
+    color: #ffffff;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.notification-settings-section .text-muted {
+    color: rgba(255, 255, 255, 0.7) !important;
+    margin-bottom: 1rem;
+}
+
+/* Notification Cards */
+.notification-card {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.notification-card:hover {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.notification-card .form-check {
+    margin-bottom: 0;
+}
+
+.notification-card .form-check-input {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    margin-top: 0.1rem;
+}
+
+.notification-card .form-check-input:checked {
+    background-color: #0096ff;
+    border-color: #0096ff;
+}
+
+.notification-card .form-check-input:focus {
+    border-color: #0096ff;
+    box-shadow: 0 0 5px rgba(0, 150, 255, 0.3);
+}
+
+.notification-card .form-check-label {
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.notification-card .form-check-label strong {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.notification-card .form-text {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Icons in notification cards */
+.notification-card .text-primary { color: #0096ff !important; }
+.notification-card .text-info { color: #17a2b8 !important; }
+.notification-card .text-warning { color: #ffc107 !important; }
+.notification-card .text-success { color: #28a745 !important; }
+.notification-card .text-secondary { color: #6c757d !important; }
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .discord-settings-container {
+        gap: 1.5rem;
+    }
+
+    .notification-card {
+        padding: 0.75rem;
+    }
+
+    .connection-card {
+        padding: 1rem;
+    }
+}

@@ -65,13 +65,20 @@
             <!-- Discord Settings Tab -->
             <div class="integrations-tab-pane tab-pane fade" id="discord" role="tabpanel" aria-labelledby="discord-tab">
                 <div class="tab-content-wrapper">
-                    <h4><i class="fab fa-discord"></i> Discord Bot Settings
-                        <a href="{{ url_for('admin2.new_server_settings') }}" class="btn btn-info btn-sm">
-                            <i class="fas fa-bell"></i> Notification Settings
-                        </a>
-                    </h4>
+                    <div class="discord-settings-container">
+                        <!-- Connection Settings Section -->
+                        <div class="connection-settings-section">
+                            <h4><i class="fab fa-discord"></i> Discord Connection Settings</h4>
+                            <p class="text-muted">Configure your Discord webhook and bot settings</p>
 
-                    {% include 'partials/integrations/discord_form.html' %}
+                            <div class="connection-card">
+                                {% include 'partials/integrations/discord_form.html' %}
+                            </div>
+                        </div>
+
+                        <!-- Notification Settings Section -->
+                        {% include 'partials/integrations/discord_notifications.html' %}
+                    </div>
                 </div>
             </div>
 
@@ -84,6 +91,7 @@
 <script src="{{ 'js/password_visibility.js'|theme_asset }}"></script>
 <script src="{{ 'js/admin_manage_igdb_settings.js'|theme_asset }}"></script>
 <script src="{{ 'js/admin_manage_discord_settings.js'|theme_asset }}"></script>
+<script src="{{ 'js/discord_notifications.js'|theme_asset }}"></script>
 <script src="{{ 'js/integrations_tabs.js'|theme_asset }}"></script>
 
 {% endblock %}
