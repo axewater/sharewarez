@@ -167,11 +167,7 @@ label {
     align-items: flex-start;
 }
 
-/* Feedback text styling */
-.form-text-muted {
-    color: #adb5bd;
-    font-size: 0.875em;
-}
+/* Feedback text styling - using unified .form-text-muted from base.css */
 
 /* Invalid input highlighting */
 .invalid-input {

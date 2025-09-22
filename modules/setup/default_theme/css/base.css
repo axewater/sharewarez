@@ -11,6 +11,21 @@
     --shadow-dark-strong: rgba(0, 0, 0, 0.7);
     --text-white: #ffffff;
     --text-light: #e0e0e0;
+    --text-muted: #adb5bd;
+    --text-muted-light: rgba(255, 255, 255, 0.6);
+
+    /* Extended Background Colors */
+    --bg-dark-40: rgba(40, 40, 40, 0.8);
+    --bg-dark-30: rgba(30, 30, 30, 0.95);
+    --bg-transparent-5: rgba(255, 255, 255, 0.05);
+
+    /* Button Colors */
+    --btn-primary: #0096ff;
+    --btn-primary-hover: #0077cc;
+    --btn-info: rgba(23, 162, 184, 0.5);
+    --btn-success: #28a745;
+    --btn-danger: #dc3545;
+    --btn-warning: #ffc107;
 
     /* Blur Effects */
     --backdrop-blur: blur(10px);
@@ -39,6 +54,24 @@
     --spacing-md: 15px;
     --spacing-lg: 20px;
     --spacing-xl: 30px;
+    --spacing-xxl: 40px;
+
+    /* Extended Spacing for Padding/Margin */
+    --spacing-1: 1px;
+    --spacing-2: 2px;
+    --spacing-3: 3px;
+    --spacing-8: 8px;
+    --spacing-12: 12px;
+    --spacing-25: 25px;
+
+    /* Typography */
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.25rem;
+    --font-size-xl: 1.5rem;
+    --font-size-2xl: 2rem;
+    --font-size-3xl: 2.5rem;
 }
 
 body {
@@ -219,11 +252,16 @@ font-size: large;
 }
 
 
+/* === UNIFIED FORM SYSTEM === */
+
 .form-text {
-   
-    border-radius: 4px;
-    padding-left: 10px;
-   }
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    margin-top: 0.25rem;
+    line-height: 1.2;
+    border-radius: var(--border-radius-xs);
+    padding-left: var(--spacing-sm);
+}
       
 .form-control {
 
@@ -394,6 +432,148 @@ form textarea {
     border: 1px solid var(--border-light);
 }
 
+/* === UNIFIED BUTTON SYSTEM === */
+
+.btn {
+    display: inline-block;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    margin: var(--spacing-2);
+    border: 1px solid transparent;
+    border-radius: var(--border-radius-xs);
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    background: var(--bg-dark-secondary);
+    color: var(--text-white);
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-button);
+}
+
+.btn-primary {
+    background: var(--btn-primary);
+    border-color: var(--btn-primary);
+    color: var(--text-white);
+}
+
+.btn-primary:hover {
+    background: var(--btn-primary-hover);
+    border-color: var(--btn-primary-hover);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    border-color: #545b62;
+}
+
+.btn-success {
+    background: var(--btn-success);
+    border-color: var(--btn-success);
+}
+
+.btn-success:hover {
+    background: #218838;
+    border-color: #1e7e34;
+}
+
+.btn-danger {
+    background: var(--btn-danger);
+    border-color: var(--btn-danger);
+}
+
+.btn-danger:hover {
+    background: #c82333;
+    border-color: #bd2130;
+}
+
+.btn-warning {
+    background: var(--btn-warning);
+    border-color: var(--btn-warning);
+    color: #212529;
+}
+
+.btn-warning:hover {
+    background: #e0a800;
+    border-color: #d39e00;
+    color: #212529;
+}
+
+.btn-info {
+    background: var(--btn-info);
+    border-color: var(--btn-info);
+}
+
+.btn-info:hover {
+    background: rgba(23, 162, 184, 0.7);
+}
+
+.btn-light {
+    background: #f8f9fa;
+    border-color: #f8f9fa;
+    color: #212529;
+}
+
+.btn-light:hover {
+    background: #e2e6ea;
+    border-color: #dae0e5;
+    color: #212529;
+}
+
+.btn-dark {
+    background: #343a40;
+    border-color: #343a40;
+}
+
+.btn-dark:hover {
+    background: #23272b;
+    border-color: #1d2124;
+}
+
+/* Button Sizes */
+.btn-sm {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+}
+
+.btn-lg {
+    padding: var(--spacing-md) var(--spacing-xl);
+    font-size: var(--font-size-lg);
+}
+
+/* Button Variants */
+.btn-outline-primary {
+    background: transparent;
+    border-color: var(--btn-primary);
+    color: var(--btn-primary);
+}
+
+.btn-outline-primary:hover {
+    background: var(--btn-primary);
+    color: var(--text-white);
+}
+
+.btn-glass {
+    background: var(--bg-light-overlay);
+    backdrop-filter: var(--backdrop-blur-light);
+    border: 1px solid var(--border-light);
+    color: var(--text-white);
+}
+
+.btn-glass:hover {
+    background: var(--bg-light-overlay-hover);
+    border-color: var(--border-light-strong);
+}
+
 .emptyrating {
     margin-left: 15px;
     margin-right: 15px;
@@ -435,9 +615,24 @@ form textarea {
 
 
 .form-text-muted {
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    margin-top: 0.25rem;
+    line-height: 1.2;
+}
 
-    font-size: smaller;
-    color: black;
+.form-text-light {
+    color: var(--text-muted-light);
+    font-size: var(--font-size-xs);
+    margin-top: 0.2rem;
+    line-height: 1.2;
+}
+
+/* Responsive form text */
+@media (max-width: 768px) {
+    .form-text-light {
+        font-size: var(--font-size-xs);
+    }
 }
 
 

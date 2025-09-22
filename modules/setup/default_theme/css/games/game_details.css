@@ -9,12 +9,12 @@ body.modal-open {
 .glass-panel-gamecard {
     display: flex;
     flex-direction: column;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 10px;
-    padding: 20px;
-    margin: 20px auto;
-    box-shadow: 4px 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    background: var(--bg-light-overlay);
+    backdrop-filter: var(--backdrop-blur);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    margin: var(--spacing-lg) auto;
+    box-shadow: var(--shadow-glass-strong);
     width: 900px;
     min-height: 80vh;
 }
@@ -23,13 +23,14 @@ body.modal-open {
     width: 30px;
     height: 30px;
     background-color: rgba(176, 173, 173, 0.7);
-    border-radius: 50%;
-    padding: 1px 2px;
+    border-radius: var(--border-radius-round);
+    padding: var(--spacing-1) var(--spacing-2);
     border: none;
     cursor: pointer;
-    margin-bottom: 5px;
+    margin-bottom: var(--spacing-xs);
     opacity: 1;
     position: relative;
+    transition: background-color var(--transition-fast);
 }
 
 .button-glass-hamburger:hover {

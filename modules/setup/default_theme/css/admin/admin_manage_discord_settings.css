@@ -1,53 +1,22 @@
-.card {
-    background: rgba(40, 40, 40, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-}
+/* .card definition removed - using unified version from base.css */
 
 .card-header h2 {
-    color: #ffffff;
+    color: var(--text-white);
 }
-
 
 .card-body {
     padding: 1.5rem;
 }
 
 .form-label {
-    color: #fff;
+    color: var(--text-white);
     font-weight: 500;
     margin-bottom: 0.5rem;
 }
 
-.form-control {
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #fff;
-    padding: 0.5rem;
-    border-radius: 4px;
-}
+/* Form controls now use unified system from base.css */
 
-.form-control:focus {
-    background: rgba(0, 0, 0, 0.3);
-    border-color: #0096ff;
-    box-shadow: 0 0 5px rgba(0, 150, 255, 0.3);
-    color: #fff;
-}
-
-.btn-primary {
-    background: #0096ff;
-    border: none;
-    padding: 0.5rem 1rem;
-    transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-    background: #0077cc;
-    transform: translateY(-2px);
-}
-
-.btn-info {
-    background: rgba(23, 162, 184, 0.5);
+/* Button styles now use unified .btn-primary and .btn-info from base.css */
     border: 1px solid rgba(23, 162, 184, 0.8);
     color: #fff;
 }
@@ -195,10 +164,7 @@
 }
 
 .notification-card .form-text {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.8rem;
-    margin-top: 0.2rem;
-    line-height: 1.2;
+    /* Using .form-text-light variant from base.css */
 }
 
 /* Icons in notification cards */
@@ -265,6 +231,6 @@
     }
 
     .notification-card .form-text {
-        font-size: 0.75rem;
+        /* Responsive handled by .form-text-light from base.css */
     }
 }
