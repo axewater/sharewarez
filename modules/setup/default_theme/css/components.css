@@ -136,7 +136,7 @@
     top: 0%;
     z-index: 5;
     background: #2a2c35;
-    padding: 15px;
+    padding: var(--spacing-md);
     animation: fadein 0.5s;
     display: none;
     border-radius: 5px;

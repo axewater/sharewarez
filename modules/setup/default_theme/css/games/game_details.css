@@ -76,7 +76,7 @@ body.modal-open {
 
 .favorite-btn:hover {
     transform: scale(1.1);
-    background: rgba(0, 0, 0, 0.8);
+    background: var(--bg-dark-strong);
 }
 
 .favorite-btn.favorited i {
@@ -158,7 +158,7 @@ body.modal-open {
 
 .button-glass-extras {
     padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-light-overlay);
     border: 1px solid var(--border-light-strong);
     border-radius: var(--border-radius-sm);
     cursor: pointer;
@@ -173,7 +173,7 @@ body.modal-open {
 }
 
 .button-glass-extras:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--bg-light-overlay-hover);
     border-color: rgba(255, 255, 255, 0.4);
     color: var(--text-white);
     transform: translateY(-2px);
@@ -221,7 +221,7 @@ body.modal-open {
 
 .game-link-icon-container .game-link-icon {
     color: #aaa;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    text-shadow: var(--shadow-text);
     transition: color 0.2s ease;
 }
 
@@ -248,7 +248,7 @@ pre {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: rgba(0,0,0,0.95);
+    background-color: var(--bg-dark-30);
 }
 
 
@@ -348,7 +348,7 @@ pre {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0,0,0,0.4);
+    background-color: var(--bg-dark-secondary);
 }
 
 .summary-modal-content {
@@ -432,14 +432,14 @@ pre {
     border-radius: 10px;
     background: linear-gradient(to right, #ff4444, #ffaa44, #44ff44);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-light);
 }
 
 .rating-value {
     color: var(--text-light);
     font-size: 14px;
     font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    text-shadow: var(--shadow-text-light);
     min-width: 50px;
 }
 
@@ -447,7 +447,7 @@ pre {
     color: #aaa;
     font-style: italic;
     font-size: 14px;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    text-shadow: var(--shadow-text-light);
 }
 
 .game-card-chips-list {
@@ -582,7 +582,7 @@ pre {
     font-size: 20px;
     border-radius: 0 3px 3px 0;
     user-select: none;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--shadow-dark);
     text-shadow: 0 0 5px #000;
     -webkit-user-select: none;
 }
@@ -595,7 +595,7 @@ pre {
 
 /* On hover, add a black background color with a little bit see-through */
 .prev:hover, .next:hover {
-    background-color: rgba(0,0,0,0.8);
+    background-color: var(--bg-dark-strong);
 }
 
 /* NFO Button */
@@ -606,7 +606,7 @@ pre {
     justify-content: center;
     padding: 8px 12px;
     margin-top: 10px;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-light-overlay);
     border-radius: var(--border-radius-sm);
     cursor: pointer;
     transition: all var(--transition-normal);
@@ -615,7 +615,7 @@ pre {
 }
 
 .nfo-button:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--bg-light-overlay-hover);
     border-color: rgba(255, 255, 255, 0.4);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -659,13 +659,13 @@ pre {
     top: 0;
     width: 100%;
     height: 100vh;
-    background-color: rgba(0,0,0,0.9);
+    background-color: var(--bg-dark-30);
     justify-content: center;
     align-items: center;
 }
 
 .modal-nfo-content {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-light-overlay);
     backdrop-filter: blur(10px);
     border-radius: 10px;
     padding: 0;
@@ -689,7 +689,7 @@ pre {
 
 .modal-nfo-header h3 {
     margin: 0;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    text-shadow: var(--shadow-text);
 }
 
 .modal-nfo-body {
@@ -736,13 +736,13 @@ pre {
     top: 0;
     width: 100%;
     height: 100vh;
-    background-color: rgba(0,0,0,0.9);
+    background-color: var(--bg-dark-30);
     justify-content: center;
     align-items: center;
 }
 
 .modal-extras-content {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-light-overlay);
     backdrop-filter: blur(10px);
     border-radius: 10px;
     padding: 0;
@@ -766,7 +766,7 @@ pre {
 
 .modal-extras-header h3 {
     margin: 0;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    text-shadow: var(--shadow-text);
 }
 
 .modal-extras-body {
@@ -798,13 +798,13 @@ pre {
 
 .extras-tab-button:hover {
     color: var(--text-white);
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-light-overlay);
 }
 
 .extras-tab-button.active {
     color: var(--text-white);
     border-bottom-color: #007bff;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-light-overlay);
 }
 
 .extras-tab-content {
@@ -818,7 +818,7 @@ pre {
 .extras-single-title {
     margin: 0 0 20px 0;
     color: var(--text-white);
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    text-shadow: var(--shadow-text);
     font-size: 24px;
 }
 
@@ -839,7 +839,7 @@ pre {
 }
 
 .extras-table td:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-light-overlay);
 }
 
 .extras-table .file-name {
@@ -877,7 +877,7 @@ pre {
 }
 
 .extras-table.table-hover tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.1) !important;
+    background-color: var(--bg-light-overlay) !important;
     color: #fff !important;
 }
 

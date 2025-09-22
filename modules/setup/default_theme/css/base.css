@@ -17,7 +17,11 @@
     /* Extended Background Colors */
     --bg-dark-40: rgba(40, 40, 40, 0.8);
     --bg-dark-30: rgba(30, 30, 30, 0.95);
+    --bg-dark-strong: rgba(0, 0, 0, 0.8);
     --bg-transparent-5: rgba(255, 255, 255, 0.05);
+
+    /* Additional Light Overlay Variants */
+    --bg-light-overlay-strong: rgba(255, 255, 255, 0.3);
 
     /* Button Colors */
     --btn-primary: #0096ff;
@@ -146,6 +150,10 @@
     --shadow-card: 0 2px 15px rgba(0, 0, 0, 0.3);
     --shadow-button-hover: 0 4px 15px rgba(0, 0, 0, 0.3);
     --shadow-text: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    --shadow-text-light: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    --shadow-box-standard: 0 4px 6px rgba(0, 0, 0, 0.8);
+    --shadow-box-game: 5px 5px 9px rgba(0, 0, 0, 0.7);
+    --shadow-box-game-hover: 10px 10px 15px rgba(0, 0, 0, 0.7);
     --shadow-inset: inset 1px 3px 5px rgb(41, 37, 37);
 
     /* Glass Panel Variants */

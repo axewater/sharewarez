@@ -82,7 +82,7 @@
     background-color: black;
     color: white;
     border: 1px solid white;
-    border-radius: 15px;
+    border-radius: var(--border-radius-lg);
     padding: 5px 5px;
     margin-top: 8px;
     max-width: calc(100% - 20px);
@@ -101,7 +101,7 @@
     margin: 0 auto;
     padding: 5px;
     border: 1px solid rgb(49, 49, 49);
-    border-radius: 15px;
+    border-radius: var(--border-radius-lg);
     background-color: #2a2c35;
 }
 
@@ -155,7 +155,7 @@
     flex-direction: column;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    border-radius: 15px;
+    border-radius: var(--border-radius-lg);
     padding: 20px;
     margin: 20px;
     grid-template-columns: auto 1fr auto;

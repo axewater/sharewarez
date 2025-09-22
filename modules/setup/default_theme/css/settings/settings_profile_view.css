@@ -22,7 +22,7 @@
  .settings_profile_view-userinfo {
      background: linear-gradient(145deg, #2c3e50, #34495e);
      padding: 25px;
-     border-radius: 15px;
+     border-radius: var(--border-radius-lg);
      margin-bottom: 30px;
      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
      transition: transform 0.3s ease;
@@ -33,7 +33,7 @@
  }
  
  .settings_profile_view-userinfo p {
-     margin: 15px 0;
+     margin: var(--spacing-md) 0;
      padding: 10px;
      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
      display: flex;
@@ -106,7 +106,7 @@
  }
 .settings_profile_view-welcome {
 	background-color: #f8f9fa;
-	padding: 15px;
+	padding: var(--spacing-md);
 	border-radius: 10px;
 }
 
@@ -122,5 +122,5 @@
 
 .settings_profile_view-edit-button {
 	text-align: center;
-	margin-bottom: 15px;
+	margin-bottom: var(--spacing-md);
 }

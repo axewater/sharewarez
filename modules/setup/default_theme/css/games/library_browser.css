@@ -37,7 +37,7 @@
     align-items: center;
     margin-bottom: 20px;
     padding: 15px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border-light);
 }
 
 .pagination-footer {
@@ -46,7 +46,7 @@
     align-items: center;
     margin-top: 30px;
     padding: 15px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--border-light);
 }
 
 .pagination-controls-left {
@@ -76,16 +76,16 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--container-glass-primary);
     backdrop-filter: blur(10px);
     padding: 8px 12px;
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-light);
 }
 
 .btn-pagination {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: var(--bg-light-overlay);
+    border: 1px solid var(--border-light-strong);
     color: #ddd;
     border-radius: 8px;
     padding: 8px 12px;
@@ -100,10 +100,10 @@
 }
 
 .btn-pagination:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.3);
+    background: var(--bg-light-overlay-hover);
+    border-color: var(--bg-light-overlay-strong);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-card);
 }
 
 .btn-pagination:disabled {
@@ -125,9 +125,9 @@
 }
 
 .dropdown-perpage {
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--container-glass-primary);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--border-light-strong);
     color: #ddd;
     border-radius: 8px;
     padding: 8px 12px;
@@ -138,8 +138,8 @@
 }
 
 .dropdown-perpage:hover {
-    background: rgba(0, 0, 0, 0.4);
-    border-color: rgba(255, 255, 255, 0.3);
+    background: var(--bg-dark-secondary);
+    border-color: var(--bg-light-overlay-strong);
 }
 
 .dropdown-perpage:focus {

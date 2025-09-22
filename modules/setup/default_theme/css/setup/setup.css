@@ -12,7 +12,7 @@
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: var(--spacing-md);
 }
 
 .btn-primary {

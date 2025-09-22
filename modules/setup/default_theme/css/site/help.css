@@ -16,7 +16,7 @@
     border-radius: 20px;
     padding: 2.5rem;
     border: 1px solid var(--border-light);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-glass-strong);
 }
 
 .help-title {
@@ -65,7 +65,7 @@
     backdrop-filter: blur(15px);
     border-radius: 20px;
     border: 1px solid var(--border-light);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-glass-strong);
     overflow: hidden;
     transition: all 0.3s ease;
 }

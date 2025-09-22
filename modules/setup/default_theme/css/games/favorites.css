@@ -58,12 +58,12 @@
     width: 100%;
     height: auto;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 5px 5px 9px rgba(0, 0, 0, 0.7);
+    box-shadow: var(--shadow-box-game);
 }
 
 .game-card:hover {
     z-index: 6;
-    box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.7);
+    box-shadow: var(--shadow-box-game-hover);
 }
 
 .no-favorites {
