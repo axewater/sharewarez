@@ -18,7 +18,7 @@
     {% if site_url == 'http://127.0.0.1' and current_user.role == 'admin' %}
     <div class="alert alert-warning" role="alert">
         <i class="fas fa-exclamation-triangle"></i> Warning: Site URL is still set to default value (127.0.0.1). 
-        Please <a href="{{ url_for('admin2.manage_settings') }}">configure the site URL</a> in admin settings for proper invite functionality.
+        Please <a href="{{ url_for('admin2.new_server_settings') }}">configure the site URL</a> in admin settings for proper invite functionality.
     </div>
     {% endif %}
     <div class="alert alert-info" role="alert">

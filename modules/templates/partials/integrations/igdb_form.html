@@ -1,0 +1,60 @@
+<div class="instructions-toggle">
+    <button class="btn btn-info" type="button" data-bs-toggle="collapse" data-bs-target="#instructionsPanel" aria-expanded="false" aria-controls="instructionsPanel">
+        <i class="fas fa-chevron-down" id="toggleIcon"></i> Show Instructions
+    </button>
+</div>
+
+<div class="collapse instructions-panel" id="instructionsPanel">
+    <h3>How to Get Your IGDB API Credentials</h3>
+    <ol>
+        <li>Go to the <a href="https://dev.twitch.tv/console" target="_blank">Twitch Developer Console</a></li>
+        <li>Log in with your Twitch account (or create one if needed)</li>
+        <li>Click on "Register Your Application"</li>
+        <li>Fill in the application details:
+            <ul>
+                <li>Name: Your choice (e.g., "MySharewareZ")</li>
+                <li>OAuth Redirect URL: http://localhost (if testing locally)</li>
+                <li>Category: Select "Website Integration"</li>
+            </ul>
+        </li>
+        <li>After registering, you'll receive your Client ID</li>
+        <li>Click "New Secret" to generate your Client Secret</li>
+    </ol>
+    <div class="note">
+        <strong>Note:</strong> IGDB is owned by Twitch, which is why credentials are obtained through the Twitch Developer Console.
+        The free tier includes 4 requests per second and 500k requests per month.
+    </div>
+</div>
+
+<div class="settings-form">
+    <div class="form-group">
+        <label for="igdb_client_id">Client ID *</label>
+        <input type="text" id="igdb_client_id" value="{{ settings.igdb_client_id if settings else '' }}" class="form-control input-glass"
+            minlength="20" maxlength="50">
+    </div>
+
+    <div class="form-group">
+        <label for="igdb_client_secret">Client Secret</label>
+        <div class="password-input-container">
+            <input type="password" id="igdb_client_secret" value="{{ settings.igdb_client_secret if settings else '' }}" class="form-control"
+            minlength="20" maxlength="50" autocomplete="off">
+            <button type="button" class="toggle-password" data-input="igdb_client_secret" aria-label="Toggle password visibility">
+                <i id="eye-igdb-secret" class="fas fa-eye"></i>
+            </button>
+        </div>
+    </div>
+
+    {% if settings and settings.igdb_last_tested %}
+    <div class="last-tested">
+        Last tested: {{ settings.igdb_last_tested.strftime('%Y-%m-%d %H:%M:%S') }}
+    </div>
+    {% endif %}
+
+    <div class="button-group">
+        <button onclick="saveSettings()" class="btn btn-primary">Save Settings</button>
+        <button onclick="testSettings()" class="btn btn-secondary">Test Connection</button>
+        <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+            <img src="/static/newstyle/searching_small.gif" alt="Loading...">
+        </div>
+    </div>
+</div>

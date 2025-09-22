@@ -47,47 +47,6 @@
             </div>
         </div>
 
-        <!-- Server Management Section -->
-        <div class="admin-section">
-            <h3><i class="fas fa-server"></i> Settings Management</h3>
-            <div class="admin-buttons">
-                <div class="admin-button-item" data-toggle="tooltip" title="Manage server settings">
-                    <a href="{{ url_for('admin2.manage_settings') }}" class="btn btn-circle">
-                        <i class="fas fa-cogs"></i>
-                    </a>
-                    <span class="button-label">Server Settings</span>
-                </div>
-
-
-                <div class="admin-button-item" data-toggle="tooltip" title="Manage email settings">
-                    <a href="{{ url_for('smtp.smtp_settings') }}" class="btn btn-circle">
-                        <i class="fas fa-envelope"></i>
-                    </a>
-                    <span class="button-label">Email Settings</span>
-                </div>
-                <div class="admin-button-item" data-toggle="tooltip" title="Manage IGDB settings">
-                    <a href="{{ url_for('admin2.igdb_settings') }}" class="btn btn-circle">
-                        <i class="fas fa-gamepad"></i>
-                    </a>
-                    <span class="button-label">IGDB Settings</span>
-                </div>
-                <div class="admin-button-item" data-toggle="tooltip" title="Discord bot setup">
-                    <a href="{{ url_for('admin2.discord_settings') }}" class="btn btn-circle">
-                        <i class="fab fa-discord"></i>
-                    </a>
-                    <span class="button-label">Discord</span>
-                </div>
-                {% if enable_server_status %}
-                <div class="admin-button-item" data-toggle="tooltip" title="View server information">
-                    <a href="{{ url_for('info.admin_server_status') }}" class="btn btn-circle">
-                        <i class="fas fa-info"></i>
-                    </a>
-                    <span class="button-label">Server Info</span>
-                </div>
-                {% endif %}
-
-            </div>
-        </div>
 
         <!-- User Management Section -->
         <div class="admin-section">
@@ -169,9 +128,9 @@
             </div>
         </div>
 
-        <!-- New Settings Management Section -->
+        <!-- Settings Management Section -->
         <div class="admin-section">
-            <h3><i class="fas fa-cogs"></i> New Settings Management</h3>
+            <h3><i class="fas fa-cogs"></i> Settings Management</h3>
             <div class="admin-buttons">
                 <div class="admin-button-item" data-toggle="tooltip" title="Manage server settings">
                     <a href="{{ url_for('admin2.new_server_settings') }}" class="btn btn-circle">

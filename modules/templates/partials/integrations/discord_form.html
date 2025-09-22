@@ -1,0 +1,25 @@
+<form method="POST" action="{{ url_for('admin2.discord_settings') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="mb-3">
+        <label for="discord_webhook_url" class="form-label">Discord Webhook URL</label>
+        <input type="url" class="form-control" id="discord_webhook_url" name="discord_webhook_url"
+                value="{{ webhook_url }}" placeholder="Enter Discord webhook URL">
+    </div>
+
+    <div class="mb-3">
+        <label for="discord_bot_name" class="form-label">Bot Name</label>
+        <input type="text" class="form-control" id="discord_bot_name" name="discord_bot_name"
+                value="{{ bot_name }}" placeholder="Enter bot name">
+    </div>
+
+    <div class="mb-3">
+        <label for="discord_bot_avatar_url" class="form-label">Bot Avatar URL</label>
+        <input type="url" class="form-control" id="discord_bot_avatar_url" name="discord_bot_avatar_url"
+                value="{{ bot_avatar_url }}" placeholder="Enter bot avatar URL">
+    </div>
+
+    <div class="d-flex justify-content-between">
+        <button type="submit" class="btn btn-primary">Save Settings</button>
+    </div>
+</form>
