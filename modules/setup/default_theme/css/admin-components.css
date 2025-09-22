@@ -135,13 +135,12 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--spacing-lg);
-    justify-content: center;
 }
 
 .admin-button-item {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     width: 100px;
 }
 
