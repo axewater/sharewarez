@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container">
+    <div class="glass-panel">
+        <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+
+
+<div class="container-status-page container-settings">
+    <div class="card">
+        <h2>Manage SharewareZ Settings</h2>
+
+        <div id="settingsSavedNotification" class="alert alert-success" role="alert" style="display: none;">
+            Settings saved successfully, Captain!
+        </div>
+        <div class="settingsform-admin">
+            <form id="settingsForm">
+                <div>
+                    <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
+                    <br>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th colspan="2"><i class="fa-solid fa-puzzle-piece"></i> Features</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="allowUsersToInviteOthers">
+                                            <label class="form-check-label" for="allowUsersToInviteOthers" data-toggle="tooltip" title="Enables regular users to send invitations to new users.">
+                                                Enable User Invite System
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="enableServerStatusFeature">
+                                            <label class="form-check-label" for="enableServerStatusFeature" data-toggle="tooltip" title="Enables the server info button in the admin dashboard. This contains sensitive server information such as API keys!">
+                                                Enable Server Info Feature
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="enableNewsletterFeature">
+                                            <label class="form-check-label" for="enableNewsletterFeature" data-toggle="tooltip" title="Enables the newsletter functionality, allowing administrators to send updates and announcements to users.">
+                                                Enable Newsletter Feature
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="enableDeleteGameOnDisk">
+                                            <label class="form-check-label" for="enableDeleteGameOnDisk" data-toggle="tooltip" title="Enables the option to delete games from disk. When disabled, this option will be hidden from the UI.">
+                                                Enable Delete Game on Disk
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="enableGameUpdates">
+                                            <label class="form-check-label" for="enableGameUpdates" data-toggle="tooltip" title="Enables scanning for update files/folder in the game's defined subdirectory.">
+                                                Enable Game Updates Scanning
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label for="updateFolderName" data-toggle="tooltip" title="Specify the common name for update subfolders">
+                                                Game Updates Folder Name
+                                            </label>
+                                            <input type="text" class="form-control" id="updateFolderName" name="updateFolderName">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="enableGameExtras">
+                                            <label class="form-check-label" for="enableGameExtras" data-toggle="tooltip" title="Enables scanning for Extra files in the game's defined subdirectory.">
+                                                Enable Extra Files Scanning
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label for="extrasFolderName" data-toggle="tooltip" title="Specify the common name for update subfolders">
+                                                Extras Folder Name
+                                            </label>
+                                            <input type="text" class="form-control" id="extrasFolderName" name="extrasFolderName">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label for="siteUrl" data-toggle="tooltip" title="Specify the base URL for your site (e.g., http://yoursite.com)">
+                                                Site URL
+                                            </label>
+                                            <input type="url" class="form-control" id="siteUrl" name="siteUrl" 
+                                                placeholder="http://yoursite.com">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="useTurboImageDownloads" checked>
+                                            <label class="form-check-label" for="useTurboImageDownloads" data-toggle="tooltip" title="🚀 TURBO MODE: Use parallel multi-threaded downloading for game images (8 threads, 200 batch size). When disabled, uses single-thread sequential downloads. TURBO mode is 8-15x faster but uses more bandwidth.">
+                                                <i class="fas fa-rocket"></i> Enable Multithreaded Image Downloads
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label for="turboDownloadThreads" data-toggle="tooltip" title="Number of simultaneous download threads for TURBO mode. More threads = faster downloads but higher bandwidth usage. Recommended: 4-8 threads.">
+                                                TURBO Download Threads
+                                            </label>
+                                            <input type="number" class="form-control" id="turboDownloadThreads" name="turboDownloadThreads" 
+                                                min="1" max="16" value="8" placeholder="8">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label for="turboDownloadBatchSize" data-toggle="tooltip" title="Number of images to process in each TURBO download batch. Higher values = more aggressive downloading. Recommended: 100-200 images.">
+                                                TURBO Batch Size
+                                            </label>
+                                            <input type="number" class="form-control" id="turboDownloadBatchSize" name="turboDownloadBatchSize" 
+                                                min="10" max="500" value="200" placeholder="200">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label for="scanThreadCount" data-toggle="tooltip" title="Number of threads to use for game scanning operations. Higher values = faster scanning but more CPU usage. Recommended for slow internet connections: 1 thread. Recommended for fast connections: 2-4 threads.">
+                                                <i class="fas fa-search"></i> Game Scan Threads
+                                            </label>
+                                            <input type="number" class="form-control" id="scanThreadCount" name="scanThreadCount" 
+                                                min="1" max="4" value="1" placeholder="1">
+                                            <small class="form-text text-muted">Respects IGDB rate limits (4 req/sec, max 8 concurrent)</small>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th colspan="2"><i class="fa-solid fa-display"></i> Interface</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="showSystemLogo">
+                                            <label class="form-check-label" for="showSystemLogo" data-toggle="tooltip" title="When enabled, displays the SharewareZ logo on the main interface.">
+                                                Show System Logo
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="showHelpButton">
+                                            <label class="form-check-label" for="showHelpButton" data-toggle="tooltip" title="Adds a help button to the interface, providing users with quick access to support resources.">
+                                                Show Help Button
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="enableWebLinksOnDetailsPage">
+                                            <label class="form-check-label" for="enableWebLinksOnDetailsPage" data-toggle="tooltip" title="Shows external web links (e.g., official website, community forums) on game detail pages as an icon.">
+                                                Show Weblinks on Details Page
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="showVersion">
+                                            <label class="form-check-label" for="showVersion" data-toggle="tooltip" title="Displays the current app version below the app logo.">
+                                                Show Version
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+        
+                    <br>
+                    <div class="col-md-6">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th colspan="2">
+                                        <i class="fa-brands fa-discord"></i> Discord Notifications
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if not settings or not settings.discord_webhook_url %}
+                                <tr>
+                                    <td colspan="2" class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Discord notifications require configuration. Please 
+                                        <a href="{{ url_for('admin2.discord_settings') }}">configure your Discord settings</a> 
+                                        before enabling notifications.
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="discordNotifyNewGames">
+                                            <label class="form-check-label" for="discordNotifyNewGames" data-toggle="tooltip" title="Send Discord notifications when new games are added to the library">
+                                                New Games
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="discordNotifyGameUpdates">
+                                            <label class="form-check-label" for="discordNotifyGameUpdates" data-toggle="tooltip" title="Send Discord notifications when game updates are available">
+                                                Game Updates
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="discordNotifyGameExtras">
+                                            <label class="form-check-label" for="discordNotifyGameExtras" data-toggle="tooltip" title="Send Discord notifications when game extra files are available">
+                                                Game Extras
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="discordNotifyDownloads">
+                                            <label class="form-check-label" for="discordNotifyDownloads" data-toggle="tooltip" title="Send Discord notifications when downloads are processed and ready">
+                                                Downloads
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="discordNotifyManualTrigger">
+                                            <label class="form-check-label" for="discordNotifyManualTrigger" data-toggle="tooltip" title="Allow users to manually send Discord notifications for individual games">
+                                                Allow Manual Notifications
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+   
+<!-- Embed current_settings as JSON in a script tag -->
+<script id="currentSettings" type="application/json">{{ current_settings|tojson }}</script>
+<script id="csrf_token" type="application/json">{{ csrf_token() }}</script>
+
+<script src="{{ 'js/admin_manage_server_settings.js'|theme_asset }}"></script>
+
+{% endblock %}
