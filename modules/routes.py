@@ -259,7 +259,6 @@ def scan_management():
             db.session.add(new_group)
             db.session.commit()
             flash('New release group filter added.', 'success')
-            session['active_tab'] = 'scan_filters'
             return redirect(url_for('main.scan_management', active_tab='scan_filters'))
         elif submit_action == 'DeleteReleaseGroup':
             # Handle deleting release group filter
@@ -272,7 +271,6 @@ def scan_management():
                     flash('Release group filter removed.', 'success')
                 else:
                     flash('Filter not found.', 'error')
-            session['active_tab'] = 'scan_filters'
             return redirect(url_for('main.scan_management', active_tab='scan_filters'))
         else:
             flash("Unrecognized action.", "error")
@@ -280,8 +278,8 @@ def scan_management():
 
     game_paths_dict = session.get('game_paths', {})
     game_names_with_ids = [{'name': name, 'full_path': path} for name, path in game_paths_dict.items()]
-    # Handle active_tab from URL parameter or session
-    active_tab = request.args.get('active_tab', session.get('active_tab', 'auto'))
+    # Handle active_tab from URL parameter, default to 'auto'
+    active_tab = request.args.get('active_tab', 'auto')
 
     return render_template('admin/admin_manage_scanjobs.html',
                            auto_form=auto_form,
@@ -511,7 +509,6 @@ def delete_scan_job(job_id):
 @login_required
 @admin_required
 def clear_all_scan_jobs():
-    session['active_tab'] = 'auto'
     db.session.execute(delete(ScanJob))
     db.session.commit()
     flash('All scan jobs cleared successfully.', 'success')
