@@ -203,39 +203,32 @@ class TestDownloadGameRoute:
         assert response.status_code == 302  # Redirect to downloads
         assert '/downloads' in response.location
     
-    @patch('modules.routes_downloads_ext.initiate.Thread')
-    @patch('modules.routes_downloads_ext.initiate.zip_game')
-    def test_download_game_success(self, mock_zip_game, mock_thread, 
-                                  client, authenticated_user, test_game, 
+    def test_download_game_success(self, client, authenticated_user, test_game,
                                   global_settings, db_session, app):
         """Test successful download_game."""
         with app.app_context():
             authenticate_user(client, authenticated_user)
-            
+
             # Set up app config for security validation
             app.config['DATA_FOLDER_WAREZ'] = os.path.dirname(test_game.full_disk_path)
             app.config['ZIP_SAVE_PATH'] = tempfile.mkdtemp()
-            
+
             response = client.get(f'/download_game/{test_game.uuid}')
             assert response.status_code == 302  # Redirect to downloads
             assert '/downloads' in response.location
-            
+
             # Verify download request was created
             download_request = db_session.query(DownloadRequest).filter_by(
                 user_id=authenticated_user.id,
                 game_uuid=test_game.uuid
             ).first()
             assert download_request is not None
-            assert download_request.status == 'processing'
-            
+            assert download_request.status == 'available'  # Now instant streaming
+
             # Verify game download count increased
             updated_game = db_session.execute(select(Game).filter_by(uuid=test_game.uuid)).scalars().first()
             assert updated_game.times_downloaded == 1
-            
-            # Verify thread was started
-            mock_thread.assert_called_once()
-            mock_thread.return_value.start.assert_called_once()
-            
+
             # Cleanup
             shutil.rmtree(app.config['ZIP_SAVE_PATH'], ignore_errors=True)
 
@@ -279,34 +272,31 @@ class TestDownloadOtherRoute:
         assert response.status_code == 302
         # Should redirect to game details
     
-    @patch('modules.routes_downloads_ext.initiate.Thread')
-    @patch('modules.routes_downloads_ext.initiate.zip_folder')
-    def test_download_other_success_update(self, mock_zip_folder, mock_thread,
-                                          client, authenticated_user, test_game_update, 
+    def test_download_other_success_update(self, client, authenticated_user, test_game_update,
                                           db_session, app):
         """Test successful download_other for update file."""
         with app.app_context():
             authenticate_user(client, authenticated_user)
-            
+
             # Set up app config for security validation
             app.config['DATA_FOLDER_WAREZ'] = os.path.dirname(test_game_update.file_path)
             app.config['ZIP_SAVE_PATH'] = tempfile.mkdtemp()
-            
+
             response = client.get(f'/download_other/update/{test_game_update.game_uuid}/{test_game_update.id}')
             assert response.status_code == 302
             assert '/downloads' in response.location
-            
+
             # Verify download request was created
             download_request = db_session.query(DownloadRequest).filter_by(
                 user_id=authenticated_user.id,
                 file_location=test_game_update.file_path
             ).first()
             assert download_request is not None
-            
+
             # Verify update download count increased
             updated_update = db_session.get(GameUpdate, test_game_update.id)
             assert updated_update.times_downloaded == 1
-            
+
             # Cleanup
             shutil.rmtree(app.config['ZIP_SAVE_PATH'], ignore_errors=True)
 
@@ -391,24 +381,20 @@ class TestIntegration:
             ).count()
             
             # Make download request
-            with patch('modules.routes_downloads_ext.initiate.Thread') as mock_thread:
-                response = client.get(f'/download_game/{test_game.uuid}')
-                assert response.status_code == 302
-                assert '/downloads' in response.location
-            
+            response = client.get(f'/download_game/{test_game.uuid}')
+            assert response.status_code == 302
+            assert '/downloads' in response.location
+
             # Verify download request was created
             final_count = db_session.query(DownloadRequest).filter_by(
                 user_id=authenticated_user.id,
                 game_uuid=test_game.uuid
             ).count()
             assert final_count == initial_count + 1
-            
+
             # Verify game statistics updated
             updated_game = db_session.execute(select(Game).filter_by(uuid=test_game.uuid)).scalars().first()
             assert updated_game.times_downloaded >= 1  # May be incremented by other tests
-            
-            # Verify thread was started
-            mock_thread.assert_called_once()
             
             # Cleanup
             shutil.rmtree(app.config['ZIP_SAVE_PATH'], ignore_errors=True)
