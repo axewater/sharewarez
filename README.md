@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.7.5
+# 🎮 SharewareZ v2.6.0
 
 SharewareZ transforms any game folder into a searchable library with IGDB integration, adding cover images, screenshots, and metadata for enhanced filtering.
 Invite your friends securely and share your favorite games!
@@ -169,3 +169,50 @@ docker pull kapitanczarnobrod/sharewarez:latest
 ## 📝 3rd party code
 - 💭 Thanks to BinBashBanana's webretro we can now run ROMs in the browser.
 - 🌐 Check out his project here: https://github.com/BinBashBanana/webretro
+
+
+## Changelog
+
+  Version 2.7.x
+
+  - 🎨 Theme System Overhaul: Complete refactoring using macros for more efficient code, eliminated themes.zip dependency
+  - ⚡ Streaming ZIP Downloads: Major implementation of asynchronous streaming downloads for better performance
+  - 🔄 Download System Rewrite: All download systems redesigned with new download mechanism for updates and extras
+  - 📊 Library UI Modernization: Pagination modernized, improved image upload support (.webp), better filtering with server-side persistence
+  - 🎮 Game Management: Enhanced game details page UI, smooth animations for game removal, better popup menu functionality
+
+  Version 2.6.x
+
+  - 🚀 ASGI Implementation: Upgraded from Flask to ASGI (uvicorn) for production readiness and async support
+  - 🔧 Major Code Refactoring:
+    - Modularized routes into separate API modules (routes_apis/)
+    - Consolidated CSRF handling across JavaScript files
+    - Extracted JavaScript from templates for maintainability
+  - 📈 Performance Improvements:
+    - Scan speed dramatically improved (99% reduction in DB queries via caching)
+    - Async image downloading with TURBO mode for parallel processing
+    - Optimized database queries using SQLAlchemy 2.0 constructs
+  - 🧪 Comprehensive Unit Testing: Added extensive test coverage across all modules
+  - 🔒 Security Enhancements:
+    - SQL injection fixes with multithreaded scanning
+    - Enhanced input validation and CSRF protection
+    - Secure file handling improvements
+  - 📬 Discord Integration: Full Discord webhook notifications and manual notification system
+  - 👥 User Management: Enhanced invite system with timezone-aware structure
+  - ⚙️ Setup & Configuration: Improved setup wizard, better startup processes, enhanced SMTP handling
+
+  Version 2.5.x
+
+  - 🎯 IGDB API Updates: Support for new IGDB field names and API changes
+  - 🎮 Platform Support: Enhanced ROM browser play support for multiple platforms (PSX, Sega systems)
+  - 🔍 Game Identification: Custom IGDB ID support and improved game matching
+  - 📱 UI Improvements: Better responsive design, enhanced game details display
+  - 🗄️ Database Optimization: Schema updates and relationship improvements
+
+  Key Infrastructure Changes
+
+  - Database: Migrated to SQLAlchemy 2.0, timezone-aware datetime handling
+  - Frontend: Bootstrap 5.3 adoption, jQuery modernization, improved DataTables integration
+  - Backend: Flask app factory pattern, better blueprint organization
+  - Development: Comprehensive testing framework, improved Docker support
+  - Performance: Async processing, streaming capabilities, optimized scanning algorithms
