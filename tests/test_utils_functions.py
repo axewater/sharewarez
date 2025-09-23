@@ -71,12 +71,12 @@ def sample_release_groups(db_session):
     release_groups = []
     
     # Case insensitive release groups
-    rg1 = ReleaseGroup(rlsgroup='SKIDROW')
-    rg2 = ReleaseGroup(rlsgroup='CODEX') 
-    
+    rg1 = ReleaseGroup(rlsgroup='TEST_GROUP_1')
+    rg2 = ReleaseGroup(rlsgroup='TEST_GROUP_2')
+
     # Case sensitive release groups
-    rg3 = ReleaseGroup(rlsgroup='RELOADED', rlsgroupcs='yes')
-    rg4 = ReleaseGroup(rlsgroup='PLAZA', rlsgroupcs='no')
+    rg3 = ReleaseGroup(rlsgroup='TEST_GROUP_3', rlsgroupcs='yes')
+    rg4 = ReleaseGroup(rlsgroup='TEST_GROUP_4', rlsgroupcs='no')
     
     for rg in [rg1, rg2, rg3, rg4]:
         db_session.add(rg)
@@ -571,21 +571,21 @@ class TestLoadReleaseGroupPatterns:
         insensitive, sensitive = load_release_group_patterns()
         
         # Check insensitive patterns (all groups get both - and . prefixes)
-        assert "-SKIDROW" in insensitive
-        assert ".SKIDROW" in insensitive
-        assert "-CODEX" in insensitive
-        assert ".CODEX" in insensitive
-        
+        assert "-TEST_GROUP_1" in insensitive
+        assert ".TEST_GROUP_1" in insensitive
+        assert "-TEST_GROUP_2" in insensitive
+        assert ".TEST_GROUP_2" in insensitive
+
         # Check sensitive patterns
         sensitive_dict = {pattern: case_sensitive for pattern, case_sensitive in sensitive}
-        
-        # RELOADED has rlsgroupcs='yes' so should be case sensitive
-        assert ("-RELOADED", True) in sensitive
-        assert (".RELOADED", True) in sensitive
-        
-        # PLAZA has rlsgroupcs='no' so should not be case sensitive  
-        assert ("-PLAZA", False) in sensitive
-        assert (".PLAZA", False) in sensitive
+
+        # TEST_GROUP_3 has rlsgroupcs='yes' so should be case sensitive
+        assert ("-TEST_GROUP_3", True) in sensitive
+        assert (".TEST_GROUP_3", True) in sensitive
+
+        # TEST_GROUP_4 has rlsgroupcs='no' so should not be case sensitive
+        assert ("-TEST_GROUP_4", False) in sensitive
+        assert (".TEST_GROUP_4", False) in sensitive
     
     def test_load_release_group_patterns_empty_db(self, db_session):
         """Test load_release_group_patterns with empty database."""

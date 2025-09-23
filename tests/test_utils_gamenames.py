@@ -437,13 +437,13 @@ class TestCleanGameName:
     
     def test_complex_combined_patterns(self):
         """Test complex real-world game name cleaning scenarios."""
-        insensitive_patterns = ['REPACK', 'GOG', 'FITGIRL']
+        insensitive_patterns = ['REPACK', 'GOG', 'TEST_PATTERN']
         sensitive_patterns = [('PROPER', True)]
         
         test_cases = [
             ('setupNethack.v1.2.3-REPACK-GOG-Build.456+5DLCs', 'Nethack'),
             ('Rogue.Breath.of.the.Wild.Remastered.Edition(1)', 'Rogue Breath Of The Wild'),
-            ('ADVENTURE_GAME_REMAKE-FITGIRL-v2.1+DLC-PROPER', 'Adventure Game Dlc'),  # REMAKE gets removed by cleaning
+            ('ADVENTURE_GAME_REMAKE-TEST_PATTERN-v2.1+DLC-PROPER', 'Adventure Game Dlc'),  # REMAKE gets removed by cleaning
             ('A.Tale.Of.Two.Cities.STEAM.Repack.Build.789', 'A Tale Of Two Cities Steam'),  # STEAM may not match as word boundary
             ('setupGame-Name_Here.v1.0-REPACK+3DLCs(123)', 'Game - Name Here')
         ]
@@ -656,13 +656,13 @@ class TestGotyIntegration:
 
     def test_complex_goty_scenarios(self):
         """Test complex real-world GOTY scenarios."""
-        insensitive_patterns = ['REPACK', 'GOG', 'FITGIRL']
+        insensitive_patterns = ['REPACK', 'GOG', 'TEST_PATTERN']
         sensitive_patterns = [('PROPER', True)]
 
         test_cases = [
-            ('Witcher.3.g.o.t.y.Complete.Edition-GOG', 'GOTY'),
-            ('Skyrim.GOTY.Legendary.Edition.REPACK', 'GOTY'),
-            ('setupFallout.4.G.O.T.Y.+AllDLC-FITGIRL', 'GOTY'),
+            ('Fantasy.Quest.3.g.o.t.y.Complete.Edition-GOG', 'GOTY'),
+            ('Dragon.Adventure.GOTY.Legendary.Edition.REPACK', 'GOTY'),
+            ('setupAdventure.Game.4.G.O.T.Y.+AllDLC-TEST_PATTERN', 'GOTY'),
         ]
 
         for input_name, should_contain in test_cases:

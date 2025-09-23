@@ -2,8 +2,6 @@
 <!-- when updating this file, remember to change library_pagination.js too -->
 <!-- it regenerates this popup menu -->
 
-<link rel="stylesheet" href="{{ 'css/games/popup_menu.css'|theme_asset }}">
-
 <div id="popupMenu-{{ game_uuid }}" class="popup-menu" style="display: none;">
     <form action="{{ url_for('download.download_game', game_uuid=game_uuid) }}" method="get" class="menu-item">
         {{ form.csrf_token }}

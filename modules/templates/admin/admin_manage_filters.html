@@ -12,8 +12,8 @@
     <div class="container mt-4">
 <div class="admin_manage_filters-panel">
     <div class="admin_manage_filters-header">
-        <h2><i class="fas fa-filter"></i> Release Group Filters</h2>
-        <p>Manage release group patterns to improve scanning speed.</p>
+        <h2><i class="fas fa-filter"></i> Game Scanning Filters</h2>
+        <p>Manage game pattern filters to improve scanning speed.</p>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFilterModal">
             <i class="fas fa-plus"></i> Add New Filter
         </button>
@@ -24,14 +24,14 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add New Release Group Filter</h5>
+                    <h5 class="modal-title">Add New Game Filter</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="addFilterForm">
                         {{ form.hidden_tag() }}
                         <div class="mb-3">
-                            <label for="rlsgroup" class="form-label">Release Group Pattern</label>
+                            <label for="rlsgroup" class="form-label">Game Pattern Filter</label>
                             {{ form.rlsgroup(class="form-control", id="rlsgroup") }}
                         </div>
                         <div class="mb-3 form-check">
@@ -53,7 +53,7 @@
     <table class="admin_manage_filters-table table table-dark table-striped table-hover">
         <thead>
             <tr>
-                <th width="60%">Release Group Pattern</th>
+                <th width="60%">Game Pattern Filter</th>
                 <th width="20%">Case Sensitive</th>
                 <th width="20%">Actions</th>
             </tr>
