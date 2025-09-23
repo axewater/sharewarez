@@ -726,15 +726,6 @@ form textarea {
     border-color: var(--border-light-strong);
 }
 
-.emptyrating {
-    margin-left: 15px;
-    margin-right: 15px;
-    margin-top: 5px;
-}
-
-
-
-
 .glass-panel-addgame {
     background-color: hsl(207, 19%, 55%);
     display: flex;

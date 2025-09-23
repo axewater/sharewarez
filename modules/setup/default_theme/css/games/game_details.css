@@ -30,6 +30,8 @@ body.modal-open {
     margin-bottom: var(--spacing-xs);
     opacity: 1;
     position: relative;
+    left: 0px;
+    top: 0px;
     transition: background-color var(--transition-fast);
 }
 
@@ -326,8 +328,8 @@ pre {
     color: var(--text-light);
     text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.9);
     font-size: 18px;
-    margin-bottom: 2px;
-    margin-top: 15px;
+    margin-bottom: 5px;
+    margin-top: 5px;
     margin-right: 15px;
 }
 
@@ -415,7 +417,6 @@ pre {
 .rating-row {
     display: flex;
     flex-direction: column;
-    margin-bottom: 5px;
 }
 
 .rating-display {
