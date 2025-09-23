@@ -258,6 +258,59 @@
     }
 }
 
+/* === BOOTSTRAP TABLE OVERRIDES === */
+/* Force Bootstrap table classes to use our dark theme */
+
+/* Override Bootstrap .table base styling */
+.table {
+    --bs-table-color: var(--text-white) !important;
+    --bs-table-bg: var(--table-bg) !important;
+    --bs-table-border-color: var(--table-border) !important;
+    --bs-table-hover-color: var(--text-white) !important;
+    --bs-table-hover-bg: var(--table-hover-bg) !important;
+    --bs-table-striped-color: var(--text-white) !important;
+    --bs-table-striped-bg: var(--bg-transparent-5) !important;
+}
+
+/* Override Bootstrap .table-striped */
+.table-striped > tbody > tr:nth-of-type(odd) > td,
+.table-striped > tbody > tr:nth-of-type(odd) > th {
+    background-color: var(--bg-transparent-5) !important;
+    color: var(--text-white) !important;
+}
+
+/* Override Bootstrap .table-hover */
+.table-hover > tbody > tr:hover > td,
+.table-hover > tbody > tr:hover > th {
+    background-color: var(--table-hover-bg) !important;
+    color: var(--text-white) !important;
+}
+
+/* Override Bootstrap .table-bordered */
+.table-bordered > :not(caption) > * {
+    border-width: 1px;
+    border-color: var(--table-border) !important;
+}
+
+.table-bordered > :not(caption) > * > * {
+    border-width: 0 1px;
+    border-color: var(--table-border) !important;
+}
+
+/* Force all table cells to use theme colors */
+.table > :not(caption) > * > * {
+    color: var(--text-white) !important;
+    background-color: transparent;
+    border-bottom-color: var(--table-border) !important;
+}
+
+/* Force table headers to use theme styling */
+.table > thead > tr > th {
+    background-color: var(--table-header-bg) !important;
+    color: var(--text-white) !important;
+    border-bottom: 2px solid var(--table-border) !important;
+}
+
 /* === TABLE UTILITIES === */
 
 /* Table Loading State */

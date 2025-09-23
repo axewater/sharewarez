@@ -130,7 +130,7 @@
                     {% if not (game.updates and game.extras) %}
                         <h4 class="extras-single-title">Updates</h4>
                     {% endif %}
-                    <table class="extras-table table table-hover">
+                    <table class="extras-table table table-dark table-hover">
                         <tbody>
                             {% for update in game.updates %}
                                 {{ render_file_row(update, game.uuid, 'update') }}
@@ -145,7 +145,7 @@
                     {% if not (game.updates and game.extras) %}
                         <h4 class="extras-single-title">Extra Content</h4>
                     {% endif %}
-                    <table class="extras-table table table-hover">
+                    <table class="extras-table table table-dark table-hover">
                         <tbody>
                             {% for extra in game.extras %}
                                 {{ render_file_row(extra, game.uuid, 'extra') }}
