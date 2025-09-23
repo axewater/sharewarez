@@ -30,7 +30,6 @@
     background-color: var(--btn-info-hover);
 }
 
-/* Modal styling moved to modal-components.css */
 
 .settings-form {
     display: flex;
@@ -45,11 +44,10 @@
 }
 
 .form-group label {
-    color: #fff;
+    color: var(--text-white);
     font-weight: 500;
 }
 
-/* Form control styling moved to form-components.css */
 
 .button-group {
     display: flex;
@@ -57,12 +55,11 @@
     margin-top: 1rem;
 }
 
-/* Duplicate button styling moved to base.css */
 
 .last-tested {
-    color: #888;
-    font-size: 0.9rem;
-    margin-top: 1rem;
+    color: var(--color-gray-888);
+    font-size: var(--font-size-095rem);
+    margin-top: var(--spacing-rem-md);
 }
 
 input[type="checkbox"] {
@@ -74,5 +71,5 @@ input[type="checkbox"] {
 .card {
     width: 70%;
     margin: 0 auto;
-    padding: 20px;
+    padding: var(--spacing-lg);
 }

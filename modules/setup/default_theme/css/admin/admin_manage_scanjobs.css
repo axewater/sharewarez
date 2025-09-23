@@ -2,7 +2,6 @@
 
 .simple-jobs-table,
 .simple-unmatched-table {
-    /* Using .table-dark class from base.css - remove this file-specific styling */
     width: 100%;
     border-collapse: collapse;
     margin-bottom: var(--spacing-lg);
@@ -179,7 +178,7 @@
     padding: 6px 12px;
     font-size: 0.875rem;
     border-radius: 6px;
-    border: 1px solid var(--bg-light-overlay-strong);
+    border: 1px solid var(--border-light-30);
     background: var(--bg-light-overlay);
     color: #fff;
     transition: all 0.2s ease;
@@ -205,7 +204,7 @@
 .search-input {
     width: 100%;
     padding: 8px 12px;
-    border: 1px solid var(--bg-light-overlay-strong);
+    border: 1px solid var(--border-light-30);
     border-radius: 6px;
     background: var(--bg-light-overlay);
     color: #fff;
@@ -250,7 +249,7 @@
     color: white;
     padding: 12px 20px;
     border-radius: 8px;
-    border: 1px solid var(--bg-light-overlay-strong);
+    border: 1px solid var(--border-light-30);
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     z-index: 1050;
@@ -504,7 +503,7 @@
 .config-input,
 .form-control {
     background: var(--bg-light-overlay);
-    border: 1px solid var(--bg-light-overlay-strong);
+    border: 1px solid var(--border-light-30);
     border-radius: 8px;
     padding: 10px;
     color: #fff;

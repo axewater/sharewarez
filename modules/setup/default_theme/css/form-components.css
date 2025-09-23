@@ -39,7 +39,7 @@
 
 .form-select:focus {
     background: var(--form-focus-bg);
-    border-color: var(--form-border-strong);
+    border-color: var(--border-light-30);
     color: var(--text-white);
     box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.1);
 }
@@ -169,7 +169,7 @@ form textarea:focus {
 /* Form File Upload */
 .form-control-file {
     background-color: var(--form-bg);
-    border: 1px solid var(--form-border-strong);
+    border: 1px solid var(--border-light-30);
     border-radius: var(--border-radius-xs);
     padding: var(--spacing-sm);
     color: var(--text-white);
@@ -246,7 +246,6 @@ input[type="checkbox"] {
     color: var(--text-white);
 }
 
-/* DataTables styling moved to table-components.css */
 
 /* Dropdown Styling */
 .dropdown-perpage {

@@ -63,9 +63,6 @@
     overflow: hidden;
 }
 
-/* Form control styling moved to form-components.css */
-
-/* Modal styling moved to modal-components.css */
 
 /* Badge styling */
 .badge {
@@ -86,7 +83,6 @@
     font-weight: 500;
 }
 
-/* Duplicate form control styling removed */
 
 .button-group {
     display: flex;
@@ -94,7 +90,6 @@
     margin-top: 1rem;
 }
 
-/* Duplicate button styling moved to base.css */
 
 .last-tested {
     color: #888;

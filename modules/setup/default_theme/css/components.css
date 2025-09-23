@@ -1,3 +1,14 @@
+/* === LOGIN COMPONENTS === */
+
+.container-buttons-login {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: var(--spacing-lg);
+    font-size: var(--font-size-20px);
+    gap: var(--spacing-lg);
+}
+
 /* Game Card Component */
 .game-card-container {
     position: relative;

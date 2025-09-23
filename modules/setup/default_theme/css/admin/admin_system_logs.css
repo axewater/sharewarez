@@ -44,8 +44,6 @@
     transition: background-color 0.2s ease-in-out;
 }
 
-/* Table header styling - consolidated to use unified table system */
-/* This is now handled by table-components.css */
 
 /* Table cell padding */
 .table td {

@@ -48,7 +48,6 @@
     width: 100%;
 }
 
-/* Button styling moved to base.css and admin-components.css */
 
 .installed-themes-section h2 {
     color: #ffffff;
@@ -86,7 +85,6 @@
     border: 2px solid #ffd700;
 }
 
-/* Duplicate button styling removed */
 
 .flash-messages {
     margin-bottom: 20px;
@@ -118,4 +116,3 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Duplicate button styling removed */

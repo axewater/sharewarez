@@ -20,8 +20,6 @@
     --bg-dark-strong: rgba(0, 0, 0, 0.8);
     --bg-transparent-5: rgba(255, 255, 255, 0.05);
 
-    /* Additional Light Overlay Variants */
-    --bg-light-overlay-strong: rgba(255, 255, 255, 0.3);
 
     /* Button Colors */
     --btn-primary: #0096ff;
@@ -121,7 +119,6 @@
     --form-bg: rgba(255, 255, 255, 0.1);
     --form-bg-dark: rgba(0, 0, 0, 0.2);
     --form-border: rgba(255, 255, 255, 0.2);
-    --form-border-strong: rgba(255, 255, 255, 0.3);
     --form-focus-bg: rgba(255, 255, 255, 0.15);
     --form-focus-border: #0096ff;
     --form-focus-shadow: 0 0 0 0.2rem rgba(0, 150, 255, 0.25);
@@ -361,26 +358,19 @@ body {
     text-align: center;
 }
 
-
 .button-login {
-font-size: large;
-    
+font-size: large;   
 }
-
 
 .button-login:hover {
-    font-weight: bold;
-        
+    font-weight: bold;        
 }
-
 
 .container {
     width: 100%;
     margin: auto;
     overflow: hidden;
 }
-
-
 
 .container-base {
     display: flex;
@@ -391,13 +381,10 @@ font-size: large;
     border-radius: 10px;
 }
 
-
 .container-login {
     display: flex;
     justify-content: center;
     align-items: center;
-    /* min-height: 100vh; */
-
 }
 
 .content-login {
@@ -409,13 +396,9 @@ font-size: large;
 }
 
 
-
-
 .label-large-text {
-    font-size: 22px; /* Adjust the size as needed */
+    font-size: 22px;
 }
-
-
 
 .login-logo {
     width: 400px;
@@ -439,9 +422,6 @@ font-size: large;
     100% {background-color: rgb(31, 31, 31);}
 }
 
-
-/* === UNIFIED FORM SYSTEM === */
-
 .form-text {
     color: var(--text-muted);
     font-size: var(--font-size-sm);
@@ -450,15 +430,11 @@ font-size: large;
     border-radius: var(--border-radius-xs);
     padding-left: var(--spacing-sm);
 }
-      
-/* Form control styling in form-components.css */
 
 .group-game-details {
     display: flex;
     flex-direction: row;
 }
-
-
 
 .input-glass {
     width: 95%;
@@ -473,7 +449,6 @@ font-size: large;
 }
 
 
-/* Apply box shadow to all input fields */
 form input[type="text"],
 form input[type="password"],
 form input[type="email"],
@@ -489,7 +464,6 @@ form select, /* Don't forget your select elements if you want to style them too 
 form textarea {
   box-shadow: inset 1px 3px 5px rgb(41, 37, 37);
   
-  /* Other styling properties */
 }
 
 
@@ -515,9 +489,6 @@ form textarea {
     padding-bottom: 50px;
 }
 
-/* === UNIFIED UTILITY CLASSES === */
-
-/* Glass Panel Variants */
 .glass-panel-dark {
     background: var(--bg-dark-secondary);
     backdrop-filter: var(--backdrop-blur);
@@ -537,7 +508,7 @@ form textarea {
     flex-direction: column;
 }
 
-/* Table Styling */
+
 .table-dark {
     width: 100%;
     border-collapse: collapse;
@@ -576,7 +547,6 @@ form textarea {
     background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* Spinner/Loading Overlay */
 .spinner-overlay {
     position: fixed;
     top: 0;
@@ -605,7 +575,6 @@ form textarea {
     margin-bottom: var(--spacing-md);
 }
 
-/* Admin Section Base */
 .admin-section {
     background: var(--bg-dark-tertiary);
     backdrop-filter: var(--backdrop-blur);
@@ -616,8 +585,6 @@ form textarea {
     margin-bottom: var(--spacing-lg);
     border: 1px solid var(--border-light);
 }
-
-/* === UNIFIED BUTTON SYSTEM === */
 
 .btn {
     display: inline-block;
@@ -811,7 +778,6 @@ form textarea {
     line-height: 1.2;
 }
 
-/* Responsive form text */
 @media (max-width: 768px) {
     .form-text-light {
         font-size: var(--font-size-xs);
@@ -881,8 +847,8 @@ form textarea {
 
 
 .menu-item a {
-    color: inherit; /* Make sure the link color matches the surrounding text color */
-    text-decoration: none; /* Ensures no underline */
+    color: inherit;
+    text-decoration: none;
 }
 
 
@@ -959,10 +925,6 @@ form textarea {
     background-color: rgba(0,0,0,0.4); 
   }
   
-/* Modal styling moved to modal-components.css */
-
-
-/* Delete Game Modal styling moved to modal-components.css */
 
 
 @media (max-width: 600px) {
@@ -1095,5 +1057,14 @@ form textarea {
         padding-left: 5px;
         transition: font-size 28px ease;
     }
+}
 
+@media (max-width: 400px) {
+    #sidebar {
+        display: none;
+    }
+    #content {
+        margin-left: var(--spacing-md);
+        margin-right: var(--spacing-md);
+    }
 }

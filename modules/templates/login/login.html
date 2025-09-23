@@ -1,8 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<link rel="stylesheet" href="{{ 'css/login/login.css'|theme_asset }}">
-
 <div class="container-login">
     <div class="content-login">
         {% if current_user.is_authenticated %}

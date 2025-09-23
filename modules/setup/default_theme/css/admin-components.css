@@ -480,6 +480,27 @@
     }
 }
 
+/* === USER MANAGEMENT COMPONENTS === */
+
+.user-avatar-small {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--border-radius-round);
+    object-fit: cover;
+    border: 2px solid var(--border-light-30);
+    box-shadow: 0 2px 4px var(--shadow-box-light);
+}
+
+.badge {
+    font-size: 0.875rem;
+    padding: 0.4em 0.8em;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    margin: 0 0.2rem;
+}
+
 /* === ADMIN UTILITIES === */
 
 /* Flash Messages */

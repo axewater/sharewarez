@@ -101,7 +101,7 @@
 
 .btn-pagination:hover:not(:disabled) {
     background: var(--bg-light-overlay-hover);
-    border-color: var(--bg-light-overlay-strong);
+    border-color: var(--border-light-30);
     transform: translateY(-1px);
     box-shadow: var(--shadow-card);
 }
@@ -139,7 +139,7 @@
 
 .dropdown-perpage:hover {
     background: var(--bg-dark-secondary);
-    border-color: var(--bg-light-overlay-strong);
+    border-color: var(--border-light-30);
 }
 
 .dropdown-perpage:focus {
