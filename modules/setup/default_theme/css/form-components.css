@@ -358,6 +358,4 @@ input[type="checkbox"] {
     margin: 0 auto;
 }
 
-.btn {
-    margin-right: var(--spacing-sm);
-}
+/* Button margin removed - handled by specific containers */

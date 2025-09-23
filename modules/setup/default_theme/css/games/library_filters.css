@@ -18,6 +18,16 @@
     margin-top: 25px;
 }
 
+/* Reduce spacing for sidebar filters */
+#sidebar .library-filters {
+    margin-top: 5px;
+}
+
+#sidebar .library-filters .form-group {
+    margin-bottom: 5px;
+    gap: 2px;
+}
+
 
 
 .modal-backdrop {
@@ -73,17 +83,31 @@
     border-radius: 8px;
     color: var(--color-gray-ccc);
     padding: 15px;
-    box-shadow: var(--shadow-box-light); 
+    box-shadow: var(--shadow-box-light);
+}
 
+/* Sidebar-specific overrides for compact layout */
+#sidebar .container-filtersandsort {
+    padding: 0;
+    box-shadow: none;
 }
 
 .library-filters select.form-control,
 .library-filters button.btn {
     background-color: var(--bg-dark-tertiary);
     border: 1px solid var(--border-light);
-    color: var(--color-gray-ddd); 
-    border-radius: 4px; 
-    margin-bottom: 10px; 
+    color: var(--color-gray-ddd);
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+/* Compact styling for sidebar filters */
+#sidebar .library-filters select.form-control,
+#sidebar .library-filters button.btn {
+    margin-bottom: 3px;
+    padding: 2px 5px;
+    font-size: 14px;
+    height: 28px;
 }
 
 .library-filters select.form-control:hover,
@@ -120,6 +144,12 @@
     display: block;
     margin-bottom: .5rem;
     color: var(--color-gray-ccc);
+}
+
+/* Compact labels for sidebar */
+#sidebar .library-filters label {
+    margin-bottom: 2px;
+    font-size: 13px;
 }
 
 
@@ -170,6 +200,17 @@
     margin-left: 5px;
     padding: 2px 7px;
     
+}
+
+.button-group {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+    margin-top: var(--spacing-xs);
+}
+
+.button-group .btn {
+    margin: 0;
 }
 
 @media (max-width: 768px) {
