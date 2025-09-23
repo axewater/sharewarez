@@ -199,7 +199,19 @@
 .sorting-dropdown .btn-secondary {
     margin-left: 5px;
     padding: 2px 7px;
-    
+}
+
+/* Compact styling for sidebar sorting dropdown */
+#sidebar .sorting-dropdown select,
+#sidebar .sorting-dropdown .btn-secondary {
+    padding: 2px 5px;
+    font-size: 14px;
+    height: 28px;
+    margin: 0;
+}
+
+#sidebar .sorting-dropdown .btn-secondary {
+    margin-left: 3px;
 }
 
 .button-group {
