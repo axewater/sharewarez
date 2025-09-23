@@ -95,20 +95,20 @@ def initialize_library_folders():
         os.makedirs(zips_path)
         print("Created zips folder")
 
-def insert_default_filters():
-    """Initialize default release groups in the database."""
+def insert_default_scanning_filters():
+    """Initialize default scanning filters in the database."""
     default_name_filters = [
-        {'rlsgroup': 'Open Source', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'Public Domain', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'GOG', 'rlsgroupcs': 'no'},
+        {'filter_pattern': 'Open Source', 'case_sensitive': 'no'},
+        {'filter_pattern': 'Public Domain', 'case_sensitive': 'no'},
+        {'filter_pattern': 'GOG', 'case_sensitive': 'no'},
     ]
 
-    existing_groups = db.session.execute(select(ReleaseGroup.rlsgroup)).scalars().all()
+    existing_groups = db.session.execute(select(ReleaseGroup.filter_pattern)).scalars().all()
     existing_group_names = set(existing_groups)
 
     for group in default_name_filters:
-        if group['rlsgroup'] not in existing_group_names:
-            new_group = ReleaseGroup(rlsgroup=group['rlsgroup'], rlsgroupcs=group['rlsgroupcs'])
+        if group['filter_pattern'] not in existing_group_names:
+            new_group = ReleaseGroup(filter_pattern=group['filter_pattern'], case_sensitive=group['case_sensitive'])
             db.session.add(new_group)
     db.session.commit()
 

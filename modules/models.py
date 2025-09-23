@@ -333,11 +333,11 @@ class ReleaseGroup(db.Model):
     __tablename__ = 'filters'
 
     id = db.Column(db.Integer, primary_key=True)
-    rlsgroup = db.Column(db.String, nullable=True)
-    rlsgroupcs = db.Column(db.String, nullable=True)
+    filter_pattern = db.Column(db.String, nullable=True)
+    case_sensitive = db.Column(db.String, nullable=True)
 
     def __repr__(self):
-        return f"<ReleaseGroup id={self.id}, rlsgroup={self.rlsgroup}, rlsgroupcs={self.rlsgroupcs}>"
+        return f"<ReleaseGroup id={self.id}, filter_pattern={self.filter_pattern}, case_sensitive={self.case_sensitive}>"
 
 class GameMode(db.Model):
     __tablename__ = 'game_modes'

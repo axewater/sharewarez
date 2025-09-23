@@ -20,13 +20,13 @@ def run_complete_startup_initialization():
     print("Running database migrations and initialization...")
     
     try:
-        # Step 1: Initialize database with pure SQLAlchemy (create tables first)
-        print("🔧 Initializing database with default data")
-        _initialize_with_sqlalchemy()
+        # Step 1: Create basic table structure with pure SQLAlchemy
+        print("🔧 Creating database tables")
+        _create_tables_only()
         print("✅ Database tables created successfully")
-        
-        # Step 2: Run database migrations (after tables exist)
-        print("Running database migrations...")
+
+        # Step 2: Run database migrations (including column renames)
+        print("🔄 Running database migrations...")
         try:
             from modules.updateschema import DatabaseManager
             db_manager = DatabaseManager()
@@ -35,7 +35,12 @@ def run_complete_startup_initialization():
         except Exception as migration_error:
             print(f"⚠️  Database migration warning: {migration_error}")
             print("Continuing with existing schema...")
-        
+
+        # Step 3: Initialize default data (after migrations are complete)
+        print("📊 Initializing default data")
+        _initialize_default_data()
+        print("✅ Default data initialization completed successfully")
+
         print("✅ Initialization completed successfully")
         return True
         
@@ -46,33 +51,77 @@ def run_complete_startup_initialization():
         return False
 
 
-def _initialize_with_sqlalchemy():
-    """Initialize database using pure SQLAlchemy without Flask."""
+def _create_tables_only():
+    """Create database tables without initializing data."""
+    # Create SQLAlchemy engine
+    engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
+
+    try:
+        # Import models to register them
+        from modules import models
+
+        # Create all tables (this is idempotent - safe to run multiple times)
+        models.db.metadata.create_all(engine)
+
+    finally:
+        engine.dispose()
+
+
+def _initialize_default_data():
+    """Initialize default data after migrations are complete."""
     # Create SQLAlchemy engine and session
     engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
     SessionLocal = sessionmaker(bind=engine)
     session = SessionLocal()
-    
+
     try:
-        # Import models to register them
-        from modules import models
-        
-        # Create all tables
-        models.db.metadata.create_all(engine)
-        
-        # Initialize data
+        # Initialize data (after migrations have been applied)
         _initialize_library_folders(session)
         _initialize_discovery_sections(session)
-        _initialize_release_groups(session)
+        _initialize_scanning_filters(session)
         _initialize_default_settings(session)
         _initialize_allowed_file_types(session)
         _cleanup_orphaned_scan_jobs(session)
-        
+
         # Log system event
         _log_system_event(session)
-        
+
         session.commit()
-        
+
+    except Exception as e:
+        session.rollback()
+        raise e
+    finally:
+        session.close()
+
+
+def _initialize_with_sqlalchemy():
+    """Legacy function - kept for backward compatibility but not used in new flow."""
+    # Create SQLAlchemy engine and session
+    engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
+    SessionLocal = sessionmaker(bind=engine)
+    session = SessionLocal()
+
+    try:
+        # Import models to register them
+        from modules import models
+
+        # Create all tables
+        models.db.metadata.create_all(engine)
+
+        # Initialize data
+        _initialize_library_folders(session)
+        _initialize_discovery_sections(session)
+        _initialize_scanning_filters(session)
+        _initialize_default_settings(session)
+        _initialize_allowed_file_types(session)
+        _cleanup_orphaned_scan_jobs(session)
+
+        # Log system event
+        _log_system_event(session)
+
+        session.commit()
+
     except Exception as e:
         session.rollback()
         raise e
@@ -193,22 +242,22 @@ def _initialize_discovery_sections(session):
         print("Discovery sections already exist")
 
 
-def _initialize_release_groups(session):
-    """Initialize default release groups."""
+def _initialize_scanning_filters(session):
+    """Initialize default scanning filters."""
     from modules.models import ReleaseGroup
     
     default_name_filters = [
-        {'rlsgroup': 'Open Source', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'Public Domain', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'GOG', 'rlsgroupcs': 'no'},
+        {'filter_pattern': 'Open Source', 'case_sensitive': 'no'},
+        {'filter_pattern': 'Public Domain', 'case_sensitive': 'no'},
+        {'filter_pattern': 'GOG', 'case_sensitive': 'no'},
     ]
 
-    existing_groups = session.execute(select(ReleaseGroup.rlsgroup)).scalars().all()
+    existing_groups = session.execute(select(ReleaseGroup.filter_pattern)).scalars().all()
     existing_group_names = set(existing_groups)
 
     for group in default_name_filters:
-        if group['rlsgroup'] not in existing_group_names:
-            new_group = ReleaseGroup(rlsgroup=group['rlsgroup'], rlsgroupcs=group['rlsgroupcs'])
+        if group['filter_pattern'] not in existing_group_names:
+            new_group = ReleaseGroup(filter_pattern=group['filter_pattern'], case_sensitive=group['case_sensitive'])
             session.add(new_group)
 
 

@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy import select, func
 from flask import current_app, flash, redirect, url_for, session, copy_current_request_context
 from modules.utils_functions import (
-    load_release_group_patterns,
+    load_scanning_filter_patterns,
 )
 from modules.models import (
     Game, Library, AllowedFileType, ScanJob, GlobalSettings, UnmatchedFolder
@@ -111,7 +111,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
         return
 
     # Load patterns before they are used
-    insensitive_patterns, sensitive_patterns = load_release_group_patterns()
+    insensitive_patterns, sensitive_patterns = load_scanning_filter_patterns()
 
     try:
         # Use database-stored allowed extensions
@@ -547,7 +547,7 @@ def handle_manual_scan(manual_form):
 
         if os.path.exists(full_path) and os.access(full_path, os.R_OK):
             print("Folder exists and can be accessed.")
-            insensitive_patterns, sensitive_patterns = load_release_group_patterns()
+            insensitive_patterns, sensitive_patterns = load_scanning_filter_patterns()
             if scan_mode == 'folders':
                 games_with_paths = get_game_names_from_folder(full_path, insensitive_patterns, sensitive_patterns)
             else:  # files mode

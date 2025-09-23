@@ -363,8 +363,8 @@ class TestFormChoices(unittest.TestCase):
         """Test ReleaseGroupForm case-sensitive choices."""
         form = ReleaseGroupForm()
         expected_choices = [('no', 'No'), ('yes', 'Yes')]
-        self.assertEqual(form.rlsgroupcs.choices, expected_choices)
-        self.assertEqual(form.rlsgroupcs.default, 'no')
+        self.assertEqual(form.case_sensitive.choices, expected_choices)
+        self.assertEqual(form.case_sensitive.default, 'no')
 
     def test_scan_folder_form_scan_mode_choices(self):
         """Test ScanFolderForm scan mode choices."""

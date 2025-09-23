@@ -24,19 +24,19 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add New Game Filter</h5>
+                    <h5 class="modal-title">Add New Scanning Filter</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="addFilterForm">
                         {{ form.hidden_tag() }}
                         <div class="mb-3">
-                            <label for="rlsgroup" class="form-label">Game Pattern Filter</label>
-                            {{ form.rlsgroup(class="form-control", id="rlsgroup") }}
+                            <label for="filter_pattern" class="form-label">Scanning Filter Pattern</label>
+                            {{ form.filter_pattern(class="form-control", id="filter_pattern") }}
                         </div>
                         <div class="mb-3 form-check">
-                            {{ form.rlsgroupcs(class="form-check-input", id="rlsgroupcs") }}
-                            <label class="form-check-label" for="rlsgroupcs">Case Sensitive</label>
+                            {{ form.case_sensitive(class="form-check-input", id="case_sensitive") }}
+                            <label class="form-check-label" for="case_sensitive">Case Sensitive</label>
                         </div>
                     </form>
                 </div>
@@ -53,18 +53,18 @@
     <table class="admin_manage_filters-table table table-dark table-striped table-hover">
         <thead>
             <tr>
-                <th width="60%">Game Pattern Filter</th>
+                <th width="60%">Scanning Filter Pattern</th>
                 <th width="20%">Case Sensitive</th>
                 <th width="20%">Actions</th>
             </tr>
         </thead>
         <tbody>
-        {% for group in groups %}
+        {% for group in scanning_filters %}
             <tr>
-                <td>{{ group.rlsgroup }}</td>
+                <td>{{ group.filter_pattern }}</td>
                 <td>
-                    <span class="badge {% if group.rlsgroupcs %}bg-success{% else %}bg-secondary{% endif %}">
-                        {{ 'Yes' if group.rlsgroupcs else 'No' }}
+                    <span class="badge {% if group.case_sensitive %}bg-success{% else %}bg-secondary{% endif %}">
+                        {{ 'Yes' if group.case_sensitive else 'No' }}
                     </span>
                 </td>
                 <td>

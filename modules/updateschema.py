@@ -195,7 +195,29 @@ class DatabaseManager:
                 WHERE image_type = 'cover';
             END IF;
         END $$;
-        
+
+        -- Rename columns in filters table from old release group terminology to scanning filter terminology
+        DO $$
+        BEGIN
+            -- Rename rlsgroup to filter_pattern if the old column exists
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name='filters' AND column_name='rlsgroup'
+            ) THEN
+                ALTER TABLE filters RENAME COLUMN rlsgroup TO filter_pattern;
+                RAISE NOTICE 'Renamed column rlsgroup to filter_pattern in filters table';
+            END IF;
+
+            -- Rename rlsgroupcs to case_sensitive if the old column exists
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name='filters' AND column_name='rlsgroupcs'
+            ) THEN
+                ALTER TABLE filters RENAME COLUMN rlsgroupcs TO case_sensitive;
+                RAISE NOTICE 'Renamed column rlsgroupcs to case_sensitive in filters table';
+            END IF;
+        END $$;
+
         """
         print("Upgrading database to the latest schema")
         try:
