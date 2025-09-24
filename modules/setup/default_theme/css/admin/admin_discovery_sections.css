@@ -87,3 +87,20 @@
 .drag-handle:hover {
     color: #0096ff;
 }
+
+.section-name {
+    flex-grow: 1;
+    color: #fff;
+    font-weight: 500;
+}
+
+.section-count {
+    color: #999;
+    font-size: 0.9em;
+    margin-left: 10px;
+    font-style: italic;
+}
+
+.section-controls {
+    margin-left: auto;
+}

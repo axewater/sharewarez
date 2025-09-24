@@ -24,6 +24,13 @@
                                 <i class="fas fa-grip-vertical drag-handle"></i>
                                 </div>
                                 <span class="section-name">{{ section.name }}</span>
+                                <span class="section-count">
+                                    {% if section_counts[section.identifier] > 0 %}
+                                        ({{ section_counts[section.identifier] }} items)
+                                    {% else %}
+                                        (empty)
+                                    {% endif %}
+                                </span>
                                 <div class="section-controls">
                                     <div class="form-check form-switch">
                                         <input type="checkbox" 
