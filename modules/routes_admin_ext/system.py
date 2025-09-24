@@ -120,11 +120,11 @@ def discovery_sections() -> str:
         elif section.identifier == 'latest_games':
             count = db.session.execute(select(func.count(Game.id))).scalar()
         elif section.identifier == 'most_downloaded':
-            count = db.session.execute(select(func.count(Game.id)).filter(Game.times_downloaded > 0)).scalar()
+            count = db.session.execute(select(func.count(Game.id)).where(Game.times_downloaded > 0)).scalar()
         elif section.identifier == 'highest_rated':
-            count = db.session.execute(select(func.count(Game.id)).filter(Game.rating != None)).scalar()
+            count = db.session.execute(select(func.count(Game.id)).where(Game.rating != None)).scalar()
         elif section.identifier == 'last_updated':
-            count = db.session.execute(select(func.count(Game.id)).filter(Game.last_updated != None)).scalar()
+            count = db.session.execute(select(func.count(Game.id)).where(Game.last_updated != None)).scalar()
         elif section.identifier == 'most_favorited':
             count = db.session.execute(
                 select(func.count(func.distinct(Game.uuid)))

@@ -69,7 +69,7 @@ def discover():
         elif section.identifier == 'latest_games':
             section_data['latest_games'] = fetch_game_details(db.session.execute(select(Game).order_by(Game.date_created.desc())).scalars().all())
         elif section.identifier == 'most_downloaded':
-            section_data['most_downloaded'] = fetch_game_details(db.session.execute(select(Game).order_by(Game.times_downloaded.desc())).scalars().all())
+            section_data['most_downloaded'] = fetch_game_details(db.session.execute(select(Game).filter(Game.times_downloaded > 0).order_by(Game.times_downloaded.desc())).scalars().all())
         elif section.identifier == 'highest_rated':
             section_data['highest_rated'] = fetch_game_details(db.session.execute(select(Game).filter(Game.rating != None).order_by(Game.rating.desc())).scalars().all())
         elif section.identifier == 'last_updated':

@@ -1,3 +1,8 @@
+.container {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
 .card {
     background: rgba(30, 30, 30, 0.95);
     border-radius: 15px;
