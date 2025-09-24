@@ -45,105 +45,194 @@ Invite your friends securely and share your favorite games!
 
 ## 🚀 Installation Guide
 
-### 📋 Prerequisites
+Choose your preferred installation method:
 
-#### 🐧 Linux Requirements
-- Python 3.11
-- pip
-- git
-- Postgresql server
+---
 
-#### 🪟 Windows Requirements
-- Python 3.11 - Install by typing python in powershell, it will open the Window Store, or you cand download manually here: ([Download Python for Windows](https://www.python.org/downloads/windows/))
-- pip (comes with Python these days)
-- git ([Download Git for Windows](https://gitforwindows.org/)))
-- Microsoft Visual C++ 14.0+ ([Download Visual Studio Tools](https://visualstudio.microsoft.com/downloads/))
-- Postgresql server  (https://www.postgresql.org/download/windows/)
+## 🐧 Linux Installation
 
-### 💻 Setup Steps
-
-#### 1️⃣ Clone Repository
+### Step 1: Install Prerequisites
 ```bash
+# Update package list
+sudo apt update
+
+# Install Python 3.11+, pip, git, and PostgreSQL
+sudo apt install python3 python3-pip python3-venv git postgresql postgresql-contrib
+
+# Start PostgreSQL service
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+```
+
+### Step 2: Set up PostgreSQL
+```bash
+# Switch to postgres user and create database
+sudo -u postgres psql
+```
+```sql
+-- In PostgreSQL shell, create database and user
+CREATE DATABASE sharewarez;
+CREATE USER sharewarezuser WITH ENCRYPTED PASSWORD 'your_password_here';
+GRANT ALL PRIVILEGES ON DATABASE sharewarez TO sharewarezuser;
+\q
+```
+
+### Step 3: Clone and Set up SharewareZ
+```bash
+# Clone the repository
 git clone --depth 1 https://github.com/axewater/sharewarez.git
 cd sharewarez
-```
 
-#### 2️⃣ Virtual Environment Setup
-
-##### 🐧 Linux
-```bash
+# Create and activate virtual environment
 python3 -m venv venv
 source venv/bin/activate
+
+# Install Python dependencies
 python3 -m pip install -r requirements.txt
 ```
 
-##### 🪟 Windows (Powershell)
+### Step 4: Configure Application
 ```bash
-python3 -m venv venv
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\venv\Scripts\Activate
-python3 -m pip install -r requirements.txt
+# Copy configuration files
+cp config.py.example config.py
+cp .env.example .env
+
+# Edit the .env file with your settings
+nano .env
 ```
 
-> 💡 Note: Use `python` if `python3` command fails
+**Important**: Update these values in your `.env` file:
+- `DATABASE_URL=postgresql://sharewarezuser:your_password_here@localhost:5432/sharewarez`
+- `DATA_FOLDER_WAREZ=/path/to/your/games/folder`
+- `SECRET_KEY=your_secure_random_key_here`
 
-#### 3️⃣ PostgreSQL Installation
-
-##### 🐧 Linux
+### Step 5: Start SharewareZ
 ```bash
-sudo apt install postgresql
-psql -U postgres -h localhost
-CREATE DATABASE sharewarez;
-```
-
-##### 🪟 Windows
-- 📥 Download [PostgreSQL for Windows](https://www.postgresql.org/download/windows/)
-- 🔧 Run installer & launch PGADMIN
-- ➕ Select "Add a new server"
-- 📊 Use pgAdmin or CLI:
-  ```sql
-  psql -U postgres
-  CREATE DATABASE sharewarez;
-  ```
-
-### ⚙️ Configuration (Windows)
-1. Create config.py by copying the example
-   Copy config.py.example config.py
-2. Create .env by copying .env.example
-   copy .env.example .env
-3. Edit the .env and setup your database connection string and paths (leave the defaults unless you have a different setup)
-
-### ⚙️ Configuration (Linux)
-1. Create config.py by copying the example
-   cp config.py.example config.py
-2. Create .env by copying .env.example
-   cp .env.example .env
-3. Edit the .env and setup your database connection string and paths (leave the defaults unless you have a different setup)
-
-### 🚀 Running the Application
-### Linux
-
-```bash
+# Make startup script executable
 chmod +x startweb.sh
+
+# Start the application
 ./startweb.sh
 ```
-### Windows 
 
-```powershell
-./startweb_windows.cmd
+### Step 6: Complete Setup
+1. Open your browser to `http://localhost:5006`
+2. Complete the setup wizard
+3. Create your admin account
+4. Configure your game libraries
+
+---
+
+## 🪟 Windows Installation
+
+### Step 1: Install Prerequisites
+
+1. **Install Python 3.11+**
+   - Open PowerShell as Administrator
+   - Type `python` - this will open Microsoft Store
+   - Install Python 3.11 or download from [python.org](https://www.python.org/downloads/windows/)
+   - Make sure to check "Add Python to PATH" during installation
+
+2. **Install Git**
+   - Download from [Git for Windows](https://gitforwindows.org/)
+   - Install with default settings
+
+3. **Install Visual C++ Build Tools**
+   - Download [Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/)
+   - Install "C++ build tools" workload
+
+4. **Install PostgreSQL**
+   - Download from [PostgreSQL for Windows](https://www.postgresql.org/download/windows/)
+   - Install with default settings
+   - Remember the password you set for the `postgres` user
+
+### Step 2: Set up PostgreSQL
+1. Open pgAdmin (installed with PostgreSQL)
+2. Connect to your PostgreSQL server
+3. Right-click "Databases" → "Create" → "Database"
+4. Name: `sharewarez`
+5. Click "Save"
+
+**Alternative - Command Line:**
+```cmd
+# Open Command Prompt and run:
+psql -U postgres
+```
+```sql
+CREATE DATABASE sharewarez;
+\q
 ```
 
-- Runs with uvicorn and 4 workers for optimal performance
-- Automatically handles database migrations and initialization
-- Starts on port 5006 by default
+### Step 3: Clone and Set up SharewareZ
+Open PowerShell and run:
+```powershell
+# Clone the repository
+git clone --depth 1 https://github.com/axewater/sharewarez.git
+cd sharewarez
 
-#### Database Reset/Setup
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\venv\Scripts\Activate.ps1
+
+# Install dependencies
+python -m pip install -r requirements.txt
+```
+
+### Step 4: Configure Application
+```powershell
+# Copy configuration files
+copy config.py.example config.py
+copy .env.example .env
+
+# Edit .env file
+notepad .env
+```
+
+**Important**: Update these values in your `.env` file:
+- `DATABASE_URL=postgresql://postgres:your_postgres_password@localhost:5432/sharewarez`
+- `DATA_FOLDER_WAREZ=C:\Path\To\Your\Games\Folder`
+- `SECRET_KEY=your_secure_random_key_here`
+
+### Step 5: Start SharewareZ
+```powershell
+# Start the application
+.\startweb_windows.cmd
+```
+
+### Step 6: Complete Setup
+1. Open your browser to `http://localhost:5006`
+2. Complete the setup wizard
+3. Create your admin account
+4. Configure your game libraries
+
+---
+
+## 🔧 Common Post-Installation Tasks
+
+### Database Reset (if needed)
+**Linux:**
 ```bash
 ./startweb.sh --force-setup
 ```
-- Resets database and forces setup wizard
-- Use when upgrading from older versions or troubleshooting
-- After running, use `./startweb.sh` to start the application
+
+**Windows:**
+```powershell
+.\startweb_windows.cmd --force-setup
+```
+
+### Updating SharewareZ
+1. Stop the application (Ctrl+C)
+2. Pull latest changes: `git pull`
+3. Update dependencies: `pip install -r requirements.txt`
+4. Restart: `./startweb.sh` (Linux) or `.\startweb_windows.cmd` (Windows)
+
+### Troubleshooting
+- **Port 5006 already in use**: Change port in startup script
+- **Database connection errors**: Check PostgreSQL is running and credentials are correct
+- **Permission errors on Linux**: Ensure your user has read access to game directories
 
 ### 🐳 Docker Installation (Recommended for Production)
 
