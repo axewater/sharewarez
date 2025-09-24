@@ -41,7 +41,10 @@ from modules.utils_processors import get_global_settings
 from modules import app_start_time, app_version
 
 bp = Blueprint('main', __name__)
-s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+
+def get_serializer():
+    """Get URLSafeTimedSerializer with current app's secret key."""
+    return URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False

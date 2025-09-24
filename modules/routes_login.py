@@ -18,7 +18,10 @@ from sqlalchemy.exc import IntegrityError
 
 
 login_bp = Blueprint('login', __name__)
-s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+
+def get_serializer():
+    """Get URLSafeTimedSerializer with current app's secret key."""
+    return URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 
 def is_smtp_configured():
     """Check if SMTP settings are properly configured."""
@@ -141,7 +144,7 @@ def register():
                 email=form.email.data.lower(),
                 role='user',
                 is_email_verified=False,
-                email_verification_token=s.dumps(form.email.data, salt='email-confirm'),
+                email_verification_token=get_serializer().dumps(form.email.data, salt='email-confirm'),
                 token_creation_time=datetime.now(timezone.utc),
                 created=datetime.now(timezone.utc)
             )
@@ -177,7 +180,7 @@ def register():
 @login_bp.route('/confirm/<token>')
 def confirm_email(token):
     try:
-        email = s.loads(token, salt='email-confirm', max_age=900)  # 15 minutes
+        email = get_serializer().loads(token, salt='email-confirm', max_age=900)  # 15 minutes
     except SignatureExpired:
         return render_template('login/confirmation_expired.html'), 400
     except BadSignature:
@@ -205,7 +208,7 @@ def reset_password_request():
         print(f'pwr user: {user}')
         if user:
             # Generate a unique token
-            token = s.dumps(user.email, salt='password-reset-salt')
+            token = get_serializer().dumps(user.email, salt='password-reset-salt')
             user.password_reset_token = token
             user.token_creation_time = datetime.now(timezone.utc)
             
