@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.7.2
+# 🎮 SharewareZ v2.7.3
 
 SharewareZ transforms any game folder into a searchable library with IGDB integration, adding cover images, screenshots, and metadata for enhanced filtering.
 Invite your friends securely and share your favorite games!
@@ -145,10 +145,64 @@ chmod +x startweb.sh
 - Use when upgrading from older versions or troubleshooting
 - After running, use `./startweb.sh` to start the application
 
-### 🐳 Docker Alternative NOT FUNCTIONAL AT THIS TIME - SORRY, COMING SOON
+### 🐳 Docker Installation (Recommended for Production)
+
+#### Prerequisites
+- Docker and Docker Compose installed
+- At least 2GB RAM and 10GB disk space
+
+#### Quick Setup
+1. **Clone the repository**
+   ```bash
+   git clone --depth 1 https://github.com/axewater/sharewarez.git
+   cd sharewarez
+   ```
+
+2. **Configure environment**
+   ```bash
+   cp .env.docker.example .env
+   # Edit .env and set your paths and passwords
+   ```
+
+3. **Create required directories**
+   ```bash
+   mkdir -p db_data
+   mkdir -p uploads
+   # Set DATA_FOLDER_WAREZ to your games directory path in .env
+   ```
+
+4. **Start the services**
+   ```bash
+   docker-compose up -d
+   ```
+
+5. **Access SharewareZ**
+   - Open browser to `http://localhost:5006`
+   - Complete the setup wizard
+
+#### Docker Commands
 ```bash
-docker pull kapitanczarnobrod/sharewarez:latest
+# Start services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f app
+
+# Reset database (force setup)
+docker-compose exec app /app/startweb-docker.sh --force-setup
+
+# Stop services
+docker-compose down
+
+# Update to latest version
+docker-compose pull && docker-compose up -d
 ```
+
+#### Docker Configuration Notes
+- Games directory is mounted read-only to `/storage`
+- Upload directory is mounted for persistent cover images
+- PostgreSQL data is stored in named volume `db_data`
+- Default port is 5006 (configurable in docker-compose.yml)
 
 ## 🔧 Additional Settings
 - 🌐 Default port: `5006` (configurable in `startweb.sh` for normal operation or docker-compose.yml for docker)
