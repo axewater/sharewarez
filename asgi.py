@@ -11,10 +11,6 @@ import json
 import uuid
 from urllib.parse import unquote
 from asgiref.wsgi import WsgiToAsgi
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
 
 from modules import create_app, db
 from modules.models import User, DownloadRequest, Game
@@ -23,20 +19,6 @@ from modules.utils_security import is_safe_path, get_allowed_base_directories
 from modules.utils_logging import log_system_event
 from sqlalchemy import select
 
-def setup_database(app, force_setup=False):
-    """Setup database with optional force reset"""
-    if force_setup:
-        with app.app_context():
-            print("Force setup enabled - dropping all tables...")
-            db.drop_all()
-            print("Recreating all tables...")
-            db.create_all()
-            print("Database reset complete.")
-            
-            # Reset setup state in database
-            from modules.utils_setup import reset_setup_state
-            reset_setup_state()
-            print("Setup state reset - setup wizard will be forced on next startup")
 
 # Proper ASGI application with lifespan protocol support
 class LazyASGIApp:
@@ -61,12 +43,9 @@ class LazyASGIApp:
             # For all other routes, use Flask
             if self._app is None:
                 # Create Flask app only on first HTTP request, not during module import
+                # Database initialization is handled by InitializationManager before workers start
                 self._flask_app = create_app()
-                
-                # Handle database setup - check if force-setup was passed to original script
-                force_setup = '--force-setup' in sys.argv or '-fs' in sys.argv
-                setup_database(self._flask_app, force_setup)
-                
+
                 # Wrap with ASGI adapter
                 self._app = WsgiToAsgi(self._flask_app)
             
@@ -85,9 +64,8 @@ class LazyASGIApp:
         try:
             # Initialize Flask app if needed for database access
             if self._flask_app is None:
+                # Database initialization is handled by InitializationManager
                 self._flask_app = create_app()
-                force_setup = '--force-setup' in sys.argv or '-fs' in sys.argv
-                setup_database(self._flask_app, force_setup)
             
             # Handle different download types
             if path.startswith('/download_zip/'):

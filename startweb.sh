@@ -11,9 +11,11 @@ python3 -c "
 from modules.startup_init import run_complete_startup_initialization
 import sys
 
+print('🚀 Starting SharewareZ initialization...')
 if not run_complete_startup_initialization():
-    print('Startup initialization failed, but continuing...')
+    print('❌ Startup initialization failed!')
     sys.exit(1)
+print('✅ Initialization completed - starting workers...')
 "
 
 # Ensure environment variables are set for worker processes

@@ -21,32 +21,6 @@ cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
 app_start_time = datetime.now()
 app_version = '2.7.1'
 
-def cleanup_orphaned_scan_jobs():
-    """Clean up scan jobs that were left in 'Running' state after server restart."""
-    try:
-        from modules.models import ScanJob
-        from sqlalchemy import select, update
-        from datetime import datetime, timezone
-        
-        # Find all jobs that are still marked as 'Running'
-        running_jobs = db.session.execute(select(ScanJob).filter_by(status='Running')).scalars().all()
-        
-        if running_jobs:
-            print(f"Found {len(running_jobs)} orphaned scan job(s) from previous server session")
-            
-            # Mark all running jobs as failed since they were interrupted by server restart
-            for job in running_jobs:
-                job.status = 'Failed'
-                job.error_message = 'Scan job interrupted by server restart'
-                job.is_enabled = False
-                
-            db.session.commit()
-            print(f"Marked {len(running_jobs)} orphaned scan job(s) as failed")
-        else:
-            print("No orphaned scan jobs found")
-            
-    except Exception as e:
-        print(f"Error during orphaned scan job cleanup: {e}")
 
 def create_app():
     global s    
@@ -152,26 +126,12 @@ def create_app():
         from modules.routes_admin_ext import admin2_bp
         from modules.routes_apis import apis_bp
 
-        # Ensure database tables exist
-        db.create_all()
-        
-        # Run database schema updates only if not already done by startup process
-        if os.getenv('SHAREWAREZ_MIGRATIONS_COMPLETE') != 'true':
-            try:
-                from modules.updateschema import DatabaseManager
-                db_manager = DatabaseManager()
-                db_manager.add_column_if_not_exists()
-            except Exception as e:
-                print(f"Warning: Database schema update failed: {e}")
-        
-        # Database initialization is handled by startup_init.py before workers start
-        # Worker processes should skip this to avoid duplication
-        if ('pytest' not in sys.modules and 'PYTEST_CURRENT_TEST' not in os.environ and 
+        # Database initialization is handled by the InitializationManager before workers start
+        # Worker processes skip initialization entirely since it's already done
+        if ('pytest' not in sys.modules and 'PYTEST_CURRENT_TEST' not in os.environ and
             os.getenv('SHAREWAREZ_INITIALIZATION_COMPLETE') != 'true'):
-            # This should only happen in development or if startup_init.py wasn't run
-            print("⚠️  Database initialization not completed by startup process - running minimal init")
-            from modules.init_data import initialize_library_folders
-            initialize_library_folders()
+            # This should only happen in development or if initialization wasn't run
+            print("⚠️  Initialization not completed - this may cause issues")
     app.register_blueprint(routes.bp)
     app.register_blueprint(site_bp)
     app.register_blueprint(admin2_bp)
