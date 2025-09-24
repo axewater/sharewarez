@@ -10,14 +10,28 @@ cd "$(dirname "$0")"
 
 source venv/bin/activate
 
+# Load .env file and export variables to shell environment
+if [ -f .env ]; then
+    echo "📌 Loading environment variables from .env..."
+    set -a  # automatically export all variables
+    source .env
+    set +a  # turn off automatic export
+
+    # Debug: Verify DATABASE_URL is loaded
+    if [ -n "$DATABASE_URL" ]; then
+        echo "✅ DATABASE_URL loaded from .env"
+    else
+        echo "❌ WARNING: DATABASE_URL not found in environment!"
+    fi
+else
+    echo "⚠️  Warning: .env file not found in $(pwd)"
+fi
+
 if [[ "$FORCE_SETUP" == "true" ]]; then
     echo "🔄 Force setup mode - resetting database..."
 
-    # Load environment for standalone execution
+    # Environment variables are already loaded from .env file above
     python3 -c "
-from dotenv import load_dotenv
-load_dotenv()
-
 from modules import create_app, db
 from modules.utils_setup import reset_setup_state
 

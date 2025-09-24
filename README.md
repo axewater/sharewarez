@@ -153,8 +153,7 @@ nano .env
 
 **Step 5: Start SharewareZ**
 ```bash
-# Make startup script executable and start
-chmod +x startweb.sh
+# Start SharewareZ (script is already executable)
 ./startweb.sh
 ```
 

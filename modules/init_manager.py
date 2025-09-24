@@ -64,9 +64,25 @@ class InitializationManager:
             return True
 
         try:
-            load_dotenv()
+            # Use explicit path to ensure .env is found
+            from pathlib import Path
+            import os
+            env_path = Path(__file__).parent.parent / '.env'
+
+            load_dotenv(dotenv_path=env_path)
             self._environment_loaded = True
-            print("🔧 Environment variables loaded successfully")
+
+            # Debug: Verify critical environment variables are loaded
+            database_url = os.getenv('DATABASE_URL')
+            if database_url:
+                # Mask password for security
+                masked_url = database_url.split('@')[0].split(':')[0:2]
+                masked_url = ':'.join(masked_url) + ':***@' + database_url.split('@')[1] if '@' in database_url else database_url
+                print(f"🔧 Environment variables loaded successfully")
+                print(f"📊 DATABASE_URL found: {masked_url}")
+            else:
+                print("⚠️  DATABASE_URL not found in environment - using config fallback")
+
             return True
         except Exception as e:
             print(f"❌ Failed to load environment: {e}")

@@ -431,8 +431,11 @@ configure_postgresql_auth() {
     {
         echo "# Added by SharewareZ installer - $(date)"
         echo "local   sharewarez   sharewarezuser   md5"
+        echo "local   sharewarez   postgres         md5"
         echo "host    sharewarez   sharewarezuser   127.0.0.1/32   md5"
+        echo "host    sharewarez   postgres         127.0.0.1/32   md5"
         echo "host    sharewarez   sharewarezuser   ::1/128        md5"
+        echo "host    sharewarez   postgres         ::1/128        md5"
         echo ""
     } | sudo tee "$PG_HBA_CONF.new" >/dev/null
 
@@ -566,6 +569,9 @@ setup_postgresql() {
 
     # Create database user and database
     sudo -u postgres psql << EOF
+-- Set password for postgres user as fallback
+ALTER USER postgres WITH ENCRYPTED PASSWORD 'postgres';
+
 -- Create user
 DO \$\$
 BEGIN
@@ -582,6 +588,9 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'sharewarez')\gexec
 -- Grant privileges
 GRANT ALL PRIVILEGES ON DATABASE sharewarez TO sharewarezuser;
 GRANT CREATE ON SCHEMA public TO sharewarezuser;
+
+-- Also grant postgres user access to sharewarez database as fallback
+GRANT ALL PRIVILEGES ON DATABASE sharewarez TO postgres;
 
 -- Exit without testing connection here (avoids peer auth issues)
 \q
@@ -719,9 +728,14 @@ EOF
     chmod 600 "$SCRIPT_DIR/.env"
     print_success "Environment configuration created"
 
-    # Make startup script executable
-    chmod +x "$SCRIPT_DIR/startweb.sh"
-    print_success "Startup script permissions set"
+    # Verify startup script is executable (should already be from git)
+    if [ -x "$SCRIPT_DIR/startweb.sh" ]; then
+        print_success "Startup script is executable"
+    else
+        print_info "Making startup script executable..."
+        chmod +x "$SCRIPT_DIR/startweb.sh"
+        print_success "Startup script permissions set"
+    fi
 }
 
 # Validate the installation
