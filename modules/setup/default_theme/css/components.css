@@ -37,7 +37,7 @@
     height: auto;
     transition: transform var(--transition-normal), box-shadow var(--transition-normal);
     box-shadow: 5px 5px 9px var(--shadow-dark-strong);
-    border: 1px solid rgb(49, 49, 49);
+    border: 1px solid var(--game-border-gray);
     border-radius: var(--border-radius-xs);
     max-width: 250px;
     max-height: 332px;
@@ -82,7 +82,7 @@
     top: 10px;
     left: 10px;
     z-index: 13;
-    background-color: rgba(128, 128, 128, 0.7);
+    background-color: var(--btn-hamburger-bg);
     border-radius: 50%;
     padding: 1px 6px;
     border: none;
@@ -92,11 +92,11 @@
 }
 
 .button-glass-hamburger:hover {
-    background-color: rgba(213, 210, 210, 0.9);
+    background-color: var(--btn-hamburger-hover);
 }
 
 .button-glass-hamburger i {
-    color: white;
+    color: var(--text-white);
 }
 
 .game-card:hover .button-glass-hamburger {
@@ -110,7 +110,7 @@
     right: 10px;
     width: 30px;
     height: 30px;
-    background-color: rgba(128, 128, 128, 0.7);
+    background-color: var(--btn-hamburger-bg);
     border-radius: 50%;
     border: none;
     cursor: pointer;
@@ -120,12 +120,12 @@
 }
 
 .favorite-btn i {
-    color: white;
+    color: var(--text-white);
     transition: color 0.3s ease;
 }
 
 .favorite-btn:hover {
-    background-color: rgba(213, 210, 210, 0.9);
+    background-color: var(--btn-hamburger-hover);
 }
 
 .game-card:hover .favorite-btn {
@@ -133,7 +133,7 @@
 }
 
 .favorite-btn.favorited i {
-    color: #ff69b4;
+    color: var(--color-pink-favorite);
 }
 
 .favorite-btn.processing {
@@ -146,7 +146,7 @@
     position: absolute;
     top: 0%;
     z-index: 5;
-    background: #2a2c35;
+    background: var(--pagination-bg);
     padding: var(--spacing-md);
     animation: fadein 0.5s;
     display: none;
@@ -155,7 +155,7 @@
 }
 
 .popup-game-details img {
-    border: 1px solid #000000;
+    border: 1px solid var(--color-black-pure);
     width: 300px;
 }
 
@@ -164,7 +164,7 @@
 }
 
 .game-info-box {
-    background: #2a2c35;
+    background: var(--pagination-bg);
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -174,7 +174,7 @@
 
 .game-name {
     font-size: 1.2rem;
-    color: #ffffff;
+    color: var(--text-white);
 }
 
 .game-name, .game-size, .game-genres {
@@ -189,14 +189,14 @@
     font-size: 0.8rem;
     line-height: 25px;
     border-radius: 25px;
-    background-color: #4a4e69;
-    color: #ffffff;
+    background-color: var(--chip-bg-dark);
+    color: var(--text-white);
     margin: 2px;
     white-space: nowrap;
 }
 
 .file-size-chip {
-    background-color: #6272a4;
+    background-color: var(--chip-bg-blue);
     max-width: 50%;
     margin-bottom: 10px;
 }
@@ -215,8 +215,8 @@
     position: absolute;
     left: 100%;
     top: 0;
-    background-color: #2e2929;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    background-color: var(--submenu-bg);
+    box-shadow: 0px 8px 16px 0px var(--bg-dark-tertiary);
     padding: 8px;
     z-index: 13;
     min-width: 150px;
@@ -224,17 +224,17 @@
 
 .loading-libraries {
     padding: 8px;
-    color: #ddd;
+    color: var(--color-gray-ddd);
 }
 
 .library-item {
     padding: 8px;
     cursor: pointer;
-    color: #ddd;
+    color: var(--color-gray-ddd);
 }
 
 .library-item:hover {
-    background-color: #505563;
+    background-color: var(--submenu-hover);
 }
 
 .move-library-container {

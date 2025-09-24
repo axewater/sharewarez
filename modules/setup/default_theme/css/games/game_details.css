@@ -49,7 +49,7 @@ body.modal-open {
     display: flex;
     flex-direction: column;
     color: var(--text-light);
-    background-color: #42403c;
+    background-color: var(--game-card-brown);
     text-shadow: 5px 5px 5px var(--bg-dark-tertiary);
     padding: var(--spacing-lg);
     padding-right: 40px;
@@ -64,7 +64,7 @@ body.modal-open {
     height: 40px;
     border-radius: 50%;
     background: var(--shadow-dark-strong);
-    border: 2px solid #000;
+    border: 2px solid var(--color-black-pure);
     cursor: pointer;
     transition: all var(--transition-normal);
     z-index: 10;
@@ -82,7 +82,7 @@ body.modal-open {
 }
 
 .favorite-btn.favorited i {
-    color: #ff69b4;
+    color: var(--color-pink-favorite);
 }
 
 .favorite-btn.processing {
@@ -92,7 +92,7 @@ body.modal-open {
     margin-bottom: var(--spacing-sm);
     line-height: normal;
     box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), var(--game-shadow-standard);
-    border: 1px solid #080707;
+    border: 1px solid var(--color-black-darker);
     position: relative;
 }
 
@@ -100,7 +100,7 @@ body.modal-open {
     display: flex;
     flex-direction: column;
     color: var(--text-light);
-    background-color: #42403c;
+    background-color: var(--game-card-brown);
     text-shadow: 5px 5px 5px var(--bg-dark-tertiary);
     padding: var(--spacing-lg);
     padding-right: 40px;
@@ -109,7 +109,7 @@ body.modal-open {
     line-height: normal;
     box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), var(--game-shadow-standard);
     border-radius: var(--border-radius-lg);
-    border: 1px solid #080707;
+    border: 1px solid var(--color-black-darker);
     position: relative;
 }
 
@@ -117,10 +117,10 @@ body.modal-open {
     display: flex;
     flex-direction: row;
     align-items: center;
-    background-color: #403b3b;
+    background-color: var(--game-card-brown-dark);
     border-radius: var(--border-radius-lg);
     padding: var(--spacing-md);
-    border: 1px solid black;
+    border: 1px solid var(--color-black-pure);
     margin-top: auto;
     box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), var(--game-shadow-standard);
     justify-content: space-between;
@@ -179,12 +179,12 @@ body.modal-open {
     border-color: var(--border-white-40);
     color: var(--text-white);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 8px var(--container-glass-primary);
 }
 
 .button-glass-extras:active {
     transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px var(--bg-dark-tertiary);
 }
 
 .download-buttons {
@@ -222,7 +222,7 @@ body.modal-open {
 }
 
 .game-link-icon-container .game-link-icon {
-    color: #aaa;
+    color: var(--text-muted);
     text-shadow: var(--shadow-text);
     transition: color 0.2s ease;
 }
@@ -271,12 +271,12 @@ pre {
 
 .game-card-gamename {
     display: flex;
-    text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.9);
+    text-shadow: 3px 3px 5px var(--bg-dark-strong);
     width: 800px;
 }
 
 .game-card-size {
-    border: 1px solid #ccc;
+    border: 1px solid var(--color-gray-ccc);
     font-size: small;
     border-radius: 10px;
 }
@@ -310,8 +310,8 @@ pre {
 }
 
 .game-card-text-summary {
-    background-color: #bcb5b5;
-    color: #000;
+    background-color: var(--color-gray-light-summary);
+    color: var(--color-black-pure);
     border-radius: var(--border-radius-lg);
     padding-top: 20px;
     padding-bottom: 20px;
@@ -319,14 +319,14 @@ pre {
     padding-right: 20px;
     font-size: 17px;
     line-height: 1.2;
-    border: 1px solid black;
+    border: 1px solid var(--color-black-pure);
     box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), var(--game-shadow-standard);
     text-align: justify;
 }
 
 .game-card-labels {
     color: var(--text-light);
-    text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.9);
+    text-shadow: 5px 5px 5px var(--bg-dark-strong);
     font-size: 18px;
     margin-bottom: 5px;
     margin-top: 5px;
@@ -335,7 +335,7 @@ pre {
 
 .game-card-labels-rating {
     color: var(--text-light);
-    text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.9);
+    text-shadow: 5px 5px 5px var(--bg-dark-strong);
     font-size: 18px;
     margin-bottom: 5px;
     margin-top: 5px;
@@ -354,10 +354,10 @@ pre {
 }
 
 .summary-modal-content {
-    background-color: #100f0f;
+    background-color: var(--color-black-darkest);
     margin: 25% auto;
     padding: 40px;
-    border: 1px solid #888;
+    border: 1px solid var(--color-gray-888);
     width: 75%;
     border-radius: var(--border-radius-lg);
     line-height: 1.3;
@@ -366,7 +366,7 @@ pre {
 }
 
 .summary-close {
-    color: #aaa;
+    color: var(--text-muted);
     float: right;
     font-size: 28px;
     font-weight: bold;
@@ -374,7 +374,7 @@ pre {
 
 .summary-close:hover,
 .summary-close:focus {
-    color: black;
+    color: var(--color-black-pure);
     text-decoration: none;
     cursor: pointer;
 }
@@ -389,7 +389,7 @@ pre {
 .game-image {
     width: 100%;
     height: auto;
-    border: 1px solid #ccc;
+    border: 1px solid var(--color-gray-ccc);
 }
 
 .game-card-coverimage {
@@ -402,7 +402,7 @@ pre {
 .game-card-coverimage img {
     box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), var(--game-shadow-standard);
     border-radius: var(--border-radius-lg);
-    border: 1px solid #080707;
+    border: 1px solid var(--color-black-darker);
 }
 
 .rating-container {
@@ -432,7 +432,7 @@ pre {
     min-width: 20px;
     border-radius: 10px;
     background: linear-gradient(to right, #ff4444, #ffaa44, #44ff44);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 4px var(--container-glass-primary);
     border: 1px solid var(--border-light);
 }
 
@@ -445,7 +445,7 @@ pre {
 }
 
 .emptyrating {
-    color: #aaa;
+    color: var(--text-muted);
     font-style: italic;
     font-size: 14px;
     text-shadow: var(--shadow-text-light);
@@ -462,10 +462,10 @@ pre {
     padding: 5px 10px;
     margin-top: 5px;
     margin-right: 5px;
-    background-color: #3c332c;
+    background-color: var(--game-card-brown-dark);
     border-radius: 25px;
-    text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.9);
-    border: 1px solid black;
+    text-shadow: 5px 5px 5px var(--bg-dark-strong);
+    border: 1px solid var(--color-black-pure);
     text-decoration: none;
     color: var(--text-white);
 }
@@ -476,11 +476,11 @@ pre {
     padding-top: 10px;
     margin-top: 5px;
     margin-right: 5px;
-    background-color: #3c332c;
+    background-color: var(--game-card-brown-dark);
     border-radius: var(--border-radius-lg);
-    text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.9);
+    text-shadow: 5px 5px 5px var(--bg-dark-strong);
     text-size: 100px;
-    border: 1px solid black;
+    border: 1px solid var(--color-black-pure);
 }
 
 .flex-row-horiz {
@@ -561,7 +561,7 @@ pre {
     font-weight: bold;
     z-index: 1052;
     cursor: pointer;
-    text-shadow: 0 0 5px #000;
+    text-shadow: 0 0 5px var(--color-black-pure);
 }
 
 .screenshot-browser-image {
@@ -584,7 +584,7 @@ pre {
     border-radius: 0 3px 3px 0;
     user-select: none;
     background-color: var(--shadow-dark);
-    text-shadow: 0 0 5px #000;
+    text-shadow: 0 0 5px var(--color-black-pure);
     -webkit-user-select: none;
 }
 
@@ -619,7 +619,7 @@ pre {
     background: var(--bg-light-overlay-hover);
     border-color: var(--border-white-40);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 8px var(--container-glass-primary);
 }
 
 .nfo-button .nfo-icon {
@@ -648,7 +648,7 @@ pre {
 
 .nfo-button:active {
     transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px var(--bg-dark-tertiary);
 }
 
 /* NFO Modal */
@@ -681,11 +681,11 @@ pre {
 }
 
 .modal-nfo-header {
-    background-color: #42403c;
+    background-color: var(--game-card-brown);
     color: var(--text-light);
     padding: 15px 20px;
     border-radius: 10px 10px 0 0;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--color-dark-333);
 }
 
 .modal-nfo-header h3 {
@@ -698,7 +698,7 @@ pre {
     overflow-y: auto;
     flex: 1;
     color: var(--text-white);
-    background: rgba(40, 40, 40, 0.8);
+    background: var(--bg-dark-40);
     border-radius: 0 0 10px 10px;
 }
 
@@ -719,12 +719,12 @@ pre {
     font-weight: bold;
     z-index: 1052;
     cursor: pointer;
-    text-shadow: 0 0 5px #000;
+    text-shadow: 0 0 5px var(--color-black-pure);
 }
 
 .modal-nfo .close:hover,
 .modal-nfo .close:focus {
-    color: #ccc;
+    color: var(--color-gray-ccc);
     text-decoration: none;
 }
 
@@ -758,11 +758,11 @@ pre {
 }
 
 .modal-extras-header {
-    background-color: #42403c;
+    background-color: var(--game-card-brown);
     color: var(--text-light);
     padding: 15px 20px;
     border-radius: 10px 10px 0 0;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--color-dark-333);
 }
 
 .modal-extras-header h3 {
@@ -775,20 +775,20 @@ pre {
     overflow-y: auto;
     flex: 1;
     color: var(--text-white);
-    background: rgba(40, 40, 40, 0.8);
+    background: var(--bg-dark-40);
     border-radius: 0 0 10px 10px;
 }
 
 .extras-tabs {
     display: flex;
-    border-bottom: 2px solid #444;
+    border-bottom: 2px solid var(--color-dark-333);
     margin-bottom: 20px;
 }
 
 .extras-tab-button {
     background: transparent;
     border: none;
-    color: #ccc;
+    color: var(--color-gray-ccc);
     padding: 12px 20px;
     cursor: pointer;
     font-size: 16px;
@@ -804,7 +804,7 @@ pre {
 
 .extras-tab-button.active {
     color: var(--text-white);
-    border-bottom-color: #007bff;
+    border-bottom-color: var(--btn-info-hover);
     background: var(--bg-light-overlay);
 }
 
@@ -834,7 +834,7 @@ pre {
 
 .extras-table td {
     padding: 10px;
-    border-bottom: 1px solid #555;
+    border-bottom: 1px solid var(--color-gray-888);
     text-align: left;
     font-weight: normal;
 }
@@ -848,7 +848,7 @@ pre {
 }
 
 .extras-table .file-size {
-    color: #aaa;
+    color: var(--text-muted);
     font-size: 0.9em;
     margin-left: 10px;
 }
@@ -860,13 +860,13 @@ pre {
 }
 
 .extras-table a:hover {
-    color: #007bff;
+    color: var(--btn-info-hover);
 }
 
 /* Override Bootstrap table styling for extras modal */
 .extras-table.table {
     background-color: transparent !important;
-    color: #fff !important;
+    color: var(--text-white) !important;
 }
 
 .extras-table.table tbody,
@@ -874,12 +874,12 @@ pre {
 .extras-table.table th,
 .extras-table.table td {
     background-color: transparent !important;
-    border-color: #555 !important;
+    border-color: var(--color-gray-888) !important;
 }
 
 .extras-table.table-hover tbody tr:hover {
     background-color: var(--bg-light-overlay) !important;
-    color: #fff !important;
+    color: var(--text-white) !important;
 }
 
 /* Make file icons white in extras modal */
@@ -896,12 +896,12 @@ pre {
     font-weight: bold;
     z-index: 1052;
     cursor: pointer;
-    text-shadow: 0 0 5px #000;
+    text-shadow: 0 0 5px var(--color-black-pure);
 }
 
 .modal-extras .close:hover,
 .modal-extras .close:focus {
-    color: #ccc;
+    color: var(--color-gray-ccc);
     text-decoration: none;
 }
 

@@ -1,6 +1,6 @@
 body {
-    background-color: #1a1a1a;
-    color: #ffffff;
+    background-color: var(--admin-bg-dark);
+    color: var(--text-white);
 }
 
 /* Use the unified .admin-section from base.css */
@@ -14,7 +14,7 @@ body {
     color: var(--text-white);
     font-size: 2.5em;
     font-weight: bold;
-    text-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
+    text-shadow: 0 0 10px var(--primary-brand-50);
 }
 
 .admin-section h3 {
@@ -51,23 +51,23 @@ body {
     text-align: center;
     font-size: 24px;
     line-height: 60px;
-    background: rgba(0, 150, 255, 0.2);
-    color: #fff;
-    border: 1px solid rgba(0, 150, 255, 0.3);
+    background: var(--primary-brand-20);
+    color: var(--text-white);
+    border: 1px solid var(--primary-brand-30);
     transition: all 0.3s ease;
 }
 
 .btn-circle:hover {
     transform: translateY(-3px);
-    background: rgba(0, 150, 255, 0.4);
-    box-shadow: 0 0 20px rgba(0, 150, 255, 0.3);
-    color: #fff;
+    background: var(--primary-brand-40);
+    box-shadow: 0 0 20px var(--primary-brand-30);
+    color: var(--text-white);
 }
 
 .button-label {
     margin-top: 8px;
     font-size: 0.9em;
-    color: #fff;
+    color: var(--text-white);
     text-align: center;
 }
 
