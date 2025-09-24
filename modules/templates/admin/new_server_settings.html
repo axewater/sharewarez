@@ -17,209 +17,150 @@
         </div>
         <div class="settingsform-admin">
             <form id="settingsForm">
-                <div>
-                    <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
-                    <br>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="mb-0">Server Configuration</h3>
+                    <button type="submit" class="btn btn-primary">Save Settings</button>
                 </div>
 
                 <div class="row">
-                    <div class="col-md-6">
-                        <table class="table table-dark table-bordered">
-                            <thead>
-                                <tr>
-                                    <th colspan="2"><i class="fa-solid fa-puzzle-piece"></i> Features</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="allowUsersToInviteOthers">
-                                            <label class="form-check-label" for="allowUsersToInviteOthers" data-toggle="tooltip" title="Enables regular users to send invitations to new users.">
-                                                Enable User Invite System
-                                            </label>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="enableServerStatusFeature">
-                                            <label class="form-check-label" for="enableServerStatusFeature" data-toggle="tooltip" title="Enables the server info button in the admin dashboard. This contains sensitive server information such as API keys!">
-                                                Enable Server Info Feature
-                                            </label>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="enableNewsletterFeature">
-                                            <label class="form-check-label" for="enableNewsletterFeature" data-toggle="tooltip" title="Enables the newsletter functionality, allowing administrators to send updates and announcements to users.">
-                                                Enable Newsletter Feature
-                                            </label>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="enableDeleteGameOnDisk">
-                                            <label class="form-check-label" for="enableDeleteGameOnDisk" data-toggle="tooltip" title="Enables the option to delete games from disk. When disabled, this option will be hidden from the UI.">
-                                                Enable Delete Game on Disk
-                                            </label>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="enableGameUpdates">
-                                            <label class="form-check-label" for="enableGameUpdates" data-toggle="tooltip" title="Enables scanning for update files/folder in the game's defined subdirectory.">
-                                                Enable Game Updates Scanning
-                                            </label>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-group">
-                                            <label for="updateFolderName" data-toggle="tooltip" title="Specify the common name for update subfolders">
-                                                Game Updates Folder Name
-                                            </label>
-                                            <input type="text" class="form-control" id="updateFolderName" name="updateFolderName">
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="enableGameExtras">
-                                            <label class="form-check-label" for="enableGameExtras" data-toggle="tooltip" title="Enables scanning for Extra files in the game's defined subdirectory.">
-                                                Enable Extra Files Scanning
-                                            </label>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-group">
-                                            <label for="extrasFolderName" data-toggle="tooltip" title="Specify the common name for update subfolders">
-                                                Extras Folder Name
-                                            </label>
-                                            <input type="text" class="form-control" id="extrasFolderName" name="extrasFolderName">
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-group">
-                                            <label for="siteUrl" data-toggle="tooltip" title="Specify the base URL for your site (e.g., http://yoursite.com)">
-                                                Site URL
-                                            </label>
-                                            <input type="url" class="form-control" id="siteUrl" name="siteUrl" 
-                                                placeholder="http://yoursite.com">
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="useTurboImageDownloads" checked>
-                                            <label class="form-check-label" for="useTurboImageDownloads" data-toggle="tooltip" title="🚀 TURBO MODE: Use parallel multi-threaded downloading for game images (8 threads, 200 batch size). When disabled, uses single-thread sequential downloads. TURBO mode is 8-15x faster but uses more bandwidth.">
-                                                <i class="fas fa-rocket"></i> Enable Multithreaded Image Downloads
-                                            </label>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-group">
-                                            <label for="turboDownloadThreads" data-toggle="tooltip" title="Number of simultaneous download threads for TURBO mode. More threads = faster downloads but higher bandwidth usage. Recommended: 4-8 threads.">
-                                                TURBO Download Threads
-                                            </label>
-                                            <input type="number" class="form-control" id="turboDownloadThreads" name="turboDownloadThreads" 
-                                                min="1" max="16" value="8" placeholder="8">
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-group">
-                                            <label for="turboDownloadBatchSize" data-toggle="tooltip" title="Number of images to process in each TURBO download batch. Higher values = more aggressive downloading. Recommended: 100-200 images.">
-                                                TURBO Batch Size
-                                            </label>
-                                            <input type="number" class="form-control" id="turboDownloadBatchSize" name="turboDownloadBatchSize" 
-                                                min="10" max="500" value="200" placeholder="200">
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-group">
-                                            <label for="scanThreadCount" data-toggle="tooltip" title="Number of threads to use for game scanning operations. Higher values = faster scanning but more CPU usage. Recommended for slow internet connections: 1 thread. Recommended for fast connections: 2-4 threads.">
-                                                <i class="fas fa-search"></i> Game Scan Threads
-                                            </label>
-                                            <input type="number" class="form-control" id="scanThreadCount" name="scanThreadCount" 
-                                                min="1" max="4" value="1" placeholder="1">
-                                            <small class="form-text text-muted">Respects IGDB rate limits (4 req/sec, max 8 concurrent)</small>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <!-- Column 1: Core Features -->
+                    <div class="col-lg-4">
+                        <div class="settings-section">
+                            <h5 class="section-header">
+                                <i class="fa-solid fa-puzzle-piece"></i> Core Features
+                            </h5>
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="allowUsersToInviteOthers">
+                                <label class="form-check-label" for="allowUsersToInviteOthers" data-toggle="tooltip" title="Enables regular users to send invitations to new users.">
+                                    Enable User Invite System
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="enableServerStatusFeature">
+                                <label class="form-check-label" for="enableServerStatusFeature" data-toggle="tooltip" title="Enables the server info button in the admin dashboard. This contains sensitive server information such as API keys!">
+                                    Enable Server Info Feature
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="enableNewsletterFeature">
+                                <label class="form-check-label" for="enableNewsletterFeature" data-toggle="tooltip" title="Enables the newsletter functionality, allowing administrators to send updates and announcements to users.">
+                                    Enable Newsletter Feature
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="enableDeleteGameOnDisk">
+                                <label class="form-check-label" for="enableDeleteGameOnDisk" data-toggle="tooltip" title="Enables the option to delete games from disk. When disabled, this option will be hidden from the UI.">
+                                    Enable Delete Game on Disk
+                                </label>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="siteUrl" class="form-label" data-toggle="tooltip" title="Specify the base URL for your site (e.g., http://yoursite.com)">
+                                    Site URL
+                                </label>
+                                <input type="url" class="form-control form-control-sm" id="siteUrl" name="siteUrl"
+                                    placeholder="http://yoursite.com">
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <table class="table table-dark table-bordered">
-                            <thead>
-                                <tr>
-                                    <th colspan="2"><i class="fa-solid fa-display"></i> Interface</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="showSystemLogo">
-                                            <label class="form-check-label" for="showSystemLogo" data-toggle="tooltip" title="When enabled, displays the SharewareZ logo on the main interface.">
-                                                Show System Logo
-                                            </label>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="showHelpButton">
-                                            <label class="form-check-label" for="showHelpButton" data-toggle="tooltip" title="Adds a help button to the interface, providing users with quick access to support resources.">
-                                                Show Help Button
-                                            </label>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="enableWebLinksOnDetailsPage">
-                                            <label class="form-check-label" for="enableWebLinksOnDetailsPage" data-toggle="tooltip" title="Shows external web links (e.g., official website, community forums) on game detail pages as an icon.">
-                                                Show Weblinks on Details Page
-                                            </label>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="showVersion">
-                                            <label class="form-check-label" for="showVersion" data-toggle="tooltip" title="Displays the current app version below the app logo.">
-                                                Show Version
-                                            </label>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-        
+
+                    <!-- Column 2: Scanning & Performance -->
+                    <div class="col-lg-4">
+                        <div class="settings-section">
+                            <h5 class="section-header">
+                                <i class="fas fa-search"></i> Scanning & Performance
+                            </h5>
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="enableGameUpdates">
+                                <label class="form-check-label" for="enableGameUpdates" data-toggle="tooltip" title="Enables scanning for update files/folder in the game's defined subdirectory.">
+                                    Enable Game Updates Scanning
+                                </label>
+                            </div>
+                            <div class="form-group mb-3">
+                                <input type="text" class="form-control form-control-sm" id="updateFolderName" name="updateFolderName"
+                                    placeholder="Updates folder name" data-toggle="tooltip" title="Specify the common name for update subfolders">
+                            </div>
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="enableGameExtras">
+                                <label class="form-check-label" for="enableGameExtras" data-toggle="tooltip" title="Enables scanning for Extra files in the game's defined subdirectory.">
+                                    Enable Extra Files Scanning
+                                </label>
+                            </div>
+                            <div class="form-group mb-3">
+                                <input type="text" class="form-control form-control-sm" id="extrasFolderName" name="extrasFolderName"
+                                    placeholder="Extras folder name" data-toggle="tooltip" title="Specify the common name for extras subfolders">
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label for="scanThreadCount" class="form-label" data-toggle="tooltip" title="Number of threads to use for game scanning operations. Higher values = faster scanning but more CPU usage. Recommended for slow internet connections: 1 thread. Recommended for fast connections: 2-4 threads.">
+                                    Game Scan Threads
+                                </label>
+                                <input type="number" class="form-control form-control-sm" id="scanThreadCount" name="scanThreadCount"
+                                    min="1" max="4" value="1" placeholder="1">
+                                <small class="form-text text-muted">Respects IGDB rate limits</small>
+                            </div>
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="useTurboImageDownloads" checked>
+                                <label class="form-check-label" for="useTurboImageDownloads" data-toggle="tooltip" title="🚀 TURBO MODE: Use parallel multi-threaded downloading for game images (8 threads, 200 batch size). When disabled, uses single-thread sequential downloads. TURBO mode is 8-15x faster but uses more bandwidth.">
+                                    <i class="fas fa-rocket"></i> Multithreaded Image Downloads
+                                </label>
+                            </div>
+
+                            <div class="row mb-2">
+                                <div class="col-6">
+                                    <input type="number" class="form-control form-control-sm" id="turboDownloadThreads" name="turboDownloadThreads"
+                                        min="1" max="16" value="8" placeholder="Threads" data-toggle="tooltip" title="Number of simultaneous download threads for TURBO mode">
+                                </div>
+                                <div class="col-6">
+                                    <input type="number" class="form-control form-control-sm" id="turboDownloadBatchSize" name="turboDownloadBatchSize"
+                                        min="10" max="500" value="200" placeholder="Batch size" data-toggle="tooltip" title="Number of images to process in each TURBO download batch">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column 3: Interface -->
+                    <div class="col-lg-4">
+                        <div class="settings-section">
+                            <h5 class="section-header">
+                                <i class="fa-solid fa-display"></i> Interface
+                            </h5>
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="showSystemLogo">
+                                <label class="form-check-label" for="showSystemLogo" data-toggle="tooltip" title="When enabled, displays the SharewareZ logo on the main interface.">
+                                    Show System Logo
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="showHelpButton">
+                                <label class="form-check-label" for="showHelpButton" data-toggle="tooltip" title="Adds a help button to the interface, providing users with quick access to support resources.">
+                                    Show Help Button
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="enableWebLinksOnDetailsPage">
+                                <label class="form-check-label" for="enableWebLinksOnDetailsPage" data-toggle="tooltip" title="Shows external web links (e.g., official website, community forums) on game detail pages as an icon.">
+                                    Show Weblinks on Details Page
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="showVersion">
+                                <label class="form-check-label" for="showVersion" data-toggle="tooltip" title="Displays the current app version below the app logo.">
+                                    Show Version
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </form>
