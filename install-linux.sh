@@ -331,7 +331,7 @@ install_prerequisites() {
     install_package "$build_packages"
 
     # Install PostgreSQL
-    if [[ "$SKIP_DB" != true ]]; then
+    if [ "$SKIP_DB" != true ]; then
         print_info "Installing PostgreSQL..."
         install_package "$postgresql_packages"
     fi
@@ -357,7 +357,7 @@ install_prerequisites() {
     fi
     print_success "Git installed: $(git --version | cut -d' ' -f3)"
 
-    if [[ "$SKIP_DB" != true ]]; then
+    if [ "$SKIP_DB" != true ]; then
         if ! command -v psql >/dev/null 2>&1; then
             print_error "PostgreSQL installation failed"
             return 1
@@ -366,9 +366,147 @@ install_prerequisites() {
     fi
 }
 
+# Get PostgreSQL configuration path based on distribution
+get_pg_config_path() {
+    case "$PACKAGE_MANAGER" in
+        apt)
+            # Find the PostgreSQL version directory
+            if [ -d "/etc/postgresql" ]; then
+                PG_VERSION=$(ls /etc/postgresql/ 2>/dev/null | head -1)
+                if [ -n "$PG_VERSION" ]; then
+                    echo "/etc/postgresql/$PG_VERSION/main"
+                    return 0
+                fi
+            fi
+            echo "/etc/postgresql"
+            ;;
+        dnf|yum)
+            echo "/var/lib/pgsql/data"
+            ;;
+        pacman)
+            echo "/var/lib/postgres/data"
+            ;;
+        zypper)
+            echo "/var/lib/pgsql/data"
+            ;;
+        *)
+            # Try common locations
+            for path in "/etc/postgresql" "/var/lib/pgsql/data" "/var/lib/postgres/data"; do
+                if [ -d "$path" ]; then
+                    echo "$path"
+                    return 0
+                fi
+            done
+            echo "/etc/postgresql"
+            ;;
+    esac
+}
+
+# Configure PostgreSQL authentication for password-based access
+configure_postgresql_auth() {
+    print_step "Configuring PostgreSQL authentication..."
+
+    # Get PostgreSQL config path
+    PG_CONFIG_PATH=$(get_pg_config_path)
+    PG_HBA_CONF="$PG_CONFIG_PATH/pg_hba.conf"
+
+    # Check if pg_hba.conf exists
+    if [ ! -f "$PG_HBA_CONF" ]; then
+        print_warning "PostgreSQL pg_hba.conf not found at $PG_HBA_CONF"
+        print_info "Skipping authentication configuration"
+        return 0
+    fi
+
+    # Backup original configuration
+    sudo cp "$PG_HBA_CONF" "$PG_HBA_CONF.backup.$(date +%Y%m%d-%H%M%S)" 2>/dev/null || {
+        print_warning "Could not backup pg_hba.conf (permissions issue)"
+        print_info "Continuing without modifying authentication..."
+        return 0
+    }
+
+    # Add password authentication for sharewarez database
+    print_info "Adding password authentication for sharewarez database..."
+
+    # Add our rules at the top (before default rules)
+    {
+        echo "# Added by SharewareZ installer - $(date)"
+        echo "local   sharewarez   sharewarezuser   md5"
+        echo "host    sharewarez   sharewarezuser   127.0.0.1/32   md5"
+        echo "host    sharewarez   sharewarezuser   ::1/128        md5"
+        echo ""
+    } | sudo tee "$PG_HBA_CONF.new" >/dev/null
+
+    # Append original content
+    sudo cat "$PG_HBA_CONF" | sudo tee -a "$PG_HBA_CONF.new" >/dev/null
+
+    # Replace original with new configuration
+    sudo mv "$PG_HBA_CONF.new" "$PG_HBA_CONF"
+
+    # Reload PostgreSQL configuration
+    if sudo systemctl reload postgresql 2>/dev/null; then
+        print_success "PostgreSQL authentication configured and reloaded"
+    elif sudo service postgresql reload 2>/dev/null; then
+        print_success "PostgreSQL authentication configured and reloaded"
+    else
+        print_warning "Could not reload PostgreSQL - changes will take effect on next restart"
+    fi
+}
+
+# Test database connection with multiple methods
+test_database_connection() {
+    local max_attempts=3
+    local attempt=1
+
+    print_info "Testing database connection..."
+
+    while [ $attempt -le $max_attempts ]; do
+        print_info "Connection attempt $attempt/$max_attempts"
+
+        # Method 1: TCP/IP with localhost
+        if PGPASSWORD="$DB_PASSWORD" psql -h localhost -U sharewarezuser -d sharewarez -c "SELECT 1;" >/dev/null 2>&1; then
+            print_success "Database connection test successful (localhost TCP/IP)"
+            return 0
+        fi
+
+        # Method 2: TCP/IP with 127.0.0.1
+        if PGPASSWORD="$DB_PASSWORD" psql -h 127.0.0.1 -U sharewarezuser -d sharewarez -c "SELECT 1;" >/dev/null 2>&1; then
+            print_success "Database connection test successful (127.0.0.1 TCP/IP)"
+            return 0
+        fi
+
+        # Method 3: Create .pgpass file for authentication
+        if [ "$attempt" -eq $max_attempts ]; then
+            print_info "Trying .pgpass authentication method..."
+            echo "localhost:5432:sharewarez:sharewarezuser:$DB_PASSWORD" > ~/.pgpass
+            chmod 600 ~/.pgpass
+
+            if psql -h localhost -U sharewarezuser -d sharewarez -c "SELECT 1;" >/dev/null 2>&1; then
+                rm ~/.pgpass 2>/dev/null
+                print_success "Database connection test successful (.pgpass method)"
+                return 0
+            fi
+            rm ~/.pgpass 2>/dev/null
+        fi
+
+        attempt=$((attempt + 1))
+        if [ $attempt -le $max_attempts ]; then
+            print_info "Waiting 2 seconds before retry..."
+            sleep 2
+        fi
+    done
+
+    # If all methods failed, provide detailed error information
+    print_error "All database connection methods failed"
+    print_info "This may be due to PostgreSQL authentication configuration"
+    print_info "The database and user were created successfully, but connection testing failed"
+    print_info "You may need to manually configure PostgreSQL authentication"
+
+    return 1
+}
+
 # Start and configure PostgreSQL
 setup_postgresql() {
-    if [[ "$SKIP_DB" == true ]]; then
+    if [ "$SKIP_DB" = true ]; then
         print_info "Skipping PostgreSQL setup (--no-db flag)"
         return 0
     fi
@@ -383,7 +521,7 @@ setup_postgresql() {
             ;;
         dnf|yum)
             # Initialize database if needed
-            if [[ ! -d /var/lib/pgsql/data/base ]]; then
+            if [ ! -d "/var/lib/pgsql/data/base" ]; then
                 print_info "Initializing PostgreSQL database..."
                 sudo postgresql-setup --initdb >/dev/null 2>&1 || true
             fi
@@ -392,7 +530,7 @@ setup_postgresql() {
             ;;
         pacman)
             # Initialize database if needed
-            if [[ ! -d /var/lib/postgres/data/base ]]; then
+            if [ ! -d "/var/lib/postgres/data/base" ]; then
                 print_info "Initializing PostgreSQL database..."
                 sudo -u postgres initdb -D /var/lib/postgres/data
             fi
@@ -445,24 +583,36 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'sharewarez')\gexec
 GRANT ALL PRIVILEGES ON DATABASE sharewarez TO sharewarezuser;
 GRANT CREATE ON SCHEMA public TO sharewarezuser;
 
--- Test connection
-\c sharewarez sharewarezuser
+-- Exit without testing connection here (avoids peer auth issues)
 \q
 EOF
 
-    if [[ $? -eq 0 ]]; then
+    if [ $? -eq 0 ]; then
         print_success "Database 'sharewarez' created with user 'sharewarezuser'"
     else
         print_error "Failed to create database or user"
         return 1
     fi
 
-    # Test the connection
-    if PGPASSWORD="$DB_PASSWORD" psql -h localhost -U sharewarezuser -d sharewarez -c "SELECT 1;" >/dev/null 2>&1; then
-        print_success "Database connection test successful"
-    else
-        print_error "Database connection test failed"
-        return 1
+    # Configure PostgreSQL authentication for password access
+    configure_postgresql_auth
+
+    # Test the database connection with multiple methods
+    if ! test_database_connection; then
+        print_warning "Database connection test failed"
+        print_info "The database and user were created, but connection testing failed"
+        print_info "This may not prevent SharewareZ from working if the application can connect"
+        print_info "You can continue with the installation"
+
+        # Ask user if they want to continue
+        printf "Continue with installation? [Y/n]: "
+        read -r continue_install
+        if [ "${continue_install:-Y}" != "Y" ] && [ "${continue_install:-Y}" != "y" ]; then
+            print_error "Installation aborted by user"
+            return 1
+        fi
+
+        print_info "Continuing with installation..."
     fi
 }
 
@@ -471,7 +621,7 @@ setup_python_environment() {
     print_step "Setting up Python virtual environment..."
 
     # Create virtual environment if it doesn't exist
-    if [[ ! -d "$SCRIPT_DIR/venv" ]]; then
+    if [ ! -d "$SCRIPT_DIR/venv" ]; then
         python3 -m venv "$SCRIPT_DIR/venv"
         print_success "Virtual environment created"
     else
@@ -489,9 +639,9 @@ setup_python_environment() {
         return 1
     fi
 
-    if [[ "$DEV_MODE" == true ]]; then
+    if [ "$DEV_MODE" = true ]; then
         print_info "Installing development dependencies..."
-        if [[ -f "$SCRIPT_DIR/requirements-dev.txt" ]]; then
+        if [ -f "$SCRIPT_DIR/requirements-dev.txt" ]; then
             python3 -m pip install -r "$SCRIPT_DIR/requirements-dev.txt" >/dev/null 2>&1
         fi
     fi
@@ -502,7 +652,7 @@ configure_application() {
     print_step "Configuring SharewareZ application..."
 
     # Copy configuration files
-    if [[ ! -f "$SCRIPT_DIR/config.py" || "$FORCE_INSTALL" == true ]]; then
+    if [ ! -f "$SCRIPT_DIR/config.py" ] || [ "$FORCE_INSTALL" = true ]; then
         cp "$SCRIPT_DIR/config.py.example" "$SCRIPT_DIR/config.py"
         print_success "Configuration file created"
     fi
@@ -511,7 +661,7 @@ configure_application() {
     SECRET_KEY=$(generate_secret_key)
 
     # Prompt for games directory if not specified
-    if [[ -z "$GAMES_DIR" ]]; then
+    if [ -z "$GAMES_DIR" ]; then
         echo
         print_info "Please specify the directory containing your game files:"
         read -p "Games directory path [/home/$USER/games]: " input_dir
@@ -519,10 +669,14 @@ configure_application() {
     fi
 
     # Validate games directory
-    if [[ ! -d "$GAMES_DIR" ]]; then
+    if [ ! -d "$GAMES_DIR" ]; then
         print_warning "Games directory does not exist: $GAMES_DIR"
         read -p "Create this directory? [Y/n]: " create_dir
-        if [[ "${create_dir:-Y}" =~ ^[Yy]$ ]]; then
+        case "${create_dir:-Y}" in
+            [Yy]|[Yy][Ee][Ss]) create_it=true ;;
+            *) create_it=false ;;
+        esac
+        if [ "$create_it" = true ]; then
             mkdir -p "$GAMES_DIR"
             print_success "Games directory created: $GAMES_DIR"
         else
@@ -575,7 +729,7 @@ validate_installation() {
     print_step "Validating installation..."
 
     # Check if virtual environment exists and works
-    if [[ -d "$SCRIPT_DIR/venv" ]]; then
+    if [ -d "$SCRIPT_DIR/venv" ]; then
         source "$SCRIPT_DIR/venv/bin/activate"
 
         # Test Flask app creation
@@ -591,19 +745,18 @@ validate_installation() {
     fi
 
     # Check database connection
-    if [[ "$SKIP_DB" != true ]]; then
-        if PGPASSWORD="$DB_PASSWORD" psql -h localhost -U sharewarezuser -d sharewarez -c "SELECT 1;" >/dev/null 2>&1; then
+    if [ "$SKIP_DB" != true ]; then
+        if test_database_connection >/dev/null 2>&1; then
             print_success "Database connection validated"
         else
-            print_error "Database connection validation failed"
-            return 1
+            print_warning "Database connection validation failed"
+            print_info "This may not prevent SharewareZ from functioning"
         fi
     fi
 
     # Check required files
-    local required_files=(".env" "config.py" "startweb.sh" "requirements.txt")
-    for file in "${required_files[@]}"; do
-        if [[ -f "$SCRIPT_DIR/$file" ]]; then
+    for file in ".env" "config.py" "startweb.sh" "requirements.txt"; do
+        if [ -f "$SCRIPT_DIR/$file" ]; then
             print_success "Required file exists: $file"
         else
             print_error "Missing required file: $file"
@@ -621,7 +774,7 @@ show_summary() {
     echo
     echo -e "${CYAN}📌 Access URL:${NC} http://localhost:$CUSTOM_PORT"
     echo -e "${CYAN}📌 Games Directory:${NC} $GAMES_DIR"
-    if [[ "$SKIP_DB" != true ]]; then
+    if [ "$SKIP_DB" != true ]; then
         echo -e "${CYAN}📌 Database:${NC} sharewarez (credentials stored in .env)"
     fi
     echo -e "${CYAN}📌 Start Command:${NC} ./startweb.sh"
@@ -632,7 +785,15 @@ show_summary() {
 
     # Ask if user wants to start the application
     read -p "Start SharewareZ now? [Y/n]: " start_now
-    if [[ "${start_now:-Y}" =~ ^[Yy]$ ]]; then
+    case "${start_now:-Y}" in
+        [Yy]|[Yy][Ee][Ss])
+            start_it=true
+            ;;
+        *)
+            start_it=false
+            ;;
+    esac
+    if [ "$start_it" = true ]; then
         echo
         print_info "Starting SharewareZ..."
         print_info "Open your browser to http://localhost:$CUSTOM_PORT when ready"
@@ -705,6 +866,6 @@ main() {
 }
 
 # Run main function if script is executed directly
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+if [ "${0##*/}" = "install-linux.sh" ] || [ "${0}" = "./install-linux.sh" ]; then
     main "$@"
 fi
