@@ -110,28 +110,22 @@ def create_app():
             if request.endpoint and request.path != setup_url:
                 return redirect(setup_url)
 
-    with app.app_context():
-        # Import models and routes
-        from . import routes, models
-        from modules.routes_site import site_bp
-        from modules.routes_library import library_bp
-        from modules.routes_setup import setup_bp
-        from modules.routes_settings import settings_bp
-        from modules.routes_login import login_bp
-        from modules.routes_discover import discover_bp
-        from modules.routes_downloads_ext import download_bp
-        from modules.routes_games_ext import games_bp
-        from modules.routes_smtp import smtp_bp
-        from modules.routes_info import info_bp
-        from modules.routes_admin_ext import admin2_bp
-        from modules.routes_apis import apis_bp
+    # Import models and routes
+    from . import routes, models
+    from modules.routes_site import site_bp
+    from modules.routes_library import library_bp
+    from modules.routes_setup import setup_bp
+    from modules.routes_settings import settings_bp
+    from modules.routes_login import login_bp
+    from modules.routes_discover import discover_bp
+    from modules.routes_downloads_ext import download_bp
+    from modules.routes_games_ext import games_bp
+    from modules.routes_smtp import smtp_bp
+    from modules.routes_info import info_bp
+    from modules.routes_admin_ext import admin2_bp
+    from modules.routes_apis import apis_bp
 
-        # Database initialization is handled by the InitializationManager before workers start
-        # Worker processes skip initialization entirely since it's already done
-        if ('pytest' not in sys.modules and 'PYTEST_CURRENT_TEST' not in os.environ and
-            os.getenv('SHAREWAREZ_INITIALIZATION_COMPLETE') != 'true'):
-            # This should only happen in development or if initialization wasn't run
-            print("⚠️  Initialization not completed - this may cause issues")
+    # Register all blueprints
     app.register_blueprint(routes.bp)
     app.register_blueprint(site_bp)
     app.register_blueprint(admin2_bp)
@@ -145,5 +139,13 @@ def create_app():
     app.register_blueprint(smtp_bp)
     app.register_blueprint(info_bp)
     app.register_blueprint(apis_bp)
+
+    with app.app_context():
+        # Database initialization is handled by the InitializationManager before workers start
+        # Worker processes skip initialization entirely since it's already done
+        if ('pytest' not in sys.modules and 'PYTEST_CURRENT_TEST' not in os.environ and
+            os.getenv('SHAREWAREZ_INITIALIZATION_COMPLETE') != 'true'):
+            # This should only happen in development or if initialization wasn't run
+            print("⚠️  Initialization not completed - this may cause issues")
 
     return app
