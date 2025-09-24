@@ -77,7 +77,6 @@ def _initialize_default_data():
     try:
         # Initialize data (after migrations have been applied)
         _initialize_library_folders(session)
-        _initialize_discovery_sections(session)
         _initialize_scanning_filters(session)
         _initialize_default_settings(session)
         _initialize_allowed_file_types(session)
@@ -111,7 +110,6 @@ def _initialize_with_sqlalchemy():
 
         # Initialize data
         _initialize_library_folders(session)
-        _initialize_discovery_sections(session)
         _initialize_scanning_filters(session)
         _initialize_default_settings(session)
         _initialize_allowed_file_types(session)
@@ -223,23 +221,8 @@ def _initialize_library_folders(session):
         print("Created zips folder")
 
 
-def _initialize_discovery_sections(session):
-    """Initialize default discovery sections."""
-    print("Initializing default discovery sections...")
-    from modules.models import DiscoverySection
-    
-    existing_sections = session.execute(select(DiscoverySection)).scalars().first()
-    if not existing_sections:
-        default_sections = [
-            DiscoverySection(name='Latest Additions', identifier='latest', is_visible=True, display_order=1),
-            DiscoverySection(name='Random Selection', identifier='random', is_visible=True, display_order=2),
-            DiscoverySection(name='Most Downloaded', identifier='popular', is_visible=True, display_order=3)
-        ]
-        for section in default_sections:
-            session.add(section)
-        print("Default discovery sections initialized")
-    else:
-        print("Discovery sections already exist")
+# Note: Discovery sections initialization moved to init_data.py
+# to avoid conflicts with duplicate identifiers
 
 
 def _initialize_scanning_filters(session):

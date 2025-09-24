@@ -234,6 +234,10 @@ class DatabaseManager:
                             print(f"Error: {stmt_error}")
                             # Continue with other statements instead of failing completely
                             continue
+
+            # Clean up duplicate discovery sections
+            self.cleanup_duplicate_discovery_sections()
+
             print("Database schema update completed successfully.")
         except Exception as e:
             print(f"An error occurred during schema update: {e}")
@@ -242,6 +246,37 @@ class DatabaseManager:
         finally:
             # Close the database connection
             self.engine.dispose()
+
+    def cleanup_duplicate_discovery_sections(self):
+        """
+        Clean up duplicate discovery sections created by conflicting initialization code.
+        Removes outdated sections with wrong identifiers (latest, random, popular).
+        """
+        cleanup_sql = """
+        -- Delete outdated discovery sections with wrong identifiers
+        DELETE FROM discovery_sections
+        WHERE identifier IN ('latest', 'random', 'popular');
+
+        -- Log what was done
+        DO $$
+        DECLARE
+            deleted_count INTEGER;
+        BEGIN
+            GET DIAGNOSTICS deleted_count = ROW_COUNT;
+            IF deleted_count > 0 THEN
+                RAISE NOTICE 'Removed % outdated discovery sections', deleted_count;
+            END IF;
+        END $$;
+        """
+
+        print("Cleaning up duplicate discovery sections...")
+        try:
+            with self.engine.begin() as connection:
+                connection.execute(text(cleanup_sql))
+                print("Discovery sections cleanup completed successfully.")
+        except Exception as e:
+            print(f"Warning: Discovery sections cleanup failed: {e}")
+            print("Application will continue...")
 
     def _parse_sql_statements(self, sql_text):
         """
