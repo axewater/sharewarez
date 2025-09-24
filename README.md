@@ -45,26 +45,71 @@ Invite your friends securely and share your favorite games!
 
 ## 🚀 Installation Guide
 
-Choose your preferred installation method:
+## 🐧 Linux Installation
+
+### ⚡ Quick Install (Recommended)
+
+**One-Command Installation:**
+```bash
+git clone https://github.com/axewater/sharewarez.git
+cd sharewarez
+./install-linux.sh
+```
+
+The auto-installer will:
+- ✅ Detect your Linux distribution automatically
+- ✅ Install all prerequisites (Python, PostgreSQL, Git)
+- ✅ Set up database with secure credentials
+- ✅ Configure the application automatically
+- ✅ Generate secure encryption keys
+- ✅ Start the application when ready
+
+**Advanced Options:**
+```bash
+# Specify custom games directory
+./install-linux.sh --games-dir /path/to/games
+
+# Development setup with extra tools
+./install-linux.sh --dev
+
+# Skip database setup (use existing)
+./install-linux.sh --no-db
+
+# Override existing installation
+./install-linux.sh --force
+```
 
 ---
 
-## 🐧 Linux Installation
+### 📝 Manual Installation
 
-### Step 1: Install Prerequisites
+If you prefer manual setup or the auto-installer doesn't work:
+
+**Step 1: Install Prerequisites**
 ```bash
 # Update package list
 sudo apt update
 
-# Install Python 3.11+, pip, git, and PostgreSQL
-sudo apt install python3 python3-pip python3-venv git postgresql postgresql-contrib
+# Install Python 3.11+ and pip
+sudo apt install python3 python3-pip python3-venv
+
+# Install git
+sudo apt install git
+
+# Install PostgreSQL database server
+sudo apt install postgresql postgresql-contrib
+
+# Verify installations
+python3 --version
+python3 -m pip --version
+git --version
 
 # Start PostgreSQL service
 sudo systemctl start postgresql
 sudo systemctl enable postgresql
 ```
 
-### Step 2: Set up PostgreSQL
+**Step 2: Set up PostgreSQL**
 ```bash
 # Switch to postgres user and create database
 sudo -u postgres psql
@@ -77,7 +122,7 @@ GRANT ALL PRIVILEGES ON DATABASE sharewarez TO sharewarezuser;
 \q
 ```
 
-### Step 3: Clone and Set up SharewareZ
+**Step 3: Clone and Set up SharewareZ**
 ```bash
 # Clone the repository
 git clone --depth 1 https://github.com/axewater/sharewarez.git
@@ -91,7 +136,7 @@ source venv/bin/activate
 python3 -m pip install -r requirements.txt
 ```
 
-### Step 4: Configure Application
+**Step 4: Configure Application**
 ```bash
 # Copy configuration files
 cp config.py.example config.py
@@ -106,36 +151,30 @@ nano .env
 - `DATA_FOLDER_WAREZ=/path/to/your/games/folder`
 - `SECRET_KEY=your_secure_random_key_here`
 
-### Step 5: Start SharewareZ
+**Step 5: Start SharewareZ**
 ```bash
-# Make startup script executable
+# Make startup script executable and start
 chmod +x startweb.sh
-
-# Start the application
 ./startweb.sh
 ```
 
-### Step 6: Complete Setup
+**Step 6: Complete Setup**
 1. Open your browser to `http://localhost:5006`
-2. Complete the setup wizard
-3. Create your admin account
-4. Configure your game libraries
+2. Complete the setup wizard and create your admin account
 
 ---
 
 ## 🪟 Windows Installation
 
-### Step 1: Install Prerequisites
+**Step 1: Install Prerequisites**
 
 1. **Install Python 3.11+**
-   - Open PowerShell as Administrator
-   - Type `python` - this will open Microsoft Store
+   - Open PowerShell as Administrator, type `python` (opens Microsoft Store)
    - Install Python 3.11 or download from [python.org](https://www.python.org/downloads/windows/)
-   - Make sure to check "Add Python to PATH" during installation
+   - ✅ Check "Add Python to PATH" during installation
 
 2. **Install Git**
-   - Download from [Git for Windows](https://gitforwindows.org/)
-   - Install with default settings
+   - Download from [Git for Windows](https://gitforwindows.org/) and install with default settings
 
 3. **Install Visual C++ Build Tools**
    - Download [Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/)
@@ -143,37 +182,23 @@ chmod +x startweb.sh
 
 4. **Install PostgreSQL**
    - Download from [PostgreSQL for Windows](https://www.postgresql.org/download/windows/)
-   - Install with default settings
-   - Remember the password you set for the `postgres` user
+   - Install with default settings and remember the `postgres` user password
 
-### Step 2: Set up PostgreSQL
-1. Open pgAdmin (installed with PostgreSQL)
-2. Connect to your PostgreSQL server
-3. Right-click "Databases" → "Create" → "Database"
-4. Name: `sharewarez`
-5. Click "Save"
+**Step 2: Set up PostgreSQL**
+Open pgAdmin (installed with PostgreSQL):
+1. Connect to your PostgreSQL server
+2. Right-click "Databases" → "Create" → "Database"
+3. Name: `sharewarez` → Click "Save"
 
-**Alternative - Command Line:**
-```cmd
-# Open Command Prompt and run:
-psql -U postgres
-```
-```sql
-CREATE DATABASE sharewarez;
-\q
-```
-
-### Step 3: Clone and Set up SharewareZ
+**Step 3: Clone and Set up SharewareZ**
 Open PowerShell and run:
 ```powershell
 # Clone the repository
 git clone --depth 1 https://github.com/axewater/sharewarez.git
 cd sharewarez
 
-# Create virtual environment
+# Create and activate virtual environment
 python -m venv venv
-
-# Activate virtual environment
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\venv\Scripts\Activate.ps1
 
@@ -181,13 +206,11 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 python -m pip install -r requirements.txt
 ```
 
-### Step 4: Configure Application
+**Step 4: Configure Application**
 ```powershell
-# Copy configuration files
+# Copy configuration files and edit
 copy config.py.example config.py
 copy .env.example .env
-
-# Edit .env file
 notepad .env
 ```
 
@@ -196,43 +219,33 @@ notepad .env
 - `DATA_FOLDER_WAREZ=C:\Path\To\Your\Games\Folder`
 - `SECRET_KEY=your_secure_random_key_here`
 
-### Step 5: Start SharewareZ
+**Step 5: Start SharewareZ**
 ```powershell
 # Start the application
 .\startweb_windows.cmd
 ```
 
-### Step 6: Complete Setup
+**Step 6: Complete Setup**
 1. Open your browser to `http://localhost:5006`
-2. Complete the setup wizard
-3. Create your admin account
-4. Configure your game libraries
+2. Complete the setup wizard and create your admin account
 
 ---
 
-## 🔧 Common Post-Installation Tasks
+## 🔧 Post-Installation
 
-### Database Reset (if needed)
-**Linux:**
-```bash
-./startweb.sh --force-setup
-```
+**Database Reset (if needed):**
+- Linux: `./startweb.sh --force-setup`
+- Windows: `.\startweb_windows.cmd --force-setup`
 
-**Windows:**
-```powershell
-.\startweb_windows.cmd --force-setup
-```
-
-### Updating SharewareZ
+**Updating SharewareZ:**
 1. Stop the application (Ctrl+C)
-2. Pull latest changes: `git pull`
-3. Update dependencies: `pip install -r requirements.txt`
-4. Restart: `./startweb.sh` (Linux) or `.\startweb_windows.cmd` (Windows)
+2. `git pull` → `pip install -r requirements.txt`
+3. Restart with startup script
 
-### Troubleshooting
-- **Port 5006 already in use**: Change port in startup script
-- **Database connection errors**: Check PostgreSQL is running and credentials are correct
-- **Permission errors on Linux**: Ensure your user has read access to game directories
+**Troubleshooting:**
+- Port 5006 in use: Change port in startup script
+- Database errors: Check PostgreSQL is running and credentials are correct
+- Linux permissions: Ensure read access to game directories
 
 ### 🐳 Docker Installation (Recommended for Production)
 
