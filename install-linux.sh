@@ -721,7 +721,7 @@ SECRET_KEY=$SECRET_KEY
 UPLOAD_FOLDER=$SCRIPT_DIR/modules/static/library
 
 # Development mode
-DEV_MODE=$DEV_MODE
+DEV_MODE=${DEV_MODE:-false}
 EOF
 
     # Set secure permissions on .env file
@@ -813,6 +813,9 @@ show_summary() {
         print_info "Open your browser to http://localhost:$CUSTOM_PORT when ready"
         print_info "Press Ctrl+C to stop the application"
         echo
+
+        # Export PORT for startweb.sh
+        export PORT="$CUSTOM_PORT"
         exec ./startweb.sh
     else
         echo

@@ -173,8 +173,15 @@ class InitializationManager:
             images_path = os.path.join(library_path, 'images')
             zips_path = os.path.join(library_path, 'zips')
 
+            # Get DEV_MODE with fallback for robustness
+            try:
+                dev_mode = Config.DEV_MODE
+            except AttributeError:
+                print("⚠️  Config.DEV_MODE not found, using environment fallback")
+                dev_mode = os.getenv('DEV_MODE', 'false').lower() == 'true'
+
             # Handle theme installation
-            self._setup_default_theme(themes_path, Config.DEV_MODE)
+            self._setup_default_theme(themes_path, dev_mode)
 
             # Create other required directories
             for path, name in [(images_path, 'images'), (zips_path, 'zips')]:

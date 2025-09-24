@@ -53,6 +53,7 @@ Invite your friends securely and share your favorite games!
 ```bash
 git clone https://github.com/axewater/sharewarez.git
 cd sharewarez
+chmod +x install-linux.sh
 ./install-linux.sh
 ```
 
@@ -153,7 +154,8 @@ nano .env
 
 **Step 5: Start SharewareZ**
 ```bash
-# Start SharewareZ (script is already executable)
+# Make shell scripts executable and start
+chmod +x *.sh
 ./startweb.sh
 ```
 

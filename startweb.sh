@@ -70,5 +70,8 @@ print('✅ Initialization completed - starting workers...')
 export SHAREWAREZ_MIGRATIONS_COMPLETE=true
 export SHAREWAREZ_INITIALIZATION_COMPLETE=true
 
+# Set port for uvicorn (default 5006, can be overridden by PORT env var)
+export PORT=${PORT:-5006}
+
 # Start uvicorn with workers (migrations already complete)
-uvicorn asgi:asgi_app --host 0.0.0.0 --port 6006 --workers 4
+uvicorn asgi:asgi_app --host 0.0.0.0 --port $PORT --workers 4
