@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.7.1
+# 🎮 SharewareZ v2.7.2
 
 SharewareZ transforms any game folder into a searchable library with IGDB integration, adding cover images, screenshots, and metadata for enhanced filtering.
 Invite your friends securely and share your favorite games!
@@ -7,7 +7,7 @@ Invite your friends securely and share your favorite games!
 
 - 🔄 Updating from older versions: Automatic update supported - simply overwrite files and run 'pip install -r requirements.txt' again.
 - ⚠️ For versions below 2.0: Database reset required
-- Run `python3 app.py --force-setup` to recreate database and run setup wizard (Note: Use `./startweb.sh` for normal operation)
+- Run `./startweb.sh --force-setup` to recreate database and run setup wizard
 - ⚖️ SharewareZ promotes and encourages the legal use of software. We do not condone or support any unauthorized distribution or use of copyrighted material.
 - 📝 You must install version >2.5.2 before August 2025 or lose the ability to connect to IGDB for any lookups.
 
@@ -139,13 +139,11 @@ chmod +x startweb.sh
 
 #### Database Reset/Setup
 ```bash
-python3 app.py --force-setup
+./startweb.sh --force-setup
 ```
 - Resets database and forces setup wizard
 - Use when upgrading from older versions or troubleshooting
 - After running, use `./startweb.sh` to start the application
-
-> 📝 **Note**: `app.py` is now primarily for CLI operations like `--force-setup`. For normal web application operation, always use `./startweb.sh`
 
 ### 🐳 Docker Alternative NOT FUNCTIONAL AT THIS TIME - SORRY, COMING SOON
 ```bash

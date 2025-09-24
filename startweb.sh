@@ -1,8 +1,42 @@
 #!/bin/bash
 
+# Parse arguments
+FORCE_SETUP=false
+if [[ "$1" == "--force-setup" || "$1" == "-fs" ]]; then
+    FORCE_SETUP=true
+fi
+
 cd "$(dirname "$0")"
 
 source venv/bin/activate
+
+if [[ "$FORCE_SETUP" == "true" ]]; then
+    echo "🔄 Force setup mode - resetting database..."
+
+    # Load environment for standalone execution
+    python3 -c "
+from dotenv import load_dotenv
+load_dotenv()
+
+from modules import create_app, db
+from modules.utils_setup import reset_setup_state
+
+# Create app and reset database
+app = create_app()
+with app.app_context():
+    print('Dropping all tables...')
+    db.drop_all()
+    print('Recreating all tables...')
+    db.create_all()
+    print('Database reset complete.')
+
+    reset_setup_state()
+    print('Setup state reset - setup wizard will run on next startup')
+
+print('Database reset complete. Run ./startweb.sh to start the server.')
+"
+    exit 0
+fi
 
 echo "Starting SharewareZ with uvicorn..."
 
