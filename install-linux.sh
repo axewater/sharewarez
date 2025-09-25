@@ -40,6 +40,7 @@ FORCE_INSTALL=false
 DEV_MODE=false
 SKIP_DB=false
 CUSTOM_PORT="5006"
+VERBOSE_MODE=false
 
 # Cleanup function
 cleanup() {
@@ -88,6 +89,42 @@ print_warning() {
 print_info() {
     echo -e "${CYAN}[ℹ]${NC} $1"
     log "INFO: $1"
+}
+
+# Verbose-only info messages (suppressed in quiet mode)
+print_verbose() {
+    if [ "$VERBOSE_MODE" = true ]; then
+        echo -e "${CYAN}[ℹ]${NC} $1"
+    fi
+    log "VERBOSE: $1"
+}
+
+# Execute command with appropriate output handling
+execute_quiet() {
+    local description="$1"
+    shift
+
+    if [ "$VERBOSE_MODE" = true ]; then
+        # Show full output in verbose mode
+        "$@"
+    else
+        # Suppress stdout but keep stderr in quiet mode
+        "$@" >/dev/null
+    fi
+}
+
+# Execute command with full output suppression in quiet mode
+execute_silent() {
+    local description="$1"
+    shift
+
+    if [ "$VERBOSE_MODE" = true ]; then
+        # Show full output in verbose mode
+        "$@"
+    else
+        # Suppress both stdout and stderr in quiet mode
+        "$@" >/dev/null 2>&1
+    fi
 }
 
 # Check if running as root (bad) or with sudo access (good)
@@ -147,6 +184,14 @@ parse_arguments() {
                 SKIP_DB=true
                 shift
                 ;;
+            --verbose|-v)
+                VERBOSE_MODE=true
+                shift
+                ;;
+            --quiet|-q)
+                VERBOSE_MODE=false
+                shift
+                ;;
             --games-dir)
                 if [ $# -lt 2 ]; then
                     print_error "--games-dir requires an argument"
@@ -187,14 +232,17 @@ show_help() {
     echo "  --force           Override existing installation"
     echo "  --dev            Install development dependencies"
     echo "  --no-db          Skip database setup (use existing)"
+    echo "  --verbose, -v    Show detailed installation output"
+    echo "  --quiet, -q      Suppress detailed output (default)"
     echo "  --games-dir PATH Specify games directory"
     echo "  --port PORT      Custom port (default: 5006)"
     echo "  --help, -h       Show this help message"
     echo
     echo "EXAMPLES:"
     echo "  ./install-linux.sh"
+    echo "  ./install-linux.sh --verbose"
     echo "  ./install-linux.sh --games-dir /home/user/games"
-    echo "  ./install-linux.sh --force --dev"
+    echo "  ./install-linux.sh --force --dev --verbose"
 }
 
 # Backup existing configuration files
@@ -255,20 +303,20 @@ install_package() {
 
     case "$PACKAGE_MANAGER" in
         apt)
-            sudo apt update -qq
-            sudo apt install -y $packages
+            execute_quiet "apt update" sudo apt update -qq
+            execute_quiet "apt install $packages" sudo apt install -y $packages
             ;;
         dnf)
-            sudo dnf install -y $packages
+            execute_quiet "dnf install $packages" sudo dnf install -y $packages
             ;;
         yum)
-            sudo yum install -y $packages
+            execute_quiet "yum install $packages" sudo yum install -y $packages
             ;;
         pacman)
-            sudo pacman -Sy --noconfirm $packages
+            execute_quiet "pacman install $packages" sudo pacman -Sy --noconfirm $packages
             ;;
         zypper)
-            sudo zypper install -y $packages
+            execute_quiet "zypper install $packages" sudo zypper install -y $packages
             ;;
         *)
             print_error "Unsupported package manager: $PACKAGE_MANAGER"
@@ -284,8 +332,8 @@ install_prerequisites() {
     # Update package lists
     case "$PACKAGE_MANAGER" in
         apt)
-            print_info "Updating package lists..."
-            sudo apt update -qq
+            print_verbose "Updating package lists..."
+            execute_quiet "apt update" sudo apt update -qq
             ;;
     esac
 
@@ -319,20 +367,20 @@ install_prerequisites() {
     esac
 
     # Install Python and pip
-    print_info "Installing Python and pip..."
+    print_verbose "Installing Python and pip..."
     install_package "$python_packages"
 
     # Install git
-    print_info "Installing Git..."
+    print_verbose "Installing Git..."
     install_package "$git_package"
 
     # Install build dependencies
-    print_info "Installing build dependencies..."
+    print_verbose "Installing build dependencies..."
     install_package "$build_packages"
 
     # Install PostgreSQL
     if [ "$SKIP_DB" != true ]; then
-        print_info "Installing PostgreSQL..."
+        print_verbose "Installing PostgreSQL..."
         install_package "$postgresql_packages"
     fi
 
@@ -425,7 +473,7 @@ configure_postgresql_auth() {
     }
 
     # Add password authentication for sharewarez database
-    print_info "Adding password authentication for sharewarez database..."
+    print_verbose "Adding password authentication for sharewarez database..."
 
     # Add our rules at the top (before default rules)
     {
@@ -525,8 +573,8 @@ setup_postgresql() {
         dnf|yum)
             # Initialize database if needed
             if [ ! -d "/var/lib/pgsql/data/base" ]; then
-                print_info "Initializing PostgreSQL database..."
-                sudo postgresql-setup --initdb >/dev/null 2>&1 || true
+                print_verbose "Initializing PostgreSQL database..."
+                execute_silent "postgresql setup initdb" sudo postgresql-setup --initdb || true
             fi
             sudo systemctl start postgresql
             sudo systemctl enable postgresql
@@ -534,8 +582,8 @@ setup_postgresql() {
         pacman)
             # Initialize database if needed
             if [ ! -d "/var/lib/postgres/data/base" ]; then
-                print_info "Initializing PostgreSQL database..."
-                sudo -u postgres initdb -D /var/lib/postgres/data
+                print_verbose "Initializing PostgreSQL database..."
+                execute_silent "postgres initdb" sudo -u postgres initdb -D /var/lib/postgres/data
             fi
             sudo systemctl start postgresql
             sudo systemctl enable postgresql
@@ -547,7 +595,7 @@ setup_postgresql() {
     esac
 
     # Wait for PostgreSQL to start
-    print_info "Waiting for PostgreSQL to start..."
+    print_verbose "Waiting for PostgreSQL to start..."
     for i in {1..30}; do
         if sudo -u postgres psql -c "SELECT 1;" >/dev/null 2>&1; then
             break
@@ -565,7 +613,7 @@ setup_postgresql() {
     # Generate secure password for database user
     DB_PASSWORD=$(generate_secure_password)
 
-    print_info "Creating database and user..."
+    print_verbose "Creating database and user..."
 
     # Create database user and database
     sudo -u postgres psql << EOF
@@ -640,8 +688,8 @@ setup_python_environment() {
     # Activate virtual environment and install dependencies
     source "$SCRIPT_DIR/venv/bin/activate"
 
-    print_info "Installing Python dependencies..."
-    if python3 -m pip install -r "$SCRIPT_DIR/requirements.txt" >/dev/null 2>&1; then
+    print_verbose "Installing Python dependencies..."
+    if execute_silent "pip install requirements" python3 -m pip install -r "$SCRIPT_DIR/requirements.txt"; then
         print_success "Python dependencies installed"
     else
         print_error "Failed to install Python dependencies"
@@ -649,9 +697,9 @@ setup_python_environment() {
     fi
 
     if [ "$DEV_MODE" = true ]; then
-        print_info "Installing development dependencies..."
+        print_verbose "Installing development dependencies..."
         if [ -f "$SCRIPT_DIR/requirements-dev.txt" ]; then
-            python3 -m pip install -r "$SCRIPT_DIR/requirements-dev.txt" >/dev/null 2>&1
+            execute_silent "pip install dev requirements" python3 -m pip install -r "$SCRIPT_DIR/requirements-dev.txt"
         fi
     fi
 }
@@ -696,7 +744,7 @@ configure_application() {
     fi
 
     # Create .env file
-    print_info "Creating environment configuration..."
+    print_verbose "Creating environment configuration..."
 
     cat > "$SCRIPT_DIR/.env" << EOF
 # SharewareZ Configuration - Generated by auto-installer $(date)
@@ -732,7 +780,7 @@ EOF
     if [ -x "$SCRIPT_DIR/startweb.sh" ]; then
         print_success "Startup script is executable"
     else
-        print_info "Making startup script executable..."
+        print_verbose "Making startup script executable..."
         chmod +x "$SCRIPT_DIR/startweb.sh"
         print_success "Startup script permissions set"
     fi
@@ -833,6 +881,13 @@ main() {
 
     # Parse command line arguments
     parse_arguments "$@"
+
+    # Show verbosity mode
+    if [ "$VERBOSE_MODE" = true ]; then
+        print_info "Running in verbose mode - showing all installation details"
+    else
+        print_info "Running in quiet mode - use --verbose to see detailed output"
+    fi
 
     # Check permissions
     check_permissions
