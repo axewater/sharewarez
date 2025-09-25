@@ -1,26 +1,9 @@
 <!-- templates/admin/admin_manage_downloads.html -->
 {% extends "base.html" %}  
 {% block content %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <div class="container">
     <div class="glass-panel">
         <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
-    </div>
-</div>
-<div class="container-settings mt-4">
-    <div class="row">
-        <!-- Download Status Chart -->
-        <div class="col-md-12 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h3>Download Status Distribution</h3>
-                </div>
-                <div class="card-body">
-                    <canvas id="statusChart"></canvas>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -74,42 +57,6 @@
     </div>
 
 <script>
-// Prepare data for status chart
-const statusData = {
-    labels: ['Available', 'Processing', 'Failed', 'Pending'],
-    datasets: [{
-        data: [
-            {{ download_requests|selectattr('0.status', 'equalto', 'available')|list|length }},
-            {{ download_requests|selectattr('0.status', 'equalto', 'processing')|list|length }},
-            {{ download_requests|selectattr('0.status', 'equalto', 'failed')|list|length }},
-            {{ download_requests|selectattr('0.status', 'equalto', 'pending')|list|length }}
-        ],
-        backgroundColor: ['#28a745', '#ffc107', '#dc3545', '#6c757d']
-    }]
-};
-
-// Create status chart
-new Chart(document.getElementById('statusChart'), {
-    type: 'pie',
-    data: statusData,
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { 
-            legend: {
-                position: 'bottom',
-                labels: {
-                    color: 'white'
-                }
-            }
-        },
-        layout: {
-            padding: 20
-        },
-        height: 200  // Set a fixed height
-    }
-});
-
 // Initialize DataTables
 $(document).ready(function() {
     $('#downloadsTable').DataTable({
