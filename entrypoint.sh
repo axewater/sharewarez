@@ -2,6 +2,7 @@
 
 echo "🚀 SharewareZ container starting up..."
 
+
 # Extract database connection info from DATABASE_URL if available
 if [[ -n "$DATABASE_URL" ]]; then
     # Parse DATABASE_URL for connection details

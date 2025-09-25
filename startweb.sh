@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 # Parse arguments
 FORCE_SETUP=false
 if [[ "$1" == "--force-setup" || "$1" == "-fs" ]]; then

@@ -6,6 +6,7 @@
 #   Compatible with bash, zsh, and other POSIX shells
 #═══════════════════════════════════════════════
 
+
 # Use bash for advanced features but detect shell for compatibility
 if [ -n "${ZSH_VERSION:-}" ]; then
     # Running in zsh
