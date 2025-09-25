@@ -138,9 +138,33 @@ check_permissions() {
         exit 1
     fi
 
+    # Check if sudo is available on the system
+    if ! command -v sudo >/dev/null 2>&1; then
+        print_error "sudo command not found"
+        print_info "Please install sudo or run as root (not recommended)"
+        exit 1
+    fi
+
+    # First try passwordless sudo check
+    if sudo -n true 2>/dev/null; then
+        print_success "Running with appropriate permissions"
+        return 0
+    fi
+
+    # If passwordless sudo failed, authenticate the user
+    print_info "This installer requires sudo access to install system packages and configure PostgreSQL"
+    print_info "You will be prompted for your sudo password..."
+
+    if ! sudo -v; then
+        print_error "sudo authentication failed"
+        print_info "Please ensure your user account has sudo privileges"
+        print_info "Contact your system administrator if needed"
+        exit 1
+    fi
+
+    # Verify sudo is now working
     if ! sudo -n true 2>/dev/null; then
-        print_error "This script requires sudo access"
-        print_info "Please ensure your user can run sudo commands"
+        print_error "sudo access verification failed after authentication"
         exit 1
     fi
 
@@ -878,6 +902,15 @@ main() {
 
     # Parse command line arguments
     parse_arguments "$@"
+
+    # Show what the installer will do
+    print_info "This installer will:"
+    print_info "  • Install system packages (Python, PostgreSQL, build tools)"
+    print_info "  • Configure PostgreSQL database"
+    print_info "  • Set up Python virtual environment"
+    print_info "  • Configure SharewareZ application"
+    echo
+    print_info "Administrative privileges are required for system package installation."
 
     # Show verbosity mode
     if [ "$VERBOSE_MODE" = true ]; then
