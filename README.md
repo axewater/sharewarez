@@ -328,6 +328,12 @@ docker-compose pull && docker-compose up -d
 
 ## Changelog
 
+  Version 2.7.5
+
+  - 🎨 CSS Architecture Improvements: Comprehensive CSS optimization with centralized color management system for better consistency and maintainability
+  - ⚡ Startup Process Enhancement: Streamlined initialization routine with reduced duplicate initialization calls for faster startup times
+  - 🛠️ Automated Installation: Added comprehensive auto-install script with distribution detection and dependency management
+
   Version 2.7.x
 
   - 🎨 Theme System Overhaul: Complete refactoring using macros for more efficient code, eliminated themes.zip dependency
