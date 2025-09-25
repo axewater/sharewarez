@@ -110,39 +110,6 @@ new Chart(document.getElementById('statusChart'), {
     }
 });
 
-// Storage usage chart
-new Chart(document.getElementById('storageChart'), {
-    type: 'doughnut',
-    data: {
-        labels: ['Used Storage', 'Available'],
-        datasets: [{
-            data: [{{ storage_stats.zip_count }}, 100 - {{ storage_stats.zip_count }}],
-            backgroundColor: ['#0d6efd', '#6c757d']
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    color: 'white'
-                }
-            }
-        },
-        layout: {
-            padding: {
-                left: 10,
-                right: 10,
-                top: 10,
-                bottom: 10
-            }
-        },
-        height: 200  // Set a fixed height
-    }
-});
-
 // Initialize DataTables
 $(document).ready(function() {
     $('#downloadsTable').DataTable({
