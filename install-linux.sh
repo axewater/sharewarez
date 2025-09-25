@@ -777,14 +777,10 @@ EOF
     chmod 600 "$SCRIPT_DIR/.env"
     print_success "Environment configuration created"
 
-    # Verify startup script is executable (should already be from git)
-    if [ -x "$SCRIPT_DIR/startweb.sh" ]; then
-        print_success "Startup script is executable"
-    else
-        print_verbose "Making startup script executable..."
-        chmod +x "$SCRIPT_DIR/startweb.sh"
-        print_success "Startup script permissions set"
-    fi
+    # Make all shell scripts executable (required after git clone)
+    print_verbose "Making all shell scripts executable..."
+    chmod +x "$SCRIPT_DIR"/*.sh
+    print_success "Shell script permissions set"
 }
 
 # Validate the installation

@@ -53,6 +53,7 @@ Invite your friends securely and share your favorite games!
 ```bash
 git clone https://github.com/axewater/sharewarez.git
 cd sharewarez
+# IMPORTANT: Make install script executable first
 chmod +x install-linux.sh
 ./install-linux.sh
 ```
@@ -129,6 +130,9 @@ GRANT ALL PRIVILEGES ON DATABASE sharewarez TO sharewarezuser;
 git clone --depth 1 https://github.com/axewater/sharewarez.git
 cd sharewarez
 
+# IMPORTANT: Make shell scripts executable first
+chmod +x *.sh
+
 # Create and activate virtual environment
 python3 -m venv venv
 source venv/bin/activate
@@ -154,7 +158,7 @@ nano .env
 
 **Step 5: Start SharewareZ**
 ```bash
-# Make shell scripts executable and start
+# IMPORTANT: Make all shell scripts executable first
 chmod +x *.sh
 ./startweb.sh
 ```
@@ -259,6 +263,8 @@ notepad .env
    ```bash
    git clone --depth 1 https://github.com/axewater/sharewarez.git
    cd sharewarez
+   # Make shell scripts executable
+   chmod +x *.sh
    ```
 
 2. **Configure environment**
