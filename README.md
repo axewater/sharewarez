@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.7.5
+# 🎮 SharewareZ v2.7.6
 
 SharewareZ transforms any game folder into a searchable library with IGDB integration, adding cover images, screenshots, and metadata for enhanced filtering.
 Invite your friends securely and share your favorite games!
@@ -45,9 +45,7 @@ Invite your friends securely and share your favorite games!
 
 ## 🚀 Installation Guide
 
-## 🐧 Linux Installation
-
-### ⚡ Quick Install (Recommended)
+## ⚡ Install Script Method (Linux Only)
 
 **One-Command Installation:**
 ```bash
@@ -71,7 +69,7 @@ The auto-installer will:
 # Specify custom games directory
 ./install-linux.sh --games-dir /path/to/games
 
-# Development setup with extra tools
+# Development setup with extra tools including unit testing
 ./install-linux.sh --dev
 
 # Skip database setup (use existing)
@@ -83,7 +81,7 @@ The auto-installer will:
 
 ---
 
-### 📝 Manual Installation
+## 🐧 Linux Manual Install
 
 If you prefer manual setup or the auto-installer doesn't work:
 
@@ -169,7 +167,7 @@ chmod +x *.sh
 
 ---
 
-## 🪟 Windows Installation
+## 🪟 Windows Manual Install
 
 **Step 1: Install Prerequisites**
 
@@ -236,6 +234,12 @@ notepad .env
 
 ---
 
+## 🐳 Docker Install
+
+*Coming soon*
+
+---
+
 ## 🔧 Post-Installation
 
 **Database Reset (if needed):**
@@ -251,67 +255,6 @@ notepad .env
 - Port 5006 in use: Change port in startup script
 - Database errors: Check PostgreSQL is running and credentials are correct
 - Linux permissions: Ensure read access to game directories
-
-### 🐳 Docker Installation (Recommended for Production)
-
-#### Prerequisites
-- Docker and Docker Compose installed
-- At least 2GB RAM and 10GB disk space
-
-#### Quick Setup
-1. **Clone the repository**
-   ```bash
-   git clone --depth 1 https://github.com/axewater/sharewarez.git
-   cd sharewarez
-   # Make shell scripts executable
-   chmod +x *.sh
-   ```
-
-2. **Configure environment**
-   ```bash
-   cp .env.docker.example .env
-   # Edit .env and set your paths and passwords
-   ```
-
-3. **Create required directories**
-   ```bash
-   mkdir -p db_data
-   mkdir -p uploads
-   # Set DATA_FOLDER_WAREZ to your games directory path in .env
-   ```
-
-4. **Start the services**
-   ```bash
-   docker-compose up -d
-   ```
-
-5. **Access SharewareZ**
-   - Open browser to `http://localhost:5006`
-   - Complete the setup wizard
-
-#### Docker Commands
-```bash
-# Start services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f app
-
-# Reset database (force setup)
-docker-compose exec app /app/startweb-docker.sh --force-setup
-
-# Stop services
-docker-compose down
-
-# Update to latest version
-docker-compose pull && docker-compose up -d
-```
-
-#### Docker Configuration Notes
-- Games directory is mounted read-only to `/storage`
-- Upload directory is mounted for persistent cover images
-- PostgreSQL data is stored in named volume `db_data`
-- Default port is 5006 (configurable in docker-compose.yml)
 
 ## 🔧 Additional Settings
 - 🌐 Default port: `5006` (configurable in `startweb.sh` for normal operation or docker-compose.yml for docker)
