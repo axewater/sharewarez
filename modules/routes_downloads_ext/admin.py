@@ -38,26 +38,3 @@ def delete_download_request(request_id):
 
     flash('Download request deleted.', 'success')
     return redirect(url_for('download.manage_downloads'))
-
-@download_bp.route('/admin/clear-processing-downloads', methods=['POST'])
-@login_required
-@admin_required
-def clear_processing_downloads():
-    try:
-        # Find all download requests with 'processing' status
-        processing_downloads = db.session.execute(select(DownloadRequest).filter_by(status='processing')).scalars().all()
-        
-        # Update their status to 'failed'
-        for download in processing_downloads:
-            download.status = 'failed'
-            # Note: DownloadRequest model doesn't currently have error_message field
-        
-        db.session.commit()
-        flash('Successfully cleared all processing downloads.', 'success')
-        
-    except Exception as e:
-        db.session.rollback()
-        log_system_event('admin_download', f'Error clearing processing downloads: {str(e)}', 'error')
-        flash('An error occurred while clearing processing downloads. Please try again.', 'error')
-    
-    return redirect(url_for('download.manage_downloads'))

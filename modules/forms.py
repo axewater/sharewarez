@@ -195,9 +195,6 @@ class AddGameForm(FlaskForm):
     library_uuid = SelectField('Library', coerce=str, validators=[DataRequired()])
     submit = SubmitField('Save')    
     
-class ClearDownloadRequestsForm(FlaskForm):
-    submit = SubmitField('Clear processing queue')
-    
 class CsrfProtectForm(FlaskForm):
     pass
 

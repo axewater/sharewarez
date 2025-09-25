@@ -16,7 +16,7 @@ from modules.forms import (
     WhitelistForm, EditProfileForm, ScanFolderForm, InviteForm,
     UserDetailForm, UserPasswordForm, NewsletterForm, EditUserForm,
     UserManagementForm, CreateUserForm, IGDBApiForm, AddGameForm,
-    ClearDownloadRequestsForm, ReleaseGroupForm, RegistrationForm,
+    ReleaseGroupForm, RegistrationForm,
     UserPreferencesForm, LibraryForm, ThemeUploadForm, IGDBSetupForm,
     UpdateUnmatchedFolderForm
 )
@@ -406,12 +406,6 @@ class TestFormSpecialCases(unittest.TestCase):
         csrf_form2 = CsrfForm()
         field_names2 = [name for name in csrf_form2._fields.keys() if name != 'csrf_token']
         self.assertEqual(len(field_names2), 0)
-
-    def test_clear_download_requests_form_simple(self):
-        """Test ClearDownloadRequestsForm has only submit button."""
-        form = ClearDownloadRequestsForm()
-        field_names = [name for name in form._fields.keys() if name != 'csrf_token']
-        self.assertEqual(field_names, ['submit'])
 
     @patch('modules.forms.comma_separated_urls')
     def test_add_game_form_video_urls_validator(self, mock_validator):

@@ -113,25 +113,18 @@ class TestManageDownloadsRoute:
         """Test that admin can access manage downloads page."""
         with client.session_transaction() as session:
             session['_user_id'] = str(admin_user.id)
-        
-        with patch('modules.routes_downloads_ext.admin.get_zip_storage_stats') as mock_stats:
-            mock_stats.return_value = (5, 1024000, 2048000)
-            
-            response = client.get('/admin/manage-downloads')
-            assert response.status_code == 200
-            assert b'admin_manage_downloads' in response.data or b'manage' in response.data
 
-    @patch('modules.routes_downloads_ext.admin.get_zip_storage_stats')
-    def test_manage_downloads_displays_data(self, mock_stats, client, admin_user, sample_download_request):
-        """Test that manage downloads displays download requests and storage stats."""
-        mock_stats.return_value = (3, 500000, 1000000)
-        
-        with client.session_transaction() as session:
-            session['_user_id'] = str(admin_user.id)
-        
         response = client.get('/admin/manage-downloads')
         assert response.status_code == 200
-        mock_stats.assert_called_once()
+        assert b'admin_manage_downloads' in response.data or b'manage' in response.data
+
+    def test_manage_downloads_displays_data(self, client, admin_user, sample_download_request):
+        """Test that manage downloads displays download requests."""
+        with client.session_transaction() as session:
+            session['_user_id'] = str(admin_user.id)
+
+        response = client.get('/admin/manage-downloads')
+        assert response.status_code == 200
 
     def test_manage_downloads_unauthenticated(self, client):
         """Test that unauthenticated users are redirected."""
@@ -150,50 +143,21 @@ class TestDeleteDownloadRequestRoute:
         response = client.post(f'/delete_download_request/{sample_download_request.id}')
         assert response.status_code == 302  # Should redirect due to lack of admin access
 
-    @patch('modules.routes_downloads_ext.admin.delete_zip_file_safely')
     @patch('modules.routes_downloads_ext.admin.log_system_event')
-    def test_delete_download_request_success(self, mock_log, mock_delete, client, admin_user, sample_download_request, app):
+    def test_delete_download_request_success(self, mock_log, client, admin_user, sample_download_request, app):
         """Test successful deletion of download request."""
-        mock_delete.return_value = (True, "ZIP file deleted successfully")
-        
         with client.session_transaction() as session:
             session['_user_id'] = str(admin_user.id)
-        
-        with app.app_context():
-            app.config['ZIP_SAVE_PATH'] = '/test/zip/path'
-            
-            response = client.post(f'/delete_download_request/{sample_download_request.id}')
-            assert response.status_code == 302  # Should redirect
-            
-            # Verify the download request was deleted from database
-            deleted_request = db.session.get(DownloadRequest, sample_download_request.id)
-            assert deleted_request is None
-            
-            # Verify logging and ZIP deletion were called
-            mock_delete.assert_called_once()
-            mock_log.assert_called()
 
-    @patch('modules.routes_downloads_ext.admin.delete_zip_file_safely')
-    @patch('modules.routes_downloads_ext.admin.log_system_event')
-    def test_delete_download_request_zip_deletion_failure(self, mock_log, mock_delete, client, admin_user, sample_download_request, app):
-        """Test deletion when ZIP file deletion fails."""
-        mock_delete.return_value = (False, "File not found")
-        
-        with client.session_transaction() as session:
-            session['_user_id'] = str(admin_user.id)
-        
-        with app.app_context():
-            app.config['ZIP_SAVE_PATH'] = '/test/zip/path'
-            
-            response = client.post(f'/delete_download_request/{sample_download_request.id}')
-            assert response.status_code == 302
-            
-            # Verify the download request was still deleted from database
-            deleted_request = db.session.get(DownloadRequest, sample_download_request.id)
-            assert deleted_request is None
-            
-            # Verify error was logged
-            mock_log.assert_called()
+        response = client.post(f'/delete_download_request/{sample_download_request.id}')
+        assert response.status_code == 302  # Should redirect
+
+        # Verify the download request was deleted from database
+        deleted_request = db.session.get(DownloadRequest, sample_download_request.id)
+        assert deleted_request is None
+
+        # Verify logging was called
+        mock_log.assert_called()
 
     @patch('modules.routes_downloads_ext.admin.log_system_event')
     def test_delete_download_request_no_zip_save_path(self, mock_log, client, admin_user, sample_download_request, app):
@@ -248,96 +212,6 @@ class TestDeleteDownloadRequestRoute:
         assert response.status_code == 302  # Should redirect to login
 
 
-class TestClearProcessingDownloadsRoute:
-    """Test the clear processing downloads route."""
-
-    def test_clear_processing_requires_admin_login(self, client, regular_user):
-        """Test that clear processing requires admin login."""
-        with client.session_transaction() as session:
-            session['_user_id'] = str(regular_user.id)
-        
-        response = client.post('/admin/clear-processing-downloads')
-        assert response.status_code == 302  # Should redirect due to lack of admin access
-
-    @patch.object(DownloadRequest, 'error_message', create=True)
-    def test_clear_processing_downloads_success(self, mock_error_message, client, admin_user, processing_download_request, db_session):
-        """Test successful clearing of processing downloads."""
-        with client.session_transaction() as session:
-            session['_user_id'] = str(admin_user.id)
-        
-        # Verify initial state
-        assert processing_download_request.status == 'processing'
-        
-        response = client.post('/admin/clear-processing-downloads')
-        assert response.status_code == 302  # Should redirect
-        
-        # Refresh the object from database
-        db_session.refresh(processing_download_request)
-        
-        # Verify status was updated
-        assert processing_download_request.status == 'failed'
-        # Note: error_message field doesn't exist in current model, but test verifies the status change
-
-    @patch.object(DownloadRequest, 'error_message', create=True)
-    def test_clear_processing_downloads_multiple(self, mock_error_message, client, admin_user, db_session, regular_user, test_game):
-        """Test clearing multiple processing downloads."""
-        # Create multiple processing downloads
-        downloads = []
-        for i in range(3):
-            download_request = DownloadRequest(
-                user_id=regular_user.id,
-                game_uuid=test_game.uuid,
-                status='processing',
-                request_time=datetime.now(timezone.utc)
-            )
-            db_session.add(download_request)
-            downloads.append(download_request)
-        db_session.commit()
-        
-        with client.session_transaction() as session:
-            session['_user_id'] = str(admin_user.id)
-        
-        response = client.post('/admin/clear-processing-downloads')
-        assert response.status_code == 302
-        
-        # Verify all processing downloads were updated
-        for download in downloads:
-            db_session.refresh(download)
-            assert download.status == 'failed'
-            # Note: error_message field doesn't exist in current model
-
-    def test_clear_processing_downloads_no_processing_downloads(self, client, admin_user, sample_download_request):
-        """Test clearing when no processing downloads exist."""
-        with client.session_transaction() as session:
-            session['_user_id'] = str(admin_user.id)
-        
-        # Ensure sample_download_request is not processing
-        assert sample_download_request.status != 'processing'
-        
-        response = client.post('/admin/clear-processing-downloads')
-        assert response.status_code == 302  # Should still succeed
-
-    @patch('modules.routes_downloads_ext.admin.db.session.commit')
-    @patch('modules.routes_downloads_ext.admin.log_system_event')
-    def test_clear_processing_downloads_database_error(self, mock_log, mock_commit, client, admin_user, processing_download_request):
-        """Test handling of database errors during clear processing downloads."""
-        mock_commit.side_effect = Exception("Database error")
-        
-        with client.session_transaction() as session:
-            session['_user_id'] = str(admin_user.id)
-        
-        response = client.post('/admin/clear-processing-downloads')
-        assert response.status_code == 302
-        
-        # Verify error was logged
-        mock_log.assert_called_with('admin_download', 'Error clearing processing downloads: Database error', 'error')
-
-    def test_clear_processing_unauthenticated(self, client):
-        """Test that unauthenticated users cannot clear processing downloads."""
-        response = client.post('/admin/clear-processing-downloads')
-        assert response.status_code == 302  # Should redirect to login
-
-
 class TestIntegration:
     """Integration tests for admin download management."""
 
@@ -365,46 +239,15 @@ class TestIntegration:
             session['_user_id'] = str(admin_user.id)
         
         # 1. View manage downloads page
-        with patch('modules.routes_downloads_ext.admin.get_zip_storage_stats') as mock_stats:
-            mock_stats.return_value = (2, 1024000, 2048000)
-            response = client.get('/admin/manage-downloads')
-            assert response.status_code == 200
-        
-        # 2. Clear processing downloads
-        response = client.post('/admin/clear-processing-downloads')
-        assert response.status_code == 302
-        
-        # Verify processing request was updated
-        db_session.refresh(processing_request)
-        assert processing_request.status == 'failed'
-        # Note: error_message field doesn't exist in current model
-        
-        # 3. Delete completed request
-        with patch('modules.routes_downloads_ext.admin.delete_zip_file_safely') as mock_delete:
-            with patch('modules.routes_downloads_ext.admin.log_system_event'):
-                mock_delete.return_value = (True, "ZIP file deleted successfully")
-                
-                response = client.post(f'/delete_download_request/{completed_request.id}')
-                assert response.status_code == 302
-                
-                # Verify request was deleted
-                deleted_request = db.session.get(DownloadRequest, completed_request.id)
-                assert deleted_request is None
+        response = client.get('/admin/manage-downloads')
+        assert response.status_code == 200
 
-    @patch('modules.routes_downloads_ext.admin.delete_zip_file_safely')
-    def test_zip_file_safety_warnings(self, mock_delete, client, admin_user, sample_download_request, app):
-        """Test that security warnings are properly handled."""
-        mock_delete.return_value = (True, "ZIP file not in the expected directory")
-        
-        with client.session_transaction() as session:
-            session['_user_id'] = str(admin_user.id)
-        
-        with app.app_context():
-            app.config['ZIP_SAVE_PATH'] = '/test/zip/path'
-            
-            response = client.post(f'/delete_download_request/{sample_download_request.id}')
+        # 2. Delete completed request
+        with patch('modules.routes_downloads_ext.admin.log_system_event'):
+            response = client.post(f'/delete_download_request/{completed_request.id}')
             assert response.status_code == 302
-            
-            # Verify the request was still deleted despite the warning
-            deleted_request = db.session.get(DownloadRequest, sample_download_request.id)
+
+            # Verify request was deleted
+            deleted_request = db.session.get(DownloadRequest, completed_request.id)
             assert deleted_request is None
+
