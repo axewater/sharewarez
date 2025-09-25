@@ -277,11 +277,16 @@
 }
 
 /* Progress bars */
+.scan-progress {
+    --spacing-sm: 0; /* Neutralize the spacing variable for this component */
+}
+
 .scan-progress .progress {
     background-color: var(--bg-light-overlay-hover);
     border-radius: 4px;
     position: relative;
     overflow: hidden;
+    margin-bottom: 4px;
 }
 
 .scan-progress .progress-bar {
@@ -292,7 +297,7 @@
 
 /* Progress information layout */
 .progress-info {
-    margin-top: 4px;
+
     font-size: 0.875rem;
     text-align: center;
 }
