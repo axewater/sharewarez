@@ -17,7 +17,6 @@ class Config(object):
     UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'modules/static/library')
     SECRET_KEY = os.getenv('SECRET_KEY') or 'you-will-never-guess-this'
     IMAGE_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/library/images')
-    ZIP_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'modules/static/library/zips')
     IGDB_API_ENDPOINT = os.getenv('IGDB_API_ENDPOINT', 'https://api.igdb.com/v4/games')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     

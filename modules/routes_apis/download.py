@@ -51,7 +51,7 @@ def api_delete_download_request(request_id: int) -> Tuple[dict, int]:
 
         return jsonify({
             'status': 'success',
-            'message': 'Download request deleted'
+            'message': 'Download request deleted successfully'
         }), 200
         
     except Exception as e:

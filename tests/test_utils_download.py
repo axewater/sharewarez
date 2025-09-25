@@ -146,7 +146,7 @@ class TestZipGame:
         sample_download_request.game.full_disk_path = temp_game_directory
         db_session.commit()
         
-        zip_file_path = os.path.join(app.config['ZIP_SAVE_PATH'], 'test_game.zip')
+        zip_file_path = 'test_game.zip'
         
         # Call the function
         zip_game(sample_download_request.id, app, zip_file_path)
@@ -180,7 +180,7 @@ class TestZipGame:
             sample_download_request.game.full_disk_path = temp_dir
             db_session.commit()
             
-            zip_file_path = os.path.join(app.config['ZIP_SAVE_PATH'], 'test_exclusion.zip')
+            zip_file_path = 'test_exclusion.zip'
             
             # Call the function
             zip_game(sample_download_request.id, app, zip_file_path)
@@ -205,7 +205,7 @@ class TestZipGame:
         sample_download_request.game.full_disk_path = '/nonexistent/path'
         db_session.commit()
         
-        zip_file_path = os.path.join(app.config['ZIP_SAVE_PATH'], 'test_nonexistent.zip')
+        zip_file_path = 'test_nonexistent.zip'
         
         # Call the function
         zip_game(sample_download_request.id, app, zip_file_path)
@@ -254,7 +254,7 @@ class TestZipGame:
         sample_download_request.game.full_disk_path = temp_game_directory
         db_session.commit()
         
-        zip_file_path = os.path.join(app.config['ZIP_SAVE_PATH'], 'test_zipstream.zip')
+        zip_file_path = 'test_zipstream.zip'
         
         # Call the function
         zip_game(sample_download_request.id, app, zip_file_path)
@@ -277,7 +277,7 @@ class TestZipGame:
         
         # Use an unsafe filename
         unsafe_name = 'test<>game|with:invalid*chars?.zip'
-        zip_file_path = os.path.join(app.config['ZIP_SAVE_PATH'], unsafe_name)
+        zip_file_path = unsafe_name
         
         # Call the function
         zip_game(sample_download_request.id, app, zip_file_path)

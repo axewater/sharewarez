@@ -1,5 +1,4 @@
 import os
-import zipfile
 from datetime import datetime, timezone
 from typing import Tuple
 from modules.utils_filename import sanitize_filename
@@ -54,53 +53,10 @@ def zip_game(download_request_id, app, zip_file_path):
             prepare_streaming_download(download_request, source_path, safe_name)
             return
         
-        # Only proceed with traditional ZIP creation logic if it's not suitable for streaming
-        zip_save_path = app.config['ZIP_SAVE_PATH']
-        safe_name = sanitize_filename(os.path.basename(zip_file_path))
-        zip_file_path = os.path.join(os.path.dirname(zip_file_path), safe_name)
-        
-        # Validate destination ZIP path is within the expected ZIP save directory (only when creating ZIP)
-        abs_zip_path = os.path.abspath(os.path.realpath(zip_file_path))
-        abs_zip_save_path = os.path.abspath(os.path.realpath(zip_save_path))
-        if not abs_zip_path.startswith(abs_zip_save_path):
-            print(f"Security error: ZIP destination path outside allowed directory: {zip_file_path}")
-            update_download_request(download_request, 'failed', "Error: Invalid destination path")
-            return
-       
-        # Proceed to zip the game
-        try:
-            if not os.path.exists(zip_save_path):
-                os.makedirs(zip_save_path)
-                print(f"Created missing directory: {zip_save_path}")
-                
-            update_download_request(download_request, 'processing', zip_file_path)
-            print(f"Zipping game folder: {source_path} to {zip_file_path} with storage method.")
-            
-            with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_STORED) as zipf:
-                for root, dirs, files in os.walk(source_path):
-                    # Exclude the updates and extras folders (case-insensitive)
-                    dirs_to_remove = []
-                    for dir_name in dirs:
-                        if dir_name.lower() == settings.update_folder_name.lower():
-                            dirs_to_remove.append(dir_name)
-                        elif dir_name.lower() == settings.extras_folder_name.lower():
-                            dirs_to_remove.append(dir_name)
-                    
-                    # Remove the directories (done separately to avoid modifying list while iterating)
-                    for dir_name in dirs_to_remove:
-                        dirs.remove(dir_name)
-                    
-                    for file in files:
-                        file_path = os.path.join(root, file)
-                        # Ensure .NFO, .SFV, and file_id.diz files are still included in the zip
-                        zipf.write(file_path, os.path.relpath(file_path, source_path))
-            print(f"Archive created at {zip_file_path}")
-            update_download_request(download_request, 'available', zip_file_path)
-            
-        except Exception as e:
-            error_message = str(e)
-            print(f"An error occurred: {error_message}")
-            update_download_request(download_request, 'failed', "Error: " + error_message)
+        # If we reach here, neither direct download nor streaming is suitable
+        # This should not happen with current logic, log an error
+        print(f"Error: Unable to handle source path {source_path} - not a file and zipstream not suitable")
+        update_download_request(download_request, 'failed', "Error: Unsupported source type")
 
 def update_download_request(download_request, status, file_path, file_size=None):
     download_request.status = status
@@ -136,7 +92,6 @@ def zip_folder(download_request_id, app, file_location, file_name):
             update_download_request(download_request, 'failed', f"Error: {error_message}")
             return
         
-        zip_save_path = app.config['ZIP_SAVE_PATH']
 
         # Check if source path exists
         if not os.path.exists(source_path):
@@ -157,39 +112,10 @@ def zip_folder(download_request_id, app, file_location, file_name):
             prepare_streaming_download(download_request, source_path, safe_name)
             return
 
-        # Proceed to zip the folder with traditional method
-        try:           
-            if not os.path.exists(zip_save_path):
-                os.makedirs(zip_save_path)
-                print(f"Created missing directory: {zip_save_path}")
-                    
-            safe_name = sanitize_filename(f"{file_name}.zip")
-            zip_file_path = os.path.join(zip_save_path, safe_name)
-            
-            # Validate destination ZIP path is within the expected ZIP save directory
-            abs_zip_path = os.path.abspath(os.path.realpath(zip_file_path))
-            abs_zip_save_path = os.path.abspath(os.path.realpath(zip_save_path))
-            if not abs_zip_path.startswith(abs_zip_save_path):
-                print(f"Security error: ZIP destination path outside allowed directory: {zip_file_path}")
-                update_download_request(download_request, 'failed', "Error: Invalid destination path")
-                return
-                
-            print(f"Zipping game folder: {source_path} to {zip_file_path} with storage method.")
-            
-            with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_STORED) as zipf:
-                for root, dirs, files in os.walk(source_path):
-                    for file in files:
-                        file_path = os.path.join(root, file)
-                        # Ensure .NFO, .SFV, and file_id.diz files are still included in the zip
-                        zipf.write(file_path, os.path.relpath(file_path, source_path))
-                print(f"Archive created at {zip_file_path}")
-                zip_file_size = os.path.getsize(zip_file_path)
-                update_download_request(download_request, 'available', zip_file_path, zip_file_size)
-            
-        except Exception as e:
-            error_message = str(e)
-            print(f"An error occurred: {error_message}")
-            update_download_request(download_request, 'failed', "Error: " + error_message)
+        # If we reach here, neither direct download nor streaming is suitable
+        # This should not happen with current logic, log an error
+        print(f"Error: Unable to handle source path {source_path} - not a file and zipstream not suitable")
+        update_download_request(download_request, 'failed', "Error: Unsupported source type")
 
 
 def prepare_streaming_download(download_request, source_path, filename):

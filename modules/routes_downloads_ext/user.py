@@ -1,11 +1,9 @@
-import os
 from flask import render_template, redirect, url_for, flash, jsonify, current_app, abort
 from flask_login import login_required, current_user
 from modules.forms import CsrfProtectForm
 from modules.models import DownloadRequest
 from sqlalchemy import select
 from modules.utils_functions import format_size
-from modules.utils_security import is_safe_path
 from modules.utils_logging import log_system_event
 from . import download_bp
 from modules import db
@@ -38,36 +36,8 @@ def delete_download(download_id):
                         event_type='security', event_level='warning')
         abort(404)
     
-    zip_save_path = current_app.config.get('ZIP_SAVE_PATH')
-    
-    # Allow deletion regardless of status
-    if download_request.zip_file_path and os.path.exists(download_request.zip_file_path):
-        # Only delete the file if it's a generated zip file in our ZIP_SAVE_PATH
-        try:
-            if zip_save_path:
-                # Use secure path validation
-                is_safe, error_msg = is_safe_path(download_request.zip_file_path, [zip_save_path])
-                
-                if is_safe:
-                    os.remove(download_request.zip_file_path)
-                    log_system_event(f"User {current_user.id} successfully deleted zip file: {download_request.zip_file_path}", 
-                                   event_type='audit', event_level='information')
-                    flash('Zipped download deleted successfully.', 'success')
-                else:
-                    log_system_event(f"Path traversal attempt blocked: user {current_user.id} tried to delete {download_request.zip_file_path} - {error_msg}", 
-                                   event_type='security', event_level='warning')
-                    flash('Download request removed. Original file preserved.', 'info')
-            else:
-                # ZIP_SAVE_PATH not configured, just remove the download request
-                flash('Download request removed. Original file preserved.', 'info')
-        except Exception as e:
-            db.session.rollback()
-            log_system_event(f"Error deleting download file for user {current_user.id}: {str(e)}", 
-                           event_type='error', event_level='error')
-            flash(f'An error occurred while deleting the file: {e}', 'danger')
-            return redirect(url_for('download.downloads'))
-    else:
-        flash('No file found to delete, only the download request was removed.', 'info')
+    # Delete download request (no physical files to clean up with new streaming approach)
+    flash('Download request removed.', 'info')
     
     db.session.delete(download_request)
     db.session.commit()

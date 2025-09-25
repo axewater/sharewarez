@@ -174,108 +174,78 @@ class TestDeleteDownloadRoute:
         ).scalars().all()
         assert any('Unauthorized download deletion attempt' in log.event_text for log in security_logs)
     
-    @patch('modules.routes_downloads_ext.user.is_safe_path')
-    @patch('os.path.exists')
-    @patch('os.remove')
-    def test_delete_download_successful_file_deletion(self, mock_remove, mock_exists, mock_is_safe_path, 
-                                                     client, authenticated_user, sample_download_request, app):
-        """Test successful deletion of download with file."""
-        mock_exists.return_value = True
-        mock_is_safe_path.return_value = (True, None)
-        
+    def test_delete_download_successful_file_deletion(self, client, authenticated_user, sample_download_request, app):
+        """Test successful deletion of download request (no file management)."""
         with app.app_context():
-            app.config['ZIP_SAVE_PATH'] = '/test/zip/path'
-            
             with client.session_transaction() as sess:
                 sess['_user_id'] = str(authenticated_user.id)
                 sess['_fresh'] = True
-            
+
             response = client.post(f'/delete_download/{sample_download_request.id}')
             assert response.status_code == 302  # Redirect
             assert response.location.endswith('/downloads')
-            
-            # Verify file removal was called
-            mock_remove.assert_called_once_with(sample_download_request.zip_file_path)
-            
+
             # Verify download request was deleted from database
             deleted_request = db.session.get(DownloadRequest, sample_download_request.id)
             assert deleted_request is None
-            
+
             # Check audit log
             audit_logs = db.session.execute(
                 select(SystemEvents).filter_by(event_type='audit')
             ).scalars().all()
-            assert any('successfully deleted zip file' in log.event_text for log in audit_logs)
+            assert any('deleted download request' in log.event_text for log in audit_logs)
     
-    @patch('modules.routes_downloads_ext.user.is_safe_path')
-    @patch('os.path.exists')
-    def test_delete_download_path_traversal_blocked(self, mock_exists, mock_is_safe_path, 
-                                                   client, authenticated_user, sample_download_request, app):
-        """Test that path traversal attacks are blocked."""
-        mock_exists.return_value = True
-        mock_is_safe_path.return_value = (False, "Access denied - path outside allowed directories")
-        
+    def test_delete_download_path_traversal_blocked(self, client, authenticated_user, sample_download_request, app, db_session):
+        """Test deletion works regardless of zip file paths (no file validation needed)."""
+        # Set a potentially dangerous path (should be ignored)
+        sample_download_request.zip_file_path = '../../../etc/passwd'
+        db_session.commit()  # Commit the change to the database
+
         with app.app_context():
-            app.config['ZIP_SAVE_PATH'] = '/test/zip/path'
-            
             with client.session_transaction() as sess:
                 sess['_user_id'] = str(authenticated_user.id)
                 sess['_fresh'] = True
-            
+
             response = client.post(f'/delete_download/{sample_download_request.id}')
             assert response.status_code == 302  # Redirect
-            
-            # Check security log
-            security_logs = db.session.execute(
-                select(SystemEvents).filter_by(event_type='security')
-            ).scalars().all()
-            assert any('Path traversal attempt blocked' in log.event_text for log in security_logs)
-    
-    def test_delete_download_no_zip_save_path_config(self, client, authenticated_user, sample_download_request, app):
-        """Test deletion when ZIP_SAVE_PATH is not configured."""
-        with app.app_context():
-            app.config.pop('ZIP_SAVE_PATH', None)
-            
-            with client.session_transaction() as sess:
-                sess['_user_id'] = str(authenticated_user.id)
-                sess['_fresh'] = True
-            
-            response = client.post(f'/delete_download/{sample_download_request.id}')
-            assert response.status_code == 302  # Redirect
-            
-            # Verify download request was still deleted from database
+
+            # Verify download request was deleted (path ignored)
             deleted_request = db.session.get(DownloadRequest, sample_download_request.id)
             assert deleted_request is None
     
-    @patch('modules.routes_downloads_ext.user.is_safe_path')
-    @patch('os.path.exists')
-    @patch('os.remove')
-    def test_delete_download_file_removal_error(self, mock_remove, mock_exists, mock_is_safe_path, 
-                                               client, authenticated_user, sample_download_request, app):
-        """Test handling of file removal errors."""
-        mock_exists.return_value = True
-        mock_is_safe_path.return_value = (True, None)
-        mock_remove.side_effect = OSError("Permission denied")
-        
+    def test_delete_download_no_zip_save_path_config(self, client, authenticated_user, sample_download_request, app):
+        """Test deletion works without ZIP_SAVE_PATH configuration."""
         with app.app_context():
-            app.config['ZIP_SAVE_PATH'] = '/test/zip/path'
-            
             with client.session_transaction() as sess:
                 sess['_user_id'] = str(authenticated_user.id)
                 sess['_fresh'] = True
-            
+
             response = client.post(f'/delete_download/{sample_download_request.id}')
             assert response.status_code == 302  # Redirect
-            
-            # Verify download request still exists in database due to rollback
-            existing_request = db.session.get(DownloadRequest, sample_download_request.id)
-            assert existing_request is not None
-            
-            # Check error log
-            error_logs = db.session.execute(
-                select(SystemEvents).filter_by(event_type='error')
+
+            # Verify download request was deleted from database
+            deleted_request = db.session.get(DownloadRequest, sample_download_request.id)
+            assert deleted_request is None
+    
+    def test_delete_download_file_removal_error(self, client, authenticated_user, sample_download_request, app):
+        """Test deletion succeeds without file operations."""
+        with app.app_context():
+            with client.session_transaction() as sess:
+                sess['_user_id'] = str(authenticated_user.id)
+                sess['_fresh'] = True
+
+            response = client.post(f'/delete_download/{sample_download_request.id}')
+            assert response.status_code == 302  # Redirect
+
+            # Verify download request was deleted successfully
+            deleted_request = db.session.get(DownloadRequest, sample_download_request.id)
+            assert deleted_request is None
+
+            # Check audit log
+            audit_logs = db.session.execute(
+                select(SystemEvents).filter_by(event_type='audit')
             ).scalars().all()
-            assert any('Error deleting download file' in log.event_text for log in error_logs)
+            assert any('deleted download request' in log.event_text for log in audit_logs)
 
 
 class TestCheckDownloadStatusRoute:
@@ -380,25 +350,22 @@ class TestSecurityLogging:
     def test_audit_logs_created_for_successful_operations(self, client, authenticated_user, sample_download_request, app):
         """Test that audit logs are created for successful operations."""
         with app.app_context():
-            app.config['ZIP_SAVE_PATH'] = '/test/zip/path'
-            
             with client.session_transaction() as sess:
                 sess['_user_id'] = str(authenticated_user.id)
                 sess['_fresh'] = True
-            
+
             # Clear existing logs
             db.session.query(SystemEvents).delete()
             db.session.commit()
-            
-            with patch('os.path.exists', return_value=False):
-                response = client.post(f'/delete_download/{sample_download_request.id}')
-                assert response.status_code == 302
-            
+
+            response = client.post(f'/delete_download/{sample_download_request.id}')
+            assert response.status_code == 302
+
             # Check that audit log was created
             audit_logs = db.session.execute(
                 select(SystemEvents).filter_by(event_type='audit')
             ).scalars().all()
-            
+
             assert len(audit_logs) == 1
             assert f'User {authenticated_user.id} deleted download request' in audit_logs[0].event_text
             assert audit_logs[0].audit_user == authenticated_user.id

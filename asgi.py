@@ -130,34 +130,18 @@ class LazyASGIApp:
                 await self._handle_streaming_download(send, download_request, file_path)
                 return
             
-            # Security validation - different logic for ZIP files vs direct files
-            zip_save_path = self._flask_app.config.get('ZIP_SAVE_PATH')
-            if not zip_save_path:
+            # Security validation for direct game files
+            allowed_bases = get_allowed_base_directories(self._flask_app)
+            if not allowed_bases:
                 await self._send_error(send, 500, "Server configuration error")
                 return
-            
-            # Check if this is a ZIP file (created by the system) or a direct game file
-            if file_path.endswith('.zip') and file_path.startswith(zip_save_path):
-                # This is a ZIP file - validate it's in ZIP_SAVE_PATH
-                is_safe, error_message = is_safe_path(file_path, [zip_save_path])
-                if not is_safe:
-                    log_system_event(f"Security violation - ZIP file outside ZIP directory: {file_path[:100]}", 
-                                   event_type='security', event_level='warning')
-                    await self._send_error(send, 403, "Access denied")
-                    return
-            else:
-                # This is a direct game file - validate it's in allowed game directories
-                allowed_bases = get_allowed_base_directories(self._flask_app)
-                if not allowed_bases:
-                    await self._send_error(send, 500, "Server configuration error")
-                    return
-                    
-                is_safe, error_message = is_safe_path(file_path, allowed_bases)
-                if not is_safe:
-                    log_system_event(f"Security violation - game file outside allowed directories: {file_path[:100]}", 
-                                   event_type='security', event_level='warning')
-                    await self._send_error(send, 403, "Access denied")
-                    return
+
+            is_safe, error_message = is_safe_path(file_path, allowed_bases)
+            if not is_safe:
+                log_system_event(f"Security violation - game file outside allowed directories: {file_path[:100]}",
+                               event_type='security', event_level='warning')
+                await self._send_error(send, 403, "Access denied")
+                return
             
             if not os.path.exists(file_path):
                 await self._send_error(send, 404, "File not found")
