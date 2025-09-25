@@ -18,7 +18,7 @@ services:
     container_name: sharewarez-app
     restart: unless-stopped
     ports:
-      - "5006:5006"
+      - "6006:6006"
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - DATA_FOLDER_WAREZ=/storage
@@ -35,7 +35,7 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5006/ || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:6006/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -60,4 +60,4 @@ export SHAREWAREZ_INITIALIZATION_COMPLETE=true
 
 # Start uvicorn for Docker (bind to all interfaces, single worker for containers)
 # Note: In Docker, we typically run single worker and scale with multiple containers
-uvicorn asgi:asgi_app --host 0.0.0.0 --port 5006 --workers 1
+uvicorn asgi:asgi_app --host 0.0.0.0 --port 6006 --workers 1

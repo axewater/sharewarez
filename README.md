@@ -162,7 +162,7 @@ chmod +x *.sh
 ```
 
 **Step 6: Complete Setup**
-1. Open your browser to `http://localhost:5006`
+1. Open your browser to `http://localhost:6006`
 2. Complete the setup wizard and create your admin account
 
 ---
@@ -229,7 +229,7 @@ notepad .env
 ```
 
 **Step 6: Complete Setup**
-1. Open your browser to `http://localhost:5006`
+1. Open your browser to `http://localhost:6006`
 2. Complete the setup wizard and create your admin account
 
 ---
@@ -252,12 +252,12 @@ notepad .env
 3. Restart with startup script
 
 **Troubleshooting:**
-- Port 5006 in use: Change port in startup script
+- Port 6006 in use: Change port in startup script
 - Database errors: Check PostgreSQL is running and credentials are correct
 - Linux permissions: Ensure read access to game directories
 
 ## 🔧 Additional Settings
-- 🌐 Default port: `5006` (configurable in `startweb.sh` for normal operation or docker-compose.yml for docker)
+- 🌐 Default port: `6006` (configurable in `startweb.sh` for normal operation or docker-compose.yml for docker)
 - 👥 Go the admin dashboard for further configuration
 
 ## 🔧 Supported platforms to play in browser 
