@@ -11,4 +11,4 @@ def inject_settings():
     return get_global_settings()
 
 # Import routes to register them with the blueprint
-from . import themes, libraries, discord, system, invites, filters, extensions, help, users, whitelist, newsletter, settings, igdb, images, access_management
+from . import themes, libraries, discord, system, invites, filters, extensions, help, users, whitelist, newsletter, settings, igdb, images
