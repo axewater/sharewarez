@@ -10,30 +10,8 @@
 </div>
 <div class="container-settings mt-4">
     <div class="row">
-        <!-- Storage Stats Card -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h3>Storage Overview</h3>
-                </div>
-                <div class="card-body storage-overview">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <canvas id="storageChart"></canvas>
-                        </div>
-                        <div class="col-md-9">
-                            <div class="stats-details">
-                                <p><strong>Total Zip Files:</strong> {{ storage_stats.zip_count }}</p>
-                                <p><strong>Total Storage Used:</strong> {{ storage_stats.total_size }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Download Status Chart -->
-        <div class="col-md-6 mb-4">
+        <div class="col-md-12 mb-4">
             <div class="card h-100">
                 <div class="card-header">
                     <h3>Download Status Distribution</h3>
@@ -43,8 +21,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Timeline chart removed -->
     </div>
 </div>
 
