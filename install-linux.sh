@@ -919,6 +919,10 @@ main() {
         print_info "Running in quiet mode - use --verbose to see detailed output"
     fi
 
+    echo
+    print_info "Press any key to continue or Ctrl+C to quit..."
+    read -n 1 -s -r
+
     # Check permissions
     check_permissions
 
