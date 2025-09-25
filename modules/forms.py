@@ -205,8 +205,8 @@ class CsrfForm(FlaskForm):
     pass 
 
 class ReleaseGroupForm(FlaskForm):
-    rlsgroup = StringField('Release Group', validators=[DataRequired()])
-    rlsgroupcs = SelectField('Case-Sensitive Release Group', choices=[('no', 'No'), ('yes', 'Yes')], default='no')
+    filter_pattern = StringField('Scanning Filter', validators=[DataRequired()])
+    case_sensitive = SelectField('Case-Sensitive Filter', choices=[('no', 'No'), ('yes', 'Yes')], default='no')
     submit = SubmitField('Add')
     
 class RegistrationForm(FlaskForm):

@@ -29,7 +29,7 @@ from modules.models import (
     Category, Library, user_favorites,
     ReleaseGroup, AllowedFileType
 )
-from modules.utils_functions import load_release_group_patterns, format_size, PLATFORM_IDS
+from modules.utils_functions import load_scanning_filter_patterns, format_size, PLATFORM_IDS
 from modules.utilities import handle_auto_scan, handle_manual_scan, scan_and_add_games
 from modules.utils_auth import admin_required
 from modules.utils_gamenames import get_game_names_from_folder, get_game_name_by_uuid
@@ -41,7 +41,10 @@ from modules.utils_processors import get_global_settings
 from modules import app_start_time, app_version
 
 bp = Blueprint('main', __name__)
-s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+
+def get_serializer():
+    """Get URLSafeTimedSerializer with current app's secret key."""
+    return URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False
@@ -134,12 +137,17 @@ def browse_games():
 def scan_folder():
     ## to be fixed broken again after update
     form = ScanFolderForm()
-    
+    release_group_form = ReleaseGroupForm()
+
     libraries = db.session.execute(select(Library)).scalars().all()
     form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in libraries]
-    
+
     csrf_form = CsrfProtectForm()
     game_names_with_ids = None
+
+    # Data for template consistency with scan_management
+    scanning_filters = db.session.execute(select(ReleaseGroup).order_by(ReleaseGroup.filter_pattern.asc())).scalars().all()
+    allowed_file_types = db.session.execute(select(AllowedFileType).order_by(AllowedFileType.value.asc())).scalars().all()
     
     if form.validate_on_submit():
         if form.cancel.data:
@@ -152,22 +160,28 @@ def scan_folder():
         allowed_bases = get_allowed_base_directories(current_app)
         if not allowed_bases:
             flash('Service configuration error: No allowed base directories configured.', 'error')
-            return render_template('admin/admin_manage_scanjobs.html', 
-                                  form=form, manual_form=form, csrf_form=csrf_form, 
-                                  game_names_with_ids=game_names_with_ids)
+            return render_template('admin/admin_manage_scanjobs.html',
+                                  form=form, manual_form=form, csrf_form=csrf_form,
+                                  game_names_with_ids=game_names_with_ids,
+                                  release_group_form=release_group_form,
+                                  scanning_filters=scanning_filters,
+                                  allowed_file_types=allowed_file_types)
         
         # Security validation: ensure the folder path is within allowed directories
         is_safe, error_message = is_safe_path(folder_path, allowed_bases)
         if not is_safe:
             print(f"Security error: Scan folder path validation failed for {folder_path}: {error_message}")
             flash(f"Access denied: {error_message}", 'error')
-            return render_template('admin/admin_manage_scanjobs.html', 
-                                  form=form, manual_form=form, csrf_form=csrf_form, 
-                                  game_names_with_ids=game_names_with_ids)
+            return render_template('admin/admin_manage_scanjobs.html',
+                                  form=form, manual_form=form, csrf_form=csrf_form,
+                                  game_names_with_ids=game_names_with_ids,
+                                  release_group_form=release_group_form,
+                                  scanning_filters=scanning_filters,
+                                  allowed_file_types=allowed_file_types)
 
         if os.path.exists(folder_path) and os.access(folder_path, os.R_OK):
             print("Folder exists and is accessible.")
-            insensitive_patterns, sensitive_patterns = load_release_group_patterns()
+            insensitive_patterns, sensitive_patterns = load_scanning_filter_patterns()
             games_with_paths = get_game_names_from_folder(folder_path, insensitive_patterns, sensitive_patterns)
             session['active_tab'] = 'manualScan'
             session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}            
@@ -176,11 +190,14 @@ def scan_folder():
             flash("Folder does not exist or cannot be accessed.", "error")
             print("Folder does not exist or cannot be accessed.")
             
-    return render_template('admin/admin_manage_scanjobs.html', 
-                          form=form, 
+    return render_template('admin/admin_manage_scanjobs.html',
+                          form=form,
                           manual_form=form,
-                          csrf_form=csrf_form, 
-                          game_names_with_ids=game_names_with_ids)
+                          csrf_form=csrf_form,
+                          game_names_with_ids=game_names_with_ids,
+                          release_group_form=release_group_form,
+                          scanning_filters=scanning_filters,
+                          allowed_file_types=allowed_file_types)
 
 
 
@@ -222,7 +239,7 @@ def scan_management():
     game_count = db.session.scalar(select(func.count(Game.id)))  # Fetch the game count here
 
     # Data for new tabs
-    release_groups = db.session.execute(select(ReleaseGroup).order_by(ReleaseGroup.rlsgroup.asc())).scalars().all()
+    scanning_filters = db.session.execute(select(ReleaseGroup).order_by(ReleaseGroup.filter_pattern.asc())).scalars().all()
     allowed_file_types = db.session.execute(select(AllowedFileType).order_by(AllowedFileType.value.asc())).scalars().all()
 
     if request.method == 'POST':
@@ -237,28 +254,26 @@ def scan_management():
             return handle_delete_unmatched(all=False)
         elif submit_action == 'AddReleaseGroup' and release_group_form.validate_on_submit():
             # Handle adding release group filter
-            rlsgroupcs_value = release_group_form.rlsgroupcs.data == 'yes'
+            case_sensitive_value = release_group_form.case_sensitive.data == 'yes'
             new_group = ReleaseGroup(
-                rlsgroup=release_group_form.rlsgroup.data,
-                rlsgroupcs=rlsgroupcs_value
+                filter_pattern=release_group_form.filter_pattern.data,
+                case_sensitive=case_sensitive_value
             )
             db.session.add(new_group)
             db.session.commit()
-            flash('New release group filter added.', 'success')
-            session['active_tab'] = 'scan_filters'
+            flash('New scanning filter added.', 'success')
             return redirect(url_for('main.scan_management', active_tab='scan_filters'))
         elif submit_action == 'DeleteReleaseGroup':
-            # Handle deleting release group filter
+            # Handle deleting scanning filter
             filter_id = request.form.get('filter_id')
             if filter_id:
                 group_to_delete = db.session.get(ReleaseGroup, filter_id)
                 if group_to_delete:
                     db.session.delete(group_to_delete)
                     db.session.commit()
-                    flash('Release group filter removed.', 'success')
+                    flash('Scanning filter removed.', 'success')
                 else:
                     flash('Filter not found.', 'error')
-            session['active_tab'] = 'scan_filters'
             return redirect(url_for('main.scan_management', active_tab='scan_filters'))
         else:
             flash("Unrecognized action.", "error")
@@ -266,8 +281,8 @@ def scan_management():
 
     game_paths_dict = session.get('game_paths', {})
     game_names_with_ids = [{'name': name, 'full_path': path} for name, path in game_paths_dict.items()]
-    # Handle active_tab from URL parameter or session
-    active_tab = request.args.get('active_tab', session.get('active_tab', 'auto'))
+    # Handle active_tab from URL parameter, default to 'auto'
+    active_tab = request.args.get('active_tab', 'auto')
 
     return render_template('admin/admin_manage_scanjobs.html',
                            auto_form=auto_form,
@@ -281,7 +296,7 @@ def scan_management():
                            libraries=libraries,
                            game_names_with_ids=game_names_with_ids,
                            release_group_form=release_group_form,
-                           release_groups=release_groups,
+                           scanning_filters=scanning_filters,
                            allowed_file_types=allowed_file_types,
                            selected_library_uuid=selected_library_uuid)
 
@@ -497,7 +512,6 @@ def delete_scan_job(job_id):
 @login_required
 @admin_required
 def clear_all_scan_jobs():
-    session['active_tab'] = 'auto'
     db.session.execute(delete(ScanJob))
     db.session.commit()
     flash('All scan jobs cleared successfully.', 'success')

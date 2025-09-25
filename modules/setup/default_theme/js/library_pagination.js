@@ -47,7 +47,7 @@ function deleteCookie(name) {
 }
 var csrfToken;
 var sortOrder = 'asc'; 
-$('#sortOrderToggle').text(sortOrder === 'asc' ? '^' : '~');
+$('#sortOrderToggle').html(sortOrder === 'asc' ? '<i class="fas fa-sort-up"></i>' : '<i class="fas fa-sort-down"></i>');
 $(document).ready(function() {
     // Get server-rendered filter data
     var currentFilters = {};
@@ -130,7 +130,7 @@ $(document).ready(function() {
         $('#sortSelect').val(userDefaultSort);
     }
     sortOrder = userDefaultSortOrder || 'asc';
-    $('#sortOrderToggle').text(sortOrder === 'asc' ? '^' : '~');
+    $('#sortOrderToggle').html(sortOrder === 'asc' ? '<i class="fas fa-sort-up"></i>' : '<i class="fas fa-sort-down"></i>');
 
     function populateDropdown(options) {
         const { apiUrl, elementId, defaultText, valueField, textField, paramName, callback } = options;
@@ -441,7 +441,7 @@ $(document).ready(function() {
 
     $('#sortOrderToggle').click(function() {
         sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-        $(this).text(sortOrder === 'asc' ? '^' : '~'); 
+        $(this).html(sortOrder === 'asc' ? '<i class="fas fa-sort-up"></i>' : '<i class="fas fa-sort-down"></i>'); 
         console.log('sortOrderToggle clicked, new sort order:', sortOrder);
         fetchFilteredGames(currentPage);
     });

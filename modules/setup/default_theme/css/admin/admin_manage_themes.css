@@ -5,11 +5,11 @@
 }
 
 .glass-panel {
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
-    border-radius: 15px;
-    padding: 30px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: var(--container-glass-primary);
+    backdrop-filter: var(--backdrop-blur);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-card);
 }
 
 .page-title {
@@ -48,19 +48,6 @@
     width: 100%;
 }
 
-.btn-primary {
-    background-color: #007bff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    color: #ffffff;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.btn-primary:hover {
-    background-color: #0056b3;
-}
 
 .installed-themes-section h2 {
     color: #ffffff;
@@ -98,20 +85,6 @@
     border: 2px solid #ffd700;
 }
 
-.btn-danger {
-    background-color: #dc3545;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 3px;
-    color: #ffffff;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    margin-top: 10px;
-}
-
-.btn-danger:hover {
-    background-color: #c82333;
-}
 
 .flash-messages {
     margin-bottom: 20px;
@@ -143,16 +116,3 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.btn-warning {
-    background-color: #ffc107;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    color: #000;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.btn-warning:hover {
-    background-color: #e0a800;
-}

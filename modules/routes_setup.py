@@ -130,11 +130,11 @@ def setup_igdb():
             mark_setup_complete()  # Mark setup as fully completed
             log_system_event("IGDB settings configured - Setup completed", event_type='setup', event_level='information')
             flash('Setup completed successfully! Please create your first game library.', 'success')
-            from modules.init_data import initialize_library_folders, insert_default_filters, initialize_default_settings, initialize_allowed_file_types, initialize_discovery_sections
+            from modules.init_data import initialize_library_folders, insert_default_scanning_filters, initialize_default_settings, initialize_allowed_file_types, initialize_discovery_sections
 
             initialize_library_folders()
             initialize_discovery_sections()
-            insert_default_filters()
+            insert_default_scanning_filters()
             initialize_default_settings()
             initialize_allowed_file_types()
             return redirect(url_for('library.libraries'))

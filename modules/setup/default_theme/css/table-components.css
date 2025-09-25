@@ -1,0 +1,392 @@
+/* === UNIFIED TABLE SYSTEM === */
+/* Consolidates table styling duplicated across 8+ admin files */
+
+/* Base Table Styling */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--spacing-lg);
+    background: var(--table-bg);
+    color: var(--text-white);
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+}
+
+.table-dark {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--spacing-lg);
+    background: var(--bg-dark-secondary);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid var(--border-light-strong);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+}
+
+/* Table Headers */
+.table th,
+.table-dark th {
+    background: var(--table-header-bg);
+    border-bottom: 2px solid var(--table-border);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-md);
+    color: var(--text-white);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.table thead th {
+    background: var(--table-header-bg);
+    border-bottom: 2px solid var(--table-border);
+    padding: var(--spacing-md);
+    color: var(--text-white);
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+/* Table Header Icons */
+.table thead th i,
+.table-dark th i {
+    color: var(--text-white);
+    margin-right: var(--spacing-xs);
+}
+
+/* Table Body */
+.table td,
+.table-dark td {
+    padding: var(--spacing-md);
+    text-align: left;
+    border-bottom: 1px solid var(--table-border);
+    color: var(--text-white);
+    vertical-align: middle;
+}
+
+.table th,
+.table td {
+    border-top: 1px solid var(--table-border);
+    vertical-align: middle;
+}
+
+/* Table Row Hover Effects */
+.table tbody tr:hover,
+.table-dark tr:hover {
+    background-color: var(--table-hover-bg) !important;
+    transform: translateY(-1px);
+    transition: all var(--transition-fast);
+}
+
+.table tr:nth-child(even),
+.table-dark tr:nth-child(even) {
+    background-color: var(--bg-transparent-5);
+}
+
+/* User Table Specific */
+.table-userlist {
+    font-size: var(--font-size-base);
+    border-radius: var(--border-radius-lg);
+}
+
+/* User Avatar in Tables */
+.user-avatar-small {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--border-radius-round);
+    object-fit: cover;
+    border: 2px solid var(--border-light-strong);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Table Badges */
+.table .badge {
+    font-size: var(--font-size-sm);
+    padding: 0.4em 0.8em;
+    border-radius: var(--border-radius-xs);
+}
+
+/* Table Buttons */
+.table .btn-sm {
+    padding: 0.25rem 0.5rem;
+    margin: 0 0.2rem;
+    font-size: var(--font-size-xs);
+}
+
+/* === DATATABLES SYSTEM === */
+
+/* DataTables Wrapper */
+.dataTables_wrapper {
+    background-color: var(--datatable-wrapper-bg);
+    backdrop-filter: var(--backdrop-blur);
+    padding: var(--datatable-padding);
+    border-radius: var(--border-radius-md);
+    margin-top: var(--spacing-lg);
+    border: 1px solid var(--border-light);
+}
+
+/* DataTables Controls Styling */
+.dataTables_length,
+.dataTables_filter {
+    margin-bottom: var(--spacing-md);
+}
+
+.dataTables_length label,
+.dataTables_filter label {
+    color: var(--text-white);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.dataTables_filter input {
+    background: var(--datatable-input-bg) !important;
+    color: var(--text-white) !important;
+    border: 1px solid var(--datatable-border) !important;
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    margin-left: var(--spacing-sm);
+}
+
+.dataTables_length select {
+    background: var(--datatable-input-bg) !important;
+    color: var(--text-white) !important;
+    border: 1px solid var(--datatable-border) !important;
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    margin: 0 var(--spacing-sm);
+}
+
+/* DataTables Info and Pagination */
+.dataTables_info {
+    color: var(--text-light);
+    padding-top: var(--spacing-md);
+}
+
+.dataTables_paginate {
+    color: var(--text-white);
+    padding-top: var(--spacing-md);
+}
+
+.dataTables_paginate .paginate_button {
+    background: var(--bg-dark-secondary);
+    border: 1px solid var(--border-light);
+    color: var(--text-white) !important;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    margin: 0 var(--spacing-1);
+    border-radius: var(--border-radius-xs);
+    transition: all var(--transition-fast);
+}
+
+.dataTables_paginate .paginate_button:hover {
+    background: var(--bg-light-overlay) !important;
+    border-color: var(--border-light-strong);
+    color: var(--text-white) !important;
+}
+
+.dataTables_paginate .paginate_button.current {
+    background: var(--btn-primary) !important;
+    border-color: var(--btn-primary);
+    color: var(--text-white) !important;
+}
+
+/* DataTables Processing Indicator */
+.dataTables_processing {
+    background: var(--modal-bg) !important;
+    color: var(--text-white) !important;
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-sm);
+}
+
+/* === TABLE RESPONSIVE DESIGN === */
+
+/* Responsive Table Container */
+.table-responsive {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive .table {
+    margin-bottom: 0;
+}
+
+/* Mobile Table Adjustments */
+@media (max-width: 768px) {
+    .table,
+    .table-dark {
+        display: block;
+        overflow-x: auto;
+        font-size: var(--font-size-sm);
+    }
+
+    .table th,
+    .table td,
+    .table-dark th,
+    .table-dark td {
+        padding: var(--spacing-xs);
+        white-space: nowrap;
+    }
+
+    .dataTables_wrapper {
+        padding: var(--spacing-sm);
+    }
+
+    .dataTables_length,
+    .dataTables_filter {
+        margin-bottom: var(--spacing-sm);
+        text-align: center;
+    }
+
+    .dataTables_length label,
+    .dataTables_filter label {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+
+    .user-avatar-small {
+        width: 40px;
+        height: 40px;
+    }
+
+    .table .btn-sm {
+        padding: 0.125rem 0.25rem;
+        font-size: 0.7rem;
+    }
+}
+
+/* === BOOTSTRAP TABLE OVERRIDES === */
+/* Force Bootstrap table classes to use our dark theme */
+
+/* Override Bootstrap .table base styling */
+.table {
+    --bs-table-color: var(--text-white) !important;
+    --bs-table-bg: var(--table-bg) !important;
+    --bs-table-border-color: var(--table-border) !important;
+    --bs-table-hover-color: var(--text-white) !important;
+    --bs-table-hover-bg: var(--table-hover-bg) !important;
+    --bs-table-striped-color: var(--text-white) !important;
+    --bs-table-striped-bg: var(--bg-transparent-5) !important;
+}
+
+/* Override Bootstrap .table-striped */
+.table-striped > tbody > tr:nth-of-type(odd) > td,
+.table-striped > tbody > tr:nth-of-type(odd) > th {
+    background-color: var(--bg-transparent-5) !important;
+    color: var(--text-white) !important;
+}
+
+/* Override Bootstrap .table-hover */
+.table-hover > tbody > tr:hover > td,
+.table-hover > tbody > tr:hover > th {
+    background-color: var(--table-hover-bg) !important;
+    color: var(--text-white) !important;
+}
+
+/* Override Bootstrap .table-bordered */
+.table-bordered > :not(caption) > * {
+    border-width: 1px;
+    border-color: var(--table-border) !important;
+}
+
+.table-bordered > :not(caption) > * > * {
+    border-width: 0 1px;
+    border-color: var(--table-border) !important;
+}
+
+/* Force all table cells to use theme colors */
+.table > :not(caption) > * > * {
+    color: var(--text-white) !important;
+    background-color: transparent;
+    border-bottom-color: var(--table-border) !important;
+}
+
+/* Force table headers to use theme styling */
+.table > thead > tr > th {
+    background-color: var(--table-header-bg) !important;
+    color: var(--text-white) !important;
+    border-bottom: 2px solid var(--table-border) !important;
+}
+
+/* === TABLE UTILITIES === */
+
+/* Table Loading State */
+.table-loading {
+    position: relative;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.table-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: tableShimmer 1.5s infinite;
+}
+
+@keyframes tableShimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Table Sort Indicators */
+.table th.sorting {
+    cursor: pointer;
+    position: relative;
+}
+
+.table th.sorting:hover {
+    background: var(--bg-light-overlay);
+}
+
+.table th.sorting::after {
+    content: '\f0dc';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    right: var(--spacing-xs);
+    opacity: 0.5;
+}
+
+.table th.sorting_asc::after {
+    content: '\f0de';
+    opacity: 1;
+}
+
+.table th.sorting_desc::after {
+    content: '\f0dd';
+    opacity: 1;
+}
+
+/* Table Status Indicators */
+.table .status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: var(--border-radius-round);
+    margin-right: var(--spacing-xs);
+}
+
+.table .status-running {
+    background: var(--status-running);
+    animation: pulse 1.5s infinite;
+}
+
+.table .status-stopped {
+    background: var(--status-stopped);
+}
+
+.table .status-pending {
+    background: var(--status-pending);
+}
+
+.table .status-completed {
+    background: var(--status-completed);
+}

@@ -1,16 +1,16 @@
-/* Simple Table Styling for Scan Management */
+/* Simple Table Styling for Scan Management - Using unified .table-dark from base.css */
 
 .simple-jobs-table,
 .simple-unmatched-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
+    margin-bottom: var(--spacing-lg);
+    background: var(--bg-dark-secondary);
+    backdrop-filter: var(--backdrop-blur);
+    border: 1px solid var(--border-light-strong);
+    border-radius: var(--border-radius-md);
     overflow: hidden;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.3);
+    box-shadow: var(--shadow-card);
 }
 
 .simple-jobs-table th,
@@ -19,38 +19,38 @@
 .simple-unmatched-table td {
     padding: 12px;
     text-align: left;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-white);
 }
 
 .simple-jobs-table th,
 .simple-unmatched-table th {
-    background-color: rgba(0, 0, 0, 0.6);
-    color: #fff;
+    background-color: var(--bg-dark-primary);
+    color: var(--text-white);
     font-weight: bold;
     position: sticky;
     top: 0;
     z-index: 10;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 2px solid var(--border-light-strong);
 }
 
 .simple-jobs-table tr:hover,
 .simple-unmatched-table tr:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--bg-light-overlay);
 }
 
 .simple-jobs-table tr:nth-child(even),
 .simple-unmatched-table tr:nth-child(even) {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: var(--bg-transparent-5);
 }
 
 /* Jobs table wrapper with scrolling */
 .jobs-table-wrapper {
     max-height: 500px;
     overflow-y: auto;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--border-light-strong);
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--container-glass-primary);
     backdrop-filter: blur(10px);
 }
 
@@ -135,28 +135,28 @@
 
 /* Status-based row background colors for unmatched folders table */
 .simple-unmatched-table tr[data-status="Unmatched"] {
-    background-color: rgba(253, 126, 20, 0.15) !important;
+    background-color: var(--scan-running-bg) !important;
 }
 
 .simple-unmatched-table tr[data-status="Duplicate"] {
-    background-color: rgba(220, 53, 69, 0.15) !important;
+    background-color: var(--scan-error-bg) !important;
 }
 
 .simple-unmatched-table tr[data-status="Ignore"] {
-    background-color: rgba(108, 117, 125, 0.15) !important;
+    background-color: var(--scan-completed-bg) !important;
 }
 
 .simple-unmatched-table tr[data-status="Pending"] {
-    background-color: rgba(0, 123, 255, 0.15) !important;
+    background-color: var(--scan-info-bg) !important;
 }
 
 /* Filter controls styling */
 .unmatched-filters {
     margin-bottom: 20px;
     padding: 15px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-white-05);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-light);
     border-radius: 10px;
 }
 
@@ -178,20 +178,20 @@
     padding: 6px 12px;
     font-size: 0.875rem;
     border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-light-30);
+    background: var(--bg-light-overlay);
     color: #fff;
     transition: all 0.2s ease;
     cursor: pointer;
 }
 
 .filter-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: var(--bg-light-overlay-hover);
+    border-color: var(--border-white-50);
 }
 
 .filter-btn.active {
-    background: rgba(0, 123, 255, 0.8);
+    background: var(--scan-info-button);
     border-color: #007bff;
     color: #fff;
 }
@@ -204,15 +204,15 @@
 .search-input {
     width: 100%;
     padding: 8px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid var(--border-light-30);
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-light-overlay);
     color: #fff;
     font-size: 0.875rem;
 }
 
 .search-input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-white-60);
 }
 
 .search-input:focus {
@@ -249,7 +249,7 @@
     color: white;
     padding: 12px 20px;
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid var(--border-light-30);
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     z-index: 1050;
@@ -277,11 +277,16 @@
 }
 
 /* Progress bars */
+.scan-progress {
+    --spacing-sm: 0; /* Neutralize the spacing variable for this component */
+}
+
 .scan-progress .progress {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: var(--bg-light-overlay-hover);
     border-radius: 4px;
     position: relative;
     overflow: hidden;
+    margin-bottom: 4px;
 }
 
 .scan-progress .progress-bar {
@@ -292,7 +297,7 @@
 
 /* Progress information layout */
 .progress-info {
-    margin-top: 4px;
+
     font-size: 0.875rem;
     text-align: center;
 }
@@ -343,16 +348,16 @@
 
 /* Jobs table container styling */
 .scan-jobs-card {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-light-overlay);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 15px;
+    border: 1px solid var(--border-light-strong);
+    border-radius: var(--border-radius-lg);
     padding: 20px;
     margin-bottom: 20px;
 }
 
 .scan-jobs-card .card-header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid var(--border-light-strong);
     padding-bottom: 15px;
     margin-bottom: 20px;
 }
@@ -455,16 +460,16 @@
 .config-card,
 .path-card,
 .action-card {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-light-overlay);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 15px;
+    border: 1px solid var(--border-light-strong);
+    border-radius: var(--border-radius-lg);
     padding: 20px;
     margin-bottom: 20px;
 }
 
 .card-header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid var(--border-light-strong);
     padding-bottom: 15px;
     margin-bottom: 20px;
 }
@@ -502,8 +507,8 @@
 
 .config-input,
 .form-control {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: var(--bg-light-overlay);
+    border: 1px solid var(--border-light-30);
     border-radius: 8px;
     padding: 10px;
     color: #fff;
@@ -511,7 +516,7 @@
 
 .config-input:focus,
 .form-control:focus {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--bg-light-overlay-hover);
     border-color: #007bff;
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
@@ -742,9 +747,9 @@
 
 /* Tab styling */
 .admin_manage_scanjobs-nav-panel {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-white-05);
     backdrop-filter: blur(10px);
-    border-radius: 15px;
+    border-radius: var(--border-radius-lg);
     padding: 0;
     margin-bottom: 30px;
 }
@@ -754,7 +759,7 @@
 }
 
 .admin_manage_scanjobs-nav-tabs {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid var(--border-light-strong);
     margin-bottom: 0;
 }
 
@@ -774,9 +779,9 @@
 }
 
 .admin_manage_scanjobs-nav-link.active {
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--container-glass-primary);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--border-light-strong);
     border-bottom: 3px solid #007bff;
     border-radius: 8px 8px 0 0;
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
@@ -796,10 +801,10 @@
 }
 
 .admin_manage_scanjobs-unmatched-panel {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-light-overlay);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 15px;
+    border: 1px solid var(--border-light-strong);
+    border-radius: var(--border-radius-lg);
     padding: 30px;
 }
 
@@ -818,10 +823,10 @@
 
 /* Manual scan styling */
 .admin_manage_scanjobs-manual-panel {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-light-overlay);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 15px;
+    border: 1px solid var(--border-light-strong);
+    border-radius: var(--border-radius-lg);
     padding: 30px;
     color: #fff;
 }
@@ -839,8 +844,8 @@
 }
 
 .admin_manage_scanjobs-list-item {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: var(--bg-light-overlay);
+    border: 1px solid var(--border-light-strong);
     color: #fff;
     margin-bottom: 10px;
     border-radius: 8px;
@@ -848,10 +853,10 @@
 
 /* Glass panel effect */
 .glass-panel {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-light-overlay);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 15px;
+    border: 1px solid var(--border-light-strong);
+    border-radius: var(--border-radius-lg);
     padding: 20px;
     margin-bottom: 20px;
 }

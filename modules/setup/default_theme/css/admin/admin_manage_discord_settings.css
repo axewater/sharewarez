@@ -1,84 +1,47 @@
-.card {
-    background: rgba(40, 40, 40, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-}
+/* .card definition removed - using unified version from base.css */
 
 .card-header h2 {
-    color: #ffffff;
+    color: var(--text-white);
 }
-
 
 .card-body {
     padding: 1.5rem;
 }
 
 .form-label {
-    color: #fff;
+    color: var(--text-white);
     font-weight: 500;
     margin-bottom: 0.5rem;
 }
 
-.form-control {
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #fff;
-    padding: 0.5rem;
-    border-radius: 4px;
-}
+/* Form controls now use unified system from base.css */
 
-.form-control:focus {
-    background: rgba(0, 0, 0, 0.3);
-    border-color: #0096ff;
-    box-shadow: 0 0 5px rgba(0, 150, 255, 0.3);
-    color: #fff;
-}
-
-.btn-primary {
-    background: #0096ff;
-    border: none;
-    padding: 0.5rem 1rem;
-    transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-    background: #0077cc;
-    transform: translateY(-2px);
-}
-
-.btn-info {
-    background: rgba(23, 162, 184, 0.5);
-    border: 1px solid rgba(23, 162, 184, 0.8);
-    color: #fff;
-}
-
-.btn-info:hover {
-    background: rgba(23, 162, 184, 0.8);
-}
+/* Button styles now use unified .btn-primary and .btn-info from base.css */
+/* Orphaned styles removed - using unified button system */
 
 .alert {
-    background: rgba(40, 40, 40, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-radius: 4px;
+    background: var(--table-bg-40-alt);
+    border: 1px solid var(--border-light);
+    color: var(--text-white);
+    padding: var(--spacing-rem-md);
+    margin-bottom: var(--spacing-rem-md);
+    border-radius: var(--border-radius-sm);
 }
 
 .alert-success {
-    background-color: rgba(40, 167, 69, 0.2);
-    border-color: rgba(40, 167, 69, 0.3);
+    background-color: var(--alert-success-bg);
+    border-color: var(--btn-success-border);
 }
 
 .alert-danger {
-    background-color: rgba(220, 53, 69, 0.2);
-    border-color: rgba(220, 53, 69, 0.3);
+    background-color: var(--alert-danger-bg);
+    border-color: var(--btn-danger-border);
 }
 
 .extenstions-table {
-    background-color: rgba(0, 0, 0, 0.6);
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    background-color: var(--datatable-wrapper-bg);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-glass);
     backdrop-filter: blur(10px);
     border-bottom: 2px solid rgba(255, 255, 255, 0.1);
     padding: 12px;
@@ -103,4 +66,165 @@
     border-bottom: 2px solid rgba(255, 255, 255, 0.1);
     padding: 12px;
     color: white; /* Keep text white */
+}
+
+/* Discord Settings Container */
+.discord-settings-container {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+/* Connection Settings Section */
+.connection-settings-section {
+    flex: 1;
+    min-width: 0; /* Allow shrinking */
+}
+
+.connection-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+/* Notification Settings Section */
+.notification-settings-section {
+    flex: 1;
+    min-width: 0; /* Allow shrinking */
+}
+
+.notification-settings-section h5 {
+    color: #ffffff;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.notification-settings-section .text-muted {
+    color: rgba(255, 255, 255, 0.7) !important;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+}
+
+/* Notification Cards */
+.notification-card {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.notification-card:hover {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.notification-card .form-check {
+    margin-bottom: 0;
+}
+
+.notification-card .form-check-input {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    margin-top: 0.1rem;
+}
+
+.notification-card .form-check-input:checked {
+    background-color: #0096ff;
+    border-color: #0096ff;
+}
+
+.notification-card .form-check-input:focus {
+    border-color: #0096ff;
+    box-shadow: 0 0 5px rgba(0, 150, 255, 0.3);
+}
+
+.notification-card .form-check-label {
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.notification-card .form-check-label strong {
+    display: block;
+    margin-bottom: 0.2rem;
+    font-size: 0.95rem;
+}
+
+.notification-card .form-text {
+    /* Using .form-text-light variant from base.css */
+}
+
+/* Icons in notification cards */
+.notification-card .text-primary { color: #0096ff !important; }
+.notification-card .text-info { color: #17a2b8 !important; }
+.notification-card .text-warning { color: #ffc107 !important; }
+.notification-card .text-success { color: #28a745 !important; }
+.notification-card .text-secondary { color: #6c757d !important; }
+
+/* Connection form specific styles */
+.connection-card .form-label {
+    color: #fff;
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+}
+
+.connection-card .form-control {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+.connection-card .form-control:focus {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: #0096ff;
+    box-shadow: 0 0 5px rgba(0, 150, 255, 0.3);
+    color: #fff;
+}
+
+.connection-card .d-flex {
+    gap: 0.75rem;
+}
+
+.connection-card .btn {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+}
+
+/* Responsive improvements */
+@media (max-width: 992px) {
+    .discord-settings-container {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .connection-settings-section,
+    .notification-settings-section {
+        flex: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .notification-card {
+        padding: 0.6rem;
+    }
+
+    .connection-card {
+        padding: 0.75rem;
+    }
+
+    .notification-card .form-text {
+        /* Responsive handled by .form-text-light from base.css */
+    }
 }

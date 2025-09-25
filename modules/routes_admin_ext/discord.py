@@ -38,15 +38,15 @@ def discord_settings():
         # Check for validation errors
         if not webhook_valid:
             flash(f'Webhook URL error: {webhook_result}', 'error')
-            return redirect(url_for('admin2.discord_settings'))
-        
+            return redirect(url_for('admin2.integrations') + '#discord')
+
         if not bot_name_valid:
             flash(f'Bot name error: {bot_name_result}', 'error')
-            return redirect(url_for('admin2.discord_settings'))
-            
+            return redirect(url_for('admin2.integrations') + '#discord')
+
         if not avatar_valid:
             flash(f'Avatar URL error: {avatar_result}', 'error')
-            return redirect(url_for('admin2.discord_settings'))
+            return redirect(url_for('admin2.integrations') + '#discord')
         
         # If validation passes, update settings with sanitized values
         settings.discord_webhook_url = webhook_result
@@ -59,8 +59,8 @@ def discord_settings():
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating Discord settings: {str(e)}', 'error')
-        
-        return redirect(url_for('admin2.discord_settings'))
+
+        return redirect(url_for('admin2.integrations') + '#discord')
 
     # Set default values if no settings exist or if fields are None
     webhook_url = (settings.discord_webhook_url if settings and settings.discord_webhook_url else 'insert_webhook_url_here')
@@ -70,7 +70,8 @@ def discord_settings():
     return render_template('admin/admin_manage_discord_settings.html',
                          webhook_url=webhook_url,
                          bot_name=bot_name,
-                         bot_avatar_url=bot_avatar_url)
+                         bot_avatar_url=bot_avatar_url,
+                         settings=settings)
 
 @admin2_bp.route('/admin/test_discord_webhook', methods=['POST'])
 @login_required
@@ -112,5 +113,34 @@ def test_discord_webhook():
         return jsonify({'success': False, 'message': str(e)}), 400
     except Exception as e:
         error_message = f"Discord webhook error: {str(e)}"
+        print(error_message)
+        return jsonify({'success': False, 'message': error_message}), 500
+
+@admin2_bp.route('/admin/discord_notifications', methods=['POST'])
+@login_required
+@admin_required
+def save_discord_notifications():
+    """Save Discord notification settings"""
+    data = request.json
+
+    settings = db.session.execute(select(GlobalSettings)).scalars().first()
+    if not settings:
+        settings = GlobalSettings()
+        db.session.add(settings)
+
+    try:
+        # Update notification settings
+        settings.discord_notify_new_games = data.get('discordNotifyNewGames', False)
+        settings.discord_notify_game_updates = data.get('discordNotifyGameUpdates', False)
+        settings.discord_notify_game_extras = data.get('discordNotifyGameExtras', False)
+        settings.discord_notify_downloads = data.get('discordNotifyDownloads', False)
+        settings.discord_notify_manual_trigger = data.get('discordNotifyManualTrigger', False)
+
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Discord notification settings saved successfully'})
+
+    except Exception as e:
+        db.session.rollback()
+        error_message = f"Error saving Discord notification settings: {str(e)}"
         print(error_message)
         return jsonify({'success': False, 'message': error_message}), 500

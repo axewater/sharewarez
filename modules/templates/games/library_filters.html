@@ -14,7 +14,7 @@
 
       <option value="size">Filesize</option>
     </select>
-    <button id="sortOrderToggle" class="btn btn-secondary">^</button>
+    <button id="sortOrderToggle" class="btn btn-secondary"><i class="fas fa-sort-up"></i></button>
 </div>
 
     
@@ -63,8 +63,10 @@
         <div class="form-group">
           <label for="ratingSlider">Rating: <span id="ratingValue">0</span></label>
           <input type="range" class="form-control-range rating-slider" id="ratingSlider" min="0" max="100" value="0">
-          <button type="submit" class="btn btn-primary">Apply</button>
-          <button type="button" id="clearFilters" class="btn btn-secondary">Clear</button>
+          <div class="button-group">
+            <button type="submit" class="btn btn-primary">Apply</button>
+            <button type="button" id="clearFilters" class="btn btn-secondary">Clear</button>
+          </div>
       </div>
     </form>
   </div>

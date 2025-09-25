@@ -36,7 +36,7 @@ class DatabaseManager:
         );
         
         ALTER TABLE global_settings
-        ADD COLUMN IF NOT EXISTS site_url VARCHAR(255) DEFAULT 'http://127.0.0.1:5006';
+        ADD COLUMN IF NOT EXISTS site_url VARCHAR(255) DEFAULT 'http://127.0.0.1:6006';
 
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS discord_bot_name VARCHAR(255);
@@ -195,7 +195,29 @@ class DatabaseManager:
                 WHERE image_type = 'cover';
             END IF;
         END $$;
-        
+
+        -- Rename columns in filters table from old release group terminology to scanning filter terminology
+        DO $$
+        BEGIN
+            -- Rename rlsgroup to filter_pattern if the old column exists
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name='filters' AND column_name='rlsgroup'
+            ) THEN
+                ALTER TABLE filters RENAME COLUMN rlsgroup TO filter_pattern;
+                RAISE NOTICE 'Renamed column rlsgroup to filter_pattern in filters table';
+            END IF;
+
+            -- Rename rlsgroupcs to case_sensitive if the old column exists
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name='filters' AND column_name='rlsgroupcs'
+            ) THEN
+                ALTER TABLE filters RENAME COLUMN rlsgroupcs TO case_sensitive;
+                RAISE NOTICE 'Renamed column rlsgroupcs to case_sensitive in filters table';
+            END IF;
+        END $$;
+
         """
         print("Upgrading database to the latest schema")
         try:
@@ -212,6 +234,10 @@ class DatabaseManager:
                             print(f"Error: {stmt_error}")
                             # Continue with other statements instead of failing completely
                             continue
+
+            # Clean up duplicate discovery sections
+            self.cleanup_duplicate_discovery_sections()
+
             print("Database schema update completed successfully.")
         except Exception as e:
             print(f"An error occurred during schema update: {e}")
@@ -220,6 +246,37 @@ class DatabaseManager:
         finally:
             # Close the database connection
             self.engine.dispose()
+
+    def cleanup_duplicate_discovery_sections(self):
+        """
+        Clean up duplicate discovery sections created by conflicting initialization code.
+        Removes outdated sections with wrong identifiers (latest, random, popular).
+        """
+        cleanup_sql = """
+        -- Delete outdated discovery sections with wrong identifiers
+        DELETE FROM discovery_sections
+        WHERE identifier IN ('latest', 'random', 'popular');
+
+        -- Log what was done
+        DO $$
+        DECLARE
+            deleted_count INTEGER;
+        BEGIN
+            GET DIAGNOSTICS deleted_count = ROW_COUNT;
+            IF deleted_count > 0 THEN
+                RAISE NOTICE 'Removed % outdated discovery sections', deleted_count;
+            END IF;
+        END $$;
+        """
+
+        print("Cleaning up duplicate discovery sections...")
+        try:
+            with self.engine.begin() as connection:
+                connection.execute(text(cleanup_sql))
+                print("Discovery sections cleanup completed successfully.")
+        except Exception as e:
+            print(f"Warning: Discovery sections cleanup failed: {e}")
+            print("Application will continue...")
 
     def _parse_sql_statements(self, sql_text):
         """

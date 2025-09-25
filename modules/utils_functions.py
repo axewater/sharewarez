@@ -359,35 +359,35 @@ PLATFORM_IDS = {
 }
 
 
-def load_release_group_patterns():
+def load_scanning_filter_patterns():
     try:
         # Fetching insensitive patterns (not case-sensitive)
         insensitive_patterns = [
-            "-" + rg.rlsgroup for rg in db.session.execute(select(ReleaseGroup).filter(ReleaseGroup.rlsgroup != None)).scalars().all()
+            "-" + rg.filter_pattern for rg in db.session.execute(select(ReleaseGroup).filter(ReleaseGroup.filter_pattern != None)).scalars().all()
         ] + [
-            "." + rg.rlsgroup for rg in db.session.execute(select(ReleaseGroup).filter(ReleaseGroup.rlsgroup != None)).scalars().all()
+            "." + rg.filter_pattern for rg in db.session.execute(select(ReleaseGroup).filter(ReleaseGroup.filter_pattern != None)).scalars().all()
         ]
         
         # Initializing list for sensitive patterns (case-sensitive)
         sensitive_patterns = []
-        for rg in db.session.execute(select(ReleaseGroup).filter(ReleaseGroup.rlsgroupcs != None)).scalars().all():
-            pattern = rg.rlsgroupcs
+        for rg in db.session.execute(select(ReleaseGroup).filter(ReleaseGroup.case_sensitive != None)).scalars().all():
+            pattern = rg.case_sensitive
             is_case_sensitive = False
             if pattern.lower() == 'yes':
                 is_case_sensitive = True
-                pattern = "-" + rg.rlsgroup
+                pattern = "-" + rg.filter_pattern
                 sensitive_patterns.append((pattern, is_case_sensitive))
-                pattern = "." + rg.rlsgroup
+                pattern = "." + rg.filter_pattern
                 sensitive_patterns.append((pattern, is_case_sensitive))
             elif pattern.lower() == 'no':
-                pattern = "-" + rg.rlsgroup
+                pattern = "-" + rg.filter_pattern
                 sensitive_patterns.append((pattern, is_case_sensitive))
-                pattern = "." + rg.rlsgroup
+                pattern = "." + rg.filter_pattern
                 sensitive_patterns.append((pattern, is_case_sensitive))
 
         return insensitive_patterns, sensitive_patterns
     except SQLAlchemyError as e:
-        print(f"An error occurred while fetching release group patterns: {e}")
+        print(f"An error occurred while fetching scanning filter patterns: {e}")
         return [], []
 
 

@@ -18,6 +18,16 @@
     margin-top: 25px;
 }
 
+/* Reduce spacing for sidebar filters */
+#sidebar .library-filters {
+    margin-top: 5px;
+}
+
+#sidebar .library-filters .form-group {
+    margin-bottom: 5px;
+    gap: 2px;
+}
+
 
 
 .modal-backdrop {
@@ -29,7 +39,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--shadow-dark);
 }
 
 .rating-slider {
@@ -48,9 +58,9 @@
 
 
 .pagination-style{
-    border: 1px solid rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--bg-dark-tertiary);
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.8);
+    box-shadow: var(--shadow-box-standard);
     align-items: center;
 }
 
@@ -69,26 +79,40 @@
 
 
 .container-filtersandsort {
-    background-color: rgba(50, 50, 50, 0.0); 
-    border-radius: 8px; 
-    color: #ccc; 
+    background-color: transparent;
+    border-radius: 8px;
+    color: var(--color-gray-ccc);
     padding: 15px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); 
+    box-shadow: var(--shadow-box-light);
+}
 
+/* Sidebar-specific overrides for compact layout */
+#sidebar .container-filtersandsort {
+    padding: 0;
+    box-shadow: none;
 }
 
 .library-filters select.form-control,
 .library-filters button.btn {
-    background-color: rgba(0, 0, 0, 0.2); 
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #ddd; 
-    border-radius: 4px; 
-    margin-bottom: 10px; 
+    background-color: var(--bg-dark-tertiary);
+    border: 1px solid var(--border-light);
+    color: var(--color-gray-ddd);
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+/* Compact styling for sidebar filters */
+#sidebar .library-filters select.form-control,
+#sidebar .library-filters button.btn {
+    margin-bottom: 3px;
+    padding: 2px 5px;
+    font-size: 14px;
+    height: 28px;
 }
 
 .library-filters select.form-control:hover,
 .library-filters button.btn:hover {
-    background-color: rgba(255, 255, 255, 0.1); 
+    background-color: var(--bg-light-overlay);
 }
 
 .rating-slider {
@@ -103,7 +127,7 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: #888; 
+    background: var(--color-gray-888); 
     cursor: pointer; 
 }
 
@@ -119,7 +143,13 @@
 .library-filters label {
     display: block;
     margin-bottom: .5rem;
-    color: #ccc;
+    color: var(--color-gray-ccc);
+}
+
+/* Compact labels for sidebar */
+#sidebar .library-filters label {
+    margin-bottom: 2px;
+    font-size: 13px;
 }
 
 
@@ -129,13 +159,13 @@
 }
 
 .sorting-dropdown option {
-    color: rgba(0, 0, 0, 0.8);
-    background-color: #ddd;
+    color: var(--text-dark-80);
+    background-color: var(--color-gray-ddd);
 }
 
 .library-filters select.form-control {
-    background-color: rgba(0, 0, 0, 0.2);
-    color: #ddd;
+    background-color: var(--bg-dark-tertiary);
+    color: var(--color-gray-ddd);
 }
 
 
@@ -146,8 +176,8 @@
 
 
 .library-filters option {
-    background: rgba(50, 50, 50, 0.8);
-    color: #ccc;
+    background: var(--bg-dark-50);
+    color: var(--color-gray-ccc);
 }
 
 
@@ -159,17 +189,40 @@
 
 .sorting-dropdown select,
 .sorting-dropdown .btn-secondary {
-    background-color: rgba(0, 0, 0, 0.2);
-    color: #ccc;
+    background-color: var(--bg-dark-tertiary);
+    color: var(--color-gray-ccc);
     border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-light);
     padding: 0px 5px;
 }
 
 .sorting-dropdown .btn-secondary {
     margin-left: 5px;
     padding: 2px 7px;
-    
+}
+
+/* Compact styling for sidebar sorting dropdown */
+#sidebar .sorting-dropdown select,
+#sidebar .sorting-dropdown .btn-secondary {
+    padding: 2px 5px;
+    font-size: 14px;
+    height: 28px;
+    margin: 0;
+}
+
+#sidebar .sorting-dropdown .btn-secondary {
+    margin-left: 3px;
+}
+
+.button-group {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+    margin-top: var(--spacing-xs);
+}
+
+.button-group .btn {
+    margin: 0;
 }
 
 @media (max-width: 768px) {

@@ -208,7 +208,7 @@ class TestDiscoverSectionQueries:
 
     def test_most_downloaded_query(self, db_session, test_games):
         """Test most downloaded games query."""
-        most_downloaded = db.session.execute(select(Game).order_by(Game.times_downloaded.desc()).limit(8)).scalars().all()
+        most_downloaded = db.session.execute(select(Game).filter(Game.times_downloaded > 0).order_by(Game.times_downloaded.desc()).limit(8)).scalars().all()
         
         assert len(most_downloaded) >= 5  # At least our test games
         

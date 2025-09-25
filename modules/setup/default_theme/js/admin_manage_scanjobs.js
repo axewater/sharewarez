@@ -76,8 +76,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const unmatchedTableBody = document.getElementById('unmatchedFoldersTableBody');
 
     const urlParams = new URLSearchParams(window.location.search);
-    const activeTab = urlParams.get('active_tab') || document.querySelector('meta[name="active-tab"]').getAttribute('content');
-    console.log("Active tab determined:", activeTab);
+    const urlActiveTab = urlParams.get('active_tab');
+    const metaActiveTab = document.querySelector('meta[name="active-tab"]').getAttribute('content');
+    const storedActiveTab = localStorage.getItem('scan_management_active_tab');
+
+    // Priority: URL parameter > localStorage > meta tag > default 'auto'
+    const activeTab = urlActiveTab || storedActiveTab || metaActiveTab || 'auto';
+    console.log("Active tab determined:", activeTab, {urlActiveTab, storedActiveTab, metaActiveTab});
 
     switch (activeTab) {
         case 'manual':
@@ -109,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
             new bootstrap.Tab(document.querySelector('#autoScan-tab')).show();
     }
 
-    // Add event listeners to all tab links to update URL when clicked
+    // Add event listeners to all tab links to update URL and localStorage when clicked
     document.querySelectorAll('.admin_manage_scanjobs-nav-tabs .nav-link').forEach(tab => {
         tab.addEventListener('shown.bs.tab', function(event) {
             const tabId = event.target.getAttribute('href').substring(1); // Remove # from href
@@ -135,6 +140,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     activeTabValue = 'auto';
             }
 
+            // Store in localStorage for persistence
+            localStorage.setItem('scan_management_active_tab', activeTabValue);
+
+            // Update URL without page reload
             const url = new URL(window.location.href);
             url.searchParams.set('active_tab', activeTabValue);
             window.history.replaceState({}, '', url.toString());

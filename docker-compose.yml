@@ -1,25 +1,50 @@
-# Mount volume data folder warez to a drive with games
-# Mount volume 
+# SharewareZ Docker Compose Configuration
+#
+# Setup Instructions:
+# 1. Copy .env.docker.example to .env and customize your settings
+# 2. Create the directories specified in DATA_FOLDER_WAREZ and UPLOAD_FOLDER
+# 3. Run: docker-compose up -d
+#
+# Volume Mounts:
+# - Mount your games directory to /storage in the container
+# - Mount upload directory for persistent cover images and zips
+
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
     image: kapitanczarnobrod/sharewarez:latest
+    container_name: sharewarez-app
+    restart: unless-stopped
     ports:
-      - "5006:5006"
+      - "6006:6006"
     environment:
       - DATABASE_URL=${DATABASE_URL}
-      - WAIT_HOSTS="db:5432"
+      - DATA_FOLDER_WAREZ=/storage
+      - UPLOAD_FOLDER=/app/modules/static/library
+      - SECRET_KEY=${SECRET_KEY}
+      - DEV_MODE=${DEV_MODE:-false}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
-      - "${DATA_FOLDER_WAREZ}:/storage"
+      - "${DATA_FOLDER_WAREZ}:/storage:ro"
       - "${UPLOAD_FOLDER}:/app/modules/static/library"
     depends_on:
-      - db     
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:6006/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   db:
     image: postgres:16.2
-    restart: always
+    container_name: sharewarez-db
+    restart: unless-stopped
     shm_size: 128mb
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
@@ -27,4 +52,16 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
-       - ./db_data:/var/lib/postgresql/data/pgdata
+      - db_data:/var/lib/postgresql/data/pgdata
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - "5432:5432"  # Optional: expose PostgreSQL port for external access
+
+volumes:
+  db_data:
+    driver: local

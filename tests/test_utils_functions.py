@@ -13,7 +13,7 @@ from modules.models import ReleaseGroup, Library, Game, GlobalSettings, User
 from modules.utils_functions import (
     format_size, square_image, get_folder_size_in_bytes, get_folder_size_in_bytes_updates,
     read_first_nfo_content, download_image, comma_separated_urls, website_category_to_string,
-    PLATFORM_IDS, load_release_group_patterns, get_library_count, get_games_count,
+    PLATFORM_IDS, load_scanning_filter_patterns, get_library_count, get_games_count,
     delete_associations_for_game, sanitize_string_input, validate_discord_webhook_url,
     validate_discord_bot_name, validate_discord_avatar_url
 )
@@ -67,16 +67,16 @@ def sample_games(db_session):
 
 @pytest.fixture
 def sample_release_groups(db_session):
-    """Create sample release groups for testing."""
+    """Create sample scanning filters for testing."""
     release_groups = []
     
-    # Case insensitive release groups
-    rg1 = ReleaseGroup(rlsgroup='SKIDROW')
-    rg2 = ReleaseGroup(rlsgroup='CODEX') 
-    
-    # Case sensitive release groups
-    rg3 = ReleaseGroup(rlsgroup='RELOADED', rlsgroupcs='yes')
-    rg4 = ReleaseGroup(rlsgroup='PLAZA', rlsgroupcs='no')
+    # Case insensitive scanning filters
+    rg1 = ReleaseGroup(filter_pattern='TEST_GROUP_1')
+    rg2 = ReleaseGroup(filter_pattern='TEST_GROUP_2')
+
+    # Case sensitive scanning filters
+    rg3 = ReleaseGroup(filter_pattern='TEST_GROUP_3', case_sensitive='yes')
+    rg4 = ReleaseGroup(filter_pattern='TEST_GROUP_4', case_sensitive='no')
     
     for rg in [rg1, rg2, rg3, rg4]:
         db_session.add(rg)
@@ -563,48 +563,48 @@ class TestPlatformIds:
         assert PLATFORM_IDS["OTHER"] is None
 
 
-class TestLoadReleaseGroupPatterns:
-    """Test cases for load_release_group_patterns function."""
+class TestLoadScanningFilterPatterns:
+    """Test cases for load_scanning_filter_patterns function."""
     
-    def test_load_release_group_patterns_success(self, db_session, sample_release_groups):
-        """Test load_release_group_patterns with sample data."""
-        insensitive, sensitive = load_release_group_patterns()
+    def test_load_scanning_filter_patterns_success(self, db_session, sample_release_groups):
+        """Test load_scanning_filter_patterns with sample data."""
+        insensitive, sensitive = load_scanning_filter_patterns()
         
         # Check insensitive patterns (all groups get both - and . prefixes)
-        assert "-SKIDROW" in insensitive
-        assert ".SKIDROW" in insensitive
-        assert "-CODEX" in insensitive
-        assert ".CODEX" in insensitive
-        
+        assert "-TEST_GROUP_1" in insensitive
+        assert ".TEST_GROUP_1" in insensitive
+        assert "-TEST_GROUP_2" in insensitive
+        assert ".TEST_GROUP_2" in insensitive
+
         # Check sensitive patterns
         sensitive_dict = {pattern: case_sensitive for pattern, case_sensitive in sensitive}
-        
-        # RELOADED has rlsgroupcs='yes' so should be case sensitive
-        assert ("-RELOADED", True) in sensitive
-        assert (".RELOADED", True) in sensitive
-        
-        # PLAZA has rlsgroupcs='no' so should not be case sensitive  
-        assert ("-PLAZA", False) in sensitive
-        assert (".PLAZA", False) in sensitive
+
+        # TEST_GROUP_3 has case_sensitive='yes' so should be case sensitive
+        assert ("-TEST_GROUP_3", True) in sensitive
+        assert (".TEST_GROUP_3", True) in sensitive
+
+        # TEST_GROUP_4 has case_sensitive='no' so should not be case sensitive
+        assert ("-TEST_GROUP_4", False) in sensitive
+        assert (".TEST_GROUP_4", False) in sensitive
     
-    def test_load_release_group_patterns_empty_db(self, db_session):
-        """Test load_release_group_patterns with empty database."""
+    def test_load_scanning_filter_patterns_empty_db(self, db_session):
+        """Test load_scanning_filter_patterns with empty database."""
         # Mock empty database response
         with patch('modules.utils_functions.db.session.execute') as mock_execute:
             mock_scalars = MagicMock()
             mock_scalars.all.return_value = []
             mock_execute.return_value.scalars.return_value = mock_scalars
             
-            insensitive, sensitive = load_release_group_patterns()
+            insensitive, sensitive = load_scanning_filter_patterns()
             assert insensitive == []
             assert sensitive == []
     
-    def test_load_release_group_patterns_db_error(self, db_session):
-        """Test load_release_group_patterns handles database errors."""
+    def test_load_scanning_filter_patterns_db_error(self, db_session):
+        """Test load_scanning_filter_patterns handles database errors."""
         from sqlalchemy.exc import SQLAlchemyError
         with patch('modules.utils_functions.db.session.execute', side_effect=SQLAlchemyError("DB Error")):
             with patch('builtins.print') as mock_print:
-                insensitive, sensitive = load_release_group_patterns()
+                insensitive, sensitive = load_scanning_filter_patterns()
                 assert insensitive == []
                 assert sensitive == []
                 mock_print.assert_called()

@@ -1,35 +1,22 @@
-/* Modern Help Page Styling */
-:root {
-    --primary-blue: #0096ff;
-    --secondary-blue: #1e3a8a;
-    --dark-bg: rgba(30, 30, 30, 0.95);
-    --glass-bg: rgba(40, 40, 40, 0.8);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --text-primary: #ffffff;
-    --text-secondary: rgba(255, 255, 255, 0.8);
-    --text-muted: rgba(255, 255, 255, 0.6);
-    --accent-glow: rgba(0, 150, 255, 0.3);
-    --success-color: #10b981;
-    --hover-bg: rgba(255, 255, 255, 0.1);
-}
+/* Modern Help Page Styling - Variables unified with base.css system */
 
 .help-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem 1rem;
-    color: var(--text-primary);
+    color: var(--text-white);
 }
 
 /* Header Section */
 .help-header {
     text-align: center;
     margin-bottom: 3rem;
-    background: var(--dark-bg);
+    background: var(--container-dark-primary);
     backdrop-filter: blur(10px);
     border-radius: 20px;
     padding: 2.5rem;
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-glass-strong);
 }
 
 .help-title {
@@ -41,15 +28,15 @@
 }
 
 .help-title i {
-    font-size: 2.5rem;
-    color: var(--primary-blue);
+    font-size: var(--font-size-2-5);
+    color: var(--btn-primary);
     text-shadow: 0 0 20px var(--accent-glow);
 }
 
 .help-title h1 {
-    font-size: 3rem;
+    font-size: var(--font-size-3xl);
     font-weight: bold;
-    background: linear-gradient(135deg, var(--primary-blue), #60a5fa);
+    background: linear-gradient(135deg, var(--btn-primary), #60a5fa);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -58,7 +45,7 @@
 }
 
 .help-subtitle {
-    font-size: 1.2rem;
+    font-size: var(--font-size-lg);
     color: var(--text-secondary);
     margin: 0;
     font-weight: 300;
@@ -77,16 +64,16 @@
     background: var(--glass-bg);
     backdrop-filter: blur(15px);
     border-radius: 20px;
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-glass-strong);
     overflow: hidden;
     transition: all 0.3s ease;
 }
 
 .help-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0, 150, 255, 0.2);
-    border-color: rgba(0, 150, 255, 0.3);
+    box-shadow: var(--shadow-primary-brand-large);
+    border-color: var(--primary-brand-30);
 }
 
 .card-header {
@@ -94,28 +81,28 @@
     align-items: center;
     justify-content: space-between;
     padding: 1.5rem 2rem;
-    background: linear-gradient(135deg, rgba(0, 150, 255, 0.1), rgba(0, 150, 255, 0.05));
+    background: linear-gradient(135deg, var(--primary-brand-10), var(--primary-brand-05));
     cursor: pointer;
     transition: all 0.3s ease;
-    border-bottom: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--border-light);
 }
 
 .card-header:hover {
-    background: linear-gradient(135deg, rgba(0, 150, 255, 0.15), rgba(0, 150, 255, 0.08));
+    background: linear-gradient(135deg, var(--primary-brand-15), var(--bg-white-08));
 }
 
 .card-header i:first-child {
-    font-size: 1.8rem;
-    color: var(--primary-blue);
+    font-size: var(--font-size-1-8);
+    color: var(--btn-primary);
     margin-right: 1rem;
     text-shadow: 0 0 10px var(--accent-glow);
 }
 
 .card-header h2 {
     flex: 1;
-    font-size: 1.4rem;
+    font-size: var(--font-size-xl);
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text-white);
     margin: 0;
 }
 
@@ -124,8 +111,8 @@
 }
 
 .toggle-icon i {
-    font-size: 1.2rem;
-    color: var(--primary-blue);
+    font-size: var(--font-size-lg);
+    color: var(--btn-primary);
     transition: transform 0.3s ease;
 }
 
@@ -146,14 +133,14 @@
     gap: 1rem;
     margin-bottom: 1.5rem;
     padding: 1rem;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-white-03);
     border-radius: 12px;
-    border-left: 3px solid var(--primary-blue);
+    border-left: 3px solid var(--btn-primary);
     transition: all 0.3s ease;
 }
 
 .help-item:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--bg-white-08);
     transform: translateX(5px);
 }
 
@@ -162,8 +149,8 @@
 }
 
 .help-item i {
-    font-size: 1.1rem;
-    color: var(--primary-blue);
+    font-size: var(--font-size-md);
+    color: var(--btn-primary);
     margin-top: 0.2rem;
     flex-shrink: 0;
 }
@@ -171,7 +158,7 @@
 .help-item span {
     color: var(--text-secondary);
     line-height: 1.5;
-    font-size: 1rem;
+    font-size: var(--font-size-base);
 }
 
 .support-description {
@@ -179,9 +166,9 @@
     font-style: italic;
     margin-bottom: 1.5rem;
     padding: 1rem;
-    background: rgba(0, 150, 255, 0.05);
+    background: var(--primary-brand-05);
     border-radius: 10px;
-    border: 1px solid rgba(0, 150, 255, 0.1);
+    border: 1px solid var(--primary-brand-10);
 }
 
 /* Quick Actions Section */
@@ -196,7 +183,7 @@
     background: var(--glass-bg);
     backdrop-filter: blur(15px);
     border-radius: 20px;
-    border: 1px solid var(--glass-border);
+    border: 1px solid var(--border-light);
     padding: 2rem;
     text-align: center;
     transition: all 0.3s ease;
@@ -211,7 +198,7 @@
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--primary-blue), #60a5fa);
+    background: linear-gradient(90deg, var(--btn-primary), #60a5fa);
     transform: scaleX(0);
     transition: transform 0.3s ease;
 }
@@ -222,20 +209,20 @@
 
 .quick-action-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0, 150, 255, 0.25);
-    border-color: rgba(0, 150, 255, 0.4);
+    box-shadow: var(--shadow-primary-brand-xl);
+    border-color: var(--primary-brand-40);
 }
 
 .quick-action-card i {
-    font-size: 3rem;
-    color: var(--primary-blue);
+    font-size: var(--font-size-3xl);
+    color: var(--btn-primary);
     margin-bottom: 1rem;
     text-shadow: 0 0 20px var(--accent-glow);
 }
 
 .quick-action-card h3 {
-    font-size: 1.3rem;
-    color: var(--text-primary);
+    font-size: var(--font-size-13rem);
+    color: var(--text-white);
     margin-bottom: 0.5rem;
     font-weight: 600;
 }
@@ -243,32 +230,32 @@
 .quick-action-card p {
     color: var(--text-muted);
     margin-bottom: 1.5rem;
-    font-size: 0.95rem;
+    font-size: var(--font-size-095rem);
 }
 
 .action-button {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background: linear-gradient(135deg, var(--primary-blue), #1e40af);
+    background: linear-gradient(135deg, var(--btn-primary), #1e40af);
     color: white;
     text-decoration: none;
     padding: 0.75rem 1.5rem;
     border-radius: 25px;
     font-weight: 500;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 150, 255, 0.3);
+    box-shadow: var(--shadow-primary-brand);
 }
 
 .action-button:hover {
-    background: linear-gradient(135deg, #1e40af, var(--primary-blue));
+    background: linear-gradient(135deg, #1e40af, var(--btn-primary));
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 150, 255, 0.4);
+    box-shadow: var(--shadow-primary-brand-strong);
     color: white;
 }
 
 .action-button i {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
     transition: transform 0.3s ease;
 }
 
@@ -327,7 +314,7 @@
     }
     
     .help-title h1 {
-        font-size: 2.2rem;
+        font-size: var(--font-size-22rem);
     }
     
     .help-title {
@@ -360,15 +347,15 @@
 
 @media (max-width: 480px) {
     .help-title h1 {
-        font-size: 1.8rem;
+        font-size: var(--font-size-1-8);
     }
     
     .help-subtitle {
-        font-size: 1rem;
+        font-size: var(--font-size-base);
     }
     
     .card-header h2 {
-        font-size: 1.2rem;
+        font-size: var(--font-size-lg);
     }
     
     .help-item {
@@ -376,7 +363,7 @@
     }
     
     .quick-action-card i {
-        font-size: 2.5rem;
+        font-size: var(--font-size-2-5);
     }
 }
 
@@ -394,7 +381,7 @@
 /* Focus states for better accessibility */
 .card-header:focus,
 .action-button:focus {
-    outline: 2px solid var(--primary-blue);
+    outline: 2px solid var(--btn-primary);
     outline-offset: 2px;
 }
 

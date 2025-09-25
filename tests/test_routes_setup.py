@@ -372,7 +372,7 @@ class TestSetupIgdbRoute:
     @patch('modules.routes_setup.log_system_event')
     @patch('modules.init_data.initialize_library_folders')
     @patch('modules.init_data.initialize_discovery_sections')
-    @patch('modules.init_data.insert_default_filters')
+    @patch('modules.init_data.insert_default_scanning_filters')
     @patch('modules.init_data.initialize_default_settings')
     @patch('modules.init_data.initialize_allowed_file_types')
     def test_setup_igdb_post_success_complete_setup(self, mock_init_filetypes, mock_init_settings, 
@@ -512,7 +512,7 @@ class TestSetupWorkflow:
             
             with patch('modules.init_data.initialize_library_folders'), \
                  patch('modules.init_data.initialize_discovery_sections'), \
-                 patch('modules.init_data.insert_default_filters'), \
+                 patch('modules.init_data.insert_default_scanning_filters'), \
                  patch('modules.init_data.initialize_allowed_file_types'), \
                  patch('modules.init_data.initialize_default_settings'), \
                  patch('modules.routes_setup.log_system_event'):
@@ -600,7 +600,7 @@ class TestSetupSessionHandling:
             
             with patch('modules.init_data.initialize_library_folders'), \
                  patch('modules.init_data.initialize_discovery_sections'), \
-                 patch('modules.init_data.insert_default_filters'), \
+                 patch('modules.init_data.insert_default_scanning_filters'), \
                  patch('modules.init_data.initialize_default_settings'), \
                  patch('modules.init_data.initialize_allowed_file_types'), \
                  patch('modules.routes_setup.log_system_event'):

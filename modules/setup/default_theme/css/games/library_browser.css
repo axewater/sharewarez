@@ -9,14 +9,14 @@
 }
 
 .modal-content-search button.close {
-    background-color: #495057;
-    color: white;
-    border: 1px solid #495057;
+    background-color: var(--btn-secondary);
+    color: var(--text-white);
+    border: 1px solid var(--btn-secondary);
     border-radius: 4px;
 }
 
 .modal-content-search button.close:hover {
-    background-color: #343a40;
+    background-color: var(--btn-dark);
 }
 
 .search-result {
@@ -26,8 +26,8 @@
 }
 
 .search-result:hover, .search-result.selected {
-    background-color: #495057;
-    color: #fff;
+    background-color: var(--btn-secondary);
+    color: var(--text-white);
 }
 
 /* Modern Pagination Styles */
@@ -37,7 +37,7 @@
     align-items: center;
     margin-bottom: 20px;
     padding: 15px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--border-light);
 }
 
 .pagination-footer {
@@ -46,7 +46,7 @@
     align-items: center;
     margin-top: 30px;
     padding: 15px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--border-light);
 }
 
 .pagination-controls-left {
@@ -62,7 +62,7 @@
 }
 
 .pagination-label {
-    color: #ddd;
+    color: var(--color-gray-ddd);
     font-size: 14px;
     font-weight: 500;
 }
@@ -76,17 +76,17 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--container-glass-primary);
     backdrop-filter: blur(10px);
     padding: 8px 12px;
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-light);
 }
 
 .btn-pagination {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #ddd;
+    background: var(--bg-light-overlay);
+    border: 1px solid var(--border-light-strong);
+    color: var(--color-gray-ddd);
     border-radius: 8px;
     padding: 8px 12px;
     font-size: 14px;
@@ -100,10 +100,10 @@
 }
 
 .btn-pagination:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.3);
+    background: var(--bg-light-overlay-hover);
+    border-color: var(--border-light-30);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-card);
 }
 
 .btn-pagination:disabled {
@@ -114,21 +114,21 @@
 
 .page-info {
     padding: 8px 16px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-white-05);
     border-radius: 8px;
-    color: #fff;
+    color: var(--text-white);
     font-size: 14px;
     font-weight: 500;
-    white-space: nowrap;
+    var(--text-white)-space: nowrap;
     min-width: 80px;
     text-align: center;
 }
 
 .dropdown-perpage {
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--container-glass-primary);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #ddd;
+    border: 1px solid var(--border-light-strong);
+    color: var(--color-gray-ddd);
     border-radius: 8px;
     padding: 8px 12px;
     font-size: 14px;
@@ -138,40 +138,40 @@
 }
 
 .dropdown-perpage:hover {
-    background: rgba(0, 0, 0, 0.4);
-    border-color: rgba(255, 255, 255, 0.3);
+    background: var(--bg-dark-secondary);
+    border-color: var(--border-light-30);
 }
 
 .dropdown-perpage:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    border-color: var(--btn-info-hover);
+    box-shadow: 0 0 0 2px var(--primary-brand-25);
 }
 
 /* Legacy pagination compatibility */
 .pagination .page-link {
     padding-left: 3.8rem;
     padding-right: 3.8rem;
-    background-color: #2a2c35;
-    color: #ffffff;
-    border: 1px solid #343a40;
+    background-color: var(--pagination-bg);
+    color: var(--text-white)fff;
+    border: 1px solid var(--btn-dark);
 }
 
 .pagination .page-link.active,
 .pagination .page-item.active .page-link {
-    background-color: #707b85;
-    border-color: #495057;
+    background-color: var(--pagination-active);
+    border-color: var(--btn-secondary);
 }
 
 .pagination .page-link:hover {
-    background-color: #495057;
-    border-color: #495057;
+    background-color: var(--btn-secondary);
+    border-color: var(--btn-secondary);
 }
 
 .pagination .page-item.disabled .page-link {
-    color: #6c757d;
-    background-color: #2a2c35;
-    border-color: #343a40;
+    color: var(--btn-secondary);
+    background-color: var(--pagination-bg);
+    border-color: var(--btn-dark);
 }
 
 .breadcrumbs {

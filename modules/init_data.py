@@ -95,48 +95,20 @@ def initialize_library_folders():
         os.makedirs(zips_path)
         print("Created zips folder")
 
-def insert_default_filters():
-    """Initialize default release groups in the database."""
+def insert_default_scanning_filters():
+    """Initialize default scanning filters in the database."""
     default_name_filters = [
-        {'rlsgroup': 'RAZOR', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'FLT', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'SKIDROW', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'CODEX', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'PLAZA', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'RELOADED', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'HOODLUM', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'CPY', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'FAIRLIGHT', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'HI2U', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'TiNYiSO', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'DARKSiDERS', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'Teke', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'Kw', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'PROPHET', 'rlsgroupcs': 'yes'},
-        {'rlsgroup': 'GOG', 'rlsgroupcs': 'no'}, 
-        {'rlsgroup': 'RUNE', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'Empress', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'AlcoholClone', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'DARKZER0', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'EMPRESS+Mr_Goldberg', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'ENGLISH-TL', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'ENLIGHT', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'FANiSO', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'FitGirl.Repack', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'FitGirl', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'I_KnoW', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'PROPER-CLONECD', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'Razor1911', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'TENOKE', 'rlsgroupcs': 'no'},
-        {'rlsgroup': 'ZER0', 'rlsgroupcs': 'no'},
+        {'filter_pattern': 'Open Source', 'case_sensitive': 'no'},
+        {'filter_pattern': 'Public Domain', 'case_sensitive': 'no'},
+        {'filter_pattern': 'GOG', 'case_sensitive': 'no'},
     ]
 
-    existing_groups = db.session.execute(select(ReleaseGroup.rlsgroup)).scalars().all()
+    existing_groups = db.session.execute(select(ReleaseGroup.filter_pattern)).scalars().all()
     existing_group_names = set(existing_groups)
 
     for group in default_name_filters:
-        if group['rlsgroup'] not in existing_group_names:
-            new_group = ReleaseGroup(rlsgroup=group['rlsgroup'], rlsgroupcs=group['rlsgroupcs'])
+        if group['filter_pattern'] not in existing_group_names:
+            new_group = ReleaseGroup(filter_pattern=group['filter_pattern'], case_sensitive=group['case_sensitive'])
             db.session.add(new_group)
     db.session.commit()
 

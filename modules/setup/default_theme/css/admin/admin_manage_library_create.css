@@ -2,13 +2,13 @@
 .glass-panel-modal {
     background: rgba(40, 40, 40, 0.95);
     backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-lg);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .glass-panel-modal-header {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-light-overlay);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 15px 15px 0 0;
@@ -87,7 +87,7 @@
 
 /* Button styling for glassmorphism */
 .image-editor-controls .btn {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-light-overlay);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
@@ -127,14 +127,14 @@
 }
 
 .glass-panel-modal-footer .btn-primary {
-    background: rgba(13, 110, 253, 0.8);
-    border-color: rgba(13, 110, 253, 0.8);
+    background: var(--btn-primary);
+    border-color: var(--btn-primary);
     backdrop-filter: blur(10px);
 }
 
 .glass-panel-modal-footer .btn-primary:hover {
-    background: rgba(13, 110, 253, 1);
-    border-color: rgba(13, 110, 253, 1);
+    background: var(--btn-primary-hover);
+    border-color: var(--btn-primary-hover);
     transform: translateY(-1px);
 }
 

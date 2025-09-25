@@ -478,7 +478,7 @@ class TestAdvancedScanScenarios:
                             {'name': 'Dummy Game 2', 'full_path': '/dummy/game2'}
                         ]
                         with patch('modules.utilities.get_game_names_from_folder', return_value=dummy_games):
-                            with patch('modules.utilities.load_release_group_patterns', return_value=([], [])):
+                            with patch('modules.utilities.load_scanning_filter_patterns', return_value=([], [])):
                                 with patch('modules.utils_scanning.process_game_with_fallback', return_value=True):  # Mock successful processing
                                     with patch('modules.utilities.remove_from_lib') as mock_remove:
                                         
@@ -568,7 +568,7 @@ class TestAdvancedScanScenarios:
                 with patch('os.path.exists', return_value=True):
                     with patch('os.access', return_value=True):
                         with patch('modules.utilities.get_game_names_from_folder', return_value=[]):
-                            with patch('modules.utilities.load_release_group_patterns', return_value=([], [])):
+                            with patch('modules.utilities.load_scanning_filter_patterns', return_value=([], [])):
                                 with patch('modules.utilities.db.session.commit') as mock_commit:
                                     from sqlalchemy.exc import SQLAlchemyError
                                     

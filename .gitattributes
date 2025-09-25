@@ -1,0 +1,9 @@
+# Shell scripts should maintain executable permissions and LF line endings
+*.sh text eol=lf
+
+# Docker and script files should preserve permissions
+Dockerfile text eol=lf
+*.dockerfile text eol=lf
+
+# Prevent CRLF issues on Windows
+* text=auto

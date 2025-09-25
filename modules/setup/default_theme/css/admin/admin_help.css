@@ -1,19 +1,19 @@
 .help-content {
     max-width: 1200px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background: rgba(30, 30, 30, 0.95);
-    backdrop-filter: blur(10px);
-    color: #ffffff;
+    margin: var(--spacing-rem-xl) auto;
+    padding: var(--spacing-rem-xl);
+    background: var(--container-dark-primary);
+    backdrop-filter: var(--backdrop-blur);
+    color: var(--text-white);
 }
 
 .help-content h1 {
-    color: #fff;
+    color: var(--text-white);
     text-align: center;
-    margin-bottom: 2rem;
-    font-size: 2.5em;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 1rem;
+    margin-bottom: var(--spacing-rem-xl);
+    font-size: var(--font-size-3xl);
+    border-bottom: 2px solid var(--border-light);
+    padding-bottom: var(--spacing-rem-md);
 }
 
 .collapse-icon {
@@ -26,37 +26,38 @@
     transform: rotate(-90deg);
 }
 
+/* Using unified admin-section from admin-components.css */
 .admin-section {
-    background: rgba(40, 40, 40, 0.5);
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 1.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--table-bg-40-alt);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-rem-lg);
+    border: 1px solid var(--border-light);
 }
 
 .admin-section h2 {
-    color: #0096ff;
-    font-size: 1.8em;
-    margin-bottom: 1rem;
+    color: var(--btn-primary);
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-rem-md);
     display: flex;
     align-items: center;
 }
 
 .admin-section h2::before {
     content: '►';
-    margin-right: 10px;
+    margin-right: var(--spacing-sm);
     font-size: 0.8em;
-    color: #0096ff;
+    color: var(--btn-primary);
 }
 
 .help-subsection {
     margin: 1.5rem 0;
     padding-left: 1rem;
-    border-left: 3px solid rgba(0, 150, 255, 0.3);
+    border-left: 3px solid var(--primary-brand-30);
 }
 
 .help-subsection h3 {
-    color: #fff;
+    color: var(--text-white);
     font-size: 1.3em;
     margin-bottom: 1rem;
 }
@@ -111,7 +112,7 @@
 }
 
 #quick-start h2 {
-    color: #fff;
+    color: var(--text-white);
 }
 
 .step-by-step {

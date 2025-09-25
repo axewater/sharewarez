@@ -26,9 +26,54 @@
                     </a>
                     <span class="button-label">Scan Manager</span>
                 </div>
+                                <div class="admin-button-item" data-toggle="tooltip" title="Manage discovery sections">
+                    <a href="{{ url_for('admin2.discovery_sections') }}" class="btn btn-circle">
+                        <i class="fas fa-compass"></i>
+                    </a>
+                    <span class="button-label">Discovery</span>
+                </div>
             </div>
         </div>
 
+
+        <!-- Server Management Section -->
+        <div class="admin-section">
+            <h3><i class="fas fa-server"></i> Server Management</h3>
+            <div class="admin-buttons">
+                <div class="admin-button-item" data-toggle="tooltip" title="Manage server settings">
+                    <a href="{{ url_for('admin2.new_server_settings') }}" class="btn btn-circle">
+                        <i class="fas fa-cogs"></i>
+                    </a>
+                    <span class="button-label">Server Settings</span>
+                </div>
+                <div class="admin-button-item" data-toggle="tooltip" title="Manage integrations (Email, IGDB, Discord)">
+                    <a href="{{ url_for('admin2.integrations') }}" class="btn btn-circle">
+                        <i class="fas fa-plug"></i>
+                    </a>
+                    <span class="button-label">Integrations</span>
+                </div>
+                <div class="admin-button-item" data-toggle="tooltip" title="View download statistics">
+                    <a href="{{ url_for('download.statistics') }}" class="btn btn-circle">
+                        <i class="fas fa-chart-bar"></i>
+                    </a>
+                    <span class="button-label">Statistics</span>
+                </div>
+                <div class="admin-button-item" data-toggle="tooltip" title="View system logs">
+                    <a href="{{ url_for('admin2.system_logs') }}" class="btn btn-circle">
+                        <i class="fas fa-clipboard-list"></i>
+                    </a>
+                    <span class="button-label">System Logs</span>
+                </div>
+                {% if enable_server_status %}
+                <div class="admin-button-item" data-toggle="tooltip" title="View server information">
+                    <a href="{{ url_for('info.new_server_info') }}" class="btn btn-circle">
+                        <i class="fas fa-info"></i>
+                    </a>
+                    <span class="button-label">Server Info</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
 
         <!-- Access Management Section -->
         <div class="admin-section">
@@ -53,12 +98,7 @@
                     </a>
                     <span class="button-label">Downloads</span>
                 </div>
-                <div class="admin-button-item" data-toggle="tooltip" title="Manage discovery sections">
-                    <a href="{{ url_for('admin2.discovery_sections') }}" class="btn btn-circle">
-                        <i class="fas fa-compass"></i>
-                    </a>
-                    <span class="button-label">Discovery</span>
-                </div>
+
 
 
 
@@ -77,51 +117,12 @@
                     <span class="button-label">Newsletter</span>
                 </div>
                 {% endif %}
-                <div class="admin-button-item" data-toggle="tooltip" title="View download statistics">
-                    <a href="{{ url_for('download.statistics') }}" class="btn btn-circle">
-                        <i class="fas fa-chart-bar"></i>
-                    </a>
-                    <span class="button-label">Statistics</span>
-                </div>
-                <div class="admin-button-item" data-toggle="tooltip" title="View system logs">
-                    <a href="{{ url_for('admin2.system_logs') }}" class="btn btn-circle">
-                        <i class="fas fa-clipboard-list"></i>
-                    </a>
-                    <span class="button-label">System Logs</span>
-                </div>
                 <div class="admin-button-item" data-toggle="tooltip" title="View administrator help">
                     <a href="{{ url_for('admin2.admin_help') }}" class="btn btn-circle">
                         <i class="fas fa-question-circle"></i>
                     </a>
                     <span class="button-label">Admin Help</span>
                 </div>
-            </div>
-        </div>
-
-        <!-- Settings Management Section -->
-        <div class="admin-section">
-            <h3><i class="fas fa-cogs"></i> Settings Management</h3>
-            <div class="admin-buttons">
-                <div class="admin-button-item" data-toggle="tooltip" title="Manage server settings">
-                    <a href="{{ url_for('admin2.new_server_settings') }}" class="btn btn-circle">
-                        <i class="fas fa-cogs"></i>
-                    </a>
-                    <span class="button-label">Server Settings</span>
-                </div>
-                <div class="admin-button-item" data-toggle="tooltip" title="Manage integrations (Email, IGDB, Discord)">
-                    <a href="{{ url_for('admin2.integrations') }}" class="btn btn-circle">
-                        <i class="fas fa-plug"></i>
-                    </a>
-                    <span class="button-label">Integrations</span>
-                </div>
-                {% if enable_server_status %}
-                <div class="admin-button-item" data-toggle="tooltip" title="View server information">
-                    <a href="{{ url_for('info.new_server_info') }}" class="btn btn-circle">
-                        <i class="fas fa-info"></i>
-                    </a>
-                    <span class="button-label">Server Info</span>
-                </div>
-                {% endif %}
             </div>
         </div>
 

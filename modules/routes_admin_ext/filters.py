@@ -13,13 +13,13 @@ from . import admin2_bp
 def edit_filters():
     form = ReleaseGroupForm()
     if form.validate_on_submit():
-        new_group = ReleaseGroup(rlsgroup=form.rlsgroup.data, rlsgroupcs=form.rlsgroupcs.data)
+        new_group = ReleaseGroup(filter_pattern=form.filter_pattern.data, case_sensitive=form.case_sensitive.data)
         db.session.add(new_group)
         db.session.commit()
-        flash('New release group filter added.')
+        flash('New scanning filter added.')
         return redirect(url_for('admin2.edit_filters'))
-    groups = db.session.execute(select(ReleaseGroup).order_by(ReleaseGroup.rlsgroup.asc())).scalars().all()
-    return render_template('admin/admin_manage_filters.html', form=form, groups=groups)
+    scanning_filters = db.session.execute(select(ReleaseGroup).order_by(ReleaseGroup.filter_pattern.asc())).scalars().all()
+    return render_template('admin/admin_manage_filters.html', form=form, scanning_filters=scanning_filters)
 
 @admin2_bp.route('/delete_filter/<int:id>', methods=['GET'])
 @login_required
@@ -28,5 +28,5 @@ def delete_filter(id):
     group_to_delete = db.session.get(ReleaseGroup, id) or abort(404)
     db.session.delete(group_to_delete)
     db.session.commit()
-    flash('Release group filter removed.')
+    flash('Scanning filter removed.')
     return redirect(url_for('admin2.edit_filters'))

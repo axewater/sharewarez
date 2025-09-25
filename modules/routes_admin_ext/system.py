@@ -1,10 +1,10 @@
 from flask import render_template, request, jsonify
 from flask_login import login_required, current_user
 from modules.utils_auth import admin_required
-from modules.models import SystemEvents, DiscoverySection
+from modules.models import SystemEvents, DiscoverySection, Game, Library, user_favorites
 from modules import db
 from modules.utils_logging import log_system_event
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 from datetime import datetime
 from typing import Optional, Dict, Any
 from . import admin2_bp
@@ -105,12 +105,37 @@ def system_logs() -> str:
 def discovery_sections() -> str:
     """
     Display and manage discovery sections configuration.
-    
+
     Returns a page where admins can view, reorder, and toggle visibility
     of discovery sections on the main discovery page.
     """
     sections = db.session.execute(select(DiscoverySection).order_by(DiscoverySection.display_order)).scalars().all()
-    return render_template('admin/admin_discovery_sections.html', sections=sections)
+
+    # Calculate item counts for each section
+    section_counts = {}
+
+    for section in sections:
+        if section.identifier == 'libraries':
+            count = db.session.execute(select(func.count(Library.uuid))).scalar()
+        elif section.identifier == 'latest_games':
+            count = db.session.execute(select(func.count(Game.id))).scalar()
+        elif section.identifier == 'most_downloaded':
+            count = db.session.execute(select(func.count(Game.id)).where(Game.times_downloaded > 0)).scalar()
+        elif section.identifier == 'highest_rated':
+            count = db.session.execute(select(func.count(Game.id)).where(Game.rating != None)).scalar()
+        elif section.identifier == 'last_updated':
+            count = db.session.execute(select(func.count(Game.id)).where(Game.last_updated != None)).scalar()
+        elif section.identifier == 'most_favorited':
+            count = db.session.execute(
+                select(func.count(func.distinct(Game.uuid)))
+                .join(user_favorites, Game.uuid == user_favorites.c.game_uuid)
+            ).scalar()
+        else:
+            count = 0
+
+        section_counts[section.identifier] = count
+
+    return render_template('admin/admin_discovery_sections.html', sections=sections, section_counts=section_counts)
 
 @admin2_bp.route('/admin/api/discovery_sections/order', methods=['POST'])
 @login_required

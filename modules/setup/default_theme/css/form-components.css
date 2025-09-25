@@ -1,0 +1,361 @@
+/* === UNIFIED FORM SYSTEM === */
+/* Consolidates form styling duplicated across 15+ files */
+
+/* Base Form Control Styling */
+.form-control {
+    background: var(--form-bg);
+    border: 1px solid var(--form-border);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-white);
+    padding: var(--spacing-sm);
+    width: 100%;
+    transition: all var(--transition-fast);
+    line-height: 1.1;
+    font-size: var(--font-size-base);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--form-focus-border);
+    background: var(--form-focus-bg);
+    box-shadow: var(--form-focus-shadow);
+    color: var(--text-white);
+}
+
+.form-control::placeholder {
+    color: var(--form-placeholder);
+}
+
+/* Form Select Styling */
+.form-select {
+    background: var(--form-bg);
+    border: 1px solid var(--form-border);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-white);
+    padding: var(--spacing-sm);
+    width: 100%;
+    transition: all var(--transition-fast);
+}
+
+.form-select:focus {
+    background: var(--form-focus-bg);
+    border-color: var(--border-light-30);
+    color: var(--text-white);
+    box-shadow: 0 0 0 0.25rem var(--bg-light-overlay);
+}
+
+/* Form Group Layout */
+.form-group {
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.form-group label {
+    color: var(--text-white);
+    font-weight: 500;
+    margin-bottom: var(--spacing-xs);
+    display: block;
+}
+
+/* Admin Form Variants */
+.admin-form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.admin-form-label {
+    color: var(--text-white);
+    font-weight: 600;
+    margin-bottom: var(--spacing-xs);
+    display: block;
+}
+
+.admin-input {
+    background: var(--bg-dark-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-white);
+    padding: var(--spacing-sm);
+    width: 100%;
+    transition: border-color var(--transition-fast);
+}
+
+.admin-input:focus {
+    outline: none;
+    border-color: var(--border-light-strong);
+    background: var(--bg-dark-primary);
+}
+
+/* Glass Input Variant */
+.input-glass {
+    width: 95%;
+    border: none;
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    color: black;
+    margin: var(--spacing-3);
+    margin-left: var(--spacing-3) !important;
+    height: 38px;
+    box-shadow: var(--shadow-inset);
+}
+
+/* Apply consistent styling to all input types */
+form input[type="text"],
+form input[type="password"],
+form input[type="email"],
+form input[type="search"],
+form input[type="number"],
+form input[type="date"],
+form input[type="tel"],
+form input[type="url"],
+form input[type="time"],
+form input[type="range"],
+form input[type="color"],
+form select,
+form textarea {
+    box-shadow: var(--shadow-inset);
+    background: var(--form-bg);
+    border: 1px solid var(--form-border);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-white);
+    padding: var(--spacing-sm);
+    transition: all var(--transition-fast);
+}
+
+form input[type="text"]:focus,
+form input[type="password"]:focus,
+form input[type="email"]:focus,
+form input[type="search"]:focus,
+form input[type="number"]:focus,
+form input[type="date"]:focus,
+form input[type="tel"]:focus,
+form input[type="url"]:focus,
+form input[type="time"]:focus,
+form input[type="range"]:focus,
+form input[type="color"]:focus,
+form select:focus,
+form textarea:focus {
+    outline: none;
+    border-color: var(--form-focus-border);
+    background: var(--form-focus-bg);
+    box-shadow: var(--form-focus-shadow);
+}
+
+/* Form Text Helpers */
+.form-text {
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    margin-top: 0.25rem;
+    line-height: 1.2;
+    border-radius: var(--border-radius-xs);
+    padding-left: var(--spacing-sm);
+}
+
+.form-text-muted {
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    margin-top: 0.25rem;
+    line-height: 1.2;
+}
+
+.form-text-light {
+    color: var(--text-muted-light);
+    font-size: var(--font-size-xs);
+    margin-top: 0.2rem;
+    line-height: 1.2;
+}
+
+/* Form File Upload */
+.form-control-file {
+    background-color: var(--form-bg);
+    border: 1px solid var(--border-light-30);
+    border-radius: var(--border-radius-xs);
+    padding: var(--spacing-sm);
+    color: var(--text-white);
+    width: 100%;
+}
+
+/* Checkbox Styling */
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--btn-primary);
+}
+
+/* Form Validation States */
+.form-control.is-valid {
+    border-color: var(--btn-success);
+    background: var(--alert-success-bg);
+}
+
+.form-control.is-invalid,
+.invalid-input {
+    border: 2px solid var(--btn-danger);
+    background: var(--alert-danger-bg);
+}
+
+.form-control.is-invalid:focus {
+    border-color: var(--btn-danger);
+    box-shadow: 0 0 0 0.2rem var(--alert-danger-shadow);
+}
+
+/* Settings Form Layout */
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-rem-lg);
+}
+
+/* Button Group in Forms */
+.button-group {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+/* Form Specific Container */
+.form-container {
+    background: var(--container-dark-primary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    margin: var(--spacing-lg) auto;
+    box-shadow: var(--shadow-glass);
+}
+
+/* Upload Form Specific */
+.theme-upload-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.form-label {
+    color: var(--text-white);
+    margin-bottom: var(--spacing-sm);
+    display: block;
+    font-weight: 500;
+}
+
+/* Search Form Styling */
+.search-form .form-control {
+    background: var(--form-bg-dark);
+    border: 1px solid var(--form-border);
+    color: var(--text-white);
+}
+
+
+/* Dropdown Styling */
+.dropdown-perpage {
+    position: relative;
+    min-width: 40px;
+    max-width: 75px;
+    padding: var(--spacing-xs);
+    border-radius: var(--border-radius-lg);
+    background-color: var(--bg-dark-primary);
+    cursor: pointer;
+    margin-left: var(--spacing-xs);
+    color: var(--text-white);
+    border: 1px solid var(--form-border);
+}
+
+.dropdown-perpage:focus {
+    outline: none;
+    border-color: var(--form-focus-border);
+}
+
+.dropdown-perpage option {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--bg-dark-primary);
+    color: var(--text-white);
+}
+
+/* Form Responsive Design */
+@media (max-width: 768px) {
+    .form-text-light {
+        font-size: var(--font-size-xs);
+    }
+
+    .form-group {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .button-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .input-glass {
+        width: 200px;
+    }
+
+    .form-container {
+        padding: var(--spacing-lg);
+        margin: var(--spacing-sm);
+    }
+}
+
+/* Form Animation */
+.form-control,
+.form-select,
+.admin-input {
+    transition: all var(--transition-fast);
+}
+
+.form-control:focus,
+.form-select:focus,
+.admin-input:focus {
+    transform: translateY(-1px);
+}
+
+/* === MERGED FROM settings_password.css === */
+
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.toggle-password {
+    position: absolute;
+    right: var(--spacing-sm);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-gray-888);
+    padding: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.toggle-password:hover {
+    color: var(--color-dark-333);
+}
+
+.toggle-password:focus {
+    outline: none;
+}
+
+.input-glass {
+    padding-right: 40px;
+}
+
+.settings_password-password {
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-white);
+    font-weight: bold;
+}
+
+.settings_password-password-form {
+    margin-bottom: var(--spacing-lg);
+}
+
+#password-form {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Button margin removed - handled by specific containers */
