@@ -59,7 +59,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-    ports:
+#    ports:
 #      - "5432:5432"  # Optional: expose PostgreSQL port for external access
 
 volumes:
