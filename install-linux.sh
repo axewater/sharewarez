@@ -40,7 +40,7 @@ GAMES_DIR=""
 FORCE_INSTALL=false
 DEV_MODE=false
 SKIP_DB=false
-CUSTOM_PORT="6006"
+CUSTOM_PORT="5006"
 VERBOSE_MODE=false
 
 # Cleanup function
@@ -260,7 +260,7 @@ show_help() {
     echo "  --verbose, -v    Show detailed installation output"
     echo "  --quiet, -q      Suppress detailed output (default)"
     echo "  --games-dir PATH Specify games directory"
-    echo "  --port PORT      Custom port (default: 6006)"
+    echo "  --port PORT      Custom port (default: 5006)"
     echo "  --help, -h       Show this help message"
     echo
     echo "EXAMPLES:"

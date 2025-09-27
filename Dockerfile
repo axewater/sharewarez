@@ -15,5 +15,5 @@ RUN sed -i 's/\r$//' /app/startweb-docker.sh
 RUN chmod a+x /app/entrypoint.sh
 RUN chmod a+x /app/startweb-docker.sh
 
-EXPOSE 6006
+EXPOSE 5006
 ENTRYPOINT ["sh","/app/entrypoint.sh"]
