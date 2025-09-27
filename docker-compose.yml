@@ -42,7 +42,7 @@ services:
       start_period: 40s
 
   db:
-    image: postgres:16.2
+    image: postgres:17.6
     container_name: sharewarez-db
     restart: unless-stopped
     shm_size: 128mb
