@@ -50,8 +50,8 @@ REM Ensure environment variables are set for worker processes
 set SHAREWAREZ_MIGRATIONS_COMPLETE=true
 set SHAREWAREZ_INITIALIZATION_COMPLETE=true
 
-REM Set port for uvicorn (default 6006, can be overridden by PORT env var)
-if not defined PORT set PORT=6006
+REM Set port for uvicorn (default 5006, can be overridden by PORT env var)
+if not defined PORT set PORT=5006
 
 REM Start uvicorn with workers (migrations already complete)
 uvicorn asgi:asgi_app --host 0.0.0.0 --port %PORT% --workers 4

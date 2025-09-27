@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.7.6
+# 🎮 SharewareZ v2.7.7
 
 SharewareZ transforms any game folder into a searchable library with IGDB integration, adding cover images, screenshots, and metadata for enhanced filtering.
 Invite your friends securely and share your favorite games!
@@ -162,7 +162,7 @@ chmod +x *.sh
 ```
 
 **Step 6: Complete Setup**
-1. Open your browser to `http://localhost:6006`
+1. Open your browser to `http://localhost:5006`
 2. Complete the setup wizard and create your admin account
 
 ---
@@ -229,14 +229,56 @@ notepad .env
 ```
 
 **Step 6: Complete Setup**
-1. Open your browser to `http://localhost:6006`
+1. Open your browser to `http://localhost:5006`
 2. Complete the setup wizard and create your admin account
 
 ---
 
 ## 🐳 Docker Install
 
-*Coming soon*
+**Quick Docker Setup:**
+```bash
+# Clone the repository
+git clone https://github.com/axewater/sharewarez.git
+cd sharewarez
+
+# Copy and configure environment file
+cp .env.docker.example .env
+# Edit .env file with your game directory path:
+# DATA_FOLDER_WAREZ=/path/to/your/games
+
+# Start with Docker Compose
+docker-compose up -d
+```
+
+**What it includes:**
+- ✅ Complete PostgreSQL database setup
+- ✅ Automatic application configuration
+- ✅ Persistent data storage
+- ✅ Ready-to-use on port 5006
+
+**Step-by-step:**
+1. Clone repository and navigate to folder
+2. Copy `.env.docker.example` to `.env`
+3. Edit `.env` file - set `DATA_FOLDER_WAREZ` to your games directory
+4. Run `docker-compose up -d`
+5. Open browser to `http://localhost:5006`
+6. Complete setup wizard and create admin account
+
+**Management commands:**
+```bash
+# View logs
+docker-compose logs -f
+
+# Stop containers
+docker-compose down
+
+# Update to latest version
+git pull && docker-compose down && docker-compose up -d --build
+
+# Reset database (if needed)
+docker-compose exec web /app/startweb-docker.sh --force-setup
+```
 
 ---
 
@@ -252,13 +294,36 @@ notepad .env
 3. Restart with startup script
 
 **Troubleshooting:**
-- Port 6006 in use: Change port in startup script
+- Port 5006 in use: Change port in startup script or set PORT environment variable
 - Database errors: Check PostgreSQL is running and credentials are correct
 - Linux permissions: Ensure read access to game directories
 
 ## 🔧 Additional Settings
-- 🌐 Default port: `6006` (configurable in `startweb.sh` for normal operation or docker-compose.yml for docker)
+- 🌐 Default port: `5006` (configurable via PORT environment variable)
 - 👥 Go the admin dashboard for further configuration
+
+## 🌐 Changing the Port Number
+
+SharewareZ runs on port `5006` by default. To change this:
+
+**For Linux/Windows installations:**
+1. Edit your `.env` file
+2. Add or modify: `PORT=8080` (replace 8080 with your desired port)
+3. Restart SharewareZ
+
+**For Docker installations:**
+- Docker containers always use port `5006` internally
+- The external port is mapped via docker-compose.yml (also defaults to 5006)
+- To change external port, edit the `ports` section in docker-compose.yml
+
+**Examples:**
+```bash
+# In .env file - run on port 8080
+PORT=8080
+
+# In .env file - run on port 3000
+PORT=3000
+```
 
 ## 🔧 Supported platforms to play in browser 
 - Most 8, 16 and 32 bit retro consoles work, see webretro repo for more full list
