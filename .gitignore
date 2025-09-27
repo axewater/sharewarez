@@ -42,11 +42,14 @@ pip-delete-this-directory.txt
 # Environment & Config
 .env
 .env.*
+!.env.example
+!.env.docker.example
 
 config.backup
 config.py.backup
 config.portainer
 *.env
+!*.env.example
 
 # Database
 db_data/

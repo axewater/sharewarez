@@ -18,7 +18,7 @@ services:
     container_name: sharewarez-app
     restart: unless-stopped
     ports:
-      - "6006:6006"
+      - "5006:5006"
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - DATA_FOLDER_WAREZ=/storage
@@ -60,7 +60,7 @@ services:
       retries: 5
       start_period: 10s
     ports:
-      - "5432:5432"  # Optional: expose PostgreSQL port for external access
+#      - "5432:5432"  # Optional: expose PostgreSQL port for external access
 
 volumes:
   db_data:
