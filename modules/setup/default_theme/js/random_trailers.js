@@ -5,6 +5,14 @@
 let player = null;
 let isPlayerReady = false;
 
+// Store current filter badge data for responsive rendering
+let currentFilterData = {
+    platform: null,
+    genres: [],
+    themes: [],
+    dateRange: null
+};
+
 // YouTube IFrame API ready callback
 function onYouTubeIframeAPIReady() {
     isPlayerReady = true;
@@ -16,15 +24,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingState = document.getElementById('loading-state');
     const errorState = document.getElementById('error-state');
     const videoContainer = document.getElementById('video-container');
-    const gameName = document.getElementById('game-name');
+    const gameTitle = document.getElementById('game-title');
+    const gameTitleLink = document.getElementById('game-title-link');
     const nextBtn = document.getElementById('next-btn');
-    const gameDetailsBtn = document.getElementById('game-details-btn');
     const errorText = document.getElementById('error-text');
 
     // Filter Elements
     const filterToggle = document.getElementById('filter-toggle');
     const filterPanel = document.getElementById('filter-panel');
     const toggleIcon = filterToggle.querySelector('.toggle-icon');
+    const filterBadges = document.getElementById('filter-badges');
     const platformSelect = document.getElementById('platform-filter');
     const genreSelect = document.getElementById('genre-filter');
     const themeSelect = document.getElementById('theme-filter');
@@ -39,10 +48,36 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load initial trailer on page load
     fetchRandomTrailer();
 
+    // Initialize badges visibility (panel starts collapsed)
+    if (filterPanel.classList.contains('collapsed')) {
+        filterBadges.classList.remove('hidden');
+    } else {
+        filterBadges.classList.add('hidden');
+    }
+
+    // Debounced window resize handler for responsive badges
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            // Re-render badges with smart condensing based on new window size
+            if (filterPanel.classList.contains('collapsed')) {
+                renderSmartBadges();
+            }
+        }, 300); // 300ms debounce
+    });
+
     // Filter panel toggle
     filterToggle.addEventListener('click', function() {
         filterPanel.classList.toggle('collapsed');
         toggleIcon.classList.toggle('rotated');
+
+        // Toggle badge visibility
+        if (filterPanel.classList.contains('collapsed')) {
+            filterBadges.classList.remove('hidden');
+        } else {
+            filterBadges.classList.add('hidden');
+        }
     });
 
     // Next button click handler
@@ -173,33 +208,49 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * Update filter status display
+     * Update filter status display and badges
      */
     function updateFilterStatus() {
         const activeFilters = [];
 
+        // Store filter data for responsive badge rendering
+        currentFilterData = {
+            platform: null,
+            genres: [],
+            themes: [],
+            dateRange: null
+        };
+
+        // Platform filter
         if (platformSelect.value) {
-            // Get the display text (user-friendly name) from the selected option
             const platformText = platformSelect.options[platformSelect.selectedIndex].text;
             activeFilters.push(`Platform: ${platformText}`);
+            currentFilterData.platform = platformText;
         }
 
+        // Genre filter
         const selectedGenres = Array.from(genreSelect.selectedOptions);
         if (selectedGenres.length > 0) {
             activeFilters.push(`Genres: ${selectedGenres.length} selected`);
+            currentFilterData.genres = selectedGenres.map(opt => opt.textContent);
         }
 
+        // Theme filter
         const selectedThemes = Array.from(themeSelect.selectedOptions);
         if (selectedThemes.length > 0) {
             activeFilters.push(`Themes: ${selectedThemes.length} selected`);
+            currentFilterData.themes = selectedThemes.map(opt => opt.textContent);
         }
 
+        // Date range filter
         if (dateFromInput.value || dateToInput.value) {
             const from = dateFromInput.value || '...';
             const to = dateToInput.value || '...';
             activeFilters.push(`Years: ${from} - ${to}`);
+            currentFilterData.dateRange = `${from}-${to}`;
         }
 
+        // Update text status (in expanded panel)
         if (activeFilters.length > 0) {
             filterStatus.textContent = `Active: ${activeFilters.join(' | ')}`;
             filterStatus.style.display = 'block';
@@ -207,6 +258,170 @@ document.addEventListener('DOMContentLoaded', function() {
             filterStatus.textContent = '';
             filterStatus.style.display = 'none';
         }
+
+        // Update badges (in collapsed panel) with smart rendering
+        renderSmartBadges();
+    }
+
+    /**
+     * Smart badge rendering - tries to show full info, condenses if needed
+     */
+    function renderSmartBadges() {
+        // If no filters, clear badges
+        if (!currentFilterData.platform &&
+            currentFilterData.genres.length === 0 &&
+            currentFilterData.themes.length === 0 &&
+            !currentFilterData.dateRange) {
+            filterBadges.innerHTML = '';
+            return;
+        }
+
+        // Use requestAnimationFrame to ensure DOM is rendered before checking overflow
+        requestAnimationFrame(() => {
+            tryRenderAtLevel(0);
+        });
+    }
+
+    /**
+     * Try rendering badges at a specific condensing level
+     * @param {number} level - Current condensing level to try
+     */
+    function tryRenderAtLevel(level) {
+        const maxLevel = 4;
+
+        // Generate and render badges for this level
+        const badges = generateBadges(level);
+        const badgeHTML = badges.map(badge =>
+            `<span class="filter-badge">${badge}</span>`
+        ).join('');
+
+        filterBadges.innerHTML = badgeHTML;
+
+        // Give browser time to render, then check if it fits
+        requestAnimationFrame(() => {
+            const overflowing = hasOverflow();
+
+            if (overflowing && level < maxLevel) {
+                // Still overflowing and we have more levels to try
+                tryRenderAtLevel(level + 1);
+            }
+            // Otherwise, we're done (either fits or at max condensing)
+        });
+    }
+
+    /**
+     * Generate badge array based on condensing level
+     * @param {number} level - 0 (full) to 4 (ultra condensed)
+     * @returns {Array} Array of badge text strings
+     */
+    function generateBadges(level) {
+        const badges = [];
+
+        // Level 3: Count-only format
+        if (level === 3) {
+            if (currentFilterData.platform) {
+                badges.push(currentFilterData.platform);
+            }
+            if (currentFilterData.genres.length > 0) {
+                badges.push(`Genres: ${currentFilterData.genres.length}`);
+            }
+            if (currentFilterData.themes.length > 0) {
+                badges.push(`Themes: ${currentFilterData.themes.length}`);
+            }
+            if (currentFilterData.dateRange) {
+                badges.push(currentFilterData.dateRange);
+            }
+            return badges;
+        }
+
+        // Level 4: Ultra minimal - just counts
+        if (level === 4) {
+            if (currentFilterData.platform) {
+                // Abbreviate platform names
+                const abbrev = currentFilterData.platform.replace('PC Windows', 'PC').replace('Commodore', 'C');
+                badges.push(abbrev);
+            }
+            if (currentFilterData.genres.length > 0) {
+                badges.push(`G:${currentFilterData.genres.length}`);
+            }
+            if (currentFilterData.themes.length > 0) {
+                badges.push(`T:${currentFilterData.themes.length}`);
+            }
+            if (currentFilterData.dateRange) {
+                badges.push(currentFilterData.dateRange);
+            }
+            return badges;
+        }
+
+        // Levels 0-2: Normal condensing
+        // Platform - always show full
+        if (currentFilterData.platform) {
+            badges.push(currentFilterData.platform);
+        }
+
+        // Genres - condense based on level
+        if (currentFilterData.genres.length > 0) {
+            if (level === 0) {
+                // Show all genres
+                badges.push(...currentFilterData.genres);
+            } else {
+                // Condense to first + count
+                const first = currentFilterData.genres[0];
+                if (currentFilterData.genres.length === 1) {
+                    badges.push(first);
+                } else {
+                    badges.push(`${first} +${currentFilterData.genres.length - 1}`);
+                }
+            }
+        }
+
+        // Themes - condense based on level
+        if (currentFilterData.themes.length > 0) {
+            if (level === 0 || level === 1) {
+                // Show all themes (level 0 and 1)
+                badges.push(...currentFilterData.themes);
+            } else {
+                // Condense to first + count (level 2)
+                const first = currentFilterData.themes[0];
+                if (currentFilterData.themes.length === 1) {
+                    badges.push(first);
+                } else {
+                    badges.push(`${first} +${currentFilterData.themes.length - 1}`);
+                }
+            }
+        }
+
+        // Date range - always show full
+        if (currentFilterData.dateRange) {
+            badges.push(currentFilterData.dateRange);
+        }
+
+        return badges;
+    }
+
+    /**
+     * Check if badges container has overflow
+     * @returns {boolean} True if overflowing
+     */
+    function hasOverflow() {
+        // Check if container has content and dimensions
+        if (!filterBadges || filterBadges.children.length === 0) {
+            return false;
+        }
+
+        // Force a reflow to ensure accurate measurements
+        const scrollW = filterBadges.scrollWidth;
+        const clientW = filterBadges.clientWidth;
+
+        // Add small buffer (5px) to account for rendering differences and ensure we detect overflow
+        const isOverflowing = scrollW > clientW + 5;
+
+        // Debug logging (remove in production if needed)
+        if (isOverflowing) {
+            console.log(`Overflow detected: scrollWidth=${scrollW}, clientWidth=${clientW}`);
+        }
+
+        return isOverflowing;
     }
 
     /**
@@ -281,11 +496,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Update game name
-        gameName.textContent = data.game_name;
+        // Update game title in header
+        gameTitle.textContent = data.game_name;
 
-        // Update game details button link
-        gameDetailsBtn.href = `/game_details/${data.game_uuid}`;
+        // Update game title link
+        gameTitleLink.href = `/game_details/${data.game_uuid}`;
 
         // Hide loading, show video container
         hideLoading();

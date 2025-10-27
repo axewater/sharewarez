@@ -4,16 +4,15 @@
 <link rel="stylesheet" href="{{ 'css/site/random_trailers.css'|theme_asset }}">
 
 <div class="trailer-viewer-container">
-    <!-- Header Section with Title and Action Buttons -->
+    <!-- Header Section with Game Name and Action Buttons -->
     <div class="trailer-header-section">
-        <h1 class="trailer-title">Random Game Trailers</h1>
+        <a id="game-title-link" href="#" class="game-title-link">
+            <h1 id="game-title" class="trailer-title">Loading Game...</h1>
+        </a>
         <div class="action-buttons-top">
-            <button id="next-btn" class="btn-next">
-                <i class="fas fa-forward"></i> Next Trailer
+            <button id="next-btn" class="btn-next" title="Next Trailer">
+                <i class="fas fa-forward"></i>
             </button>
-            <a id="game-details-btn" href="#" class="btn-details">
-                <i class="fas fa-info-circle"></i> Go to Game
-            </a>
         </div>
     </div>
 
@@ -21,6 +20,7 @@
     <div class="filter-panel-container">
         <button id="filter-toggle" class="filter-toggle-btn">
             <i class="fas fa-filter"></i> <span class="filter-text">Filters</span>
+            <div id="filter-badges" class="filter-badges"></div>
             <i class="fas fa-chevron-down toggle-icon"></i>
         </button>
 
@@ -95,11 +95,6 @@
             <p id="error-text">No games with trailers found</p>
             <button onclick="location.href='/library'" class="btn-primary">Go to Library</button>
         </div>
-    </div>
-        
-    <!-- Game Info  -->
-    <div class="game-info">
-        <h2 id="game-name" class="game-name">Game Name</h2>        
     </div>
 
     <!-- Video Player Container -->
