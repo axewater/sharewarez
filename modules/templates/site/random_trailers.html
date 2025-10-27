@@ -4,8 +4,82 @@
 <link rel="stylesheet" href="{{ 'css/site/random_trailers.css'|theme_asset }}">
 
 <div class="trailer-viewer-container">
-    <div class="trailer-header">
+    <!-- Header Section with Title and Action Buttons -->
+    <div class="trailer-header-section">
         <h1 class="trailer-title">Random Game Trailers</h1>
+        <div class="action-buttons-top">
+            <button id="next-btn" class="btn-next">
+                <i class="fas fa-forward"></i> Next Trailer
+            </button>
+            <a id="game-details-btn" href="#" class="btn-details">
+                <i class="fas fa-info-circle"></i> Go to Game
+            </a>
+        </div>
+    </div>
+
+    <!-- Collapsible Filter Panel -->
+    <div class="filter-panel-container">
+        <button id="filter-toggle" class="filter-toggle-btn">
+            <i class="fas fa-filter"></i> <span class="filter-text">Filters</span>
+            <i class="fas fa-chevron-down toggle-icon"></i>
+        </button>
+
+        <div id="filter-panel" class="filter-panel collapsed">
+            <div class="filter-grid">
+                <!-- Platform Filter -->
+                <div class="filter-item">
+                    <label for="platform-filter">Platform</label>
+                    <select id="platform-filter" class="filter-select">
+                        <option value="">All Platforms</option>
+                    </select>
+                </div>
+
+                <!-- Genre Filter -->
+                <div class="filter-item">
+                    <label for="genre-filter">Genres</label>
+                    <select id="genre-filter" class="filter-select" multiple size="5">
+                    </select>
+                    <small class="filter-help">Hold Ctrl/Cmd to select multiple</small>
+                </div>
+
+                <!-- Theme Filter -->
+                <div class="filter-item">
+                    <label for="theme-filter">Themes</label>
+                    <select id="theme-filter" class="filter-select" multiple size="5">
+                    </select>
+                    <small class="filter-help">Hold Ctrl/Cmd to select multiple</small>
+                </div>
+
+                <!-- Date Range From -->
+                <div class="filter-item">
+                    <label for="date-from">Release Year From</label>
+                    <input type="number"
+                           id="date-from"
+                           class="filter-input"
+                           placeholder="e.g., 1990"
+                           min="1970"
+                           max="2030">
+                </div>
+
+                <!-- Date Range To -->
+                <div class="filter-item">
+                    <label for="date-to">Release Year To</label>
+                    <input type="number"
+                           id="date-to"
+                           class="filter-input"
+                           placeholder="e.g., 2024"
+                           min="1970"
+                           max="2030">
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button id="clear-filters-btn" class="btn-clear">
+                    <i class="fas fa-times-circle"></i> Clear All Filters
+                </button>
+                <div id="filter-status" class="filter-status"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Loading State -->
@@ -34,19 +108,9 @@
             </iframe>
         </div>
 
-        <!-- Game Info -->
+        <!-- Game Info (below video) -->
         <div class="game-info">
             <h2 id="game-name" class="game-name">Game Name</h2>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-            <button id="next-btn" class="btn-next">
-                <i class="fas fa-forward"></i> Next Trailer
-            </button>
-            <a id="game-details-btn" href="#" class="btn-details">
-                <i class="fas fa-info-circle"></i> Go to Game Details
-            </a>
         </div>
     </div>
 </div>
