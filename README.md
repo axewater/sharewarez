@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.8.0
+# 🎮 SharewareZ v2.8.1
 
 SharewareZ transforms any game folder into a searchable library with IGDB integration, adding cover images, screenshots, and metadata for enhanced filtering.
 Invite your friends securely and share your favorite games!
@@ -28,7 +28,7 @@ Invite your friends securely and share your favorite games!
 - 💬 Discord webhook integration (bot posts in your channel when there is a new game)
 
 ### 💾 Download Features
-- 📦 Auto-zip functionality for multi-file folders
+- 📦 Streaming ZIP downloads for multi-file folders (no disk storage required)
 - 📄 NFO file indexing with viewer
 - ⚡ Multi-threaded download processing with configurable thread count
 

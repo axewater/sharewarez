@@ -426,4 +426,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     checkFieldsAndToggleSubmit();
     console.log("Ready to add a game!.");
+
+    // Show spinner on form submit
+    const gameEditForm = document.querySelector('.game_edit-form');
+    if (gameEditForm) {
+        gameEditForm.addEventListener('submit', function(e) {
+            // Only show spinner if form is valid (submit button is enabled)
+            if (!submitButton.disabled) {
+                const spinner = document.getElementById('saveSpinner');
+                if (spinner) {
+                    spinner.style.display = 'flex';
+                }
+                // Disable submit button to prevent double submission
+                submitButton.disabled = true;
+            }
+        });
+    }
 });

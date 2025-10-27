@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ 'css/site/random_trailers.css'|theme_asset }}">
+
+<div class="trailer-viewer-container">
+    <div class="trailer-header">
+        <h1 class="trailer-title">Random Game Trailers</h1>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading-state" class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading random trailer...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="error-container" style="display: none;">
+        <div class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <p id="error-text">No games with trailers found</p>
+            <button onclick="location.href='/library'" class="btn-primary">Go to Library</button>
+        </div>
+    </div>
+
+    <!-- Video Player Container -->
+    <div id="video-container" class="video-player-container" style="display: none;">
+        <div class="video-wrapper">
+            <iframe id="trailer-iframe"
+                    src=""
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+            </iframe>
+        </div>
+
+        <!-- Game Info -->
+        <div class="game-info">
+            <h2 id="game-name" class="game-name">Game Name</h2>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button id="next-btn" class="btn-next">
+                <i class="fas fa-forward"></i> Next Trailer
+            </button>
+            <a id="game-details-btn" href="#" class="btn-details">
+                <i class="fas fa-info-circle"></i> Go to Game Details
+            </a>
+        </div>
+    </div>
+</div>
+
+<script src="{{ 'js/random_trailers.js'|theme_asset }}"></script>
+
+{% endblock %}

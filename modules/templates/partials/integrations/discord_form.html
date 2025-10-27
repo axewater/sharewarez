@@ -23,3 +23,64 @@
         <button type="submit" class="btn btn-primary">Save Settings</button>
     </div>
 </form>
+
+<!-- Discord Help Modal -->
+<div class="modal fade" id="discordHelpModal" tabindex="-1" aria-labelledby="discordHelpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="discordHelpModalLabel"><i class="fab fa-discord"></i> How to Get a Discord Webhook URL</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Step 1: Open Your Discord Server</h6>
+                <p>Navigate to the Discord server where you want to receive notifications. If you don't have a server, create one first.</p>
+
+                <h6>Step 2: Access Server Settings</h6>
+                <ul>
+                    <li>Right-click on the server name (or click the dropdown arrow next to it)</li>
+                    <li>Select <strong>Server Settings</strong> from the menu</li>
+                    <li>You must have <strong>Manage Webhooks</strong> permission to create webhooks</li>
+                </ul>
+
+                <h6>Step 3: Navigate to Integrations</h6>
+                <ul>
+                    <li>In the left sidebar of Server Settings, click <strong>Integrations</strong></li>
+                    <li>Click on <strong>Webhooks</strong> or <strong>Create Webhook</strong></li>
+                </ul>
+
+                <h6>Step 4: Create a New Webhook</h6>
+                <ul>
+                    <li>Click the <strong>New Webhook</strong> button</li>
+                    <li>Choose the channel where you want notifications to appear</li>
+                    <li>Optionally customize the webhook name and avatar (these can also be configured in SharewareZ)</li>
+                </ul>
+
+                <h6>Step 5: Copy the Webhook URL</h6>
+                <ul>
+                    <li>Click on your newly created webhook to expand its settings</li>
+                    <li>Click the <strong>Copy Webhook URL</strong> button</li>
+                    <li>Paste this URL into the "Discord Webhook URL" field above</li>
+                </ul>
+
+                <div class="alert alert-info mt-3">
+                    <strong><i class="fas fa-info-circle"></i> Webhook URL Format:</strong><br>
+                    Your webhook URL should look like this:<br>
+                    <code>https://discord.com/api/webhooks/[WEBHOOK_ID]/[WEBHOOK_TOKEN]</code>
+                </div>
+
+                <div class="alert alert-warning mt-2">
+                    <strong><i class="fas fa-exclamation-triangle"></i> Security Note:</strong><br>
+                    Keep your webhook URL private! Anyone with this URL can send messages to your Discord channel.
+                </div>
+
+                <h6 class="mt-3">Additional Resources</h6>
+                <p>For more detailed instructions, visit Discord's official documentation:</p>
+                <p><a href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank" rel="noopener noreferrer">Discord Webhooks Guide <i class="fas fa-external-link-alt"></i></a></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

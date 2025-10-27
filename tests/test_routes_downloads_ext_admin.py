@@ -159,21 +159,6 @@ class TestDeleteDownloadRequestRoute:
         # Verify logging was called
         mock_log.assert_called()
 
-    @patch('modules.routes_downloads_ext.admin.log_system_event')
-    def test_delete_download_request_no_zip_save_path(self, mock_log, client, admin_user, sample_download_request, app):
-        """Test deletion when ZIP_SAVE_PATH is not configured."""
-        with client.session_transaction() as session:
-            session['_user_id'] = str(admin_user.id)
-        
-        with app.app_context():
-            app.config.pop('ZIP_SAVE_PATH', None)  # Remove ZIP_SAVE_PATH
-            
-            response = client.post(f'/delete_download_request/{sample_download_request.id}')
-            assert response.status_code == 302
-            
-            # Verify the download request was still deleted
-            deleted_request = db.session.get(DownloadRequest, sample_download_request.id)
-            assert deleted_request is None
 
     def test_delete_nonexistent_download_request(self, client, admin_user):
         """Test deletion of non-existent download request."""
@@ -184,7 +169,7 @@ class TestDeleteDownloadRequestRoute:
         assert response.status_code == 302  # Should redirect
 
     def test_delete_download_request_no_zip_file(self, client, admin_user, db_session, regular_user, test_game):
-        """Test deletion of download request with no ZIP file path."""
+        """Test deletion of download request with no file path."""
         # Create download request without zip_file_path
         download_request = DownloadRequest(
             user_id=regular_user.id,

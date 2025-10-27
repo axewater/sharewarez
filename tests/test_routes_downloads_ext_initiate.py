@@ -211,7 +211,6 @@ class TestDownloadGameRoute:
 
             # Set up app config for security validation
             app.config['DATA_FOLDER_WAREZ'] = os.path.dirname(test_game.full_disk_path)
-            app.config['ZIP_SAVE_PATH'] = tempfile.mkdtemp()
 
             response = client.get(f'/download_game/{test_game.uuid}')
             assert response.status_code == 302  # Redirect to downloads
@@ -230,7 +229,6 @@ class TestDownloadGameRoute:
             assert updated_game.times_downloaded == 1
 
             # Cleanup
-            shutil.rmtree(app.config['ZIP_SAVE_PATH'], ignore_errors=True)
 
 
 class TestDownloadOtherRoute:
@@ -280,7 +278,6 @@ class TestDownloadOtherRoute:
 
             # Set up app config for security validation
             app.config['DATA_FOLDER_WAREZ'] = os.path.dirname(test_game_update.file_path)
-            app.config['ZIP_SAVE_PATH'] = tempfile.mkdtemp()
 
             response = client.get(f'/download_other/update/{test_game_update.game_uuid}/{test_game_update.id}')
             assert response.status_code == 302
@@ -298,7 +295,6 @@ class TestDownloadOtherRoute:
             assert updated_update.times_downloaded == 1
 
             # Cleanup
-            shutil.rmtree(app.config['ZIP_SAVE_PATH'], ignore_errors=True)
 
 
 
@@ -365,7 +361,6 @@ class TestIntegration:
             
             # Set up app config
             app.config['DATA_FOLDER_WAREZ'] = os.path.dirname(test_game.full_disk_path)
-            app.config['ZIP_SAVE_PATH'] = tempfile.mkdtemp()
             
             # Clear any existing download requests for this user and game to ensure clean test
             db_session.query(DownloadRequest).filter_by(
@@ -396,5 +391,4 @@ class TestIntegration:
             updated_game = db_session.execute(select(Game).filter_by(uuid=test_game.uuid)).scalars().first()
             assert updated_game.times_downloaded >= 1  # May be incremented by other tests
             
-            # Cleanup
-            shutil.rmtree(app.config['ZIP_SAVE_PATH'], ignore_errors=True)
+            # No cleanup needed - streaming downloads don't create temp files
