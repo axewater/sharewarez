@@ -13,6 +13,18 @@ let currentFilterData = {
     dateRange: null
 };
 
+// Auto-play settings
+let autoplaySettings = {
+    enabled: true,
+    skipFirst: 0,
+    skipAfter: 0
+};
+
+// Playback tracking
+let playbackTimer = null;
+let playedSeconds = 0;
+let isPlaying = false;
+
 // YouTube IFrame API ready callback
 function onYouTubeIframeAPIReady() {
     isPlayerReady = true;
@@ -27,7 +39,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const gameTitle = document.getElementById('game-title');
     const gameTitleLink = document.getElementById('game-title-link');
     const nextBtn = document.getElementById('next-btn');
+    const settingsBtn = document.getElementById('settings-btn');
     const errorText = document.getElementById('error-text');
+
+    // Modal Elements
+    const settingsModal = document.getElementById('settings-modal');
+    const modalClose = document.getElementById('modal-close');
+    const modalCancel = document.getElementById('modal-cancel');
+    const modalSave = document.getElementById('modal-save');
+    const autoplayToggle = document.getElementById('autoplay-toggle');
+    const skipFirstInput = document.getElementById('skip-first');
+    const skipAfterInput = document.getElementById('skip-after');
 
     // Filter Elements
     const filterToggle = document.getElementById('filter-toggle');
@@ -44,6 +66,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load filter options first
     fetchFilterOptions();
+
+    // Load auto-play settings from localStorage
+    loadSettings();
 
     // Load initial trailer on page load
     fetchRandomTrailer();
@@ -84,6 +109,28 @@ document.addEventListener('DOMContentLoaded', function() {
     nextBtn.addEventListener('click', function() {
         pauseCurrentVideo();
         fetchRandomTrailer();
+    });
+
+    // Settings button click handler
+    settingsBtn.addEventListener('click', function() {
+        openSettingsModal();
+    });
+
+    // Modal close handlers
+    modalClose.addEventListener('click', closeSettingsModal);
+    modalCancel.addEventListener('click', closeSettingsModal);
+
+    // Click outside modal to close
+    settingsModal.addEventListener('click', function(e) {
+        if (e.target === settingsModal) {
+            closeSettingsModal();
+        }
+    });
+
+    // Modal save handler
+    modalSave.addEventListener('click', function() {
+        saveSettings();
+        closeSettingsModal();
     });
 
     // Clear filters button
@@ -488,6 +535,9 @@ document.addEventListener('DOMContentLoaded', function() {
      * @param {Object} data - Trailer data from API
      */
     function displayTrailer(data) {
+        // Reset playback tracking for new video
+        stopPlaybackTimer();
+
         // Extract video ID from URL
         const videoId = getYouTubeVideoId(data.video_url);
 
@@ -557,11 +607,41 @@ document.addEventListener('DOMContentLoaded', function() {
      * @param {Object} event - YouTube player state change event
      */
     function onPlayerStateChange(event) {
-        // YT.PlayerState.ENDED = 0
-        if (event.data === YT.PlayerState.ENDED) {
-            console.log('Video ended, loading next trailer...');
-            // Auto-play next trailer when current one ends
-            fetchRandomTrailer();
+        // YT.PlayerState values:
+        // -1 (unstarted)
+        //  0 (ended)
+        //  1 (playing)
+        //  2 (paused)
+        //  3 (buffering)
+        //  5 (video cued)
+
+        if (event.data === YT.PlayerState.PLAYING) {
+            // Video started playing
+            isPlaying = true;
+
+            // Apply skip-first setting if this is the first time playing
+            if (playedSeconds === 0 && autoplaySettings.skipFirst > 0) {
+                console.log(`Skipping first ${autoplaySettings.skipFirst} seconds`);
+                player.seekTo(autoplaySettings.skipFirst, true);
+            }
+
+            // Start tracking play time
+            startPlaybackTimer();
+        } else if (event.data === YT.PlayerState.PAUSED) {
+            // Video paused
+            isPlaying = false;
+        } else if (event.data === YT.PlayerState.ENDED) {
+            // Video ended
+            console.log('Video ended');
+            stopPlaybackTimer();
+
+            // Auto-play next trailer if enabled
+            if (autoplaySettings.enabled) {
+                console.log('Auto-play enabled, loading next trailer...');
+                fetchRandomTrailer();
+            } else {
+                console.log('Auto-play disabled');
+            }
         }
     }
 
@@ -608,5 +688,83 @@ document.addEventListener('DOMContentLoaded', function() {
         if (player && player.stopVideo) {
             player.stopVideo();
         }
+        stopPlaybackTimer();
+    }
+
+    /**
+     * Load settings from localStorage
+     */
+    function loadSettings() {
+        const saved = localStorage.getItem('trailerAutoplaySettings');
+        if (saved) {
+            try {
+                autoplaySettings = JSON.parse(saved);
+            } catch (e) {
+                console.error('Error loading settings:', e);
+            }
+        }
+    }
+
+    /**
+     * Save settings to localStorage
+     */
+    function saveSettings() {
+        autoplaySettings.enabled = autoplayToggle.checked;
+        autoplaySettings.skipFirst = parseInt(skipFirstInput.value) || 0;
+        autoplaySettings.skipAfter = parseInt(skipAfterInput.value) || 0;
+
+        localStorage.setItem('trailerAutoplaySettings', JSON.stringify(autoplaySettings));
+        console.log('Settings saved:', autoplaySettings);
+    }
+
+    /**
+     * Open settings modal
+     */
+    function openSettingsModal() {
+        // Populate modal with current settings
+        autoplayToggle.checked = autoplaySettings.enabled;
+        skipFirstInput.value = autoplaySettings.skipFirst;
+        skipAfterInput.value = autoplaySettings.skipAfter;
+
+        settingsModal.style.display = 'flex';
+    }
+
+    /**
+     * Close settings modal
+     */
+    function closeSettingsModal() {
+        settingsModal.style.display = 'none';
+    }
+
+    /**
+     * Start playback timer to track play time
+     */
+    function startPlaybackTimer() {
+        if (playbackTimer) return; // Already running
+
+        playbackTimer = setInterval(function() {
+            if (isPlaying) {
+                playedSeconds++;
+
+                // Check if we should skip to next
+                if (autoplaySettings.skipAfter > 0 && playedSeconds >= autoplaySettings.skipAfter) {
+                    console.log(`Played for ${playedSeconds}s, skipping to next...`);
+                    stopPlaybackTimer();
+                    fetchRandomTrailer();
+                }
+            }
+        }, 1000); // Check every second
+    }
+
+    /**
+     * Stop and reset playback timer
+     */
+    function stopPlaybackTimer() {
+        if (playbackTimer) {
+            clearInterval(playbackTimer);
+            playbackTimer = null;
+        }
+        playedSeconds = 0;
+        isPlaying = false;
     }
 });

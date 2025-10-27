@@ -10,6 +10,9 @@
             <h1 id="game-title" class="trailer-title">Loading Game...</h1>
         </a>
         <div class="action-buttons-top">
+            <button id="settings-btn" class="btn-settings" title="Auto-play Settings">
+                <i class="fas fa-cog"></i>
+            </button>
             <button id="next-btn" class="btn-next" title="Next Trailer">
                 <i class="fas fa-forward"></i>
             </button>
@@ -104,6 +107,41 @@
         </div>
 
 
+    </div>
+
+    <!-- Auto-play Settings Modal -->
+    <div id="settings-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Auto-Play Settings</h2>
+                <button id="modal-close" class="modal-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="autoplay-toggle" checked>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-text">Auto-play next video</span>
+                    </label>
+                </div>
+                <div class="settings-group">
+                    <label for="skip-first">Skip first (seconds)</label>
+                    <input type="number" id="skip-first" min="0" max="300" value="0" step="1">
+                    <small>Start videos at this timestamp</small>
+                </div>
+                <div class="settings-group">
+                    <label for="skip-after">Skip to next after playing (seconds)</label>
+                    <input type="number" id="skip-after" min="0" max="600" value="0" step="1">
+                    <small>Load next video after watching for this long (0 to disable)</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-cancel" class="btn-modal-cancel">Cancel</button>
+                <button id="modal-save" class="btn-modal-save">Save</button>
+            </div>
+        </div>
     </div>
 </div>
 

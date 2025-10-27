@@ -361,6 +361,7 @@
 
 /* ===== Action Buttons ===== */
 .btn-next,
+.btn-settings,
 .btn-primary {
     padding: var(--spacing-md) var(--spacing-xl);
     font-size: var(--font-size-md);
@@ -376,6 +377,25 @@
     justify-content: center;
     gap: var(--spacing-sm);
     white-space: nowrap;
+}
+
+.btn-settings {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: var(--text-white);
+    padding: var(--spacing-md);
+    width: 50px;
+    height: 50px;
+    border-radius: var(--border-radius-round);
+}
+
+.btn-settings:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #545b62 100%);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(108, 117, 125, 0.5);
+}
+
+.btn-settings:active {
+    transform: translateY(0) scale(1);
 }
 
 .btn-next {
@@ -408,13 +428,220 @@
 }
 
 /* Icon styling in buttons */
-.btn-next i {
+.btn-next i,
+.btn-settings i {
     font-size: var(--font-size-xl);
     margin: 0;
 }
 
 .btn-clear i {
     font-size: var(--font-size-lg);
+}
+
+/* ===== Modal ===== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: var(--spacing-lg);
+}
+
+.modal-content {
+    background: var(--bg-dark-primary);
+    border: 1px solid var(--border-light-strong);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-xl);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: var(--font-size-xl);
+    color: var(--text-white);
+}
+
+.modal-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-light);
+    font-size: var(--font-size-xl);
+    cursor: pointer;
+    padding: var(--spacing-xs);
+    border-radius: var(--border-radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.modal-close-btn:hover {
+    background: var(--bg-light-overlay);
+    color: var(--text-white);
+}
+
+.modal-body {
+    padding: var(--spacing-xl);
+}
+
+.settings-group {
+    margin-bottom: var(--spacing-xl);
+}
+
+.settings-group:last-child {
+    margin-bottom: 0;
+}
+
+.settings-group label {
+    display: block;
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    color: var(--text-white);
+    margin-bottom: var(--spacing-sm);
+}
+
+.settings-group input[type="number"] {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--bg-dark-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-white);
+    font-size: var(--font-size-base);
+    transition: all var(--transition-fast);
+}
+
+.settings-group input[type="number"]:focus {
+    outline: none;
+    border-color: var(--btn-primary);
+    background: var(--bg-dark-tertiary);
+}
+
+.settings-group small {
+    display: block;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-top: var(--spacing-xs);
+}
+
+/* Toggle Switch */
+.toggle-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+}
+
+.toggle-label input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+    background: var(--bg-dark-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 13px;
+    transition: all var(--transition-fast);
+    margin-right: var(--spacing-md);
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    top: 3px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    transition: all var(--transition-fast);
+}
+
+.toggle-label input[type="checkbox"]:checked + .toggle-slider {
+    background: var(--btn-primary);
+    border-color: var(--btn-primary);
+}
+
+.toggle-label input[type="checkbox"]:checked + .toggle-slider::before {
+    transform: translateX(24px);
+    background: var(--text-white);
+}
+
+.toggle-text {
+    font-size: var(--font-size-base);
+    color: var(--text-white);
+    font-weight: 500;
+}
+
+.modal-footer {
+    padding: var(--spacing-xl);
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+}
+
+.btn-modal-cancel,
+.btn-modal-save {
+    padding: var(--spacing-sm) var(--spacing-xl);
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-modal-cancel {
+    background: var(--bg-dark-secondary);
+    color: var(--text-white);
+    border: 1px solid var(--border-light);
+}
+
+.btn-modal-cancel:hover {
+    background: var(--bg-light-overlay);
+}
+
+.btn-modal-save {
+    background: var(--btn-primary);
+    color: var(--text-white);
+}
+
+.btn-modal-save:hover {
+    background: var(--btn-primary-hover);
 }
 
 /* ===== Animations ===== */
@@ -518,13 +745,15 @@
         font-size: var(--font-size-lg);
     }
 
-    .btn-next {
+    .btn-next,
+    .btn-settings {
         width: 45px;
         height: 45px;
         padding: var(--spacing-sm);
     }
 
-    .btn-next i {
+    .btn-next i,
+    .btn-settings i {
         font-size: var(--font-size-lg);
     }
 
