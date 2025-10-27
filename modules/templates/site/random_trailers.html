@@ -26,50 +26,50 @@
 
         <div id="filter-panel" class="filter-panel collapsed">
             <div class="filter-grid">
-                <!-- Platform Filter -->
-                <div class="filter-item">
-                    <label for="platform-filter">Platform</label>
-                    <select id="platform-filter" class="filter-select">
-                        <option value="">All Platforms</option>
-                    </select>
+                <!-- Left Column: Platform + Date Range -->
+                <div class="filter-column-left">
+                    <div class="filter-item">
+                        <label for="platform-filter">Platform</label>
+                        <select id="platform-filter" class="filter-select">
+                            <option value="">All Platforms</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-item">
+                        <label for="date-from">Release Year From</label>
+                        <input type="number"
+                               id="date-from"
+                               class="filter-input"
+                               placeholder="e.g., 1990"
+                               min="1970"
+                               max="2030">
+                    </div>
+
+                    <div class="filter-item">
+                        <label for="date-to">Release Year To</label>
+                        <input type="number"
+                               id="date-to"
+                               class="filter-input"
+                               placeholder="e.g., 2024"
+                               min="1970"
+                               max="2030">
+                    </div>
                 </div>
 
-                <!-- Genre Filter -->
+                <!-- Middle Column: Genres -->
                 <div class="filter-item">
                     <label for="genre-filter">Genres</label>
-                    <select id="genre-filter" class="filter-select" multiple size="5">
+                    <select id="genre-filter" class="filter-select" multiple size="10">
                     </select>
                     <small class="filter-help">Hold Ctrl/Cmd to select multiple</small>
                 </div>
 
-                <!-- Theme Filter -->
+                <!-- Right Column: Themes -->
                 <div class="filter-item">
                     <label for="theme-filter">Themes</label>
-                    <select id="theme-filter" class="filter-select" multiple size="5">
+                    <select id="theme-filter" class="filter-select" multiple size="10">
                     </select>
                     <small class="filter-help">Hold Ctrl/Cmd to select multiple</small>
-                </div>
-
-                <!-- Date Range From -->
-                <div class="filter-item">
-                    <label for="date-from">Release Year From</label>
-                    <input type="number"
-                           id="date-from"
-                           class="filter-input"
-                           placeholder="e.g., 1990"
-                           min="1970"
-                           max="2030">
-                </div>
-
-                <!-- Date Range To -->
-                <div class="filter-item">
-                    <label for="date-to">Release Year To</label>
-                    <input type="number"
-                           id="date-to"
-                           class="filter-input"
-                           placeholder="e.g., 2024"
-                           min="1970"
-                           max="2030">
                 </div>
             </div>
 
@@ -96,6 +96,11 @@
             <button onclick="location.href='/library'" class="btn-primary">Go to Library</button>
         </div>
     </div>
+        
+    <!-- Game Info  -->
+    <div class="game-info">
+        <h2 id="game-name" class="game-name">Game Name</h2>        
+    </div>
 
     <!-- Video Player Container -->
     <div id="video-container" class="video-player-container" style="display: none;">
@@ -108,10 +113,7 @@
             </iframe>
         </div>
 
-        <!-- Game Info (below video) -->
-        <div class="game-info">
-            <h2 id="game-name" class="game-name">Game Name</h2>
-        </div>
+
     </div>
 </div>
 
