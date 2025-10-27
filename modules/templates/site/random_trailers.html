@@ -105,18 +105,15 @@
     <!-- Video Player Container -->
     <div id="video-container" class="video-player-container" style="display: none;">
         <div class="video-wrapper">
-            <iframe id="trailer-iframe"
-                    src=""
-                    frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen>
-            </iframe>
+            <div id="trailer-player"></div>
         </div>
 
 
     </div>
 </div>
 
+<!-- Load YouTube IFrame API -->
+<script src="https://www.youtube.com/iframe_api"></script>
 <script src="{{ 'js/random_trailers.js'|theme_asset }}"></script>
 
 {% endblock %}

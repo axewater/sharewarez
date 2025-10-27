@@ -1,12 +1,21 @@
 // Random Trailers JavaScript with Filtering
 // Handles fetching and displaying random game trailers with filter support
 
+// YouTube Player instance (global scope for API callback)
+let player = null;
+let isPlayerReady = false;
+
+// YouTube IFrame API ready callback
+function onYouTubeIframeAPIReady() {
+    isPlayerReady = true;
+    console.log('YouTube IFrame API is ready');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // DOM Elements
     const loadingState = document.getElementById('loading-state');
     const errorState = document.getElementById('error-state');
     const videoContainer = document.getElementById('video-container');
-    const trailerIframe = document.getElementById('trailer-iframe');
     const gameName = document.getElementById('game-name');
     const nextBtn = document.getElementById('next-btn');
     const gameDetailsBtn = document.getElementById('game-details-btn');
@@ -236,12 +245,41 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
+     * Extract YouTube video ID from URL
+     * @param {string} url - YouTube video URL (watch or embed format)
+     * @returns {string} Video ID
+     */
+    function getYouTubeVideoId(url) {
+        // Handle different YouTube URL formats
+        const patterns = [
+            /youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/,  // watch?v=VIDEO_ID
+            /youtube\.com\/embed\/([a-zA-Z0-9_-]+)/,    // embed/VIDEO_ID
+            /youtu\.be\/([a-zA-Z0-9_-]+)/               // youtu.be/VIDEO_ID
+        ];
+
+        for (const pattern of patterns) {
+            const match = url.match(pattern);
+            if (match && match[1]) {
+                return match[1];
+            }
+        }
+
+        console.error('Could not extract video ID from URL:', url);
+        return null;
+    }
+
+    /**
      * Display the trailer in the UI
      * @param {Object} data - Trailer data from API
      */
     function displayTrailer(data) {
-        // Update iframe src with video URL
-        trailerIframe.src = data.video_url;
+        // Extract video ID from URL
+        const videoId = getYouTubeVideoId(data.video_url);
+
+        if (!videoId) {
+            showError('Invalid video URL format');
+            return;
+        }
 
         // Update game name
         gameName.textContent = data.game_name;
@@ -252,6 +290,64 @@ document.addEventListener('DOMContentLoaded', function() {
         // Hide loading, show video container
         hideLoading();
         showVideoContainer();
+
+        // Wait for YouTube API to be ready, then create/update player
+        const initializePlayer = () => {
+            if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
+                console.log('YouTube API not ready yet, waiting...');
+                setTimeout(initializePlayer, 100);
+                return;
+            }
+
+            // Create or update YouTube player
+            if (player === null) {
+                // Clear the container and create new player
+                const playerContainer = document.getElementById('trailer-player');
+                playerContainer.innerHTML = '';
+
+                player = new YT.Player('trailer-player', {
+                    height: '100%',
+                    width: '100%',
+                    videoId: videoId,
+                    playerVars: {
+                        'autoplay': 1,
+                        'rel': 0,  // Don't show related videos from other channels
+                        'modestbranding': 1  // Minimal YouTube branding
+                    },
+                    events: {
+                        'onStateChange': onPlayerStateChange
+                    }
+                });
+            } else {
+                // Update existing player with new video
+                if (typeof player.loadVideoById === 'function') {
+                    player.loadVideoById(videoId);
+                } else {
+                    console.error('Player not fully initialized, recreating...');
+                    // Destroy old player if it exists
+                    if (player && typeof player.destroy === 'function') {
+                        player.destroy();
+                    }
+                    player = null;
+                    initializePlayer();
+                }
+            }
+        };
+
+        initializePlayer();
+    }
+
+    /**
+     * Handle YouTube player state changes
+     * @param {Object} event - YouTube player state change event
+     */
+    function onPlayerStateChange(event) {
+        // YT.PlayerState.ENDED = 0
+        if (event.data === YT.PlayerState.ENDED) {
+            console.log('Video ended, loading next trailer...');
+            // Auto-play next trailer when current one ends
+            fetchRandomTrailer();
+        }
     }
 
     /**
@@ -294,6 +390,8 @@ document.addEventListener('DOMContentLoaded', function() {
      * This helps with autoplay and prevents overlapping audio
      */
     function pauseCurrentVideo() {
-        trailerIframe.src = '';
+        if (player && player.stopVideo) {
+            player.stopVideo();
+        }
     }
 });

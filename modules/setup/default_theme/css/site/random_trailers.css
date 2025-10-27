@@ -287,7 +287,8 @@
     transform: translateY(-2px);
 }
 
-.video-wrapper iframe {
+.video-wrapper iframe,
+.video-wrapper #trailer-player {
     position: absolute;
     top: 0;
     left: 0;
