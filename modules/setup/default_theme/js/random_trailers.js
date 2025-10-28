@@ -32,6 +32,10 @@ function onYouTubeIframeAPIReady() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if attract mode is active
+    const urlParams = new URLSearchParams(window.location.search);
+    const isAttractMode = urlParams.has('attract_mode');
+
     // DOM Elements
     const loadingState = document.getElementById('loading-state');
     const errorState = document.getElementById('error-state');
@@ -41,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const nextBtn = document.getElementById('next-btn');
     const settingsBtn = document.getElementById('settings-btn');
     const errorText = document.getElementById('error-text');
+    const exitAttractModeBtn = document.getElementById('exit-attract-mode-btn');
 
     // Modal Elements
     const settingsModal = document.getElementById('settings-modal');
@@ -67,8 +72,28 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load filter options first
     fetchFilterOptions();
 
-    // Load auto-play settings from localStorage
-    loadSettings();
+    // Handle attract mode
+    if (isAttractMode) {
+        console.log('Attract mode is active');
+        // Show exit button
+        if (exitAttractModeBtn) {
+            exitAttractModeBtn.style.display = 'block';
+        }
+        // Load attract mode settings from server
+        loadAttractModeSettings();
+    } else {
+        // Load auto-play settings from localStorage
+        loadSettings();
+    }
+
+    // Exit attract mode button handler
+    if (exitAttractModeBtn) {
+        exitAttractModeBtn.addEventListener('click', function() {
+            // Remove attract_mode parameter and reload
+            const newUrl = window.location.pathname;
+            window.location.href = newUrl;
+        });
+    }
 
     // Load initial trailer on page load
     fetchRandomTrailer();
@@ -706,15 +731,118 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * Save settings to localStorage
+     * Load attract mode settings from server
      */
-    function saveSettings() {
+    async function loadAttractModeSettings() {
+        try {
+            const response = await fetch('/api/attract-mode/settings');
+            if (!response.ok) {
+                console.error('Failed to load attract mode settings');
+                // Fall back to localStorage
+                loadSettings();
+                return;
+            }
+
+            const data = await response.json();
+            if (data && data.settings) {
+                // Apply autoplay settings
+                if (data.settings.autoplay) {
+                    autoplaySettings = data.settings.autoplay;
+                }
+
+                // Apply filter settings
+                if (data.settings.filters) {
+                    const filters = data.settings.filters;
+
+                    // Apply platform filter
+                    if (filters.platform && platformSelect) {
+                        platformSelect.value = filters.platform;
+                    }
+
+                    // Apply genre filters
+                    if (filters.genres && filters.genres.length > 0 && genreSelect) {
+                        Array.from(genreSelect.options).forEach(option => {
+                            option.selected = filters.genres.includes(parseInt(option.value));
+                        });
+                    }
+
+                    // Apply theme filters
+                    if (filters.themes && filters.themes.length > 0 && themeSelect) {
+                        Array.from(themeSelect.options).forEach(option => {
+                            option.selected = filters.themes.includes(parseInt(option.value));
+                        });
+                    }
+
+                    // Apply date range
+                    if (filters.date_from && dateFromInput) {
+                        dateFromInput.value = filters.date_from;
+                    }
+                    if (filters.date_to && dateToInput) {
+                        dateToInput.value = filters.date_to;
+                    }
+
+                    // Update filter data and badges
+                    updateFilterData();
+                    renderSmartBadges();
+                }
+
+                console.log('Attract mode settings loaded:', data.settings);
+            }
+        } catch (error) {
+            console.error('Error loading attract mode settings:', error);
+            // Fall back to localStorage
+            loadSettings();
+        }
+    }
+
+    /**
+     * Save settings to localStorage and optionally to server for attract mode
+     */
+    async function saveSettings() {
         autoplaySettings.enabled = autoplayToggle.checked;
         autoplaySettings.skipFirst = parseInt(skipFirstInput.value) || 0;
         autoplaySettings.skipAfter = parseInt(skipAfterInput.value) || 0;
 
         localStorage.setItem('trailerAutoplaySettings', JSON.stringify(autoplaySettings));
         console.log('Settings saved:', autoplaySettings);
+
+        // If user is authenticated, also save to server as user override
+        // This allows user preferences to persist forever and override admin defaults
+        try {
+            // Get current filter data
+            const filterData = {
+                platform: platformSelect.value || null,
+                genres: Array.from(genreSelect.selectedOptions).map(opt => parseInt(opt.value)),
+                themes: Array.from(themeSelect.selectedOptions).map(opt => parseInt(opt.value)),
+                date_from: dateFromInput.value ? parseInt(dateFromInput.value) : null,
+                date_to: dateToInput.value ? parseInt(dateToInput.value) : null
+            };
+
+            // Get CSRF token
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+            const response = await fetch('/api/attract-mode/user-override', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    autoplay: autoplaySettings,
+                    filters: filterData
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('User preferences saved to server:', result.message);
+            } else {
+                const error = await response.json();
+                console.warn('Failed to save to server:', error.message);
+            }
+        } catch (error) {
+            console.log('Could not save to server (user may not be authenticated):', error);
+        }
     }
 
     /**

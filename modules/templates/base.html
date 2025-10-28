@@ -233,7 +233,7 @@ const prefsToggle = document.querySelector('[data-bs-toggle="modal"][data-bs-tar
 if (prefsToggle) {
     prefsToggle.addEventListener('click', function(e) {
         e.preventDefault();
-        
+
         fetch("{{ url_for('settings.settings_panel') }}")
             .then(response => response.text())
             .then(html => {
@@ -247,5 +247,10 @@ if (prefsToggle) {
     });
 }
 </script>
+
+<!-- Attract Mode Idle Detection -->
+{% if not is_setup_mode %}
+<script src="{{ 'js/attract_mode_idle.js'|theme_asset }}"></script>
+{% endif %}
 
 </body>

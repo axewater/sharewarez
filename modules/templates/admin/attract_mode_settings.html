@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container">
+    <div class="glass-panel">
+        <a href="{{ url_for('site.admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+
+<div class="container-status-page container-settings">
+    <div class="card">
+        <h2>Attract Mode Settings</h2>
+        <p class="text-muted">Configure automatic trailer playback when the system is idle</p>
+
+        <div id="settingsSavedNotification" class="alert alert-success" role="alert" style="display: none;">
+            Attract mode settings saved successfully!
+        </div>
+
+        <div id="settingsErrorNotification" class="alert alert-danger" role="alert" style="display: none;">
+            <ul id="errorList" class="mb-0"></ul>
+        </div>
+
+        <div class="settingsform-admin">
+            <form id="attractModeForm">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0">Attract Mode Configuration</h3>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Settings
+                    </button>
+                </div>
+
+                <!-- Enable/Disable Section -->
+                <div class="settings-section mb-4">
+                    <h5 class="section-header">
+                        <i class="fas fa-toggle-on"></i> General Settings
+                    </h5>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="attractModeEnabled">
+                        <label class="form-check-label" for="attractModeEnabled" data-toggle="tooltip"
+                            title="Enable site-wide idle detection that automatically launches trailer playback">
+                            Enable Attract Mode
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="idleTimeout" class="form-label d-flex align-items-center justify-content-between">
+                            <span data-toggle="tooltip" title="Time in seconds before attract mode activates ({{ min_timeout }}-{{ max_timeout }} seconds)">
+                                <i class="fas fa-clock"></i> Idle Timeout
+                            </span>
+                            <span class="badge bg-primary" id="timeoutDisplay">{{ settings.idle_timeout or 60 }} seconds</span>
+                        </label>
+                        <input type="range" class="form-range" id="idleTimeout"
+                               min="{{ min_timeout }}" max="{{ max_timeout }}"
+                               value="{{ settings.idle_timeout or 60 }}" step="10">
+                        <div class="d-flex justify-content-between text-muted small">
+                            <span>{{ min_timeout }}s</span>
+                            <span>{{ max_timeout }}s (5 min)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Settings Section -->
+                <div class="settings-section mb-4">
+                    <h5 class="section-header">
+                        <i class="fas fa-filter"></i> Trailer Filters
+                        <small class="text-muted">(Users can override these)</small>
+                    </h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="filterPlatform" class="form-label" data-toggle="tooltip"
+                                title="Filter trailers by platform">
+                                <i class="fas fa-gamepad"></i> Platform
+                            </label>
+                            <select class="form-select" id="filterPlatform">
+                                <option value="">All Platforms</option>
+                                {% for platform in filter_options.platforms %}
+                                <option value="{{ platform.name }}">{{ platform.display_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="filterGenres" class="form-label" data-toggle="tooltip"
+                                title="Filter trailers by genres (select multiple)">
+                                <i class="fas fa-th-large"></i> Genres
+                            </label>
+                            <select class="form-select" id="filterGenres" multiple size="5">
+                                {% for genre in filter_options.genres %}
+                                <option value="{{ genre.id }}">{{ genre.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="filterThemes" class="form-label" data-toggle="tooltip"
+                                title="Filter trailers by themes (select multiple)">
+                                <i class="fas fa-palette"></i> Themes
+                            </label>
+                            <select class="form-select" id="filterThemes" multiple size="5">
+                                {% for theme in filter_options.themes %}
+                                <option value="{{ theme.id }}">{{ theme.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label for="filterDateFrom" class="form-label" data-toggle="tooltip"
+                                title="Only show trailers from this year onwards">
+                                <i class="fas fa-calendar-alt"></i> From Year
+                            </label>
+                            <input type="number" class="form-control" id="filterDateFrom"
+                                   placeholder="e.g., 2000"
+                                   min="{{ filter_options.date_range.min_year or 1970 }}"
+                                   max="{{ filter_options.date_range.max_year or 2030 }}">
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label for="filterDateTo" class="form-label" data-toggle="tooltip"
+                                title="Only show trailers up to this year">
+                                <i class="fas fa-calendar-check"></i> To Year
+                            </label>
+                            <input type="number" class="form-control" id="filterDateTo"
+                                   placeholder="e.g., 2024"
+                                   min="{{ filter_options.date_range.min_year or 1970 }}"
+                                   max="{{ filter_options.date_range.max_year or 2030 }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auto-Play Settings Section -->
+                <div class="settings-section mb-4">
+                    <h5 class="section-header">
+                        <i class="fas fa-play-circle"></i> Auto-Play Settings
+                        <small class="text-muted">(Users can override these)</small>
+                    </h5>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="autoplayEnabled" checked>
+                        <label class="form-check-label" for="autoplayEnabled" data-toggle="tooltip"
+                            title="Automatically play next trailer when current one ends">
+                            Enable Auto-Play
+                        </label>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="skipFirst" class="form-label" data-toggle="tooltip"
+                                title="Skip the first N seconds of each trailer (0-300 seconds)">
+                                <i class="fas fa-forward"></i> Skip First (seconds)
+                            </label>
+                            <input type="number" class="form-control" id="skipFirst"
+                                   value="0" min="0" max="300" step="5">
+                            <small class="text-muted">Useful for skipping intro logos</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="skipAfter" class="form-label" data-toggle="tooltip"
+                                title="Skip to next trailer after N seconds (0 = disabled, max 600)">
+                                <i class="fas fa-step-forward"></i> Skip After (seconds)
+                            </label>
+                            <input type="number" class="form-control" id="skipAfter"
+                                   value="0" min="0" max="600" step="10">
+                            <small class="text-muted">0 = disabled, play full trailer</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Section -->
+                <div class="settings-section mb-4">
+                    <h5 class="section-header">
+                        <i class="fas fa-eye"></i> Configuration Preview
+                    </h5>
+                    <div class="alert alert-info">
+                        <div id="previewText">
+                            <strong>Current Configuration:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Attract mode will activate after <strong id="previewTimeout">60</strong> seconds of inactivity</li>
+                                <li>Trailers will be filtered by your selected criteria</li>
+                                <li>Users can customize these settings for their personal experience</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save"></i> Save Attract Mode Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Include the attract mode admin JavaScript -->
+<link rel="stylesheet" href="{{ url_for('static', filename='library/themes/' + current_theme + '/css/admin_attract_mode.css') }}">
+<script src="{{ url_for('static', filename='library/themes/' + current_theme + '/js/admin_attract_mode.js') }}"></script>
+
+<!-- Pass settings data to JavaScript -->
+<script>
+    window.attractModeSettings = {{ settings | tojson | safe }};
+</script>
+
+{% endblock %}
