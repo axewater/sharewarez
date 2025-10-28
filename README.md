@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.9.0
+# 🎮 SharewareZ v2.9.1
 
 SharewareZ transforms any game folder into a searchable library with IGDB integration, adding cover images, screenshots, and metadata for enhanced filtering.
 Invite your friends securely and share your favorite games!
@@ -341,6 +341,44 @@ PORT=3000
 
 
 ## Changelog
+  Version 2.9.1
+  
+  - Filter aware search on library page (search within selected library + filters)
+
+  Version 2.9.0
+
+  - 🎮 How Long To Beat Integration: Added HLTB (HowLongToBeat) integration for displaying game completion times
+  - ⏱️ Scan Job Control: HLTB data collection configurable via scan jobs (adds to scan time when enabled)
+  - 📊 Game Details Enhancement: Completion time estimates displayed on game detail pages
+
+  Version 2.8.2
+
+  - 🎬 Attract Mode: Full-featured screensaver mode with automatic trailer playback
+
+  Version 2.8.1
+
+  - 🎥 Random Trailers: New feature to browse and watch game trailers randomly
+  - 🎛️ Trailer Controls: Filter options, autoplay controls, and auto-next functionality
+
+  Version 2.8.0
+
+  - 🔧 Port Standardization: Docker now uses port 5006 consistently (matches non-Docker installs)
+  - 🗄️ PostgreSQL Update: Updated to secure PostgreSQL version in Docker Compose
+  - 🧹 Code Cleanup: Removed legacy zip-related code (streaming downloads now standard)
+  - 📝 Environment Updates: Improved .env.docker.example configuration
+
+  Version 2.7.7
+
+  - 🐳 Docker fixed and Updated to 277
+  
+
+  Version 2.7.6
+
+  - 🪟 Windows Support: Updated Windows startup scripts for better compatibility
+  - 🐧 Linux Installer: Enhanced auto-installer with sudo checks and interactive prompts
+  - 🔒 Git Hooks: Added hooks to preserve executable permissions on .sh scripts
+  - 📁 File Permissions: Comprehensive fix for shell script execute permissions
+  - 📖 Documentation: Updated README with improved installation instructions
 
   Version 2.7.5
 

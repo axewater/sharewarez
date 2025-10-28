@@ -2,7 +2,7 @@
 from flask import jsonify, request, url_for
 from flask_login import login_required, current_user
 from modules import db
-from modules.models import Image, Game, Library
+from modules.models import Image, Game, Library, Genre, GameMode, PlayerPerspective, Theme
 from modules.utils_logging import log_system_event
 from sqlalchemy import func, select
 from . import apis_bp
@@ -16,10 +16,35 @@ def search():
         # Sanitize input - limit length and escape special characters
         if len(query) > 100:  # Reasonable search term length limit
             return jsonify({'error': 'Search term too long'}), 400
-        
-        # Use parameterized query to prevent SQL injection
+
+        # Build query with name search
         search_term = f'%{query}%'
-        games = db.session.execute(select(Game).filter(Game.name.ilike(search_term))).scalars().all()
+        search_query = select(Game).filter(Game.name.ilike(search_term))
+
+        # Apply active filters from request parameters
+        library_uuid = request.args.get('library_uuid')
+        genre = request.args.get('genre')
+        rating = request.args.get('rating', type=int)
+        game_mode = request.args.get('game_mode')
+        player_perspective = request.args.get('player_perspective')
+        theme = request.args.get('theme')
+
+        # Apply filter logic matching routes_library.py:get_games()
+        if library_uuid:
+            search_query = search_query.filter(Game.library_uuid == library_uuid)
+        if genre:
+            search_query = search_query.filter(Game.genres.any(Genre.name == genre))
+        if rating is not None:
+            search_query = search_query.filter(Game.rating >= rating)
+        if game_mode:
+            search_query = search_query.filter(Game.game_modes.any(GameMode.name == game_mode))
+        if player_perspective:
+            search_query = search_query.filter(Game.player_perspectives.any(PlayerPerspective.name == player_perspective))
+        if theme:
+            search_query = search_query.filter(Game.themes.any(Theme.name == theme))
+
+        # Execute query and build results
+        games = db.session.execute(search_query).scalars().all()
         results = [{'id': game.id, 'uuid': game.uuid, 'name': game.name} for game in games]
     return jsonify(results)
 
