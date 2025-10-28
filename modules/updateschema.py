@@ -240,6 +240,32 @@ class DatabaseManager:
             FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
         );
 
+        -- Add HowLongToBeat integration fields to games table
+        ALTER TABLE games
+        ADD COLUMN IF NOT EXISTS hltb_id INTEGER;
+
+        ALTER TABLE games
+        ADD COLUMN IF NOT EXISTS hltb_main_story FLOAT;
+
+        ALTER TABLE games
+        ADD COLUMN IF NOT EXISTS hltb_main_extra FLOAT;
+
+        ALTER TABLE games
+        ADD COLUMN IF NOT EXISTS hltb_completionist FLOAT;
+
+        ALTER TABLE games
+        ADD COLUMN IF NOT EXISTS hltb_all_styles FLOAT;
+
+        ALTER TABLE games
+        ADD COLUMN IF NOT EXISTS hltb_last_updated TIMESTAMP;
+
+        -- Add HowLongToBeat settings to global_settings table
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS enable_hltb_integration BOOLEAN DEFAULT TRUE;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS hltb_rate_limit_delay FLOAT DEFAULT 2.0;
+
         """
         print("Upgrading database to the latest schema")
         try:

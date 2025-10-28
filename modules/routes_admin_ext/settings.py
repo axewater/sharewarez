@@ -46,7 +46,9 @@ DEFAULT_SETTINGS = {
     'useTurboImageDownloads': True,
     'turboDownloadThreads': DEFAULT_DOWNLOAD_THREADS,
     'turboDownloadBatchSize': DEFAULT_BATCH_SIZE,
-    'scanThreadCount': 1
+    'scanThreadCount': 1,
+    'enableHltbIntegration': True,
+    'hltbRateLimitDelay': 2.0
 }
 
 # Field mappings for database columns
@@ -65,7 +67,9 @@ FIELD_MAPPINGS = {
     'useTurboImageDownloads': 'use_turbo_image_downloads',
     'turboDownloadThreads': 'turbo_download_threads',
     'turboDownloadBatchSize': 'turbo_download_batch_size',
-    'scanThreadCount': 'scan_thread_count'
+    'scanThreadCount': 'scan_thread_count',
+    'enableHltbIntegration': 'enable_hltb_integration',
+    'hltbRateLimitDelay': 'hltb_rate_limit_delay'
 }
 
 
@@ -111,7 +115,13 @@ def validate_settings_data(settings_data):
             errors.append("Site URL must be a non-empty string")
         elif len(site_url) > 500:
             errors.append("Site URL must be less than 500 characters")
-    
+
+    # Validate HLTB rate limit delay
+    hltb_delay = settings_data.get('hltbRateLimitDelay')
+    if hltb_delay is not None:
+        if not isinstance(hltb_delay, (int, float)) or not (0.5 <= hltb_delay <= 10.0):
+            errors.append("HLTB rate limit delay must be between 0.5 and 10.0 seconds")
+
     return errors
 
 

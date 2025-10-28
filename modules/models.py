@@ -161,6 +161,13 @@ class Game(db.Model):
     steam_url = db.Column(db.String, nullable=True)
     times_downloaded = db.Column(db.Integer, default=0)
     nfo_content = db.Column(db.Text, nullable=True)
+    # HowLongToBeat integration fields
+    hltb_id = db.Column(db.Integer, nullable=True)
+    hltb_main_story = db.Column(db.Float, nullable=True)
+    hltb_main_extra = db.Column(db.Float, nullable=True)
+    hltb_completionist = db.Column(db.Float, nullable=True)
+    hltb_all_styles = db.Column(db.Float, nullable=True)
+    hltb_last_updated = db.Column(db.DateTime, nullable=True)
     images = db.relationship("Image", backref="game", lazy='dynamic')
     genres = db.relationship('Genre', secondary=game_genre_association, back_populates='games')
     game_modes = db.relationship("GameMode", secondary=game_game_mode_association, back_populates="games")
@@ -526,6 +533,9 @@ class GlobalSettings(db.Model):
     attract_mode_enabled = db.Column(db.Boolean, default=False)
     attract_mode_idle_timeout = db.Column(db.Integer, default=60)  # seconds, range 10-300
     attract_mode_settings = db.Column(JSONEncodedDict)  # JSON: filters, autoplay settings
+    # HowLongToBeat Settings
+    enable_hltb_integration = db.Column(db.Boolean, default=True)
+    hltb_rate_limit_delay = db.Column(db.Float, default=2.0)  # seconds between HLTB requests
 
     def __repr__(self):
         return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'

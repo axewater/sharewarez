@@ -20,7 +20,7 @@ from modules.utils_igdb_api import IGDBRateLimiter
 from modules.utils_security import is_safe_path, get_allowed_base_directories
 
 
-def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remove_missing=False, existing_job=None, download_missing_images=False, force_updates_extras_scan=False):
+def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remove_missing=False, existing_job=None, download_missing_images=False, force_updates_extras_scan=False, fetch_hltb=False, force_hltb_refetch=False):
     # Only check for running jobs if we're not restarting an existing job
     if not existing_job and is_scan_job_running():
         print("A scan is already in progress. Please wait for it to complete.")
@@ -135,20 +135,30 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
         print(f"Error during pattern loading or game name extraction: {str(e)}")
         return
 
-    def process_single_game(game_info, scan_job_id, library_uuid, update_folder_name, extras_folder_name, enable_game_updates, enable_game_extras, existing_game_paths, existing_unmatched_paths, igdb_rate_limiter, app, force_updates_extras_scan=False):
+    def process_single_game(game_info, scan_job_id, library_uuid, update_folder_name, extras_folder_name, enable_game_updates, enable_game_extras, existing_game_paths, existing_unmatched_paths, igdb_rate_limiter, app, force_updates_extras_scan=False, fetch_hltb=False, force_hltb_refetch=False):
         """Process a single game with rate limiting and thread-safe database operations."""
         game_name = game_info['name']
         full_disk_path = game_info['full_path']
         result = {'game_name': game_name, 'success': False, 'error': None}
         
         # Fast path - check cached sets BEFORE rate limiting
-        # But if force_updates_extras_scan is enabled, we need to process updates/extras for existing games
+        # But if force_updates_extras_scan or force_hltb_refetch is enabled, we need to process existing games
         if existing_game_paths and full_disk_path in existing_game_paths:
             print(f"Game already exists (cached): {game_name} at {full_disk_path}")
-            if not force_updates_extras_scan or (not enable_game_updates and not enable_game_extras):
+            # Continue processing if:
+            # 1. force_updates_extras_scan is enabled AND (updates OR extras scanning is enabled), OR
+            # 2. force_hltb_refetch is enabled
+            should_process_existing = False
+            if force_updates_extras_scan and (enable_game_updates or enable_game_extras):
+                should_process_existing = True
+                print(f"Force mode enabled, checking updates/extras for existing game: {game_name}")
+            if force_hltb_refetch:
+                should_process_existing = True
+                print(f"Force HLTB refetch enabled, will update HLTB data for existing game: {game_name}")
+
+            if not should_process_existing:
                 return {'game_name': game_name, 'success': True, 'already_exists': True}
-            # If force mode is enabled and updates/extras scanning is enabled, continue to process updates/extras
-            print(f"Force mode enabled, checking updates/extras for existing game: {game_name}")
+
             game_already_exists = True
         else:
             game_already_exists = False
@@ -168,7 +178,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                         success = True
                         print(f"Skipping game processing for existing game in force mode: {game_name}")
                     else:
-                        success = process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_uuid)
+                        success = process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_uuid, fetch_hltb=fetch_hltb)
                     
                     result['success'] = success
                     
@@ -183,7 +193,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                                 print(f"No updates folder found for game: {game_name}")
                         else:
                             print(f"Updates scanning disabled, skipping for game: {game_name}")
-                            
+
                         # Check for extras folder
                         if enable_game_extras:
                             extras_folder = os.path.join(full_disk_path, extras_folder_name)
@@ -194,6 +204,27 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                                 print(f"No extras folder found for game: {game_name}")
                         else:
                             print(f"Extras scanning disabled, skipping for game: {game_name}")
+
+                        # Fetch HLTB data for existing games if force_hltb_refetch is enabled
+                        if game_already_exists and force_hltb_refetch:
+                            try:
+                                from modules.models import GlobalSettings
+                                settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
+                                if settings and settings.enable_hltb_integration:
+                                    from modules.utils_hltb import update_game_hltb_sync
+                                    # Get the game UUID from database
+                                    from modules.models import Game
+                                    game_obj = db.session.execute(
+                                        select(Game).where(Game.full_disk_path == full_disk_path)
+                                    ).scalars().first()
+                                    if game_obj:
+                                        print(f"Refetching HLTB data for existing game '{game_name}'...")
+                                        update_game_hltb_sync(game_obj.uuid, game_obj.name)
+                                    else:
+                                        print(f"Could not find game in database to refetch HLTB: {game_name}")
+                            except Exception as e:
+                                print(f"Failed to refetch HLTB data for '{game_name}': {e}")
+                                # Don't fail the scan if HLTB fetch fails
                     else:
                         result['unmatched'] = True
                         print(f"[PROCESS INFO] Game '{game_name}' could not be matched to IGDB database or was already unmatched.")
@@ -220,10 +251,10 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
         with ThreadPoolExecutor(max_workers=scan_thread_count) as executor:
             # Submit all game processing tasks
             future_to_game = {
-                executor.submit(process_single_game, game_info, scan_job_entry.id, library_uuid, 
+                executor.submit(process_single_game, game_info, scan_job_entry.id, library_uuid,
                               update_folder_name, extras_folder_name, enable_game_updates, enable_game_extras,
-                              existing_game_paths, existing_unmatched_paths, igdb_rate_limiter, current_app._get_current_object(), 
-                              force_updates_extras_scan): game_info 
+                              existing_game_paths, existing_unmatched_paths, igdb_rate_limiter, current_app._get_current_object(),
+                              force_updates_extras_scan, fetch_hltb, force_hltb_refetch): game_info
                 for game_info in game_names_with_paths
             }
             
@@ -317,7 +348,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                 scan_job_entry.folders_failed += 1
             else:
                 try:
-                    success = process_game_with_fallback(game_name, full_disk_path, scan_job_entry.id, library_uuid, existing_game_paths, existing_unmatched_paths)
+                    success = process_game_with_fallback(game_name, full_disk_path, scan_job_entry.id, library_uuid, existing_game_paths, existing_unmatched_paths, fetch_hltb=fetch_hltb)
                     if success:
                         new_games_count += 1
                         scan_job_entry.folders_success += 1
@@ -447,6 +478,8 @@ def handle_auto_scan(auto_form):
         remove_missing = auto_form.remove_missing.data
         download_missing_images = auto_form.download_missing_images.data
         force_updates_extras_scan = auto_form.force_updates_extras_scan.data
+        fetch_hltb = auto_form.fetch_hltb.data
+        force_hltb_refetch = auto_form.force_hltb_refetch.data
         
         running_job = db.session.execute(select(ScanJob).filter_by(status='Running')).scalars().first()
         if running_job:
@@ -491,7 +524,7 @@ def handle_auto_scan(auto_form):
 
         @copy_current_request_context
         def start_scan():
-            scan_and_add_games(full_path, scan_mode, library_uuid, remove_missing, download_missing_images=download_missing_images, force_updates_extras_scan=force_updates_extras_scan)
+            scan_and_add_games(full_path, scan_mode, library_uuid, remove_missing, download_missing_images=download_missing_images, force_updates_extras_scan=force_updates_extras_scan, fetch_hltb=fetch_hltb, force_hltb_refetch=force_hltb_refetch)
 
         thread = Thread(target=start_scan, daemon=True)
         thread.start()
@@ -519,6 +552,8 @@ def handle_manual_scan(manual_form):
         folder_path = manual_form.folder_path.data
         scan_mode = manual_form.scan_mode.data
         force_updates_extras_scan = manual_form.force_updates_extras_scan.data
+        fetch_hltb = manual_form.fetch_hltb.data
+        force_hltb_refetch = manual_form.force_hltb_refetch.data
         
         if not library_uuid:
             flash('Please select a library.', 'error')
@@ -561,6 +596,8 @@ def handle_manual_scan(manual_form):
                 games_with_paths = get_game_names_from_files(full_path, supported_extensions, insensitive_patterns, sensitive_patterns)
             session['game_paths'] = {game['name']: game['full_path'] for game in games_with_paths}
             session['force_updates_extras_scan'] = force_updates_extras_scan
+            session['fetch_hltb'] = fetch_hltb
+            session['force_hltb_refetch'] = force_hltb_refetch
             print(f"Found {len(session['game_paths'])} games in the folder.")
             flash('Manual scan processed for folder: ' + full_path, 'info')
             

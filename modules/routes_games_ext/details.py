@@ -120,7 +120,14 @@ def game_details(game_uuid):
             "date_identified": game.date_identified.strftime('%Y-%m-%d %H:%M:%S') if game.date_identified else 'Not available',
             "steam_url": game.steam_url if game.steam_url else 'Not available',
             "times_downloaded": game.times_downloaded,
-            "last_updated": game.last_updated.strftime('%Y-%m-%d') if game.last_updated else 'N/A'
+            "last_updated": game.last_updated.strftime('%Y-%m-%d') if game.last_updated else 'N/A',
+            # HowLongToBeat data
+            "hltb_id": game.hltb_id,
+            "hltb_main_story": game.hltb_main_story,
+            "hltb_main_extra": game.hltb_main_extra,
+            "hltb_completionist": game.hltb_completionist,
+            "hltb_all_styles": game.hltb_all_styles,
+            "hltb_last_updated": game.hltb_last_updated
             # Duplicate "updates" array removed - already included above
         }
         

@@ -17,4 +17,5 @@ uvicorn[standard]
 asgiref
 aiofiles
 zipstream_new
+howlongtobeatpy
 

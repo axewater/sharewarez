@@ -385,7 +385,7 @@ def search_igdb_for_game(search_name, platform_id):
     return None
 
 
-def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_uuid=None):
+def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_uuid=None, fetch_hltb=False):
     # print(f"retrieve_and_save_game Retrieving and saving game: {game_name} on {full_disk_path} to library with UUID {library_uuid}.")
     library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalar_one_or_none()
     if not library:
@@ -500,7 +500,17 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
                 if settings and settings.discord_webhook_url and settings.discord_notify_new_games:
                     print(f"Sending Discord notification for new game '{new_game.name}'.")
                     discord_webhook(new_game.uuid)
-                    
+
+                # Fetch HowLongToBeat data if enabled
+                if fetch_hltb and settings and settings.enable_hltb_integration:
+                    try:
+                        from modules.utils_hltb import update_game_hltb_sync
+                        print(f"Fetching HowLongToBeat data for '{new_game.name}'...")
+                        update_game_hltb_sync(new_game.uuid, new_game.name)
+                    except Exception as e:
+                        print(f"Failed to fetch HLTB data for '{new_game.name}': {e}")
+                        # Don't fail the scan if HLTB fetch fails
+
             except IntegrityError as e: 
                 db.session.rollback()
                 print(f"Failed to save game due to a database error: {e}")

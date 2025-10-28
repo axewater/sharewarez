@@ -262,6 +262,44 @@
                                 {{ detail_item("Last Updated", game.last_updated) }}
                             </div>
                         {% endif %}
+
+                        {# HowLongToBeat Section #}
+                        {% if game.hltb_main_story or game.hltb_main_extra or game.hltb_completionist %}
+                            <div class="flex-row-horiz" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                <div class="flex-col-vertic" style="width: 100%;">
+                                    <div class="game-card-labels" style="margin-bottom: 5px;">
+                                        <i class="fas fa-clock"></i> Time to Beat:
+                                    </div>
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                        {% if game.hltb_main_story %}
+                                            <div class="chip" title="Main Story">
+                                                <i class="fas fa-flag-checkered"></i> {{ "%.1f"|format(game.hltb_main_story) }}h
+                                            </div>
+                                        {% endif %}
+                                        {% if game.hltb_main_extra %}
+                                            <div class="chip" title="Main + Extras">
+                                                <i class="fas fa-plus-circle"></i> {{ "%.1f"|format(game.hltb_main_extra) }}h
+                                            </div>
+                                        {% endif %}
+                                        {% if game.hltb_completionist %}
+                                            <div class="chip" title="Completionist">
+                                                <i class="fas fa-trophy"></i> {{ "%.1f"|format(game.hltb_completionist) }}h
+                                            </div>
+                                        {% endif %}
+                                        {% if current_user.is_admin %}
+                                            <button class="chip" onclick="refreshHLTB('{{ game.uuid }}')" title="Refresh HLTB data" style="cursor: pointer; background: rgba(100, 100, 255, 0.3);">
+                                                <i class="fas fa-sync-alt"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                    {% if game.hltb_last_updated %}
+                                        <small style="opacity: 0.6; margin-top: 5px;">
+                                            Updated: {{ game.hltb_last_updated.strftime('%Y-%m-%d') }}
+                                        </small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
 
                     {# Download Section #}
@@ -404,4 +442,70 @@
         Game information is not available at the moment.
     </div>
 {% endif %}
+
+<script>
+// Function to refresh HLTB data for a game
+async function refreshHLTB(gameUuid) {
+    try {
+        const button = event.target.closest('button');
+        const icon = button.querySelector('i');
+
+        // Show loading state
+        icon.classList.remove('fa-sync-alt');
+        icon.classList.add('fa-spinner', 'fa-spin');
+        button.disabled = true;
+
+        const response = await fetch(`/admin2/api/hltb/refresh/${gameUuid}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': CSRFUtils.getToken()
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Show success message
+            Notify.create({
+                title: 'Success',
+                text: result.message,
+                status: 'success'
+            });
+
+            // Reload page to show updated data
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            // Show error message
+            Notify.create({
+                title: 'Error',
+                text: result.error || 'Failed to refresh HLTB data',
+                status: 'error'
+            });
+
+            // Reset button state
+            icon.classList.remove('fa-spinner', 'fa-spin');
+            icon.classList.add('fa-sync-alt');
+            button.disabled = false;
+        }
+    } catch (error) {
+        console.error('Error refreshing HLTB data:', error);
+        Notify.create({
+            title: 'Error',
+            text: 'An error occurred while refreshing HLTB data',
+            status: 'error'
+        });
+
+        // Reset button state
+        const button = event.target.closest('button');
+        const icon = button.querySelector('i');
+        icon.classList.remove('fa-spinner', 'fa-spin');
+        icon.classList.add('fa-sync-alt');
+        button.disabled = false;
+    }
+}
+</script>
+
 {% endblock %}

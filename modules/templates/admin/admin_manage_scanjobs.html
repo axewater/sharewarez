@@ -116,6 +116,20 @@
                                         {{ auto_form.force_updates_extras_scan.label(class="form-check-label", **{"data-toggle": "tooltip", "title": "Force re-scanning of update and extras folders even if previously scanned"}) }}
                                     </div>
                                 </div>
+
+                                <div class="option-item">
+                                    <div class="form-check modern-checkbox">
+                                        {{ auto_form.fetch_hltb(class="form-check-input", id="fetch-hltb-auto", checked="checked") }}
+                                        {{ auto_form.fetch_hltb.label(class="form-check-label", **{"data-toggle": "tooltip", "title": "Fetch game completion times from HowLongToBeat during scan"}) }}
+                                    </div>
+                                </div>
+
+                                <div class="option-item">
+                                    <div class="form-check modern-checkbox">
+                                        {{ auto_form.force_hltb_refetch(class="form-check-input", id="force-hltb-refetch-auto") }}
+                                        {{ auto_form.force_hltb_refetch.label(class="form-check-label", **{"data-toggle": "tooltip", "title": "Force refetch HLTB data for games that already exist in the database"}) }}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -260,7 +274,17 @@
                         {{ manual_form.force_updates_extras_scan(class="form-check-input", id="force-updates-extras-manual") }}
                         {{ manual_form.force_updates_extras_scan.label(class="form-check-label", **{"data-toggle": "tooltip", "title": "Force re-scanning of update and extras folders even if previously scanned"}) }}
                     </div>
-                    
+
+                    <div class="form-check modern-checkbox">
+                        {{ manual_form.fetch_hltb(class="form-check-input", id="fetch-hltb-manual", checked="checked") }}
+                        {{ manual_form.fetch_hltb.label(class="form-check-label", **{"data-toggle": "tooltip", "title": "Fetch game completion times from HowLongToBeat during scan"}) }}
+                    </div>
+
+                    <div class="form-check modern-checkbox">
+                        {{ manual_form.force_hltb_refetch(class="form-check-input", id="force-hltb-refetch-manual") }}
+                        {{ manual_form.force_hltb_refetch.label(class="form-check-label", **{"data-toggle": "tooltip", "title": "Force refetch HLTB data for games that already exist in the database"}) }}
+                    </div>
+
                     <div class="form-group">
                         <button id="browseFoldersBtnManual" type="button" class="admin_manage_scanjobs-browsefolders-btn btn btn-info">Browse Folders</button>
                         <button type="submit" name="submit" value="ManualScan" class="admin_manage_scanjobs-browsefolders-listgames-btn btn btn-primary">List Games</button>

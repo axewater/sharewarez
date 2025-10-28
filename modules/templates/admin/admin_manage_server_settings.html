@@ -160,9 +160,31 @@
                                             <label for="scanThreadCount" data-toggle="tooltip" title="Number of threads to use for game scanning operations. Higher values = faster scanning but more CPU usage. Recommended for slow internet connections: 1 thread. Recommended for fast connections: 2-4 threads.">
                                                 <i class="fas fa-search"></i> Game Scan Threads
                                             </label>
-                                            <input type="number" class="form-control" id="scanThreadCount" name="scanThreadCount" 
+                                            <input type="number" class="form-control" id="scanThreadCount" name="scanThreadCount"
                                                 min="1" max="4" value="1" placeholder="1">
                                             <small class="form-text text-muted">Respects IGDB rate limits (4 req/sec, max 8 concurrent)</small>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="enableHltbIntegration">
+                                            <label class="form-check-label" for="enableHltbIntegration" data-toggle="tooltip" title="Enables integration with HowLongToBeat to fetch game completion time data.">
+                                                <i class="fas fa-clock"></i> Enable HowLongToBeat Integration
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-group">
+                                            <label for="hltbRateLimitDelay" data-toggle="tooltip" title="Delay in seconds between HowLongToBeat API requests to respect their servers. Recommended: 2.0 seconds.">
+                                                <i class="fas fa-hourglass-half"></i> HLTB Rate Limit Delay (seconds)
+                                            </label>
+                                            <input type="number" class="form-control" id="hltbRateLimitDelay" name="hltbRateLimitDelay"
+                                                min="0.5" max="10" step="0.5" value="2.0" placeholder="2.0">
+                                            <small class="form-text text-muted">Time between requests to HowLongToBeat (0.5-10 seconds)</small>
                                         </div>
                                     </td>
                                 </tr>
