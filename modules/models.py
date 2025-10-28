@@ -520,8 +520,12 @@ class GlobalSettings(db.Model):
     scan_thread_count = db.Column(db.Integer, default=4)
     # Setup State Tracking
     setup_in_progress = db.Column(db.Boolean, default=False)
-    setup_current_step = db.Column(db.Integer, default=1) 
+    setup_current_step = db.Column(db.Integer, default=1)
     setup_completed = db.Column(db.Boolean, default=False)
+    # Attract Mode Settings
+    attract_mode_enabled = db.Column(db.Boolean, default=False)
+    attract_mode_idle_timeout = db.Column(db.Integer, default=60)  # seconds, range 10-300
+    attract_mode_settings = db.Column(JSONEncodedDict)  # JSON: filters, autoplay settings
 
     def __repr__(self):
         return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'
@@ -557,8 +561,25 @@ class InviteToken(db.Model):
 
     def __repr__(self):
         return f'<InviteToken {self.token}, Creator: {self.creator_user_id}, Expires: {self.expires_at}, Used: {self.used}>'
-    
-    
+
+
+class UserAttractModeSettings(db.Model):
+    __tablename__ = 'user_attract_mode_settings'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.user_id'), nullable=False, unique=True)
+    has_customized = db.Column(db.Boolean, default=False)
+    filter_settings = db.Column(JSONEncodedDict)  # JSON: platform, genres, themes, date_range
+    autoplay_settings = db.Column(JSONEncodedDict)  # JSON: enabled, skipFirst, skipAfter
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
+
+    user = db.relationship('User', backref=db.backref('attract_mode_settings', uselist=False, cascade='all, delete-orphan'))
+
+    def __repr__(self):
+        return f'<UserAttractModeSettings user_id={self.user_id}, customized={self.has_customized}>'
+
+
 class AllowedFileType(db.Model):
     __tablename__ = 'allowed_file_types'
     

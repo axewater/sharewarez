@@ -46,6 +46,12 @@
                     </a>
                     <span class="button-label">Server Settings</span>
                 </div>
+                <div class="admin-button-item" data-toggle="tooltip" title="Configure attract mode (auto-play trailers on idle)">
+                    <a href="{{ url_for('admin2.attract_mode_settings_page') }}" class="btn btn-circle">
+                        <i class="fas fa-tv"></i>
+                    </a>
+                    <span class="button-label">Attract Mode</span>
+                </div>
                 <div class="admin-button-item" data-toggle="tooltip" title="Manage integrations (Email, IGDB, Discord)">
                     <a href="{{ url_for('admin2.integrations') }}" class="btn btn-circle">
                         <i class="fas fa-plug"></i>

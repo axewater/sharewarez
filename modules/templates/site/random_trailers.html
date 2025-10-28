@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ 'css/site/random_trailers.css'|theme_asset }}">
+
+<div class="trailer-viewer-container">
+    <!-- Header Section with Game Name and Action Buttons -->
+    <div class="trailer-header-section">
+        <a id="game-title-link" href="#" class="game-title-link">
+            <h1 id="game-title" class="trailer-title">Loading Game...</h1>
+        </a>
+        <div class="action-buttons-top">
+            <button id="exit-attract-mode-btn" class="btn-exit-attract" title="Exit Attract Mode" style="display: none;">
+                <i class="fas fa-times-circle"></i> Exit Attract Mode
+            </button>
+            <button id="settings-btn" class="btn-settings" title="Auto-play Settings">
+                <i class="fas fa-cog"></i>
+            </button>
+            <button id="next-btn" class="btn-next" title="Next Trailer">
+                <i class="fas fa-forward"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Collapsible Filter Panel -->
+    <div class="filter-panel-container">
+        <button id="filter-toggle" class="filter-toggle-btn">
+            <i class="fas fa-filter"></i> <span class="filter-text">Filters</span>
+            <div id="filter-badges" class="filter-badges"></div>
+            <i class="fas fa-chevron-down toggle-icon"></i>
+        </button>
+
+        <div id="filter-panel" class="filter-panel collapsed">
+            <div class="filter-grid">
+                <!-- Left Column: Platform + Date Range -->
+                <div class="filter-column-left">
+                    <div class="filter-item">
+                        <label for="platform-filter">Platform</label>
+                        <select id="platform-filter" class="filter-select">
+                            <option value="">All Platforms</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-item">
+                        <label for="date-from">Release Year From</label>
+                        <input type="number"
+                               id="date-from"
+                               class="filter-input"
+                               placeholder="e.g., 1990"
+                               min="1970"
+                               max="2030">
+                    </div>
+
+                    <div class="filter-item">
+                        <label for="date-to">Release Year To</label>
+                        <input type="number"
+                               id="date-to"
+                               class="filter-input"
+                               placeholder="e.g., 2024"
+                               min="1970"
+                               max="2030">
+                    </div>
+                </div>
+
+                <!-- Middle Column: Genres -->
+                <div class="filter-item">
+                    <label for="genre-filter">Genres</label>
+                    <select id="genre-filter" class="filter-select" multiple size="10">
+                    </select>
+                    <small class="filter-help">Hold Ctrl/Cmd to select multiple</small>
+                </div>
+
+                <!-- Right Column: Themes -->
+                <div class="filter-item">
+                    <label for="theme-filter">Themes</label>
+                    <select id="theme-filter" class="filter-select" multiple size="10">
+                    </select>
+                    <small class="filter-help">Hold Ctrl/Cmd to select multiple</small>
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button id="clear-filters-btn" class="btn-clear">
+                    <i class="fas fa-times-circle"></i> Clear All Filters
+                </button>
+                <div id="filter-status" class="filter-status"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading-state" class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading random trailer...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="error-container" style="display: none;">
+        <div class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <p id="error-text">No games with trailers found</p>
+            <button onclick="location.href='/library'" class="btn-primary">Go to Library</button>
+        </div>
+    </div>
+
+    <!-- Video Player Container -->
+    <div id="video-container" class="video-player-container" style="display: none;">
+        <div class="video-wrapper">
+            <div id="trailer-player"></div>
+        </div>
+
+
+    </div>
+
+    <!-- Auto-play Settings Modal -->
+    <div id="settings-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Auto-Play Settings</h2>
+                <button id="modal-close" class="modal-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="autoplay-toggle" checked>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-text">Auto-play next video</span>
+                    </label>
+                </div>
+                <div class="settings-group">
+                    <label for="skip-first">Skip first (seconds)</label>
+                    <input type="number" id="skip-first" min="0" max="300" value="0" step="1">
+                    <small>Start videos at this timestamp</small>
+                </div>
+                <div class="settings-group">
+                    <label for="skip-after">Skip to next after playing (seconds)</label>
+                    <input type="number" id="skip-after" min="0" max="600" value="0" step="1">
+                    <small>Load next video after watching for this long (0 to disable)</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-cancel" class="btn-modal-cancel">Cancel</button>
+                <button id="modal-save" class="btn-modal-save">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Load YouTube IFrame API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+<script src="{{ 'js/random_trailers.js'|theme_asset }}"></script>
+
+{% endblock %}

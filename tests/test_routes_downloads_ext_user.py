@@ -213,19 +213,6 @@ class TestDeleteDownloadRoute:
             deleted_request = db.session.get(DownloadRequest, sample_download_request.id)
             assert deleted_request is None
     
-    def test_delete_download_no_zip_save_path_config(self, client, authenticated_user, sample_download_request, app):
-        """Test deletion works without ZIP_SAVE_PATH configuration."""
-        with app.app_context():
-            with client.session_transaction() as sess:
-                sess['_user_id'] = str(authenticated_user.id)
-                sess['_fresh'] = True
-
-            response = client.post(f'/delete_download/{sample_download_request.id}')
-            assert response.status_code == 302  # Redirect
-
-            # Verify download request was deleted from database
-            deleted_request = db.session.get(DownloadRequest, sample_download_request.id)
-            assert deleted_request is None
     
     def test_delete_download_file_removal_error(self, client, authenticated_user, sample_download_request, app):
         """Test deletion succeeds without file operations."""

@@ -6,7 +6,11 @@ from sqlalchemy import func, select
 from modules import db
 from flask import flash
 import os
-from modules.models import User, Image
+import random
+import re
+from datetime import datetime
+from modules.models import User, Image, Game, Library, Genre, Theme
+from modules.platform import LibraryPlatform
 from modules.utils_processors import get_global_settings
 from modules.utils_auth import admin_required
 from modules.utils_functions import format_size
@@ -86,3 +90,179 @@ def favicon():
     full_dir = os.path.join(current_app.static_folder, favidir)
     # print(f"Full dir: {full_dir}" if os.path.isdir(full_dir) else f"Dir not found: {full_dir}")
     return send_from_directory(full_dir, 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+
+@site_bp.route('/trailers')
+@login_required
+def random_trailers():
+    """Main page for watching random game trailers"""
+    return render_template('site/random_trailers.html')
+
+
+@site_bp.route('/api/trailers/filters')
+@login_required
+def get_filter_options():
+    """API endpoint to get available filter options"""
+    try:
+        # Get unique platforms from libraries
+        platforms = db.session.execute(
+            select(Library.platform).distinct().order_by(Library.platform)
+        ).scalars().all()
+
+        # Get all genres
+        genres = db.session.execute(
+            select(Genre).order_by(Genre.name)
+        ).scalars().all()
+
+        # Get all themes
+        themes = db.session.execute(
+            select(Theme).order_by(Theme.name)
+        ).scalars().all()
+
+        # Get date range from games with videos
+        date_range = db.session.execute(
+            select(
+                func.min(Game.first_release_date),
+                func.max(Game.first_release_date)
+            ).filter(
+                Game.video_urls.isnot(None),
+                Game.video_urls != '',
+                Game.first_release_date.isnot(None)
+            )
+        ).first()
+
+        min_year = date_range[0].year if date_range[0] else None
+        max_year = date_range[1].year if date_range[1] else None
+
+        return jsonify({
+            'platforms': [{'name': p.name, 'display_name': p.value} for p in platforms if p],
+            'genres': [{'id': g.id, 'name': g.name} for g in genres],
+            'themes': [{'id': t.id, 'name': t.name} for t in themes],
+            'date_range': {
+                'min_year': min_year,
+                'max_year': max_year
+            }
+        })
+    except Exception as e:
+        print(f"Error fetching filter options: {e}")
+        return jsonify({'error': 'Failed to fetch filter options'}), 500
+
+
+@site_bp.route('/api/trailers/random')
+@login_required
+def get_random_trailer():
+    """API endpoint to get a random game with trailer (with optional filters)"""
+    try:
+        # Start with base query
+        query = select(Game).filter(
+            Game.video_urls.isnot(None),
+            Game.video_urls != ''
+        )
+
+        # Apply platform filter
+        platform_param = request.args.get('platform')
+        if platform_param:
+            try:
+                # Convert platform name string to enum
+                platform_enum = LibraryPlatform[platform_param]
+                query = query.join(Game.library).filter(Library.platform == platform_enum)
+            except KeyError:
+                # Invalid platform name, skip this filter
+                pass
+
+        # Apply genre filter
+        genres_param = request.args.get('genres')
+        if genres_param:
+            genre_ids = [int(gid) for gid in genres_param.split(',') if gid.strip()]
+            if genre_ids:
+                query = query.join(Game.genres).filter(Genre.id.in_(genre_ids))
+
+        # Apply theme filter
+        themes_param = request.args.get('themes')
+        if themes_param:
+            theme_ids = [int(tid) for tid in themes_param.split(',') if tid.strip()]
+            if theme_ids:
+                query = query.join(Game.themes).filter(Theme.id.in_(theme_ids))
+
+        # Apply date range filters
+        date_from_param = request.args.get('date_from')
+        if date_from_param:
+            try:
+                date_from = datetime(int(date_from_param), 1, 1)
+                query = query.filter(Game.first_release_date >= date_from)
+            except (ValueError, TypeError):
+                pass  # Invalid date format, skip filter
+
+        date_to_param = request.args.get('date_to')
+        if date_to_param:
+            try:
+                date_to = datetime(int(date_to_param), 12, 31)
+                query = query.filter(Game.first_release_date <= date_to)
+            except (ValueError, TypeError):
+                pass  # Invalid date format, skip filter
+
+        # Execute query with distinct to avoid duplicates from joins
+        games_with_videos = db.session.execute(query.distinct()).scalars().all()
+
+        if not games_with_videos:
+            return jsonify({
+                'has_videos': False,
+                'message': 'No games with trailers found matching your filters'
+            }), 404
+
+        # Select a random game
+        random_game = random.choice(games_with_videos)
+
+        # Parse video URLs (comma-separated)
+        video_urls = [url.strip() for url in random_game.video_urls.split(',') if url.strip()]
+
+        if not video_urls:
+            # If somehow we got empty URLs, try another game
+            return jsonify({
+                'has_videos': False,
+                'message': 'No valid video URLs found'
+            }), 404
+
+        # Pick a random video if multiple exist
+        selected_video = random.choice(video_urls)
+
+        # Convert YouTube watch URL to embed URL if needed
+        embed_url = convert_to_embed_url(selected_video)
+
+        # Return game data and video
+        return jsonify({
+            'has_videos': True,
+            'game_uuid': random_game.uuid,
+            'game_name': random_game.name,
+            'video_url': embed_url
+        })
+
+    except Exception as e:
+        print(f"Error fetching random trailer: {e}")
+        return jsonify({
+            'has_videos': False,
+            'message': 'Error fetching trailer'
+        }), 500
+
+
+def convert_to_embed_url(video_url):
+    """Convert YouTube URL to embed format with autoplay"""
+    # Extract video ID from various YouTube URL formats
+    youtube_patterns = [
+        r'youtube\.com/watch\?v=([a-zA-Z0-9_-]+)',
+        r'youtube\.com/embed/([a-zA-Z0-9_-]+)',
+        r'youtu\.be/([a-zA-Z0-9_-]+)'
+    ]
+
+    for pattern in youtube_patterns:
+        match = re.search(pattern, video_url)
+        if match:
+            video_id = match.group(1)
+            return f"https://www.youtube.com/embed/{video_id}?autoplay=1&rel=0"
+
+    # If already in embed format or unknown format, add autoplay parameter
+    if 'autoplay' not in video_url:
+        separator = '&' if '?' in video_url else '?'
+        return f"{video_url}{separator}autoplay=1&rel=0"
+
+    return video_url

@@ -199,21 +199,6 @@ class TestDeleteDownloadRequest:
         assert data['status'] == 'success'
         assert 'deleted successfully' in data['message']
     
-    def test_delete_request_zip_save_path_not_configured(self, client, admin_user, sample_download_request):
-        """Test deletion works without ZIP_SAVE_PATH configuration."""
-        sample_download_request.zip_file_path = '/some/path.zip'
-
-        with client.session_transaction() as sess:
-            sess['_user_id'] = str(admin_user.id)
-            sess['_fresh'] = True
-
-        response = client.delete(f'/api/delete_download/{sample_download_request.id}')
-        assert response.status_code == 200
-
-        data = response.get_json()
-        assert data['status'] == 'success'
-        assert 'deleted successfully' in data['message']
-    
     def test_delete_request_zip_deletion_error(self, client, admin_user, sample_download_request):
         """Test deletion succeeds even with old ZIP file references."""
         sample_download_request.zip_file_path = '/some/file.zip'

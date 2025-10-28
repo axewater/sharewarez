@@ -218,6 +218,28 @@ class DatabaseManager:
             END IF;
         END $$;
 
+        -- Add attract mode settings to global_settings table
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS attract_mode_enabled BOOLEAN DEFAULT FALSE;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS attract_mode_idle_timeout INTEGER DEFAULT 60;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS attract_mode_settings TEXT;
+
+        -- Create user_attract_mode_settings table if it doesn't exist
+        CREATE TABLE IF NOT EXISTS user_attract_mode_settings (
+            id SERIAL PRIMARY KEY,
+            user_id VARCHAR(36) UNIQUE NOT NULL,
+            has_customized BOOLEAN DEFAULT FALSE,
+            filter_settings TEXT,
+            autoplay_settings TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+        );
+
         """
         print("Upgrading database to the latest schema")
         try:

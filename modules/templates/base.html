@@ -89,15 +89,22 @@
     </div>
     <div class="sidebar-menu">
         {% if current_user.is_authenticated %}
-            <a href="{{ url_for('discover.discover') }}" class="sidebar-link"><i class="fas fa-compass"></i><span class="link-text">Discover</span></a>
+            {% if show_discovery %}
+                <a href="{{ url_for('discover.discover') }}" class="sidebar-link"><i class="fas fa-compass"></i><span class="link-text">Discover</span></a>
+            {% endif %}
             <a href="{{ url_for('library.library') }}" class="sidebar-link"><i class="fas fa-gamepad"></i><span class="link-text">Library</span></a>
             <a href="{{ url_for('download.downloads') }}" class="sidebar-link"><i class="fas fa-download"></i><span class="link-text">Downloads</span></a>
-            <a href="{{ url_for('site.favorites') }}" class="sidebar-link"><i class="fas fa-heart"></i><span class="link-text">Favorites</span></a>
-    
+            {% if show_favorites %}
+                <a href="{{ url_for('site.favorites') }}" class="sidebar-link"><i class="fas fa-heart"></i><span class="link-text">Favorites</span></a>
+            {% endif %}
+            {% if show_trailers %}
+                <a href="{{ url_for('site.random_trailers') }}" class="sidebar-link"><i class="fas fa-film"></i><span class="link-text">Trailers</span></a>
+            {% endif %}
+
             {% if current_user.role == 'admin' %}
                 <a href="/admin/dashboard" class="sidebar-link"><i class="fas fa-cogs"></i><span class="link-text">Settings</span></a>
             {% endif %}
-    
+
             {% if show_help_button %}
                 <a href="{{ url_for('site.helpfaq') }}" class="sidebar-link"><i class="fas fa-question-circle"></i><span class="link-text">Help</span></a>
             {% endif %}
@@ -226,7 +233,7 @@ const prefsToggle = document.querySelector('[data-bs-toggle="modal"][data-bs-tar
 if (prefsToggle) {
     prefsToggle.addEventListener('click', function(e) {
         e.preventDefault();
-        
+
         fetch("{{ url_for('settings.settings_panel') }}")
             .then(response => response.text())
             .then(html => {
@@ -240,5 +247,10 @@ if (prefsToggle) {
     });
 }
 </script>
+
+<!-- Attract Mode Idle Detection -->
+{% if not is_setup_mode %}
+<script src="{{ 'js/attract_mode_idle.js'|theme_asset }}"></script>
+{% endif %}
 
 </body>
