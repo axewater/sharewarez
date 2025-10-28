@@ -89,9 +89,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Exit attract mode button handler
     if (exitAttractModeBtn) {
         exitAttractModeBtn.addEventListener('click', function() {
-            // Remove attract_mode parameter and reload
-            const newUrl = window.location.pathname;
-            window.location.href = newUrl;
+            // Try to get the stored return URL from sessionStorage
+            const returnUrl = sessionStorage.getItem('attractModeReturnUrl');
+
+            if (returnUrl) {
+                // Clear the stored URL
+                sessionStorage.removeItem('attractModeReturnUrl');
+                console.log('Returning to previous page:', returnUrl);
+                // Return to the page the user was on before attract mode
+                window.location.href = returnUrl;
+            } else {
+                // No stored URL, go to discover page as default
+                console.log('No return URL found, going to discover page');
+                window.location.href = '/discover';
+            }
         });
     }
 

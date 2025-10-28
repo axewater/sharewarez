@@ -119,6 +119,11 @@
             document.removeEventListener(eventType, resetIdleTimer, true);
         });
 
+        // Store current page URL so we can return to it later
+        const currentUrl = window.location.href;
+        sessionStorage.setItem('attractModeReturnUrl', currentUrl);
+        console.log('Stored return URL:', currentUrl);
+
         // Redirect to trailers page with attract mode flag
         window.location.href = '/trailers?attract_mode=true';
     }
