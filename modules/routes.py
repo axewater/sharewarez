@@ -872,7 +872,7 @@ def delete_library_background(library_uuid, job_id):
                     # Update progress
                     deletion_progress[job_id].update({
                         'current': i,
-                        'message': f'Deleting game {i}/{total_games}: {game.name}',
+                        'message': f'Deleting game {i}/{total_games}',
                         'current_game': game.name
                     })
                     

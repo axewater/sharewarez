@@ -156,8 +156,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Update progress text
-                progressText.textContent = data.message || 'Processing...';
-                
+                if (data.current_game) {
+                    progressText.innerHTML = (data.message || 'Processing...') + '<br>' + data.current_game;
+                } else {
+                    progressText.textContent = data.message || 'Processing...';
+                }
+
                 // Update progress bar if we have progress info
                 if (data.total > 0) {
                     const percentage = Math.round((data.current / data.total) * 100);
@@ -232,8 +236,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     // Update progress text
-                    progressText.textContent = data.message || 'Processing...';
-                    
+                    if (data.current_game) {
+                        progressText.innerHTML = (data.message || 'Processing...') + '<br>' + data.current_game;
+                    } else {
+                        progressText.textContent = data.message || 'Processing...';
+                    }
+
                     // Update progress bar if we have progress info
                     if (data.total > 0) {
                         const percentage = Math.round((data.current / data.total) * 100);
