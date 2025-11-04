@@ -652,6 +652,19 @@ def refresh_game_images(game_uuid):
         return redirect(url_for('library.library'))
 
 
+@bp.route('/check_image_refresh_progress/<game_uuid>', methods=['GET'])
+@login_required
+@admin_required
+def check_image_refresh_progress(game_uuid):
+    """Check the progress of an image refresh operation."""
+    progress_data = cache.get(f'image_refresh_progress_{game_uuid}')
+
+    if progress_data is None:
+        return jsonify({'status': 'not_found', 'progress': 0})
+
+    return jsonify(progress_data)
+
+
 @bp.route('/delete_game/<string:game_uuid>', methods=['POST'])
 @login_required
 @admin_required

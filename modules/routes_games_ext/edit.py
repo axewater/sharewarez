@@ -243,19 +243,23 @@ def game_edit(game_uuid):
         try:
             db.session.commit()
             log_system_event(f"Game {game.name} updated by admin {current_user.name}", event_type='game', event_level='information')
-            flash('Game updated successfully.', 'success')
-            
+
             if igdb_id_changed:
-                flash('IGDB ID changed. Triggering image update.')
+                # Single flash message that will show progress spinner via JavaScript
+                flash('Game updated, downloading images', 'image-refresh')
                 @copy_current_request_context
                 def refresh_images_in_thread():
                     refresh_images_in_background(game_uuid)
                 thread = Thread(target=refresh_images_in_thread, daemon=True)
                 thread.start()
                 current_app.logger.info(f"Refresh images thread started for game UUID: {game_uuid}")
+                # Store game_uuid in session so JavaScript can track progress
+                from flask import session
+                session['image_refresh_game_uuid'] = game_uuid
             else:
+                flash('Game updated successfully.', 'success')
                 current_app.logger.debug(f"IGDB ID unchanged. Skipping image refresh for game UUID: {game_uuid}")
-                    
+
             return redirect(url_for('library.library'))
         except IntegrityError as e:
             db.session.rollback()

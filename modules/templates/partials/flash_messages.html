@@ -2,10 +2,17 @@
     {% if messages %}
         <div class="container-flash-messages">
             {% for category, message in messages %}
-                <div class="alert alert-{{ category or 'info' }} alert-dismissible fade show" role="alert">
+                <div class="alert alert-{{ category or 'info' }} alert-dismissible fade show" role="alert"
+                     {% if category == 'image-refresh' and session.get('image_refresh_game_uuid') %}
+                     data-game-uuid="{{ session.get('image_refresh_game_uuid') }}"
+                     {% endif %}>
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
+                {% if category == 'image-refresh' and session.get('image_refresh_game_uuid') %}
+                    {# Clear the session variable after displaying #}
+                    {% set _ = session.pop('image_refresh_game_uuid', None) %}
+                {% endif %}
             {% endfor %}
         </div>
     {% endif %}
