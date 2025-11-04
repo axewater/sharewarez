@@ -145,7 +145,7 @@ def initialize_discovery_sections():
         {
             'name': 'Libraries',
             'identifier': 'libraries',
-            'is_visible': True,
+            'is_visible': False,
             'display_order': 0
         },
         {
