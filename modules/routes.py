@@ -311,11 +311,11 @@ def cancel_scan_job(job_id):
     job = db.session.get(ScanJob, job_id)
     if job and job.status == 'Running':
         job.is_enabled = False
-        job.status = 'Cancelled'
-        job.error_message = 'Scan cancelled by user'
+        job.status = 'Stopping'
+        job.error_message = 'Scan is stopping, waiting for threads to complete'
         db.session.commit()
-        flash(f"Scan job {job_id} has been canceled.")
-        print(f"Scan job {job_id} has been canceled.")
+        flash(f"Scan job {job_id} is stopping. Waiting for threads to complete...")
+        print(f"Scan job {job_id} is stopping. Waiting for threads to complete...")
     else:
         flash('Scan job not found or not in a cancellable state.', 'error')
     return redirect(url_for('main.scan_management'))

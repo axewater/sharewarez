@@ -182,6 +182,14 @@ class DatabaseManager:
             END IF;
         END $$;
 
+        -- Add 'Stopping' value to the status_enum for scan_jobs
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'Stopping' AND enumtypid = (SELECT oid FROM pg_type WHERE typname = 'status_enum')) THEN
+                ALTER TYPE status_enum ADD VALUE 'Stopping';
+            END IF;
+        END $$;
+
         -- Add unique index to prevent duplicate cover images (but allow multiple screenshots)
         DO $$
         BEGIN

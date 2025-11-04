@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Clear the table body
                 scanJobsTableBody.innerHTML = '';
                 
-                const isAnyJobRunning = data.some(j => j.status === 'Running');
+                const isAnyJobRunning = data.some(j => j.status === 'Running' || j.status === 'Stopping');
                 
                 data.forEach(job => {
                     // Create progress column content
@@ -229,6 +229,21 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </div>
                             </div>
                         `;
+                    } else if (job.status === 'Stopping') {
+                        const processed = job.folders_success + job.folders_failed;
+                        progressColumn = `
+                            <div class="scan-progress">
+                                <div class="progress-status">
+                                    <span class="text-warning">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        Stopping scan... (${processed}/${job.total_folders})
+                                    </span>
+                                </div>
+                                <div class="progress-status">
+                                    <small class="text-muted">Waiting for threads to complete</small>
+                                </div>
+                            </div>
+                        `;
                     } else if (job.status === 'Completed') {
                         progressColumn = `<span class="text-success"><i class="fas fa-check"></i> ${job.folders_success + job.folders_failed}/${job.total_folders}</span>`;
                     } else if (job.status === 'Failed') {
@@ -239,12 +254,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Create actions column content
                     const actionsColumn = `
-                        ${job.status === 'Running' ? 
+                        ${job.status === 'Running' ?
                             `<form action="/cancel_scan_job/${job.id}" method="post" style="display: inline-block;">
                                 <input type="hidden" name="csrf_token" value="${csrfToken}">
                                 <button type="submit" class="btn btn-warning btn-sm" title="Cancel Scan"><i class="fas fa-stop"></i></button>
-                            </form>` : 
-                            `${isAnyJobRunning ? 
+                            </form>` :
+                        job.status === 'Stopping' ?
+                            `<button class="btn btn-warning btn-sm" disabled title="Scan is stopping, please wait...">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </button>` :
+                            `${isAnyJobRunning ?
                                 `<button class="btn btn-info btn-sm" disabled title="Cannot restart while another scan is running"><i class="fas fa-sync"></i></button>` :
                                 `<form action="/restart_scan_job/${job.id}" method="post" style="display: inline-block;">
                                     <input type="hidden" name="csrf_token" value="${csrfToken}">

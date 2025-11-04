@@ -374,18 +374,25 @@ class InitializationManager:
             print("ℹ️  Theme already exists")
 
     def _cleanup_orphaned_scan_jobs(self, session):
-        """Clean up scan jobs left in 'Running' state after server restart."""
+        """Clean up scan jobs left in 'Running' or 'Stopping' state after server restart."""
         from modules.models import ScanJob
+        from sqlalchemy import or_
 
-        running_jobs = session.execute(select(ScanJob).filter_by(status='Running')).scalars().all()
+        # Find jobs that were either running or in the process of stopping when server crashed
+        orphaned_jobs = session.execute(
+            select(ScanJob).filter(
+                or_(ScanJob.status == 'Running', ScanJob.status == 'Stopping')
+            )
+        ).scalars().all()
 
-        if running_jobs:
-            for job in running_jobs:
+        if orphaned_jobs:
+            for job in orphaned_jobs:
                 job.status = 'Failed'
                 job.error_message = 'Scan job interrupted by server restart'
                 job.is_enabled = False
+                job.current_processing = None
 
-            print(f"🧹 Cleaned up {len(running_jobs)} orphaned scan jobs")
+            print(f"🧹 Cleaned up {len(orphaned_jobs)} orphaned scan jobs")
         else:
             print("ℹ️  No orphaned scan jobs found")
 
