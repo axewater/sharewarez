@@ -3,9 +3,9 @@ import os
 from flask import render_template, jsonify, abort
 from flask_login import login_required, current_user
 from modules.forms import CsrfForm
-from modules.models import GameUpdate, GameExtra
+from modules.models import GameUpdate, GameExtra, user_game_status, get_status_info
 from modules import db
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from modules.utils_functions import format_size, sanitize_string_input, get_url_icon
 from modules.utils_game_core import get_game_by_uuid
 from modules.utils_security import sanitize_path_for_logging
@@ -143,8 +143,43 @@ def game_details(game_uuid):
         # Calculate if the game is in current user's favorites
         current_user_id = current_user.id if current_user.is_authenticated else None
         is_favorite = current_user_id in [user.id for user in game.favorited_by] if current_user_id else False
-        
-        return render_template('games/game_details.html', game=game_data, form=csrf_form, library_uuid=library_uuid, is_admin=current_user.role == 'admin', is_favorite=is_favorite)
+
+        # Get user's completion status for this game
+        user_status = None
+        status_icon = 'fa-circle'
+        status_label = 'No Status'
+
+        if current_user_id:
+            status_row = db.session.execute(
+                select(user_game_status.c.status).where(
+                    and_(
+                        user_game_status.c.user_id == current_user_id,
+                        user_game_status.c.game_uuid == game.uuid
+                    )
+                )
+            ).first()
+
+            if status_row:
+                user_status = status_row[0]
+                status_info = get_status_info(user_status)
+                status_icon = status_info['icon']
+                status_label = status_info['label']
+            else:
+                status_info = get_status_info(None)
+                status_icon = status_info['icon']
+                status_label = status_info['label']
+
+        return render_template(
+            'games/game_details.html',
+            game=game_data,
+            form=csrf_form,
+            library_uuid=library_uuid,
+            is_admin=current_user.role == 'admin',
+            is_favorite=is_favorite,
+            user_status=user_status,
+            status_icon=status_icon,
+            status_label=status_label
+        )
     else:
         log_system_event(
             f"User {current_user.name} attempted to access non-existent game UUID: {game_uuid[:8]}...",

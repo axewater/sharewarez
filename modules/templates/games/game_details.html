@@ -78,9 +78,11 @@
 
 {# Load Theme Resources #}
 <link rel="stylesheet" href="{{ 'css/games/game_details.css'|theme_asset }}">
+<link rel="stylesheet" href="{{ 'css/games/game_status.css'|theme_asset }}">
 <script src="{{ 'js/popup_menu.js'|theme_asset }}"></script>
 <script src="{{ 'js/game_details.js'|theme_asset }}"></script>
 <script src="{{ 'js/favorites_manager.js'|theme_asset }}"></script>
+<script src="{{ 'js/game_status_manager.js'|theme_asset }}"></script>
 
 
 {# Modals #}
@@ -205,6 +207,39 @@
                             <button class="favorite-btn favorite-btn-cover" data-game-uuid="{{ game.uuid }}" data-is-favorite="{{ is_favorite|lower }}">
                                 <i class="fas fa-heart"></i>
                             </button>
+
+                            {# Game status button on cover #}
+                            <button class="game-status-btn game-status-btn-cover" data-game-uuid="{{ game.uuid }}" data-current-status="{{ user_status or '' }}" title="{{ status_label or 'No Status' }}">
+                                <i class="fas {{ status_icon or 'fa-circle' }}"></i>
+                            </button>
+
+                            {# Status dropdown menu #}
+                            <div class="status-dropdown" data-game-uuid="{{ game.uuid }}" style="display: none;">
+                                <div class="status-dropdown-option" data-status="unplayed">
+                                    <i class="fas fa-box" style="color: #808080;"></i>
+                                    <span class="status-label">Unplayed</span>
+                                </div>
+                                <div class="status-dropdown-option" data-status="unfinished">
+                                    <i class="fas fa-gamepad" style="color: #4A90E2;"></i>
+                                    <span class="status-label">Unfinished</span>
+                                </div>
+                                <div class="status-dropdown-option" data-status="beaten">
+                                    <i class="fas fa-flag-checkered" style="color: #50C878;"></i>
+                                    <span class="status-label">Beaten</span>
+                                </div>
+                                <div class="status-dropdown-option" data-status="completed">
+                                    <i class="fas fa-trophy" style="color: #FFD700;"></i>
+                                    <span class="status-label">Completed</span>
+                                </div>
+                                <div class="status-dropdown-option" data-status="null">
+                                    <i class="fas fa-ban" style="color: #DC3545;"></i>
+                                    <span class="status-label">Won't Play</span>
+                                </div>
+                                <div class="status-dropdown-option" data-status="" style="border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                                    <i class="fas fa-times" style="color: #808080;"></i>
+                                    <span class="status-label">Clear Status</span>
+                                </div>
+                            </div>
                         </div>
                     {% endif %}
 

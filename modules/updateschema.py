@@ -67,6 +67,18 @@ class DatabaseManager:
             PRIMARY KEY (user_id, game_uuid)
         );
 
+        -- Create user_game_status table if it doesn't exist
+        CREATE TABLE IF NOT EXISTS user_game_status (
+            user_id INTEGER REFERENCES users(id),
+            game_uuid VARCHAR(36) REFERENCES games(uuid),
+            status VARCHAR(20) NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (user_id, game_uuid)
+        );
+
+        -- Create index on user_game_status for performance
+        CREATE INDEX IF NOT EXISTS idx_user_game_status_lookup ON user_game_status(user_id, game_uuid);
+
         CREATE TABLE IF NOT EXISTS game_updates (
             id SERIAL PRIMARY KEY,
             uuid VARCHAR(36) UNIQUE NOT NULL,

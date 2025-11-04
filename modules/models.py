@@ -129,6 +129,13 @@ user_favorites = db.Table('user_favorites',
     db.Column('created_at', db.DateTime, default=lambda: datetime.now(timezone.utc))
 )
 
+user_game_status = db.Table('user_game_status',
+    db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+    db.Column('game_uuid', db.String(36), db.ForeignKey('games.uuid'), primary_key=True),
+    db.Column('status', db.String(20), nullable=False),  # 'unplayed', 'unfinished', 'beaten', 'completed', 'null'
+    db.Column('updated_at', db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+)
+
 class Game(db.Model):
     __tablename__ = 'games'
 
@@ -136,6 +143,7 @@ class Game(db.Model):
     uuid = db.Column(db.String(36), default=lambda: str(uuid4()), unique=True, nullable=False)
     igdb_id = db.Column(db.Integer, unique=True, nullable=True)
     favorited_by = db.relationship('User', secondary='user_favorites', back_populates='favorites')
+    status_users = db.relationship('User', secondary='user_game_status', back_populates='game_statuses')
     name = db.Column(db.String, nullable=False)
     summary = db.Column(db.Text, nullable=True)
     storyline = db.Column(db.Text, nullable=True)
@@ -257,6 +265,7 @@ class User(db.Model):
     name = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     favorites = db.relationship('Game', secondary='user_favorites', back_populates='favorited_by')
+    game_statuses = db.relationship('Game', secondary='user_game_status', back_populates='status_users')
     password_hash = db.Column(db.String(128), nullable=False)
     role = db.Column(db.String(64), nullable=False)
     state = db.Column(db.Boolean, default=True)
@@ -626,3 +635,54 @@ class SystemEvents(db.Model):
 
     def __repr__(self):
         return f"<SystemEvent {self.event_type}: {self.event_text}>"
+
+
+# Helper function for game completion status
+def get_status_info(status):
+    """
+    Returns icon and color information for game completion status
+
+    Args:
+        status: str - One of 'unplayed', 'unfinished', 'beaten', 'completed', 'null', or None
+
+    Returns:
+        dict with 'icon', 'color', 'label' keys
+    """
+    status_map = {
+        'unplayed': {
+            'icon': 'fa-box',
+            'color': '#808080',  # gray
+            'label': 'Unplayed'
+        },
+        'unfinished': {
+            'icon': 'fa-gamepad',
+            'color': '#4A90E2',  # blue
+            'label': 'Unfinished'
+        },
+        'beaten': {
+            'icon': 'fa-flag-checkered',
+            'color': '#50C878',  # green
+            'label': 'Beaten'
+        },
+        'completed': {
+            'icon': 'fa-trophy',
+            'color': '#FFD700',  # gold
+            'label': 'Completed'
+        },
+        'null': {
+            'icon': 'fa-ban',
+            'color': '#DC3545',  # red
+            'label': "Won't Play"
+        }
+    }
+
+    # Return empty icon for no status
+    if not status:
+        return {
+            'icon': 'fa-circle',
+            'color': '#808080',
+            'label': 'No Status',
+            'empty': True
+        }
+
+    return status_map.get(status, status_map['unplayed'])

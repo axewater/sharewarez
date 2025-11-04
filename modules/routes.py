@@ -10,7 +10,7 @@ from flask import (
 from flask_login import current_user, login_required
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import joinedload
-from sqlalchemy import func, case, select, delete
+from sqlalchemy import func, case, select, delete, and_
 from werkzeug.utils import secure_filename
 from modules import db, mail, cache
 from functools import wraps
@@ -105,7 +105,22 @@ def browse_games():
     # Pagination
     pagination = db.paginate(query, page=page, per_page=per_page, error_out=False)
     games = pagination.items
-    
+
+    # Get all user statuses for games in this page (batch query for performance)
+    game_uuids = [game.uuid for game in games]
+    user_statuses = {}
+    if current_user_id and game_uuids:
+        from modules.models import user_game_status
+        status_results = db.session.execute(
+            select(user_game_status.c.game_uuid, user_game_status.c.status).where(
+                and_(
+                    user_game_status.c.user_id == current_user_id,
+                    user_game_status.c.game_uuid.in_(game_uuids)
+                )
+            )
+        ).all()
+        user_statuses = {row[0]: row[1] for row in status_results}
+
     # Get game data
     game_data = []
     for game in games:
@@ -113,6 +128,10 @@ def browse_games():
         cover_url = cover_image.url if cover_image else 'newstyle/default_cover.jpg'
         genres = [genre.name for genre in game.genres]
         game_size_formatted = format_size(game.size)
+
+        # Get user status for this game
+        user_status = user_statuses.get(game.uuid)
+
         game_data.append({
             'id': game.id,
             'uuid': game.uuid,
@@ -123,7 +142,8 @@ def browse_games():
             'size': game_size_formatted,
             'genres': genres,
             'library_uuid': game.library_uuid,
-            'is_favorite': current_user_id in [user.id for user in game.favorited_by]
+            'is_favorite': current_user_id in [user.id for user in game.favorited_by],
+            'user_status': user_status
         })
 
     return jsonify({

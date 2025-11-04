@@ -415,6 +415,27 @@ $(document).ready(function() {
         var defaultCover = 'newstyle/default_cover.jpg';
         var fullCoverUrl = !game.cover_url || game.cover_url === defaultCover ? '/static/' + defaultCover : '/static/library/images/' + game.cover_url;
         var popupMenuHtml = createPopupMenuHtml(game);
+
+        // Generate status badge HTML if user has set a status
+        var statusBadgeHtml = '';
+        if (game.user_status) {
+            const statusConfig = {
+                'unplayed': { icon: 'fa-box', color: '#808080' },
+                'unfinished': { icon: 'fa-gamepad', color: '#4A90E2' },
+                'beaten': { icon: 'fa-flag-checkered', color: '#50C878' },
+                'completed': { icon: 'fa-trophy', color: '#FFD700' },
+                'null': { icon: 'fa-ban', color: '#DC3545' }
+            };
+            const config = statusConfig[game.user_status];
+            if (config) {
+                statusBadgeHtml = `
+                    <div class="game-status-badge">
+                        <i class="fas ${config.icon}" style="color: ${config.color};"></i>
+                    </div>
+                `;
+            }
+        }
+
         var gameCardHtml = `
     <div class="game-card-container">
         <div class="game-card" onmouseover="showDetails(this, '${game.uuid}')" onmouseout="hideDetails()" data-name="${game.name}" data-size="${game.size}" data-genres="${genres}">
@@ -423,7 +444,8 @@ $(document).ready(function() {
                 <i class="fas fa-heart"></i>
             </button>
             ${popupMenuHtml}
-            
+            ${statusBadgeHtml}
+
             <div class="game-cover">
                 <a href="/game_details/${game.uuid}">
                 <img src="${fullCoverUrl}" alt="${game.name}" class="game-cover">

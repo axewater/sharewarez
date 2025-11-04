@@ -1,0 +1,225 @@
+/* game_status.css - Game completion status styling */
+
+/* Status Button on Game Details Cover */
+.game-status-btn-cover {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 35px;
+    height: 35px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    border: 2px solid var(--color-black-pure);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--transition-normal), background-color 0.3s ease;
+    z-index: 13;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-card-coverimage:hover .game-status-btn-cover {
+    opacity: 1;
+}
+
+.game-status-btn-cover:hover {
+    transform: scale(1.1);
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.game-status-btn-cover i {
+    font-size: 18px;
+    transition: color 0.3s ease, opacity 0.3s ease;
+}
+
+.game-status-btn-cover.processing {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* Status Button on Game Cards (Library Grid) */
+.game-status-btn {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease, background-color 0.3s ease, transform 0.2s ease;
+    z-index: 12;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-card:hover .game-status-btn {
+    opacity: 1;
+}
+
+.game-status-btn:hover {
+    background-color: rgba(0, 0, 0, 0.9);
+    transform: scale(1.1);
+}
+
+.game-status-btn i {
+    font-size: 16px;
+    transition: color 0.3s ease, opacity 0.3s ease;
+}
+
+.game-status-btn.processing {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* Status Badge (Always Visible on Cards) */
+.game-status-badge {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.game-status-badge i {
+    font-size: 14px;
+}
+
+/* Status Dropdown Menu */
+.status-dropdown {
+    position: absolute;
+    bottom: 50px;
+    right: 0;
+    min-width: 180px;
+    background: var(--pagination-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+    display: none;
+    overflow: hidden;
+}
+
+.status-dropdown-option {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-white);
+    font-size: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-dropdown-option:last-child {
+    border-bottom: none;
+}
+
+.status-dropdown-option:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.status-dropdown-option i {
+    width: 20px;
+    font-size: 16px;
+    text-align: center;
+}
+
+.status-dropdown-option .status-label {
+    flex: 1;
+}
+
+/* Status Icon Colors (set via JavaScript) */
+.status-icon-unplayed {
+    color: #808080;
+}
+
+.status-icon-unfinished {
+    color: #4A90E2;
+}
+
+.status-icon-beaten {
+    color: #50C878;
+}
+
+.status-icon-completed {
+    color: #FFD700;
+}
+
+.status-icon-null {
+    color: #DC3545;
+}
+
+.status-icon-empty {
+    color: #808080;
+    opacity: 0.4;
+}
+
+/* Animation for status change success */
+@keyframes statusPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.game-status-btn.success-animation i,
+.game-status-btn-cover.success-animation i {
+    animation: statusPulse 0.5s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .status-dropdown {
+        right: -10px;
+        min-width: 160px;
+    }
+
+    .status-dropdown-option {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+
+    .game-status-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    .game-status-btn i {
+        font-size: 14px;
+    }
+}
+
+/* Ensure status button shows on mobile when card is tapped */
+@media (max-width: 480px) {
+    .game-status-btn {
+        opacity: 0.8;
+    }
+
+    .game-card:hover .game-status-btn,
+    .game-card:active .game-status-btn {
+        opacity: 1;
+    }
+}
