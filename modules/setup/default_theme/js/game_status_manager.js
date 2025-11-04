@@ -8,6 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('[GameStatusManager] ===== INITIALIZING =====');
     console.log('[GameStatusManager] DOMContentLoaded event fired');
 
+    // Check if play status feature is disabled - if no buttons exist, don't proceed
+    const statusButtons = document.querySelectorAll('.game-status-btn');
+    if (statusButtons.length === 0) {
+        console.log('[GameStatusManager] Play status feature is disabled or no status buttons found. Skipping initialization.');
+        return;
+    }
+
     // Status configuration matching models.py
     const STATUS_CONFIG = {
         'unplayed': {
@@ -46,21 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize all status buttons on the page
     const initializeStatusButtons = () => {
         console.log('[GameStatusManager] initializeStatusButtons() called');
-        const statusButtons = document.querySelectorAll('.game-status-btn');
         console.log('[GameStatusManager] Found status buttons:', statusButtons.length);
-
-        if (statusButtons.length === 0) {
-            console.warn('[GameStatusManager] No status buttons found on page!');
-            console.log('[GameStatusManager] Checking for .game-status-btn-cover specifically...');
-            const coverButtons = document.querySelectorAll('.game-status-btn-cover');
-            console.log('[GameStatusManager] Cover buttons found:', coverButtons.length);
-
-            // Check if game details page elements exist
-            const coverImage = document.querySelector('.game-card-coverimage');
-            console.log('[GameStatusManager] Cover image element:', coverImage ? 'FOUND' : 'NOT FOUND');
-
-            return;
-        }
 
         const csrfToken = CSRFUtils.getToken();
         if (!csrfToken) {

@@ -208,6 +208,7 @@
                                 <i class="fas fa-heart"></i>
                             </button>
 
+                            {% if show_play_status %}
                             {# Game status button on cover #}
                             <button class="game-status-btn game-status-btn-cover" data-game-uuid="{{ game.uuid }}" data-current-status="{{ user_status or '' }}" title="{{ status_label or 'No Status' }}">
                                 <i class="fas {{ status_icon or 'fa-circle' }}"></i>
@@ -240,6 +241,7 @@
                                     <span class="status-label">Clear Status</span>
                                 </div>
                             </div>
+                            {% endif %}
                         </div>
                     {% endif %}
 

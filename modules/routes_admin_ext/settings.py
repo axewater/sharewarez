@@ -32,6 +32,7 @@ DEFAULT_SETTINGS = {
     'showDiscovery': True,
     'showFavorites': True,
     'showTrailers': True,
+    'showPlayStatus': True,
     'enableDeleteGameOnDisk': True,
     'enableGameUpdates': True,
     'enableGameExtras': True,

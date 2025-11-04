@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showDiscovery: document.getElementById('showDiscovery').checked,
             showFavorites: document.getElementById('showFavorites').checked,
             showTrailers: document.getElementById('showTrailers').checked,
+            showPlayStatus: document.getElementById('showPlayStatus').checked,
             enableDeleteGameOnDisk: document.getElementById('enableDeleteGameOnDisk').checked,
             enableGameUpdates: document.getElementById('enableGameUpdates').checked,
             enableGameExtras: document.getElementById('enableGameExtras').checked,

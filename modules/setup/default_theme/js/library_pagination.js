@@ -416,50 +416,58 @@ $(document).ready(function() {
         var fullCoverUrl = !game.cover_url || game.cover_url === defaultCover ? '/static/' + defaultCover : '/static/library/images/' + game.cover_url;
         var popupMenuHtml = createPopupMenuHtml(game);
 
-        // Generate status button and dropdown HTML
-        const statusConfig = {
-            'unplayed': { icon: 'fa-box', color: '#808080', label: 'Unplayed' },
-            'unfinished': { icon: 'fa-gamepad', color: '#4A90E2', label: 'Unfinished' },
-            'beaten': { icon: 'fa-flag-checkered', color: '#50C878', label: 'Beaten' },
-            'completed': { icon: 'fa-trophy', color: '#FFD700', label: 'Completed' },
-            'null': { icon: 'fa-ban', color: '#DC3545', label: "Won't Play" }
-        };
+        // Check if play status feature is enabled
+        const showPlayStatusRaw = $('body').data('show-play-status');
+        // Convert to boolean - handles true, 'true', 'True', 1, etc.
+        const showPlayStatus = showPlayStatusRaw === true || showPlayStatusRaw === 'true' || showPlayStatusRaw === 'True' || showPlayStatusRaw === 1;
+        var statusButtonHtml = '';
 
-        // Determine current status icon and color
-        const currentStatus = game.user_status || '';
-        const config = statusConfig[currentStatus] || { icon: 'fa-circle', color: '#808080', label: 'No Status' };
+        if (showPlayStatus) {
+            // Generate status button and dropdown HTML
+            const statusConfig = {
+                'unplayed': { icon: 'fa-box', color: '#808080', label: 'Unplayed' },
+                'unfinished': { icon: 'fa-gamepad', color: '#4A90E2', label: 'Unfinished' },
+                'beaten': { icon: 'fa-flag-checkered', color: '#50C878', label: 'Beaten' },
+                'completed': { icon: 'fa-trophy', color: '#FFD700', label: 'Completed' },
+                'null': { icon: 'fa-ban', color: '#DC3545', label: "Won't Play" }
+            };
 
-        var statusButtonHtml = `
-            <button class="game-status-btn" data-game-uuid="${game.uuid}" data-current-status="${currentStatus}" title="${config.label}">
-                <i class="fas ${config.icon}" style="color: ${config.color}; ${!currentStatus ? 'opacity: 0.4;' : ''}"></i>
-            </button>
-            <div class="status-dropdown" data-game-uuid="${game.uuid}" style="display: none;">
-                <div class="status-dropdown-option" data-status="unplayed">
-                    <i class="fas fa-box" style="color: #808080;"></i>
-                    <span class="status-label">Unplayed</span>
+            // Determine current status icon and color
+            const currentStatus = game.user_status || '';
+            const config = statusConfig[currentStatus] || { icon: 'fa-circle', color: '#808080', label: 'No Status' };
+
+            statusButtonHtml = `
+                <button class="game-status-btn" data-game-uuid="${game.uuid}" data-current-status="${currentStatus}" title="${config.label}">
+                    <i class="fas ${config.icon}" style="color: ${config.color}; ${!currentStatus ? 'opacity: 0.4;' : ''}"></i>
+                </button>
+                <div class="status-dropdown" data-game-uuid="${game.uuid}" style="display: none;">
+                    <div class="status-dropdown-option" data-status="unplayed">
+                        <i class="fas fa-box" style="color: #808080;"></i>
+                        <span class="status-label">Unplayed</span>
+                    </div>
+                    <div class="status-dropdown-option" data-status="unfinished">
+                        <i class="fas fa-gamepad" style="color: #4A90E2;"></i>
+                        <span class="status-label">Unfinished</span>
+                    </div>
+                    <div class="status-dropdown-option" data-status="beaten">
+                        <i class="fas fa-flag-checkered" style="color: #50C878;"></i>
+                        <span class="status-label">Beaten</span>
+                    </div>
+                    <div class="status-dropdown-option" data-status="completed">
+                        <i class="fas fa-trophy" style="color: #FFD700;"></i>
+                        <span class="status-label">Completed</span>
+                    </div>
+                    <div class="status-dropdown-option" data-status="null">
+                        <i class="fas fa-ban" style="color: #DC3545;"></i>
+                        <span class="status-label">Won't Play</span>
+                    </div>
+                    <div class="status-dropdown-option" data-status="" style="border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                        <i class="fas fa-times" style="color: #808080;"></i>
+                        <span class="status-label">Clear Status</span>
+                    </div>
                 </div>
-                <div class="status-dropdown-option" data-status="unfinished">
-                    <i class="fas fa-gamepad" style="color: #4A90E2;"></i>
-                    <span class="status-label">Unfinished</span>
-                </div>
-                <div class="status-dropdown-option" data-status="beaten">
-                    <i class="fas fa-flag-checkered" style="color: #50C878;"></i>
-                    <span class="status-label">Beaten</span>
-                </div>
-                <div class="status-dropdown-option" data-status="completed">
-                    <i class="fas fa-trophy" style="color: #FFD700;"></i>
-                    <span class="status-label">Completed</span>
-                </div>
-                <div class="status-dropdown-option" data-status="null">
-                    <i class="fas fa-ban" style="color: #DC3545;"></i>
-                    <span class="status-label">Won't Play</span>
-                </div>
-                <div class="status-dropdown-option" data-status="" style="border-top: 1px solid rgba(255, 255, 255, 0.2);">
-                    <i class="fas fa-times" style="color: #808080;"></i>
-                    <span class="status-label">Clear Status</span>
-                </div>
-            </div>
-        `;
+            `;
+        }
 
         var gameCardHtml = `
     <div class="game-card-container">
