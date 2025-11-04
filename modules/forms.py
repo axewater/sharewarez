@@ -65,7 +65,7 @@ class ResetPasswordRequestForm(FlaskForm):
 class AutoScanForm(FlaskForm):
     folder_path = StringField('Browse Folder Path', validators=[DataRequired()])
     library_uuid = SelectField('Select Library', coerce=str, validators=[DataRequired()])
-    scan_mode = RadioField('Select Scan Mode', choices=[('folders', 'My Games are Folders'), ('files', 'My Games are Files')], default='folders')
+    scan_mode = RadioField('My Games are:', choices=[('folders', 'Folders'), ('files', 'Files')], default='folders')
     remove_missing = BooleanField('Remove missing games')
     download_missing_images = BooleanField('Download missing images')
     force_updates_extras_scan = BooleanField('Force scan for new updates and extras on existing games')
@@ -85,7 +85,7 @@ class EditProfileForm(FlaskForm):
     
 class ScanFolderForm(FlaskForm):
     folder_path = StringField('Folder Path', validators=[DataRequired()])
-    scan_mode = RadioField('Select Scan Mode', choices=[('folders', 'My Games are Folders'), ('files', 'My Games are Files')], default='folders')
+    scan_mode = RadioField('My Games are:', choices=[('folders', 'Folders'), ('files', 'Files')], default='folders')
     library_uuid = SelectField('Select Library', coerce=str, validators=[DataRequired()])
     force_updates_extras_scan = BooleanField('Force scan for new updates and extras on existing games')
     fetch_hltb = BooleanField('Fetch HowLongToBeat data', default=True)

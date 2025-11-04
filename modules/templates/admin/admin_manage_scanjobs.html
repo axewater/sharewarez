@@ -52,9 +52,11 @@
                 {% if libraries|length > 0 %}
                 <form action="" method="post">
                     {{ auto_form.hidden_tag() }}
-                    
-                    <!-- Configuration Card -->
-                    <div class="config-card">
+
+                    <!-- Config and Path Row (Side by Side) -->
+                    <div class="config-path-row">
+                        <!-- Configuration Card -->
+                        <div class="config-card">
                         <div class="card-header">
                             <h4 class="card-title"><i class="fas fa-cogs"></i> Scan Configuration</h4>
                         </div>
@@ -171,6 +173,7 @@
                             </div>
                         </div>
                     </div>
+                    </div><!-- Close config-path-row -->
                 </form>
                 {% else %}
                 <div class="no-libraries-card">
