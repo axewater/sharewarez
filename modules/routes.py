@@ -75,6 +75,8 @@ def browse_games():
     sort_by = request.args.get('sort_by', 'name')
     sort_order = request.args.get('sort_order', 'asc')
     query = select(Game).options(joinedload(Game.genres))
+    # Get current user ID for favorite status
+    current_user_id = current_user.id if current_user.is_authenticated else None
     if library_uuid:
         query = query.filter(Game.library_uuid == library_uuid)
     if category:
@@ -120,7 +122,8 @@ def browse_games():
             'url': game.url,
             'size': game_size_formatted,
             'genres': genres,
-            'library_uuid': game.library_uuid
+            'library_uuid': game.library_uuid,
+            'is_favorite': current_user_id in [user.id for user in game.favorited_by]
         })
 
     return jsonify({

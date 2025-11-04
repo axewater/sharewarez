@@ -526,7 +526,7 @@ $(document).ready(function() {
     });
 
     $('#sortSelect').change(function() {
-        fetchFilteredGames(1);
+        fetchFilteredGames(currentPage);
     });
 
     populateLibraries(function() {
