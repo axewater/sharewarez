@@ -7,7 +7,7 @@ let isPlayerReady = false;
 
 // Store current filter badge data for responsive rendering
 let currentFilterData = {
-    platform: null,
+    library: null,
     genres: [],
     themes: [],
     dateRange: null
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterPanel = document.getElementById('filter-panel');
     const toggleIcon = filterToggle.querySelector('.toggle-icon');
     const filterBadges = document.getElementById('filter-badges');
-    const platformSelect = document.getElementById('platform-filter');
+    const librarySelect = document.getElementById('library-filter');
     const genreSelect = document.getElementById('genre-filter');
     const themeSelect = document.getElementById('theme-filter');
     const dateFromInput = document.getElementById('date-from');
@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Clear filters button
     clearFiltersBtn.addEventListener('click', function() {
-        platformSelect.value = '';
+        librarySelect.value = '';
         genreSelect.selectedIndex = -1;
         themeSelect.selectedIndex = -1;
         dateFromInput.value = '';
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Update filter status when filters change
-    [platformSelect, genreSelect, themeSelect, dateFromInput, dateToInput].forEach(element => {
+    [librarySelect, genreSelect, themeSelect, dateFromInput, dateToInput].forEach(element => {
         element.addEventListener('change', updateFilterStatus);
     });
 
@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             })
             .then(data => {
-                populatePlatforms(data.platforms);
+                populateLibraries(data.libraries);
                 populateGenres(data.genres);
                 populateThemes(data.themes);
 
@@ -214,14 +214,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * Populate platform dropdown
+     * Populate library dropdown
      */
-    function populatePlatforms(platforms) {
-        platforms.forEach(platform => {
+    function populateLibraries(libraries) {
+        libraries.forEach(library => {
             const option = document.createElement('option');
-            option.value = platform.name;  // Enum member name (e.g., "PCWIN")
-            option.textContent = platform.display_name;  // Display value (e.g., "PC Windows")
-            platformSelect.appendChild(option);
+            option.value = library.uuid;  // Library UUID
+            option.textContent = library.name;  // Library name
+            librarySelect.appendChild(option);
         });
     }
 
@@ -255,10 +255,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function getFilterParams() {
         const params = new URLSearchParams();
 
-        // Platform filter
-        const platform = platformSelect.value;
-        if (platform) {
-            params.append('platform', platform);
+        // Library filter
+        const libraryUuid = librarySelect.value;
+        if (libraryUuid) {
+            params.append('library_uuid', libraryUuid);
         }
 
         // Genre filter (multi-select)
@@ -298,17 +298,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Store filter data for responsive badge rendering
         currentFilterData = {
-            platform: null,
+            library: null,
             genres: [],
             themes: [],
             dateRange: null
         };
 
-        // Platform filter
-        if (platformSelect.value) {
-            const platformText = platformSelect.options[platformSelect.selectedIndex].text;
-            activeFilters.push(`Platform: ${platformText}`);
-            currentFilterData.platform = platformText;
+        // Library filter
+        if (librarySelect.value) {
+            const libraryText = librarySelect.options[librarySelect.selectedIndex].text;
+            activeFilters.push(`Library: ${libraryText}`);
+            currentFilterData.library = libraryText;
         }
 
         // Genre filter
@@ -351,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function renderSmartBadges() {
         // If no filters, clear badges
-        if (!currentFilterData.platform &&
+        if (!currentFilterData.library &&
             currentFilterData.genres.length === 0 &&
             currentFilterData.themes.length === 0 &&
             !currentFilterData.dateRange) {
@@ -402,8 +402,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Level 3: Count-only format
         if (level === 3) {
-            if (currentFilterData.platform) {
-                badges.push(currentFilterData.platform);
+            if (currentFilterData.library) {
+                badges.push(currentFilterData.library);
             }
             if (currentFilterData.genres.length > 0) {
                 badges.push(`Genres: ${currentFilterData.genres.length}`);
@@ -419,9 +419,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Level 4: Ultra minimal - just counts
         if (level === 4) {
-            if (currentFilterData.platform) {
-                // Abbreviate platform names
-                const abbrev = currentFilterData.platform.replace('PC Windows', 'PC').replace('Commodore', 'C');
+            if (currentFilterData.library) {
+                // Use first word or full name if short
+                const abbrev = currentFilterData.library.split(' ')[0];
                 badges.push(abbrev);
             }
             if (currentFilterData.genres.length > 0) {
@@ -437,9 +437,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Levels 0-2: Normal condensing
-        // Platform - always show full
-        if (currentFilterData.platform) {
-            badges.push(currentFilterData.platform);
+        // Library - always show full
+        if (currentFilterData.library) {
+            badges.push(currentFilterData.library);
         }
 
         // Genres - condense based on level
@@ -765,9 +765,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.settings.filters) {
                     const filters = data.settings.filters;
 
-                    // Apply platform filter
-                    if (filters.platform && platformSelect) {
-                        platformSelect.value = filters.platform;
+                    // Apply library filter
+                    if (filters.library_uuid && librarySelect) {
+                        librarySelect.value = filters.library_uuid;
                     }
 
                     // Apply genre filters
@@ -822,7 +822,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             // Get current filter data
             const filterData = {
-                platform: platformSelect.value || null,
+                library_uuid: librarySelect.value || null,
                 genres: Array.from(genreSelect.selectedOptions).map(opt => parseInt(opt.value)),
                 themes: Array.from(themeSelect.selectedOptions).map(opt => parseInt(opt.value)),
                 date_from: dateFromInput.value ? parseInt(dateFromInput.value) : null,

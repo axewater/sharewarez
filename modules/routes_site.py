@@ -104,9 +104,9 @@ def random_trailers():
 def get_filter_options():
     """API endpoint to get available filter options"""
     try:
-        # Get unique platforms from libraries
-        platforms = db.session.execute(
-            select(Library.platform).distinct().order_by(Library.platform)
+        # Get all libraries
+        libraries = db.session.execute(
+            select(Library).order_by(Library.display_order, Library.name)
         ).scalars().all()
 
         # Get all genres
@@ -135,7 +135,7 @@ def get_filter_options():
         max_year = date_range[1].year if date_range[1] else None
 
         return jsonify({
-            'platforms': [{'name': p.name, 'display_name': p.value} for p in platforms if p],
+            'libraries': [{'uuid': str(lib.uuid), 'name': lib.name} for lib in libraries],
             'genres': [{'id': g.id, 'name': g.name} for g in genres],
             'themes': [{'id': t.id, 'name': t.name} for t in themes],
             'date_range': {
@@ -159,16 +159,10 @@ def get_random_trailer():
             Game.video_urls != ''
         )
 
-        # Apply platform filter
-        platform_param = request.args.get('platform')
-        if platform_param:
-            try:
-                # Convert platform name string to enum
-                platform_enum = LibraryPlatform[platform_param]
-                query = query.join(Game.library).filter(Library.platform == platform_enum)
-            except KeyError:
-                # Invalid platform name, skip this filter
-                pass
+        # Apply library filter
+        library_uuid_param = request.args.get('library_uuid')
+        if library_uuid_param:
+            query = query.filter(Game.library_uuid == library_uuid_param)
 
         # Apply genre filter
         genres_param = request.args.get('genres')
