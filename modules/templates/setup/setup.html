@@ -8,7 +8,7 @@
         <img src="{{ url_for('static', filename='newstyle/sharewarez_logo.png') }}" alt="ShareWareZ Logo" class="login-logo">
         
         <h2>SharewareZ Initial Setup</h2>
-        <p class="setup-info">Welcome to SharewareZ! Please create your admin account to get started.</p>
+        <p class="setup-info">Create your admin account to get started.</p>
 
         <form method="POST" action="{{ url_for('setup.setup_submit') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
