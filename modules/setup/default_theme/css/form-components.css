@@ -142,6 +142,15 @@ form textarea:focus {
     box-shadow: var(--form-focus-shadow);
 }
 
+/* Global option styling for all select elements */
+form select option,
+.form-select option,
+.form-control option {
+    background: var(--bg-dark-30);
+    color: var(--text-white);
+    padding: var(--spacing-xs) var(--spacing-sm);
+}
+
 /* Form Text Helpers */
 .form-text {
     color: var(--text-muted);

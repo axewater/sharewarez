@@ -159,6 +159,13 @@
     margin: 0 var(--spacing-sm);
 }
 
+/* DataTables select options */
+.dataTables_length select option {
+    background: var(--bg-dark-30) !important;
+    color: var(--text-white) !important;
+    padding: var(--spacing-xs) var(--spacing-sm);
+}
+
 /* DataTables Info and Pagination */
 .dataTables_info {
     color: var(--text-light);
