@@ -46,7 +46,13 @@ document.addEventListener('DOMContentLoaded', function() {
             useTurboImageDownloads: document.getElementById('useTurboImageDownloads').checked,
             turboDownloadThreads: parseInt(document.getElementById('turboDownloadThreads').value),
             turboDownloadBatchSize: parseInt(document.getElementById('turboDownloadBatchSize').value),
-            scanThreadCount: parseInt(document.getElementById('scanThreadCount').value)
+            scanThreadCount: parseInt(document.getElementById('scanThreadCount').value),
+            enableHltbIntegration: document.getElementById('enableHltbIntegration').checked,
+            hltbRateLimitDelay: parseFloat(document.getElementById('hltbRateLimitDelay').value),
+            useLocalMetadata: document.getElementById('useLocalMetadata').checked,
+            writeLocalMetadata: document.getElementById('writeLocalMetadata').checked,
+            useLocalImages: document.getElementById('useLocalImages').checked,
+            localMetadataFilename: document.getElementById('localMetadataFilename').value
         };
         console.log("Settings to be saved:", settings);
 

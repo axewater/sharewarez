@@ -27,12 +27,25 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
         return
         
     # Cache settings once at the start of scan
-    settings = db.session.execute(select(GlobalSettings)).scalars().first()
-    update_folder_name = settings.update_folder_name if settings else 'updates'
-    extras_folder_name = settings.extras_folder_name if settings else 'extras'
-    enable_game_updates = settings.enable_game_updates if settings else False
-    enable_game_extras = settings.enable_game_extras if settings else False
-    scan_thread_count = settings.scan_thread_count if settings else 1
+    settings_obj = db.session.execute(select(GlobalSettings)).scalars().first()
+    update_folder_name = settings_obj.update_folder_name if settings_obj else 'updates'
+    extras_folder_name = settings_obj.extras_folder_name if settings_obj else 'extras'
+    enable_game_updates = settings_obj.enable_game_updates if settings_obj else False
+    enable_game_extras = settings_obj.enable_game_extras if settings_obj else False
+    scan_thread_count = settings_obj.scan_thread_count if settings_obj else 1
+
+    # Extract local metadata settings into a plain dict (thread-safe)
+    # We can't pass SQLAlchemy objects across threads, so extract values now
+    settings_dict = {
+        'use_local_metadata': settings_obj.use_local_metadata if settings_obj else False,
+        'write_local_metadata': settings_obj.write_local_metadata if settings_obj else False,
+        'use_local_images': settings_obj.use_local_images if settings_obj else False,
+        'local_metadata_filename': settings_obj.local_metadata_filename if settings_obj else 'sharewarez.json'
+    }
+
+    # Log local metadata settings once at scan start
+    if settings_obj:
+        print(f"📋 [LOCAL METADATA] Settings: use_local_metadata={settings_dict['use_local_metadata']}, write_local_metadata={settings_dict['write_local_metadata']}, use_local_images={settings_dict['use_local_images']}")
     
     # Initialize IGDB rate limiter for scanning operations
     igdb_rate_limiter = IGDBRateLimiter()
@@ -135,7 +148,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
         print(f"Error during pattern loading or game name extraction: {str(e)}")
         return
 
-    def process_single_game(game_info, scan_job_id, library_uuid, update_folder_name, extras_folder_name, enable_game_updates, enable_game_extras, existing_game_paths, existing_unmatched_paths, igdb_rate_limiter, app, force_updates_extras_scan=False, fetch_hltb=False, force_hltb_refetch=False):
+    def process_single_game(game_info, scan_job_id, library_uuid, update_folder_name, extras_folder_name, enable_game_updates, enable_game_extras, existing_game_paths, existing_unmatched_paths, igdb_rate_limiter, app, force_updates_extras_scan=False, fetch_hltb=False, force_hltb_refetch=False, settings=None):
         """Process a single game with rate limiting and thread-safe database operations."""
         game_name = game_info['name']
         full_disk_path = game_info['full_path']
@@ -178,7 +191,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                         success = True
                         print(f"Skipping game processing for existing game in force mode: {game_name}")
                     else:
-                        success = process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_uuid, fetch_hltb=fetch_hltb)
+                        success = process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_uuid, fetch_hltb=fetch_hltb, settings=settings)
                     
                     result['success'] = success
                     
@@ -254,7 +267,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                 executor.submit(process_single_game, game_info, scan_job_entry.id, library_uuid,
                               update_folder_name, extras_folder_name, enable_game_updates, enable_game_extras,
                               existing_game_paths, existing_unmatched_paths, igdb_rate_limiter, current_app._get_current_object(),
-                              force_updates_extras_scan, fetch_hltb, force_hltb_refetch): game_info
+                              force_updates_extras_scan, fetch_hltb, force_hltb_refetch, settings_dict): game_info
                 for game_info in game_names_with_paths
             }
             
@@ -350,7 +363,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                 scan_job_entry.folders_failed += 1
             else:
                 try:
-                    success = process_game_with_fallback(game_name, full_disk_path, scan_job_entry.id, library_uuid, existing_game_paths, existing_unmatched_paths, fetch_hltb=fetch_hltb)
+                    success = process_game_with_fallback(game_name, full_disk_path, scan_job_entry.id, library_uuid, existing_game_paths, existing_unmatched_paths, fetch_hltb=fetch_hltb, settings=settings_dict)
                     if success:
                         new_games_count += 1
                         scan_job_entry.folders_success += 1
@@ -581,6 +594,23 @@ def handle_manual_scan(manual_form):
             print(f"Security error: Manual scan path validation failed for {full_path}: {error_message}")
             flash(f"Access denied: {error_message}", 'error')
             return redirect(url_for('main.scan_management', active_tab='manual'))
+
+        # Check write permissions if local metadata writing is enabled
+        from modules.utils_local_metadata import check_library_write_permissions
+        settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
+
+        if settings and settings.write_local_metadata:
+            print(f"🔍 [PERMISSIONS] Checking write permissions for library path: {full_path}")
+            all_ok, failed_paths = check_library_write_permissions(full_path)
+
+            if not all_ok:
+                print(f"🚫 [PERMISSIONS] Write permission check failed for {len(failed_paths)} path(s)")
+                # Store permission errors in session to show in modal
+                session['permission_check_failed'] = True
+                session['permission_errors'] = failed_paths
+                session['permission_check_path'] = full_path
+                flash('Write permission check failed. Please review the permission errors.', 'error')
+                return redirect(url_for('main.scan_management', active_tab='manual', show_permissions_modal='true'))
 
         if os.path.exists(full_path) and os.access(full_path, os.R_OK):
             print("Folder exists and can be accessed.")

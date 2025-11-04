@@ -274,6 +274,19 @@ class DatabaseManager:
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS hltb_rate_limit_delay FLOAT DEFAULT 2.0;
 
+        -- Add Local Metadata & Image Override settings to global_settings table
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS use_local_metadata BOOLEAN DEFAULT FALSE;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS write_local_metadata BOOLEAN DEFAULT FALSE;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS use_local_images BOOLEAN DEFAULT FALSE;
+
+        ALTER TABLE global_settings
+        ADD COLUMN IF NOT EXISTS local_metadata_filename VARCHAR(50) DEFAULT 'sharewarez.json';
+
         -- Remove unused library_name column from games table (replaced by library relationship via library_uuid)
         DO $$
         BEGIN

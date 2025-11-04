@@ -20,11 +20,11 @@ from modules.utils_igdb_api import make_igdb_api_request
 from modules.utils_logging import log_system_event
 
 
-def try_add_game(game_name, full_disk_path, scan_job_id, library_uuid, check_exists=True, fetch_hltb=False):
+def try_add_game(game_name, full_disk_path, scan_job_id, library_uuid, check_exists=True, fetch_hltb=False, settings=None):
     from modules.utils_game_core import (
         retrieve_and_save_game
     )
-    
+
     # Fetch the library details using the library_uuid, if necessary
     library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalar_one_or_none()
     if not library:
@@ -37,11 +37,11 @@ def try_add_game(game_name, full_disk_path, scan_job_id, library_uuid, check_exi
             print(f"Game already exists in database: {game_name} at {full_disk_path}")
             return False
 
-    game = retrieve_and_save_game(game_name, full_disk_path, scan_job_id, library_uuid, fetch_hltb=fetch_hltb)
+    game = retrieve_and_save_game(game_name, full_disk_path, scan_job_id, library_uuid, fetch_hltb=fetch_hltb, settings=settings)
     return game is not None
 
 
-def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_uuid, existing_game_paths=None, existing_unmatched_paths=None, fetch_hltb=False):
+def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_uuid, existing_game_paths=None, existing_unmatched_paths=None, fetch_hltb=False, settings=None):
     # Fast path - check cached sets first if provided
     if existing_game_paths and full_disk_path in existing_game_paths:
         print(f"Game already exists (fast path): {game_name} at {full_disk_path}")
@@ -77,12 +77,12 @@ def process_game_with_fallback(game_name, full_disk_path, scan_job_id, library_u
 
     print(f'Game does not exist in database: {game_name} at {full_disk_path}')
     # Try to add the game, now using library_uuid
-    if not try_add_game(game_name, full_disk_path, scan_job_id, library_uuid=library_uuid, check_exists=False, fetch_hltb=fetch_hltb):
+    if not try_add_game(game_name, full_disk_path, scan_job_id, library_uuid=library_uuid, check_exists=False, fetch_hltb=fetch_hltb, settings=settings):
         # Attempt fallback game name processing
         parts = game_name.split()
         for i in range(len(parts) - 1, 0, -1):
             fallback_name = ' '.join(parts[:i])
-            if try_add_game(fallback_name, full_disk_path, scan_job_id, library_uuid=library_uuid, check_exists=False, fetch_hltb=fetch_hltb):
+            if try_add_game(fallback_name, full_disk_path, scan_job_id, library_uuid=library_uuid, check_exists=False, fetch_hltb=fetch_hltb, settings=settings):
                 print(f"[GAME MATCH] Success with fallback name: '{fallback_name}'")
                 return True
     else:

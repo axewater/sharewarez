@@ -152,10 +152,42 @@ def add_game_manual():
             
             # Commit both operations together
             db.session.commit()
-            
+
+            # After successful commit, write local metadata file if enabled
+            from modules.utils_local_metadata import write_local_metadata
+            from modules.models import GlobalSettings
+
+            settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
+            print(f"[LOCAL METADATA] Settings check - settings exists: {settings is not None}, write_local_metadata: {settings.write_local_metadata if settings else 'N/A'}")
+
+            if settings and settings.write_local_metadata:
+                metadata_filename = settings.local_metadata_filename or 'sharewarez.json'
+                success = write_local_metadata(
+                    full_disk_path=form.full_disk_path.data,
+                    igdb_id=form.igdb_id.data,
+                    game_title=form.name.data,
+                    manually_verified=True,
+                    filename=metadata_filename
+                )
+
+                if success:
+                    flash(f'Metadata file ({metadata_filename}) saved to game folder for future scans.', 'info')
+                    log_system_event(
+                        f"Local metadata written for game '{form.name.data}' at {sanitize_path_for_logging(form.full_disk_path.data)}",
+                        event_type='metadata',
+                        event_level='information'
+                    )
+                else:
+                    flash(f'Warning: Could not write metadata file to game folder (check permissions).', 'warning')
+                    log_system_event(
+                        f"Failed to write local metadata for game '{form.name.data}' at {sanitize_path_for_logging(form.full_disk_path.data)}",
+                        event_type='metadata',
+                        event_level='warning'
+                    )
+
             flash('Game added successfully.', 'success')
             log_system_event(
-                f"Game '{game_name}' added manually by admin {current_user.name}" + 
+                f"Game '{game_name}' added manually by admin {current_user.name}" +
                 (f" (removed from unmatched list)" if unmatched_folder else ""),
                 event_type='game',
                 event_level='information'

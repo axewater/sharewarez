@@ -535,6 +535,11 @@ class GlobalSettings(db.Model):
     # HowLongToBeat Settings
     enable_hltb_integration = db.Column(db.Boolean, default=True)
     hltb_rate_limit_delay = db.Column(db.Float, default=2.0)  # seconds between HLTB requests
+    # Local Metadata Settings
+    use_local_metadata = db.Column(db.Boolean, default=False)
+    write_local_metadata = db.Column(db.Boolean, default=False)
+    use_local_images = db.Column(db.Boolean, default=False)
+    local_metadata_filename = db.Column(db.String(50), default='sharewarez.json')
 
     def __repr__(self):
         return f'<GlobalSettings id={self.id}, last_updated={self.last_updated}>'

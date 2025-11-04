@@ -103,7 +103,7 @@
                                 </label>
                                 <input type="number" class="form-control form-control-sm" id="scanThreadCount" name="scanThreadCount"
                                     min="1" max="4" value="1" placeholder="1">
-                                <small class="form-text text-muted">Respects IGDB rate limits</small>
+                                <small class="form-text text-info">Respects IGDB rate limits</small>
                             </div>
 
                             <div class="form-check mb-2">
@@ -122,6 +122,58 @@
                                     <input type="number" class="form-control form-control-sm" id="turboDownloadBatchSize" name="turboDownloadBatchSize"
                                         min="10" max="500" value="200" placeholder="Batch size" data-toggle="tooltip" title="Number of images to process in each TURBO download batch">
                                 </div>
+                            </div>
+
+                            <hr class="my-3">
+                            <h6 class="text-white mb-2"><i class="fas fa-clock"></i> HowLongToBeat Integration</h6>
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="enableHltbIntegration">
+                                <label class="form-check-label" for="enableHltbIntegration" data-toggle="tooltip" title="Automatically fetch game completion time estimates from HowLongToBeat.com during game scanning.">
+                                    Enable HLTB Integration
+                                </label>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label for="hltbRateLimitDelay" class="form-label" data-toggle="tooltip" title="Delay in seconds between HLTB requests to avoid rate limiting (0.5-10 seconds). Default: 2.0">
+                                    HLTB Rate Limit Delay (seconds)
+                                </label>
+                                <input type="number" class="form-control form-control-sm" id="hltbRateLimitDelay" name="hltbRateLimitDelay"
+                                    min="0.5" max="10.0" step="0.5" value="2.0" placeholder="2.0">
+                            </div>
+
+                            <hr class="my-3">
+                            <h6 class="text-white mb-2"><i class="fa-solid fa-file-code"></i> Local Metadata & Images</h6>
+                            <small class="text-info d-block mb-2">Jellyfin-style filesystem persistence</small>
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="useLocalMetadata">
+                                <label class="form-check-label" for="useLocalMetadata" data-toggle="tooltip" title="When enabled, scanner checks for sharewarez.json file in game folders before searching IGDB. This file contains the IGDB ID from previous manual identifications.">
+                                    <i class="fa-solid fa-magnifying-glass"></i> Use Local Metadata on Scan
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="writeLocalMetadata">
+                                <label class="form-check-label" for="writeLocalMetadata" data-toggle="tooltip" title="When enabled, creates sharewarez.json file in game folder after manual identification. This survives database resets and makes future scans faster. Requires write permissions to game folders.">
+                                    <i class="fa-solid fa-floppy-disk"></i> Write Metadata File on Manual ID
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="useLocalImages">
+                                <label class="form-check-label" for="useLocalImages" data-toggle="tooltip" title="When enabled, local images (cover.jpg, screenshot-1.jpg, etc.) in game folders take priority over IGDB-downloaded images. Allows custom artwork per game.">
+                                    <i class="fa-solid fa-image"></i> Use Local Images (cover.jpg)
+                                </label>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label for="localMetadataFilename" class="form-label" data-toggle="tooltip" title="Filename for local metadata files. Default: sharewarez.json">
+                                    <i class="fa-solid fa-file"></i> Metadata Filename
+                                </label>
+                                <input type="text" class="form-control form-control-sm" id="localMetadataFilename" name="localMetadataFilename"
+                                    value="sharewarez.json" placeholder="sharewarez.json">
+                                <small class="form-text text-info">Stored in each game folder</small>
                             </div>
                         </div>
                     </div>

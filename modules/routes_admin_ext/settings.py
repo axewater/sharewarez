@@ -48,7 +48,11 @@ DEFAULT_SETTINGS = {
     'turboDownloadBatchSize': DEFAULT_BATCH_SIZE,
     'scanThreadCount': 1,
     'enableHltbIntegration': True,
-    'hltbRateLimitDelay': 2.0
+    'hltbRateLimitDelay': 2.0,
+    'useLocalMetadata': False,
+    'writeLocalMetadata': False,
+    'useLocalImages': False,
+    'localMetadataFilename': 'sharewarez.json'
 }
 
 # Field mappings for database columns
@@ -69,7 +73,11 @@ FIELD_MAPPINGS = {
     'turboDownloadBatchSize': 'turbo_download_batch_size',
     'scanThreadCount': 'scan_thread_count',
     'enableHltbIntegration': 'enable_hltb_integration',
-    'hltbRateLimitDelay': 'hltb_rate_limit_delay'
+    'hltbRateLimitDelay': 'hltb_rate_limit_delay',
+    'useLocalMetadata': 'use_local_metadata',
+    'writeLocalMetadata': 'write_local_metadata',
+    'useLocalImages': 'use_local_images',
+    'localMetadataFilename': 'local_metadata_filename'
 }
 
 
@@ -121,6 +129,20 @@ def validate_settings_data(settings_data):
     if hltb_delay is not None:
         if not isinstance(hltb_delay, (int, float)) or not (0.5 <= hltb_delay <= 10.0):
             errors.append("HLTB rate limit delay must be between 0.5 and 10.0 seconds")
+
+    # Validate local metadata filename
+    metadata_filename = settings_data.get('localMetadataFilename')
+    if metadata_filename is not None:
+        if not isinstance(metadata_filename, str):
+            errors.append("Local metadata filename must be a string")
+        elif not metadata_filename.strip():
+            errors.append("Local metadata filename cannot be empty")
+        elif not metadata_filename.endswith('.json'):
+            errors.append("Local metadata filename must end with .json")
+        elif len(metadata_filename) > 50:
+            errors.append("Local metadata filename too long (max 50 characters)")
+        elif '/' in metadata_filename or '\\' in metadata_filename:
+            errors.append("Local metadata filename cannot contain path separators")
 
     return errors
 
@@ -176,85 +198,70 @@ def build_current_settings(settings_record):
     return current_settings
 
 
-@admin2_bp.route('/admin/settings', methods=['GET'])
-@login_required
-@admin_required
-def get_settings():
-    """Handle GET requests for settings page."""
-    try:
-        settings_record = db.session.execute(select(GlobalSettings)).scalars().first()
-        current_settings = build_current_settings(settings_record)
-        return render_template('admin/admin_manage_server_settings.html', current_settings=current_settings)
-    except Exception as e:
-        logging.error(f"Error retrieving settings: {str(e)}")
-        abort(500)
-
-
-@admin2_bp.route('/admin/settings', methods=['POST'])
-@login_required
-@admin_required
 def update_settings():
     """Handle POST requests for updating settings."""
     try:
         # Validate request has JSON content
         if not request.is_json:
             return jsonify({'error': 'Request must be JSON'}), 400
-        
+
         new_settings = request.get_json()
         if not new_settings:
             return jsonify({'error': 'No settings data provided'}), 400
-        
+
         # Validate settings data
         validation_errors = validate_settings_data(new_settings)
         if validation_errors:
             return jsonify({'errors': validation_errors}), 400
-        
+
         logging.info(f"Updating settings: {list(new_settings.keys())}")
-        
+
         # Get or create settings record
         settings_record = get_or_create_settings_record()
-        
+
         # Update settings fields
         update_settings_fields(settings_record, new_settings)
-        
+
         # Commit changes
         db.session.commit()
-        
+
         # Log and clear cache
         log_system_event(
-            f"Global settings updated by {current_user.name}. Updated fields: {', '.join(new_settings.keys())}", 
-            event_type='audit', 
+            f"Global settings updated by {current_user.name}. Updated fields: {', '.join(new_settings.keys())}",
+            event_type='audit',
             event_level='information'
         )
         cache.delete('global_settings')
-        
+
         return jsonify({'message': 'Settings updated successfully'}), 200
-        
+
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error updating settings: {str(e)}")
         return jsonify({'error': 'Failed to update settings'}), 500
 
 
-# Maintain backward compatibility with existing route
 @admin2_bp.route('/admin/settings', methods=['GET', 'POST'])
 @login_required
 @admin_required
-def manage_settings():
-    """Legacy route handler that delegates to appropriate method."""
-    if request.method == 'POST':
-        return update_settings()
+def settings():
+    """
+    Main settings endpoint.
+    GET: Redirect to new server settings page.
+    POST: Handle settings update (used by admin_manage_server_settings.js).
+    """
+    from flask import redirect, url_for
+    if request.method == 'GET':
+        return redirect(url_for('admin2.new_server_settings'))
     else:
-        return get_settings()
+        return update_settings()
 
-
-# New Settings Management Routes
 
 @admin2_bp.route('/admin/new_server_settings', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def new_server_settings():
-    """Handle new server settings page - same functionality as original."""
+    """Handle server settings page."""
     if request.method == 'POST':
         return update_settings()
     else:

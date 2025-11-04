@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, copy_current_request_context, request, abort, current_app
 from flask_login import login_required, current_user
 from modules.forms import AddGameForm
-from modules.models import Game, Library, Category, Developer, Publisher
+from modules.models import Game, Library, Category, Developer, Publisher, Status
 from modules.utils_functions import read_first_nfo_content, get_folder_size_in_bytes_updates, format_size, PLATFORM_IDS
 from modules.utils_auth import admin_required
 from modules.utils_scanning import is_scan_job_running, refresh_images_in_background
@@ -128,7 +128,27 @@ def game_edit(game_uuid):
         game.full_disk_path = form.full_disk_path.data
         game.aggregated_rating = form.aggregated_rating.data
         game.first_release_date = form.first_release_date.data
-        game.status = form.status.data
+
+        # Validate and set status with proper error handling
+        try:
+            status_str = form.status.data
+            if status_str:
+                # Clean status string (remove 'Status.' prefix if present)
+                status_str = status_str.replace('Status.', '').strip()
+                # Validate against allowed enum values
+                if status_str and status_str in Status.__members__:
+                    game.status = Status[status_str]
+                else:
+                    current_app.logger.warning(f"Invalid status attempted: {status_str}")
+                    flash(f'Invalid status: {status_str}', 'error')
+                    db.session.rollback()
+                    return render_template('admin/admin_game_identify.html', form=form, game_uuid=game_uuid, action="edit")
+        except (ValueError, AttributeError, KeyError) as e:
+            current_app.logger.error(f"Status validation error: {e}")
+            flash('Invalid status format', 'error')
+            db.session.rollback()
+            return render_template('admin/admin_game_identify.html', form=form, game_uuid=game_uuid, action="edit")
+
         # Validate and set category with proper error handling
         try:
             category_str = form.category.data

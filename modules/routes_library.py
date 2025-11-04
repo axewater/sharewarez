@@ -205,6 +205,15 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
         game_size_formatted = format_size(game.size)
         first_release_date_formatted = game.first_release_date.strftime('%Y-%m-%d') if game.first_release_date else 'Not available'
 
+        # Check if game has local metadata or images
+        from modules.utils_local_metadata import has_local_metadata, has_local_images
+        from modules.models import GlobalSettings
+        has_local_override = False
+        settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
+        if settings:
+            if (settings.use_local_metadata and has_local_metadata(game.full_disk_path, settings.local_metadata_filename or 'sharewarez.json')) or \
+               (settings.use_local_images and has_local_images(game.full_disk_path)):
+                has_local_override = True
 
         game_data.append({
             'id': game.id,
@@ -216,7 +225,8 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
             'size': game_size_formatted,
             'genres': genres,
             'is_favorite': current_user_id in [user.id for user in game.favorited_by],
-            'first_release_date': first_release_date_formatted
+            'first_release_date': first_release_date_formatted,
+            'has_local_override': has_local_override
         })
 
     return game_data, pagination.total, pagination.pages, page

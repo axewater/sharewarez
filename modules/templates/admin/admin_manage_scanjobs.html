@@ -619,6 +619,62 @@
         </div>
     </div>
 </div>
+
+<!-- Write Permissions Error Modal -->
+<div class="modal fade" id="permissionsErrorModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-exclamation-triangle"></i> Write Permission Error</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <h6><strong>Cannot Start Scan: Write Permissions Required</strong></h6>
+                    <p>The setting <strong>"Write Metadata File on Manual ID"</strong> is enabled in Server Settings, but SharewareZ cannot write to the following path(s):</p>
+                </div>
+
+                {% if session.get('permission_errors') %}
+                <div class="mb-3">
+                    <h6>Failed Paths:</h6>
+                    <ul class="list-group">
+                        {% for error in session['permission_errors'] %}
+                        <li class="list-group-item list-group-item-danger">
+                            <strong>Path:</strong> <code>{{ error.path }}</code><br>
+                            <strong>Error:</strong> {{ error.error }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <div class="alert alert-info">
+                    <h6><strong>How to Fix:</strong></h6>
+                    <p>You have two options:</p>
+                    <ol>
+                        <li><strong>Fix Permissions (Recommended):</strong> Grant write permissions to the SharewareZ user for the game folders:
+                            <pre class="mt-2"><code>sudo chmod -R u+w {{ session.get('permission_check_path', '/path/to/games') }}</code></pre>
+                            Or for the SharewareZ user specifically:
+                            <pre><code>sudo chown -R sharewarez:sharewarez {{ session.get('permission_check_path', '/path/to/games') }}</code></pre>
+                        </li>
+                        <li><strong>Disable Feature:</strong> Go to <strong>Admin Dashboard → Manage Server Settings</strong> and turn off <strong>"Write Metadata File on Manual ID"</strong> under the "Local Metadata & Images" section.</li>
+                    </ol>
+                </div>
+
+                <div class="alert alert-warning">
+                    <p><i class="fa-solid fa-info-circle"></i> <strong>Note:</strong> Without write permissions, the local metadata feature cannot save game identification data to disk, and you won't get the benefits of surviving database resets.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="{{ url_for('admin2.new_server_settings') }}" class="btn btn-secondary">
+                    <i class="fa-solid fa-cog"></i> Go to Settings
+                </a>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="module" src="{{ 'js/admin_manage_scanjobs.js'|theme_asset }}"></script>
 
 <script>
@@ -986,6 +1042,28 @@
             }
         }, 5000);
     }
+
+    // Show permissions modal if redirected with show_permissions_modal parameter
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('show_permissions_modal') === 'true') {
+            const modal = new bootstrap.Modal(document.getElementById('permissionsErrorModal'));
+            modal.show();
+
+            // Clear the session flag after showing modal
+            fetch('/admin/clear_permission_errors', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            // Remove the parameter from URL without reloading
+            urlParams.delete('show_permissions_modal');
+            const newUrl = window.location.pathname + '?' + urlParams.toString();
+            window.history.replaceState({}, '', newUrl);
+        }
+    });
 </script>
-        
+
 {% endblock %}

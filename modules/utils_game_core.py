@@ -385,20 +385,206 @@ def search_igdb_for_game(search_name, platform_id):
     return None
 
 
-def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_uuid=None, fetch_hltb=False):
+def fetch_game_by_igdb_id(igdb_id):
+    """
+    Fetch game data from IGDB API by exact IGDB ID.
+
+    Args:
+        igdb_id: IGDB game ID
+
+    Returns:
+        list: IGDB API response (list with one game dict), or None on error
+    """
+    from modules.utils_igdb_api import make_igdb_api_request
+
+    try:
+        query = f"""
+            fields name, summary, storyline, url, slug, first_release_date,
+                   aggregated_rating, aggregated_rating_count, rating, rating_count,
+                   total_rating, total_rating_count, status, category,
+                   cover.url, screenshots.url, videos.video_id,
+                   genres.name, themes.name, game_modes.name, platforms.name,
+                   player_perspectives.name, involved_companies;
+            where id = {igdb_id};
+            limit 1;
+        """
+
+        response = make_igdb_api_request(current_app.config['IGDB_API_ENDPOINT'], query)
+
+        if response and 'error' not in response and len(response) > 0:
+            print(f"Fetched game by ID {igdb_id}: {response[0].get('name')}")
+            return response
+        else:
+            print(f"Failed to fetch game by ID {igdb_id}: {response}")
+            return None
+
+    except Exception as e:
+        print(f"Error fetching game by IGDB ID {igdb_id}: {e}")
+        return None
+
+
+def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_uuid=None, fetch_hltb=False, settings=None):
     # print(f"retrieve_and_save_game Retrieving and saving game: {game_name} on {full_disk_path} to library with UUID {library_uuid}.")
+    from modules.utils_local_metadata import read_local_metadata
+    from modules.utils_logging import log_system_event
+    from flask import flash
+
     library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalar_one_or_none()
     if not library:
         print(f"retrieve_and_save_game Library with UUID {library_uuid} not found.")
         return None
-    
+
 
     existing_game_by_path = check_existing_game_by_path(full_disk_path)
     if existing_game_by_path:
-        return existing_game_by_path 
+        return existing_game_by_path
+
+    # Load settings once if not provided
+    # Settings can be either a dict (from threaded scan) or a SQLAlchemy object
+    if settings is None:
+        settings_obj = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
+        # Convert to dict for consistent handling
+        settings = {
+            'use_local_metadata': settings_obj.use_local_metadata if settings_obj else False,
+            'write_local_metadata': settings_obj.write_local_metadata if settings_obj else False,
+            'use_local_images': settings_obj.use_local_images if settings_obj else False,
+            'local_metadata_filename': settings_obj.local_metadata_filename if settings_obj else 'sharewarez.json'
+        }
+    elif not isinstance(settings, dict):
+        # If it's a SQLAlchemy object, convert to dict
+        settings = {
+            'use_local_metadata': settings.use_local_metadata,
+            'write_local_metadata': settings.write_local_metadata,
+            'use_local_images': settings.use_local_images,
+            'local_metadata_filename': settings.local_metadata_filename or 'sharewarez.json'
+        }
+
+    # PRIORITY 1: Check for local metadata file (NEW!)
+    if settings and settings.get('use_local_metadata'):
+        print(f"🔍 [LOCAL METADATA] Checking for existing metadata file in: {full_disk_path}")
+        local_metadata = read_local_metadata(full_disk_path,
+                                             settings.get('local_metadata_filename', 'sharewarez.json'))
+        if local_metadata and 'igdb_id' in local_metadata:
+            igdb_id = local_metadata['igdb_id']
+            print(f"✅ LOCAL METADATA: Found IGDB ID {igdb_id} in {full_disk_path}")
+
+            # Fetch game data directly by IGDB ID
+            response_json = fetch_game_by_igdb_id(igdb_id)
+
+            if response_json and 'error' not in response_json and len(response_json) > 0:
+                print(f"✅ Successfully fetched game from local metadata: {response_json[0].get('name')}")
+
+                # Check for duplicate
+                existing_game_with_same_igdb_id = db.session.execute(
+                    select(Game).filter(Game.igdb_id == igdb_id, Game.full_disk_path != full_disk_path)
+                ).scalar_one_or_none()
+
+                if existing_game_with_same_igdb_id:
+                    print(f"Duplicate game found with same IGDB ID {igdb_id} but different folder path.")
+                    log_unmatched_folder(scan_job_id, full_disk_path, 'Duplicate', library_uuid=library_uuid)
+                    return None
+
+                # Create game from IGDB data (continue with existing logic at line 472)
+                nfo_content = read_first_nfo_content(full_disk_path)
+                folder_size_bytes = get_folder_size_in_bytes_updates(full_disk_path)
+                print(f"Folder size for {full_disk_path}: {format_size(folder_size_bytes)}")
+                new_game = create_game_instance(
+                    game_data=response_json[0],
+                    full_disk_path=full_disk_path,
+                    folder_size_bytes=folder_size_bytes,
+                    library_uuid=library.uuid
+                )
+
+                if new_game is None:
+                    print(f"Failed to create game instance from local metadata for {game_name}. Skipping further processing.")
+                    return None
+
+                # Process genres, themes, etc. (same as existing code from line 481 onward)
+                if 'genres' in response_json[0]:
+                    for genre_data in response_json[0]['genres']:
+                        genre_name = genre_data['name']
+                        genre = get_or_create_entity(Genre, name=genre_name)
+                        new_game.genres.append(genre)
+
+                if 'involved_companies' in response_json[0]:
+                    involved_company_ids = response_json[0]['involved_companies']
+                    if involved_company_ids:
+                        enumerate_companies(new_game, new_game.igdb_id, involved_company_ids)
+                    else:
+                        print(f"No involved companies found for game from local metadata.")
+
+                if 'themes' in response_json[0]:
+                    for theme_data in response_json[0]['themes']:
+                        theme_name = theme_data['name']
+                        theme = get_or_create_entity(Theme, name=theme_name)
+                        new_game.themes.append(theme)
+
+                if 'game_modes' in response_json[0]:
+                    for game_mode_data in response_json[0]['game_modes']:
+                        game_mode_name = game_mode_data['name']
+                        game_mode = get_or_create_entity(GameMode, name=game_mode_name)
+                        new_game.game_modes.append(game_mode)
+
+                if 'platforms' in response_json[0]:
+                    for platform_data in response_json[0]['platforms']:
+                        platform_name = platform_data['name']
+                        platform = get_or_create_entity(Platform, name=platform_name)
+                        new_game.platforms.append(platform)
+
+                if 'player_perspectives' in response_json[0]:
+                    for perspective_data in response_json[0]['player_perspectives']:
+                        perspective_name = perspective_data['name']
+                        perspective = get_or_create_entity(PlayerPerspective, name=perspective_name)
+                        new_game.player_perspectives.append(perspective)
+
+                if 'videos' in response_json[0]:
+                    video_urls = [f"https://www.youtube.com/embed/{video['video_id']}" for video in response_json[0]['videos']]
+                    videos_comma_separated = ','.join(video_urls)
+                    new_game.video_urls = videos_comma_separated
+
+                db.session.commit()
+                print(f"Processing images for game: {new_game.name}")
+                # Use smart image processing
+                cover_data = response_json[0].get('cover', {}).get('id') if response_json[0].get('cover') else None
+                screenshots_data = [s['id'] for s in response_json[0].get('screenshots', [])]
+                smart_process_images_for_game(new_game.uuid, cover_data, screenshots_data)
+
+                if fetch_hltb:
+                    # Fetch HLTB data if requested
+                    from modules.utils_hltb import update_game_hltb_sync
+                    update_game_hltb_sync(new_game.uuid, new_game.name)
+
+                # Now write the metadata file if setting is enabled
+                if settings and settings.get('write_local_metadata'):
+                    print(f"💾 [LOCAL METADATA] Writing metadata file for '{new_game.name}' (from existing local metadata)")
+                    from modules.utils_local_metadata import write_local_metadata
+                    write_success = write_local_metadata(
+                        full_disk_path=full_disk_path,
+                        igdb_id=igdb_id,
+                        game_title=new_game.name,
+                        manually_verified=True,
+                        filename=settings.get('local_metadata_filename', 'sharewarez.json')
+                    )
+                    if not write_success:
+                        print(f"⚠️ [LOCAL METADATA] Failed to write metadata file (already exists or permission issue)")
+
+                return new_game
+            else:
+                # Failed to fetch from IGDB - check if it's a connectivity issue
+                error_msg = f"⚠️ Local metadata has IGDB ID {igdb_id} but failed to fetch from API."
+                print(error_msg)
+                log_system_event(
+                    f"Failed to fetch game data for IGDB ID {igdb_id} from local metadata at {full_disk_path}. Check internet connection or IGDB API status.",
+                    event_type='metadata',
+                    event_level='warning'
+                )
+                # Fall through to normal search below
+        else:
+            print(f"📝 [LOCAL METADATA] No existing metadata file found, will attempt IGDB search")
 
     platform_id = PLATFORM_IDS.get(library.platform.name)
 
+    # PRIORITY 2: Search IGDB API by folder name (existing code)
     # Generate GOTY variants to try different search combinations
     search_variants = generate_goty_variants(game_name)
     print(f"Generated search variants for '{game_name}': {search_variants}")
@@ -494,15 +680,35 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
                     attr = getattr(new_game, column.name)
                 db.session.commit()
                 print(f"Game and its images saved successfully : {new_game.name}.")
-                
+
+                # Write local metadata file if enabled (for newly identified games)
+                # Use the settings dict we already have (no DB query needed)
+                if settings and settings.get('write_local_metadata'):
+                    print(f"💾 [LOCAL METADATA] Writing metadata file for newly identified game '{new_game.name}'")
+                    from modules.utils_local_metadata import write_local_metadata
+                    write_success = write_local_metadata(
+                        full_disk_path=new_game.full_disk_path,
+                        igdb_id=new_game.igdb_id,
+                        game_title=new_game.name,
+                        manually_verified=False,  # Auto-identified during scan
+                        filename=settings.get('local_metadata_filename', 'sharewarez.json')
+                    )
+                    if write_success:
+                        print(f"✅ [LOCAL METADATA] Successfully wrote metadata file for '{new_game.name}'")
+                    else:
+                        print(f"⚠️ [LOCAL METADATA] Failed to write metadata file for '{new_game.name}'")
+
                 # Move Discord notification here, after everything is saved successfully
-                settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
-                if settings and settings.discord_webhook_url and settings.discord_notify_new_games:
+                # Load settings for Discord notification (separate from local metadata settings)
+                discord_settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
+                if discord_settings and discord_settings.discord_webhook_url and discord_settings.discord_notify_new_games:
                     print(f"Sending Discord notification for new game '{new_game.name}'.")
                     discord_webhook(new_game.uuid)
 
                 # Fetch HowLongToBeat data if enabled
-                if fetch_hltb and settings and settings.enable_hltb_integration:
+                # Load settings for HLTB (separate from local metadata settings)
+                hltb_settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
+                if fetch_hltb and hltb_settings and hltb_settings.enable_hltb_integration:
                     try:
                         from modules.utils_hltb import update_game_hltb_sync
                         print(f"Fetching HowLongToBeat data for '{new_game.name}'...")

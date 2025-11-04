@@ -95,6 +95,9 @@
                             <img src="{{ url_for('static', filename='newstyle/default_cover.jpg') }}" alt="Default Cover Image" class="game-cover">
                         </a>
                     {% endif %}
+                    {% if game.has_local_override %}
+                    <div class="local-metadata-badge" title="Uses local metadata or images">L</div>
+                    {% endif %}
                     <div id="details-{{ game.uuid }}" class="popup-game-details hidden">
                         <!-- Details and screenshots will be injected here by JavaScript -->
                     </div>

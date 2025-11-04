@@ -152,3 +152,100 @@ def game_details(game_uuid):
             event_level='warning'
         )
         return jsonify({"error": "Game not found"}), 404
+
+
+@games_bp.route('/game/<game_uuid>/local_image/<image_type>')
+@login_required
+def serve_local_image(game_uuid, image_type):
+    """
+    Serve local image file from game folder.
+
+    This route serves local cover.jpg or screenshot-N.jpg files
+    that are stored alongside game files.
+
+    Security: Validates game exists and path is safe before serving.
+    """
+    from flask import send_file, current_app, request
+    from modules.models import Game
+    from modules.utils_local_metadata import get_local_cover_path, get_local_screenshots
+    from modules.utils_security import is_safe_path, get_allowed_base_directories
+    import mimetypes
+
+    try:
+        # Validate UUID format
+        valid_uuid = uuid.UUID(game_uuid, version=4)
+    except ValueError:
+        log_system_event(
+            f"User {current_user.name} attempted to serve local image with invalid UUID: {game_uuid}",
+            event_type='security',
+            event_level='warning'
+        )
+        abort(400, "Invalid game UUID")
+
+    # Get game from database
+    game = db.session.execute(select(Game).filter_by(uuid=game_uuid)).scalar_one_or_none()
+    if not game:
+        log_system_event(
+            f"User {current_user.name} attempted to serve local image for non-existent game: {game_uuid}",
+            event_type='security',
+            event_level='warning'
+        )
+        abort(404, "Game not found")
+
+    # Security check
+    allowed_bases = get_allowed_base_directories(current_app)
+    if not allowed_bases:
+        log_system_event(
+            f"Server configuration error: No allowed base directories configured",
+            event_type='security',
+            event_level='error'
+        )
+        abort(500, "Server configuration error")
+
+    is_safe, error_message = is_safe_path(game.full_disk_path, allowed_bases)
+    if not is_safe:
+        log_system_event(
+            f"Security: User {current_user.name} attempted access to unsafe path {sanitize_path_for_logging(game.full_disk_path)}: {error_message}",
+            event_type='security',
+            event_level='warning'
+        )
+        abort(403, "Access denied")
+
+    # Get local image path
+    image_path = None
+    if image_type == 'cover':
+        image_path = get_local_cover_path(game.full_disk_path)
+    elif image_type == 'screenshot':
+        index = request.args.get('index', 0, type=int)
+        screenshots = get_local_screenshots(game.full_disk_path)
+        if 0 <= index < len(screenshots):
+            image_path = screenshots[index]
+    else:
+        log_system_event(
+            f"User {current_user.name} requested invalid image type: {image_type}",
+            event_type='security',
+            event_level='warning'
+        )
+        abort(400, "Invalid image type")
+
+    if not image_path or not os.path.exists(image_path):
+        log_system_event(
+            f"User {current_user.name} requested local image that doesn't exist: {image_type} for game {game.name}",
+            event_type='game',
+            event_level='debug'
+        )
+        abort(404, "Image not found")
+
+    # Detect MIME type based on file extension
+    mime_type, _ = mimetypes.guess_type(image_path)
+    if not mime_type:
+        # Default to jpeg if we can't detect
+        mime_type = 'image/jpeg'
+
+    # Serve the image file
+    log_system_event(
+        f"Serving local {image_type} image for game '{game.name}' to user {current_user.name}",
+        event_type='game',
+        event_level='debug'
+    )
+    return send_file(image_path, mimetype=mime_type)

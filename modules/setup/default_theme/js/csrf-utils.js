@@ -20,7 +20,7 @@ const CSRFUtils = {
      * Supports all existing patterns in the application:
      * 1. Meta tag (base.html - most common)
      * 2. Input field (forms)
-     * 3. Script element (admin_manage_server_settings)
+     * 3. Script element (server settings)
      */
     getToken() {
         // Return cached token if available
@@ -48,7 +48,7 @@ const CSRFUtils = {
             return this._token;
         }
         
-        // Pattern 3: Script element (used in admin_manage_server_settings.html)
+        // Pattern 3: Script element (used in server settings)
         const scriptElement = document.getElementById('csrf_token');
         if (scriptElement) {
             this._token = scriptElement.textContent;
