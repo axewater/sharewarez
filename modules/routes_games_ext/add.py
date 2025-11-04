@@ -51,9 +51,9 @@ def add_game_manual():
         event_type='form',
         event_level='debug'
     )
-    
+
     # Fetch library details for displaying on the form
-    library_uuid = request.args.get('library_uuid')
+    # Use the library_uuid already set from args or session (don't overwrite it!)
     library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalars().first()
     if library:
         library_name = library.name
