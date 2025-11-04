@@ -69,14 +69,14 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="filterPlatform" class="form-label" data-toggle="tooltip"
-                                title="Filter trailers by platform">
-                                <i class="fas fa-gamepad"></i> Platform
+                            <label for="filterLibrary" class="form-label" data-toggle="tooltip"
+                                title="Filter trailers by library">
+                                <i class="fas fa-book"></i> Library
                             </label>
-                            <select class="form-select" id="filterPlatform">
-                                <option value="">All Platforms</option>
-                                {% for platform in filter_options.platforms %}
-                                <option value="{{ platform.name }}">{{ platform.display_name }}</option>
+                            <select class="form-select" id="filterLibrary">
+                                <option value="">All Libraries</option>
+                                {% for library in filter_options.libraries %}
+                                <option value="{{ library.uuid }}">{{ library.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>

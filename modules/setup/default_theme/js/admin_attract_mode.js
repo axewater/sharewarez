@@ -31,9 +31,9 @@ function loadSettingsIntoForm() {
     if (settings.settings && settings.settings.filters) {
         const filters = settings.settings.filters;
 
-        // Platform
-        if (filters.platform) {
-            document.getElementById('filterPlatform').value = filters.platform;
+        // Library
+        if (filters.library_uuid) {
+            document.getElementById('filterLibrary').value = filters.library_uuid;
         }
 
         // Genres (multi-select)
@@ -145,7 +145,7 @@ function collectFormData() {
     const idleTimeout = parseInt(document.getElementById('idleTimeout').value);
 
     // Filter settings
-    const platform = document.getElementById('filterPlatform').value || null;
+    const libraryUuid = document.getElementById('filterLibrary').value || null;
 
     const genreSelect = document.getElementById('filterGenres');
     const genres = Array.from(genreSelect.selectedOptions).map(opt => parseInt(opt.value));
@@ -167,7 +167,7 @@ function collectFormData() {
         enabled: enabled,
         idle_timeout: idleTimeout,
         filters: {
-            platform: platform,
+            library_uuid: libraryUuid,
             genres: genres,
             themes: themes,
             date_from: dateFrom,

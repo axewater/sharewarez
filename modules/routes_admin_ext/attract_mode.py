@@ -20,7 +20,7 @@ DEFAULT_IDLE_TIMEOUT = 60  # seconds
 # Default attract mode settings
 DEFAULT_ATTRACT_MODE_SETTINGS = {
     'filters': {
-        'platform': None,
+        'library_uuid': None,
         'genres': [],
         'themes': [],
         'date_from': None,
@@ -53,9 +53,9 @@ def attract_mode_settings_page():
         }
 
         # Get filter options for the form
-        # Get unique platforms
-        platforms = db.session.execute(
-            select(Library.platform).distinct().order_by(Library.platform)
+        # Get all libraries
+        libraries = db.session.execute(
+            select(Library).order_by(Library.display_order, Library.name)
         ).scalars().all()
 
         # Get all genres
@@ -84,7 +84,7 @@ def attract_mode_settings_page():
         max_year = date_range[1].year if date_range and date_range[1] else None
 
         filter_options = {
-            'platforms': [{'name': p.name, 'display_name': p.value} for p in platforms if p],
+            'libraries': [{'uuid': str(lib.uuid), 'name': lib.name} for lib in libraries],
             'genres': [{'id': g.id, 'name': g.name} for g in genres],
             'themes': [{'id': t.id, 'name': t.name} for t in themes],
             'date_range': {
@@ -105,7 +105,7 @@ def attract_mode_settings_page():
         logging.error(f"Error loading attract mode settings page: {e}")
         return render_template('admin/attract_mode_settings.html',
                              settings={'enabled': False, 'idle_timeout': DEFAULT_IDLE_TIMEOUT, 'settings': DEFAULT_ATTRACT_MODE_SETTINGS},
-                             filter_options={'platforms': [], 'genres': [], 'themes': [], 'date_range': {}},
+                             filter_options={'libraries': [], 'genres': [], 'themes': [], 'date_range': {}},
                              min_timeout=MIN_IDLE_TIMEOUT,
                              max_timeout=MAX_IDLE_TIMEOUT,
                              error="Failed to load settings")
