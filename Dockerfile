@@ -16,4 +16,4 @@ RUN chmod a+x /app/entrypoint.sh
 RUN chmod a+x /app/startweb-docker.sh
 
 EXPOSE 5006
-ENTRYPOINT ["sh","/app/entrypoint.sh"]
+ENTRYPOINT ["/bin/bash","/app/entrypoint.sh"]
