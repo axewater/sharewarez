@@ -147,9 +147,9 @@ def create_game_instance(game_data, full_disk_path, folder_size_bytes, library_u
             steam_url='',
             times_downloaded=0
         )
-        
+
         db.session.add(new_game)
-        db.session.flush()        
+        db.session.flush()
         fetch_and_store_game_urls(new_game.uuid, game_data['id'])
         print(f"create_game_instance Finished processing game '{new_game.name}'. URLs (if any) have been fetched and stored.")
         

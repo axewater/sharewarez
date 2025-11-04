@@ -266,6 +266,18 @@ class DatabaseManager:
         ALTER TABLE global_settings
         ADD COLUMN IF NOT EXISTS hltb_rate_limit_delay FLOAT DEFAULT 2.0;
 
+        -- Remove unused library_name column from games table (replaced by library relationship via library_uuid)
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name='games' AND column_name='library_name'
+            ) THEN
+                ALTER TABLE games DROP COLUMN library_name;
+                RAISE NOTICE 'Dropped unused library_name column from games table';
+            END IF;
+        END $$;
+
         """
         print("Upgrading database to the latest schema")
         try:
