@@ -4,6 +4,7 @@
 {% block content %}
 
 <link rel="stylesheet" href="{{ 'css/games/library_browser.css'|theme_asset }}">
+<link rel="stylesheet" href="{{ 'css/games/game_status.css'|theme_asset }}">
 
 <head>
     <meta charset="UTF-8">
@@ -13,6 +14,7 @@
     <script src="{{ 'js/library_pagination.js'|theme_asset }}"></script>
     <script src="{{ 'js/library_search.js'|theme_asset }}"></script>
     <script src="{{ 'js/favorites_manager.js'|theme_asset }}"></script>
+    <script src="{{ 'js/game_status_manager.js'|theme_asset }}"></script>
 </head>
 <body data-user-per-page="{{ user_per_page }}" data-user-default-sort="{{ user_default_sort }}" data-user-default-sort-order="{{ user_default_sort_order }}" data-enable-delete-game-on-disk="{{ enable_delete_game_on_disk|lower }}" data-discord-configured="{{ discord_configured|lower }}" data-discord-manual-trigger="{{ discord_manual_trigger_enabled|lower }}" data-is-admin="{{ is_admin|lower }}" data-current-filters="{{ filters|tojson|e }}" data-current-page="{{ current_page }}" data-total-pages="{{ pages }}">
 
