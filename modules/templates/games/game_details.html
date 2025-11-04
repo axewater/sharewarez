@@ -67,10 +67,7 @@
     <div class="rating-row">
         <div class="game-card-labels-rating">{{ label }}</div>
         {% if rating_value %}
-            <div class="rating-display">
-                <div class="rating-bar" style="width: {{ rating_value }}%;"></div>
-                <div class="rating-value">{{ "%.1f"|format(rating_value) }}/100</div>
-            </div>
+            <div class="rating-value">{{ "%.1f"|format(rating_value) }}/100</div>
         {% else %}
             <div class="emptyrating">Not rated</div>
         {% endif %}
@@ -193,11 +190,21 @@
                     {# Cover Image #}
                     {% if game.images and game.images|length > 0 %}
                         <div class="game-card-coverimage">
+                            {# Hamburger menu button on cover #}
+                            <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger button-glass-hamburger-cover">
+                                <i class="fas fa-bars"></i>
+                            </button>
+
                             {% for image in game.images if 'cover' in image.url %}
-                                <img src="{{ url_for('static', filename='library/images/' + image.url) }}" 
-                                     alt="{{ game.name }} Cover Image" 
+                                <img src="{{ url_for('static', filename='library/images/' + image.url) }}"
+                                     alt="{{ game.name }} Cover Image"
                                      class="game-card-coverimage animated-entry">
                             {% endfor %}
+
+                            {# Favorite button on cover #}
+                            <button class="favorite-btn favorite-btn-cover" data-game-uuid="{{ game.uuid }}" data-is-favorite="{{ is_favorite|lower }}">
+                                <i class="fas fa-heart"></i>
+                            </button>
                         </div>
                     {% endif %}
 
@@ -215,13 +222,7 @@
 
                 <div class="game-card-q2">
                     <div class="game-card-meta">
-                        {# Controls #}
-                        <button id="menuButton-{{ game.uuid }}" class="button-glass-hamburger">
-                            <i class="fas fa-bars"></i>
-                        </button>
-                        <button class="favorite-btn" data-game-uuid="{{ game.uuid }}" data-is-favorite="{{ is_favorite|lower }}">
-                            <i class="fas fa-heart"></i>
-                        </button>
+                        {# Popup menu (triggered by hamburger button on cover) #}
                         {% with game_uuid=game.uuid, game_url=game.url %}
                             {% include 'games/popup_menu.html' %}
                         {% endwith %}

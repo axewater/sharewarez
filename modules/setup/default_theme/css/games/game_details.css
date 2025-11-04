@@ -19,24 +19,43 @@ body.modal-open {
     min-height: 80vh;
 }
 
-.button-glass-hamburger {
-    width: 30px;
-    height: 30px;
-    background-color: var(--game-button-bg-1);
-    border-radius: var(--border-radius-round);
-    padding: var(--spacing-1) var(--spacing-2);
-    border: none;
-    cursor: pointer;
-    margin-bottom: var(--spacing-xs);
-    opacity: 1;
-    position: relative;
-    left: 0px;
-    top: 0px;
-    transition: background-color var(--transition-fast);
-}
-
 .button-glass-hamburger:hover {
     background-color: var(--game-button-bg-2);
+}
+
+/* Hamburger button on cover image */
+.button-glass-hamburger-cover {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 15;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    border: 2px solid var(--color-black-pure);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-normal);
+    animation: fadeInButton 0.3s ease-out 1s forwards;
+}
+
+.game-card-coverimage:hover .button-glass-hamburger-cover {
+    opacity: 1;
+}
+
+.button-glass-hamburger-cover:hover {
+    transform: scale(1.1);
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.button-glass-hamburger-cover i {
+    color: var(--text-white);
 }
 
 .game-card-topq {
@@ -94,6 +113,51 @@ body.modal-open {
     box-shadow: 4px 4px 8px 0 var(--bg-dark-tertiary), var(--game-shadow-standard);
     border: 1px solid var(--color-black-darker);
     position: relative;
+}
+
+/* Favorite button on cover image */
+.favorite-btn-cover {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid var(--color-black-pure);
+    cursor: pointer;
+    transition: opacity var(--transition-normal);
+    z-index: 15;
+    opacity: 0;
+    visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeInButton 0.3s ease-out 1s forwards;
+}
+
+.game-card-coverimage:hover .favorite-btn-cover {
+    opacity: 1;
+}
+
+.favorite-btn-cover i {
+    font-size: 20px;
+    color: var(--text-white);
+    transition: color var(--transition-normal);
+}
+
+.favorite-btn-cover:hover {
+    transform: scale(1.1);
+    background: rgba(0, 0, 0, 0.9);
+}
+
+.favorite-btn-cover.favorited i {
+    color: var(--color-pink-favorite);
+}
+
+.favorite-btn-cover.processing {
+    pointer-events: none;
+    opacity: 0.7;
 }
 
 .game-files {
@@ -397,6 +461,7 @@ pre {
     border-radius: var(--border-radius-lg);
     width: 100%;
     margin-bottom: var(--spacing-sm);
+    position: relative;
 }
 
 .game-card-coverimage img {
@@ -407,16 +472,17 @@ pre {
 
 .rating-container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     width: 100%;
     margin-bottom: var(--spacing-sm);
     border-radius: 5px;
-    gap: 8px;
+    gap: 15px;
 }
 
 .rating-row {
     display: flex;
     flex-direction: column;
+    flex: 1;
 }
 
 .rating-display {
@@ -926,4 +992,16 @@ pre {
 
 .bounce-wiggle {
     animation: bounceWiggle 1s ease-out;
+}
+
+/* Fade in animation for buttons after cover slide-in completes */
+@keyframes fadeInButton {
+    0% {
+        visibility: hidden;
+        pointer-events: none;
+    }
+    100% {
+        visibility: visible;
+        pointer-events: auto;
+    }
 }
