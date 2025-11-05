@@ -12,11 +12,13 @@
     border: 2px solid var(--color-black-pure);
     cursor: pointer;
     opacity: 0;
+    visibility: hidden;
     transition: opacity var(--transition-normal), background-color 0.3s ease;
     z-index: 13;
     display: flex;
     align-items: center;
     justify-content: center;
+    animation: fadeInButton 0.3s ease-out 1s forwards;
 }
 
 .game-card-coverimage:hover .game-status-btn-cover {
