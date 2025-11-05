@@ -236,10 +236,14 @@ def scan_management():
     auto_form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in libraries]
     manual_form.library_uuid.choices = [(str(lib.uuid), lib.name) for lib in libraries]
 
-    selected_library_uuid = request.args.get('library_uuid')
-    if selected_library_uuid:
-        auto_form.library_uuid.data = selected_library_uuid
-        manual_form.library_uuid.data = selected_library_uuid
+    # Only pre-select from query param on GET, not POST
+    # This prevents overwriting form data during POST submission
+    selected_library_uuid = None
+    if request.method == 'GET':
+        selected_library_uuid = request.args.get('library_uuid')
+        if selected_library_uuid:
+            auto_form.library_uuid.data = selected_library_uuid
+            manual_form.library_uuid.data = selected_library_uuid
 
     jobs = db.session.execute(select(ScanJob).order_by(ScanJob.last_run.desc())).scalars().all()
     csrf_form = CsrfProtectForm()
