@@ -673,11 +673,44 @@ document.body.addEventListener('click', function(event) {
 
 });
 
+// Helper functions to hide/show card buttons (shared with popup_menu.js functionality)
+function hideCardButtons(gameCard) {
+    if (!gameCard) return;
+
+    var favoriteBtn = gameCard.querySelector('.favorite-btn');
+    var statusBtn = gameCard.querySelector('.game-status-btn');
+    var statusBadge = gameCard.querySelector('.game-status-badge');
+    var statusDropdown = gameCard.querySelector('.status-dropdown');
+
+    if (favoriteBtn) favoriteBtn.style.display = 'none';
+    if (statusBtn) statusBtn.style.display = 'none';
+    if (statusBadge) statusBadge.style.display = 'none';
+    if (statusDropdown) statusDropdown.style.display = 'none';
+}
+
+function showCardButtons(gameCard) {
+    if (!gameCard) return;
+
+    var favoriteBtn = gameCard.querySelector('.favorite-btn');
+    var statusBtn = gameCard.querySelector('.game-status-btn');
+    var statusBadge = gameCard.querySelector('.game-status-badge');
+
+    if (favoriteBtn) favoriteBtn.style.display = '';
+    if (statusBtn) statusBtn.style.display = '';
+    if (statusBadge) statusBadge.style.display = '';
+    // Note: status dropdown should remain hidden unless explicitly opened by user
+}
+
 window.addEventListener('click', function() {
     document.querySelectorAll('.popup-menu').forEach(function(menu) {
         menu.style.display = 'none';
+        // Show favorite button and game status elements when menu closes
+        var gameCard = menu.closest('.game-card');
+        if (gameCard) {
+            showCardButtons(gameCard);
+        }
     });
-    
+
     // Also close any open libraries submenu
     if (currentLibrariesSubmenu) {
         currentLibrariesSubmenu.style.display = 'none';
