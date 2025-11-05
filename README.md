@@ -49,7 +49,7 @@ Invite your friends securely and share your favorite games!
 
 **One-Command Installation:**
 ```bash
-git clone https://github.com/axewater/sharewarez.git
+git clone --depth 1 https://github.com/axewater/sharewarez.git
 cd sharewarez
 # IMPORTANT: Make install script executable first
 chmod +x install-linux.sh
