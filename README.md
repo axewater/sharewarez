@@ -341,9 +341,27 @@ PORT=3000
 
 
 ## Changelog
-  Version 2.9.1
+
+  Version 2.9.6
+
+  - 🎮 Play Status Feature: Per-user game completion tracking with status badges
   
-  - Filter aware search on library page (search within selected library + filters)
+  Version 2.9.3
+
+  - 📝 Local Metadata: Added support for local metadata storage
+  - 📊 Progress Indicators: Added image update progress indicator
+  - 🔄 Auto Scan: Improved auto scan page layout with better scan spinner
+  - 🔧 Settings: Updated default visibility settings for libraries on discovery page
+  - ❤️ Bug Fixes: Fixed favorite hearts not showing on all pages, fixed library_uuid overwrite issue
+  - 🔒 Security: CSRF token in URL removed
+
+  Version 2.9.2
+
+  - 🔧 Minor version update with infrastructure improvements
+
+  Version 2.9.1
+
+  - 🔍 Filter aware search on library page (search within selected library + filters)
 
   Version 2.9.0
 
