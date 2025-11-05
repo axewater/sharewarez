@@ -369,7 +369,14 @@ class TestFormChoices(unittest.TestCase):
     def test_scan_folder_form_scan_mode_choices(self):
         """Test ScanFolderForm scan mode choices."""
         form = ScanFolderForm()
-        expected_choices = [('folders', 'My Games are Folders'), ('files', 'My Games are Files')]
+        expected_choices = [('folders', 'Folders'), ('files', 'Files')]
+        self.assertEqual(form.scan_mode.choices, expected_choices)
+        self.assertEqual(form.scan_mode.default, 'folders')
+
+    def test_auto_scan_form_scan_mode_choices(self):
+        """Test AutoScanForm scan mode choices."""
+        form = AutoScanForm()
+        expected_choices = [('folders', 'Folders'), ('files', 'Files')]
         self.assertEqual(form.scan_mode.choices, expected_choices)
         self.assertEqual(form.scan_mode.default, 'folders')
 

@@ -263,7 +263,7 @@ class TestSettingsRoutes:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
 
-        response = client.get('/admin/settings')
+        response = client.get('/admin/new_server_settings')
         assert response.status_code == 200
 
     def test_update_settings_requires_login(self, client):
@@ -374,7 +374,7 @@ class TestLegacyRouteHandler:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
 
-        response = client.get('/admin/settings')
+        response = client.get('/admin/new_server_settings')
         assert response.status_code == 200
 
     @patch('modules.routes_admin_ext.settings.log_system_event')
@@ -404,7 +404,7 @@ class TestSettingsIntegration:
             sess['_fresh'] = True
 
         # Step 1: GET initial settings
-        response = client.get('/admin/settings')
+        response = client.get('/admin/new_server_settings')
         assert response.status_code == 200
         
         # Step 2: Update settings
@@ -434,7 +434,7 @@ class TestSettingsIntegration:
         assert settings_record.site_url == 'https://mygames.local'
         
         # Step 4: GET updated settings to verify
-        response = client.get('/admin/settings')
+        response = client.get('/admin/new_server_settings')
         assert response.status_code == 200
 
     def test_settings_persistence(self, client, admin_user, db_session, clean_settings):

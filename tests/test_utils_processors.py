@@ -85,9 +85,9 @@ class TestGetGlobalSettings:
             # Clear any existing settings first
             db_session.execute(delete(GlobalSettings))
             db_session.flush()
-            
+
             result = get_global_settings()
-        
+
         # Should return default values
         expected_defaults = {
             'show_logo': True,
@@ -96,6 +96,10 @@ class TestGetGlobalSettings:
             'enable_server_status': True,
             'enable_newsletter': True,
             'show_version': True,
+            'show_discovery': True,
+            'show_favorites': True,
+            'show_trailers': True,
+            'show_play_status': True,
             'enable_delete_game_on_disk': True,
             'enable_game_updates': True,
             'enable_game_extras': True,
@@ -103,7 +107,7 @@ class TestGetGlobalSettings:
             'discord_manual_trigger_enabled': False,
             'app_version': app_version
         }
-        
+
         assert result == expected_defaults
         assert result['app_version'] == app_version
     
@@ -113,14 +117,14 @@ class TestGetGlobalSettings:
             # Clear any existing settings first
             db_session.execute(delete(GlobalSettings))
             db_session.flush()
-            
+
             # Create GlobalSettings record with no settings
             settings_record = GlobalSettings(settings=None)
             db_session.add(settings_record)
             db_session.flush()
-            
+
             result = get_global_settings()
-        
+
         # Should return default values
         expected_defaults = {
             'show_logo': True,
@@ -129,6 +133,10 @@ class TestGetGlobalSettings:
             'enable_server_status': True,
             'enable_newsletter': True,
             'show_version': True,
+            'show_discovery': True,
+            'show_favorites': True,
+            'show_trailers': True,
+            'show_play_status': True,
             'enable_delete_game_on_disk': True,
             'enable_game_updates': True,
             'enable_game_extras': True,
@@ -136,7 +144,7 @@ class TestGetGlobalSettings:
             'discord_manual_trigger_enabled': False,
             'app_version': app_version
         }
-        
+
         assert result == expected_defaults
     
     def test_get_global_settings_partial_settings(self, app, db_session):
@@ -230,16 +238,20 @@ class TestGetGlobalSettings:
             # Clear existing settings first
             db_session.execute(delete(GlobalSettings))
             db_session.flush()
-            
+
             result = get_global_settings()
-        
+
         expected_keys = {
             'show_logo',
-            'show_help_button', 
+            'show_help_button',
             'enable_web_links',
             'enable_server_status',
             'enable_newsletter',
             'show_version',
+            'show_discovery',
+            'show_favorites',
+            'show_trailers',
+            'show_play_status',
             'enable_delete_game_on_disk',
             'enable_game_updates',
             'enable_game_extras',
@@ -247,7 +259,7 @@ class TestGetGlobalSettings:
             'discord_manual_trigger_enabled',
             'app_version'
         }
-        
+
         assert set(result.keys()) == expected_keys
     
     def test_get_global_settings_duplicate_defaults_handling(self, app, db_session):
@@ -258,15 +270,16 @@ class TestGetGlobalSettings:
             # Clear existing settings first
             db_session.execute(delete(GlobalSettings))
             db_session.flush()
-            
+
             result = get_global_settings()
-        
+
         # Should not cause errors and return valid result
         assert isinstance(result, dict)
-        assert len(result) == 12  # Should have exactly 12 keys
+        assert len(result) == 16  # Should have exactly 16 keys
         assert all(key in result for key in [
             'show_logo', 'show_help_button', 'enable_web_links',
             'enable_server_status', 'enable_newsletter', 'show_version',
+            'show_discovery', 'show_favorites', 'show_trailers', 'show_play_status',
             'enable_delete_game_on_disk', 'enable_game_updates',
             'enable_game_extras', 'discord_configured', 'discord_manual_trigger_enabled', 'app_version'
         ])

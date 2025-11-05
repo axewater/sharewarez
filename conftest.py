@@ -80,11 +80,15 @@ def app():
     
     yield app
 
-@pytest.fixture(scope='function')  
+@pytest.fixture(scope='function')
 def db_session(app):
     """Create a database session for testing with simple cleanup."""
     with app.app_context():
+        # Create all tables for tests
+        db.create_all()
         yield db.session
+        # Optionally drop all tables after test (commented out for performance)
+        # db.drop_all()
 
 @pytest.fixture(scope='function')
 def client(app):

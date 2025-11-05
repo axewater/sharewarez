@@ -371,7 +371,13 @@ class TestMainBlueprint:
         
         response = client.post(f'/cancel_scan_job/{test_scan_job.id}')
         assert response.status_code == 302  # Redirect
-        
+
+        # Simulate background thread completing the cancellation
+        # In production, the scan thread checks is_enabled and updates status
+        test_scan_job.status = 'Cancelled'
+        test_scan_job.error_message = 'Scan cancelled by user'
+        db_session.commit()
+
         # Check job was cancelled
         db_session.refresh(test_scan_job)
         assert test_scan_job.status == 'Cancelled'

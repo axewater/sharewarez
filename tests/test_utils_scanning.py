@@ -136,20 +136,22 @@ class TestTryAddGame:
     def test_try_add_game_success(self, mock_retrieve, db_session, sample_library, sample_scan_job):
         """Test successful game addition."""
         mock_retrieve.return_value = MagicMock(spec=Game)
-        
+
         result = try_add_game(
-            'Test Game', 
-            '/test/path', 
-            sample_scan_job.id, 
+            'Test Game',
+            '/test/path',
+            sample_scan_job.id,
             sample_library.uuid
         )
-        
+
         assert result is True
         mock_retrieve.assert_called_once_with(
-            'Test Game', 
-            '/test/path', 
-            sample_scan_job.id, 
-            sample_library.uuid
+            'Test Game',
+            '/test/path',
+            sample_scan_job.id,
+            sample_library.uuid,
+            fetch_hltb=False,
+            settings=None
         )
     
     @patch('modules.utils_game_core.retrieve_and_save_game')
@@ -216,44 +218,48 @@ class TestProcessGameWithFallback:
     def test_process_game_with_fallback_success_first_try(self, mock_try_add, db_session, sample_library, sample_scan_job):
         """Test successful game processing on first try."""
         mock_try_add.return_value = True
-        
+
         result = process_game_with_fallback(
-            'Test Game', 
-            '/test/path', 
-            sample_scan_job.id, 
+            'Test Game',
+            '/test/path',
+            sample_scan_job.id,
             sample_library.uuid
         )
-        
+
         assert result is True
         mock_try_add.assert_called_once_with(
-            'Test Game', 
-            '/test/path', 
-            sample_scan_job.id, 
-            library_uuid=sample_library.uuid, 
-            check_exists=False
+            'Test Game',
+            '/test/path',
+            sample_scan_job.id,
+            library_uuid=sample_library.uuid,
+            check_exists=False,
+            fetch_hltb=False,
+            settings=None
         )
     
     @patch('modules.utils_scanning.try_add_game')
     def test_process_game_with_fallback_success_with_fallback(self, mock_try_add, db_session, sample_library, sample_scan_job):
         """Test successful game processing with fallback name."""
         mock_try_add.side_effect = [False, True]  # First call fails, second succeeds
-        
+
         result = process_game_with_fallback(
-            'Test Game Extended', 
-            '/test/path', 
-            sample_scan_job.id, 
+            'Test Game Extended',
+            '/test/path',
+            sample_scan_job.id,
             sample_library.uuid
         )
-        
+
         assert result is True
         assert mock_try_add.call_count == 2
         # Check the fallback name was used
         mock_try_add.assert_any_call(
-            'Test Game', 
-            '/test/path', 
-            sample_scan_job.id, 
-            library_uuid=sample_library.uuid, 
-            check_exists=False
+            'Test Game',
+            '/test/path',
+            sample_scan_job.id,
+            library_uuid=sample_library.uuid,
+            check_exists=False,
+            fetch_hltb=False,
+            settings=None
         )
     
     def test_process_game_with_fallback_existing_game(self, db_session, sample_library, sample_scan_job, sample_game):
