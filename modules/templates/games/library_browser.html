@@ -88,6 +88,50 @@
                     {% with game_uuid=game.uuid, game_url=game.url %}
                         {% include 'games/popup_menu.html' %}
                     {% endwith %}
+
+                    {% if show_play_status %}
+                    {# Game status button #}
+                    {% set status_config = {
+                        'unplayed': {'icon': 'fa-box', 'color': '#808080', 'label': 'Unplayed'},
+                        'unfinished': {'icon': 'fa-gamepad', 'color': '#4A90E2', 'label': 'Unfinished'},
+                        'beaten': {'icon': 'fa-flag-checkered', 'color': '#50C878', 'label': 'Beaten'},
+                        'completed': {'icon': 'fa-trophy', 'color': '#FFD700', 'label': 'Completed'},
+                        'null': {'icon': 'fa-ban', 'color': '#DC3545', 'label': "Won't Play"}
+                    } %}
+                    {% set current_status = game.user_status or '' %}
+                    {% set status_info = status_config.get(current_status, {'icon': 'fa-circle', 'color': '#808080', 'label': 'No Status'}) %}
+                    <button class="game-status-btn" data-game-uuid="{{ game.uuid }}" data-current-status="{{ current_status }}" title="{{ status_info.label }}">
+                        <i class="fas {{ status_info.icon }}" style="color: {{ status_info.color }}; {% if not current_status %}opacity: 0.4;{% endif %}"></i>
+                    </button>
+
+                    {# Status dropdown menu #}
+                    <div class="status-dropdown" data-game-uuid="{{ game.uuid }}" style="display: none;">
+                        <div class="status-dropdown-option" data-status="unplayed">
+                            <i class="fas fa-box" style="color: #808080;"></i>
+                            <span class="status-label">Unplayed</span>
+                        </div>
+                        <div class="status-dropdown-option" data-status="unfinished">
+                            <i class="fas fa-gamepad" style="color: #4A90E2;"></i>
+                            <span class="status-label">Unfinished</span>
+                        </div>
+                        <div class="status-dropdown-option" data-status="beaten">
+                            <i class="fas fa-flag-checkered" style="color: #50C878;"></i>
+                            <span class="status-label">Beaten</span>
+                        </div>
+                        <div class="status-dropdown-option" data-status="completed">
+                            <i class="fas fa-trophy" style="color: #FFD700;"></i>
+                            <span class="status-label">Completed</span>
+                        </div>
+                        <div class="status-dropdown-option" data-status="null">
+                            <i class="fas fa-ban" style="color: #DC3545;"></i>
+                            <span class="status-label">Won't Play</span>
+                        </div>
+                        <div class="status-dropdown-option" data-status="" style="border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                            <i class="fas fa-times" style="color: #808080;"></i>
+                            <span class="status-label">Clear Status</span>
+                        </div>
+                    </div>
+                    {% endif %}
                     {% if game.cover_url and game.cover_url != 'newstyle/default_cover.jpg' %}
                     <a href="{{ url_for('games.game_details', game_uuid=game.uuid) }}">
                         <img src="{{ url_for('static', filename='library/images/' ~ game.cover_url) }}" alt="{{ game.name }}" class="game-cover">

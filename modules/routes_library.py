@@ -6,7 +6,7 @@ from modules.utils_functions import format_size, get_library_count, get_games_co
 from modules.utils_auth import admin_required
 from modules.forms import CsrfForm, CsrfProtectForm
 from sqlalchemy.orm import joinedload
-from sqlalchemy import select, func
+from sqlalchemy import select, func, and_
 from modules.utils_processors import get_global_settings
 from modules import cache
 import json
@@ -197,6 +197,21 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
     pagination = db.paginate(query, page=page, per_page=per_page, error_out=False)
     games = pagination.items
 
+    # Get all user statuses for games in this page (batch query for performance)
+    game_uuids = [game.uuid for game in games]
+    user_statuses = {}
+    if current_user_id and game_uuids:
+        from modules.models import user_game_status
+        status_results = db.session.execute(
+            select(user_game_status.c.game_uuid, user_game_status.c.status).where(
+                and_(
+                    user_game_status.c.user_id == current_user_id,
+                    user_game_status.c.game_uuid.in_(game_uuids)
+                )
+            )
+        ).all()
+        user_statuses = {row[0]: row[1] for row in status_results}
+
     game_data = []
     for game in games:
         cover_image = db.session.execute(select(Image).filter_by(game_uuid=game.uuid, image_type='cover')).scalars().first()
@@ -215,6 +230,9 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
                (settings.use_local_images and has_local_images(game.full_disk_path)):
                 has_local_override = True
 
+        # Get user status for this game
+        user_status = user_statuses.get(game.uuid)
+
         game_data.append({
             'id': game.id,
             'uuid': game.uuid,
@@ -226,7 +244,8 @@ def get_games(page=1, per_page=20, sort_by='name', sort_order='asc', **filters):
             'genres': genres,
             'is_favorite': current_user_id in [user.id for user in game.favorited_by],
             'first_release_date': first_release_date_formatted,
-            'has_local_override': has_local_override
+            'has_local_override': has_local_override,
+            'user_status': user_status
         })
 
     return game_data, pagination.total, pagination.pages, page

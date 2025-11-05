@@ -53,6 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize all status buttons on the page
     const initializeStatusButtons = () => {
         console.log('[GameStatusManager] initializeStatusButtons() called');
+        // Re-query buttons each time to catch dynamically added ones
+        const statusButtons = document.querySelectorAll('.game-status-btn');
         console.log('[GameStatusManager] Found status buttons:', statusButtons.length);
 
         const csrfToken = CSRFUtils.getToken();
@@ -85,10 +87,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Add click handler to toggle dropdown
             button.addEventListener('click', (e) => {
+                console.log(`[GameStatusManager] Button clicked for game ${gameUuid}`);
                 e.preventDefault();
                 e.stopPropagation();
 
                 const dropdown = button.nextElementSibling;
+                console.log(`[GameStatusManager] Found dropdown:`, dropdown);
                 if (dropdown && dropdown.classList.contains('status-dropdown')) {
                     // Toggle this dropdown
                     const isVisible = dropdown.style.display === 'block';
@@ -99,8 +103,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
 
                     dropdown.style.display = isVisible ? 'none' : 'block';
+                    console.log(`[GameStatusManager] Dropdown toggled to: ${dropdown.style.display}`);
+                } else {
+                    console.warn(`[GameStatusManager] Dropdown not found or invalid for button ${gameUuid}`);
                 }
             });
+            console.log(`[GameStatusManager] Click handler attached to button ${index + 1}`);
         });
 
         // Initialize dropdown option click handlers
