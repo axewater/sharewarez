@@ -145,13 +145,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
             var uuid = clickedElement.id.replace('menuButton-', '');
             var popupMenu = document.getElementById('popupMenu-' + uuid);
+
+            // Handle both library page (.game-card) and game details page (.game-card-coverimage)
             var gameCard = clickedElement.closest('.game-card');
+            var coverImage = clickedElement.closest('.game-card-coverimage');
+            var parentContainer = gameCard || coverImage;
 
             document.querySelectorAll('.popup-menu').forEach(function(menu) {
                 if (menu.id !== 'popupMenu-' + uuid) {
                     menu.style.display = 'none';
                     // Show favorite button and game status elements for other cards
-                    var otherCard = menu.closest('.game-card');
+                    var otherCard = menu.closest('.game-card') || menu.closest('.game-card-coverimage');
                     if (otherCard) {
                         showCardButtons(otherCard);
                     }
@@ -169,9 +173,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Hide or show the favorite button and game status elements
             if (isOpening) {
-                hideCardButtons(gameCard);
+                hideCardButtons(parentContainer);
             } else {
-                showCardButtons(gameCard);
+                showCardButtons(parentContainer);
             }
         }
     });
@@ -263,27 +267,41 @@ document.addEventListener('DOMContentLoaded', function() {
     function hideCardButtons(gameCard) {
         if (!gameCard) return;
 
+        // Handle library page buttons
         var favoriteBtn = gameCard.querySelector('.favorite-btn');
         var statusBtn = gameCard.querySelector('.game-status-btn');
         var statusBadge = gameCard.querySelector('.game-status-badge');
         var statusDropdown = gameCard.querySelector('.status-dropdown');
 
+        // Handle game details page buttons (with -cover suffix)
+        var favoriteBtnCover = gameCard.querySelector('.favorite-btn-cover');
+        var statusBtnCover = gameCard.querySelector('.game-status-btn-cover');
+
         if (favoriteBtn) favoriteBtn.style.display = 'none';
         if (statusBtn) statusBtn.style.display = 'none';
         if (statusBadge) statusBadge.style.display = 'none';
         if (statusDropdown) statusDropdown.style.display = 'none';
+        if (favoriteBtnCover) favoriteBtnCover.style.display = 'none';
+        if (statusBtnCover) statusBtnCover.style.display = 'none';
     }
 
     function showCardButtons(gameCard) {
         if (!gameCard) return;
 
+        // Handle library page buttons
         var favoriteBtn = gameCard.querySelector('.favorite-btn');
         var statusBtn = gameCard.querySelector('.game-status-btn');
         var statusBadge = gameCard.querySelector('.game-status-badge');
 
+        // Handle game details page buttons (with -cover suffix)
+        var favoriteBtnCover = gameCard.querySelector('.favorite-btn-cover');
+        var statusBtnCover = gameCard.querySelector('.game-status-btn-cover');
+
         if (favoriteBtn) favoriteBtn.style.display = '';
         if (statusBtn) statusBtn.style.display = '';
         if (statusBadge) statusBadge.style.display = '';
+        if (favoriteBtnCover) favoriteBtnCover.style.display = '';
+        if (statusBtnCover) statusBtnCover.style.display = '';
         // Note: status dropdown should remain hidden unless explicitly opened by user
     }
 
@@ -291,7 +309,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.popup-menu').forEach(function(menu) {
             menu.style.display = 'none';
             // Show favorite button and game status elements when menu closes
-            var gameCard = menu.closest('.game-card');
+            // Handle both library page (.game-card) and game details page (.game-card-coverimage)
+            var gameCard = menu.closest('.game-card') || menu.closest('.game-card-coverimage');
             if (gameCard) {
                 showCardButtons(gameCard);
             }

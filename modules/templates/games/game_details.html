@@ -197,6 +197,11 @@
                                 <i class="fas fa-bars"></i>
                             </button>
 
+                            {# Popup menu (triggered by hamburger button) #}
+                            {% with game_uuid=game.uuid, game_url=game.url %}
+                                {% include 'games/popup_menu.html' %}
+                            {% endwith %}
+
                             {% for image in game.images if 'cover' in image.url %}
                                 <img src="{{ url_for('static', filename='library/images/' + image.url) }}"
                                      alt="{{ game.name }} Cover Image"
@@ -259,11 +264,6 @@
 
                 <div class="game-card-q2">
                     <div class="game-card-meta">
-                        {# Popup menu (triggered by hamburger button on cover) #}
-                        {% with game_uuid=game.uuid, game_url=game.url %}
-                            {% include 'games/popup_menu.html' %}
-                        {% endwith %}
-
                         {# Ratings #}
                         <div class="rating-container">
                             {{ show_rating(game.rating, 'Critics') }}

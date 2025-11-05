@@ -470,6 +470,14 @@ pre {
     border: 1px solid var(--color-black-darker);
 }
 
+/* Popup menu positioning on game details page */
+.game-card-coverimage .popup-menu {
+    top: 55px;
+    left: 10px;
+    border-radius: 8px;
+    min-width: 200px;
+}
+
 .rating-container {
     display: flex;
     flex-direction: row;
