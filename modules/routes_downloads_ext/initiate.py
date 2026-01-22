@@ -59,10 +59,10 @@ def download_game(game_uuid):
                 if os.path.isfile(full_path):
                     files_in_directory.append(f)
             
-            # Filter out .nfo, .sfv, file_id.diz files - these don't count as significant
-            significant_files = [f for f in files_in_directory 
-                               if not f.lower().endswith(('.nfo', '.sfv')) 
-                               and not f.lower() == 'file_id.diz']
+            # Filter out .nfo, .sfv, file_id.diz, sharewarez.json files - these don't count as significant
+            significant_files = [f for f in files_in_directory
+                               if not f.lower().endswith(('.nfo', '.sfv'))
+                               and not f.lower() in ('file_id.diz', 'sharewarez.json')]
             
             if len(significant_files) == 1:
                 # Single significant file - direct download (no zipping)

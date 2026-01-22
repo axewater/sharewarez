@@ -62,6 +62,8 @@ async def async_generate_zipstream_chunks(
                 dirs[:] = [d for d in dirs if d.lower() not in [f.lower() for f in excluded_folders]]
                 
                 for file in files:
+                    if file.lower() == 'sharewarez.json':
+                        continue
                     file_path = os.path.join(root, file)
                     # Create relative path for archive
                     rel_path = os.path.relpath(file_path, source_path)
@@ -151,6 +153,8 @@ def estimate_zip_size(source_path: str) -> Optional[int]:
                 dirs[:] = [d for d in dirs if d.lower() not in ['updates', 'extras']]
                 
                 for file in files:
+                    if file.lower() == 'sharewarez.json':
+                        continue
                     file_path = os.path.join(root, file)
                     try:
                         total_size += os.path.getsize(file_path)

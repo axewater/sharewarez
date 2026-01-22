@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.9.6
+# 🎮 SharewareZ v2.9.7
 
 SharewareZ transforms any game folder into a searchable library with IGDB integration, adding cover images, screenshots, and metadata for enhanced filtering.
 Invite your friends securely and share your favorite games!
