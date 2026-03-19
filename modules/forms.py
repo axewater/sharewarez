@@ -1,14 +1,14 @@
 # forms.py
 import re
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, SelectField, BooleanField, SubmitField, PasswordField, TextAreaField, RadioField, FloatField, DateTimeField, ValidationError, HiddenField
+from wtforms import StringField, IntegerField, SelectField, BooleanField, SubmitField, PasswordField, TextAreaField, RadioField, FloatField, ValidationError, HiddenField
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from wtforms.validators import DataRequired, Length, Optional, NumberRange, Regexp, URL, Email, EqualTo
 from wtforms.widgets import TextInput
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField
 from wtforms.widgets import ListWidget, CheckboxInput
-from wtforms.fields import URLField, DateField
-from modules.models import Status, Category, genre_choices, game_mode_choices, theme_choices, platform_choices, player_perspective_choices, developer_choices, publisher_choices, LibraryPlatform
+from wtforms.fields import DateField
+from modules.models import Status, Category, genre_choices, game_mode_choices, theme_choices, platform_choices, player_perspective_choices, LibraryPlatform
 from urllib.parse import urlparse
 from modules.utils_functions import comma_separated_urls
 from modules.utils_themes import ThemeManager

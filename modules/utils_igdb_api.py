@@ -4,7 +4,6 @@
 import requests
 import time
 import threading
-from flask import current_app
 from modules import db
 from modules.models import GlobalSettings
 from sqlalchemy import select
@@ -31,7 +30,6 @@ def make_igdb_api_request(endpoint_url, query_params):
         # print(f"make_igdb_api_request Attempting to make a request to {endpoint_url} with headers: {headers} and query: {query_params}")
         response = requests.post(endpoint_url, headers=headers, data=query_params)
         response.raise_for_status()
-        data = response.json()
         # print(f"make_igdb_api_request Response from IGDB API: {data}")
         return response.json()
 

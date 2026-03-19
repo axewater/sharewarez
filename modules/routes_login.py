@@ -1,10 +1,9 @@
 import uuid
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app, abort
-from flask_login import current_user, login_user, logout_user, login_required
-from config import Config
+from flask_login import current_user, login_required
 from modules import db
 from modules.models import User, InviteToken, GlobalSettings, Whitelist
-from modules.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, InviteForm, CsrfProtectForm, UserPasswordForm
+from modules.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, InviteForm, UserPasswordForm
 from modules.utils_auth import _authenticate_and_redirect
 from modules.utils_smtp import send_email, send_password_reset_email, send_invite_email
 from modules.utils_processors import get_global_settings
@@ -200,7 +199,7 @@ def confirm_email(token):
 def reset_password_request():
     if current_user.is_authenticated:
         return redirect(url_for('login.login'))
-    print(f'pwr Reset Password Request')
+    print('pwr Reset Password Request')
     form = ResetPasswordRequestForm()
     if form.validate_on_submit():
         print(f'pwr form data: {form.data}')

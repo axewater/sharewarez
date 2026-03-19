@@ -1,4 +1,3 @@
-import os
 from sqlalchemy import create_engine, text
 from config import Config
 
@@ -12,7 +11,7 @@ class DatabaseManager:
     def add_column_if_not_exists(self):
 
         # SQL commands to add new columns and tables
-        add_columns_sql = f"""
+        add_columns_sql = """
         -- Ensure global_settings table exists before altering it
         CREATE TABLE IF NOT EXISTS global_settings (
             id SERIAL PRIMARY KEY,

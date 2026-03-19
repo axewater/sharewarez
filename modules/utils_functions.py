@@ -363,14 +363,14 @@ def load_scanning_filter_patterns():
     try:
         # Fetching insensitive patterns (not case-sensitive)
         insensitive_patterns = [
-            "-" + rg.filter_pattern for rg in db.session.execute(select(ReleaseGroup).filter(ReleaseGroup.filter_pattern != None)).scalars().all()
+            "-" + rg.filter_pattern for rg in db.session.execute(select(ReleaseGroup).filter(ReleaseGroup.filter_pattern.isnot(None))).scalars().all()
         ] + [
-            "." + rg.filter_pattern for rg in db.session.execute(select(ReleaseGroup).filter(ReleaseGroup.filter_pattern != None)).scalars().all()
+            "." + rg.filter_pattern for rg in db.session.execute(select(ReleaseGroup).filter(ReleaseGroup.filter_pattern.isnot(None))).scalars().all()
         ]
         
         # Initializing list for sensitive patterns (case-sensitive)
         sensitive_patterns = []
-        for rg in db.session.execute(select(ReleaseGroup).filter(ReleaseGroup.case_sensitive != None)).scalars().all():
+        for rg in db.session.execute(select(ReleaseGroup).filter(ReleaseGroup.case_sensitive.isnot(None))).scalars().all():
             pattern = rg.case_sensitive
             is_case_sensitive = False
             if pattern.lower() == 'yes':

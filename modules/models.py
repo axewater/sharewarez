@@ -1,19 +1,15 @@
 # modules/models.py
 from modules import db
 from sqlalchemy import ForeignKey, select
-from sqlalchemy.dialects.sqlite import TEXT as SQLite_TEXT, JSON
+from sqlalchemy.dialects.sqlite import JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import TypeDecorator, TEXT
-from sqlalchemy.types import Enum as SQLEnum
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
-from datetime import datetime
 import uuid, json
 from uuid import uuid4
 from datetime import datetime, timedelta, timezone
 from enum import Enum as PyEnum
-import re
-from wtforms.validators import ValidationError
 from .platform import LibraryPlatform
 
 ph = PasswordHasher()

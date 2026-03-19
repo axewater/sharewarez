@@ -1,5 +1,4 @@
-from flask import Blueprint, render_template, flash, redirect, url_for, request, session
-from flask_login import current_user
+from flask import Blueprint, render_template, flash, redirect, url_for, request
 from modules import db
 from sqlalchemy import select
 from modules.forms import SetupForm, IGDBSetupForm
@@ -33,7 +32,7 @@ def setup_submit():
     form = SetupForm()
     if form.validate_on_submit():
         print(f"Form CSRF token: {form.csrf_token.data}")
-        print(f"Form validation succeeded")
+        print("Form validation succeeded")
         
         user = User(
             name=form.username.data,

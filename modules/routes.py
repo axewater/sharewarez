@@ -1,32 +1,30 @@
 # modules/routes.py
-import sys, uuid, json, os, shutil, os
+import uuid, json, os, shutil
 from threading import Thread
-from config import Config
 from flask import (
-    Flask, render_template, flash, redirect, url_for, request, Blueprint, 
+    render_template, flash, redirect, url_for, request, Blueprint,
     jsonify, session, abort, current_app, Response,
-    copy_current_request_context, g, current_app
+    copy_current_request_context
 )
 from flask_login import current_user, login_required
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
-from sqlalchemy import func, case, select, delete, and_
+from sqlalchemy import func, select, delete, and_
 from werkzeug.utils import secure_filename
-from modules import db, mail, cache
-from functools import wraps
-from datetime import datetime, timedelta, timezone
+from modules import db, cache
+from datetime import datetime, timezone
 from PIL import Image as PILImage
-from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+from itsdangerous import URLSafeTimedSerializer
 
 from modules.forms import (
     ScanFolderForm, CsrfProtectForm,
-    AutoScanForm, UpdateUnmatchedFolderForm, CsrfForm,
+    AutoScanForm, UpdateUnmatchedFolderForm,
     ReleaseGroupForm
 )
 from modules.models import (
     Game, Image, ScanJob, UnmatchedFolder,
     Genre, Theme, GameMode, PlayerPerspective,
-    Category, Library, user_favorites,
+    Category, Library,
     ReleaseGroup, AllowedFileType
 )
 from modules.utils_functions import load_scanning_filter_patterns, format_size, PLATFORM_IDS
@@ -38,8 +36,6 @@ from modules.utils_game_core import delete_game
 from modules.utils_security import is_safe_path, get_allowed_base_directories
 from modules.utils_unmatched import handle_delete_unmatched
 from modules.utils_processors import get_global_settings
-from modules import app_start_time, app_version
-
 bp = Blueprint('main', __name__)
 
 def get_serializer():
@@ -753,7 +749,7 @@ def delete_full_game():
     game_uuid = data.get('game_uuid') if data else None
     print(f"Route: /delete_full_game - Game UUID: {game_uuid}")
     if not game_uuid:
-        print(f"Route: /delete_full_game - Game UUID is required.")
+        print("Route: /delete_full_game - Game UUID is required.")
         return jsonify({'success': False, 'message': 'Game UUID is required.'}), 400
 
     if is_scan_job_running():
@@ -764,14 +760,14 @@ def delete_full_game():
     print(f"Route: /delete_full_game - Game to delete: {game_to_delete}")
 
     if not game_to_delete:
-        print(f"Route: /delete_full_game - Game not found.")
+        print("Route: /delete_full_game - Game not found.")
         return jsonify({'success': False, 'message': 'Game not found.'}), 404
 
     full_path = game_to_delete.full_disk_path
     print(f"Route: /delete_full_game - Full path: {full_path}")
 
     if not os.path.exists(full_path):
-        print(f"Route: /delete_full_game - Game does not exist on disk.")
+        print("Route: /delete_full_game - Game does not exist on disk.")
         return jsonify({'success': False, 'message': 'Game does not exist on disk.'}), 404
 
     try:
@@ -789,7 +785,7 @@ def delete_full_game():
         
         print(f"Game deleted from disk: {full_path} - initiating database cleanup.")
         delete_game(game_uuid)
-        print(f"Database and image cleanup complete.")
+        print("Database and image cleanup complete.")
         
         success_message = 'Game and its folder have been deleted successfully.' if is_directory else 'Game file has been deleted successfully.'
         return jsonify({'success': True, 'message': success_message}), 200

@@ -1,15 +1,11 @@
 import os
 from datetime import datetime, timezone
-from typing import Tuple
 from modules.utils_filename import sanitize_filename
-from modules.models import DownloadRequest, GlobalSettings, db
+from modules.models import DownloadRequest, db
 from modules.utils_security import is_safe_path, get_allowed_base_directories
 from modules.utils_zipstream import should_use_zipstream, get_zipstream_info
-from modules.async_streaming import get_zipstream_download_info
-from sqlalchemy import select
 
 def zip_game(download_request_id, app, zip_file_path):
-    settings = db.session.execute(select(GlobalSettings)).scalars().first()
     with app.app_context():
         download_request = db.session.get(DownloadRequest, download_request_id)
         game = download_request.game
@@ -129,7 +125,7 @@ def prepare_streaming_download(download_request, source_path, filename):
     """
     try:
         # Generate streaming metadata
-        stream_info = get_zipstream_info(source_path, filename)
+        get_zipstream_info(source_path, filename)
         
         # Update download request with streaming status
         download_request.status = 'available'

@@ -1,5 +1,4 @@
 import platform
-import time
 from datetime import datetime
 
 def get_system_uptime():

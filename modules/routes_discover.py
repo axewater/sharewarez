@@ -4,7 +4,7 @@ from modules.utils_functions import format_size
 from modules.utils_processors import get_loc
 from modules.models import Game, Library, user_favorites, DiscoverySection
 from modules import db
-from flask_login import login_required, current_user
+from flask_login import login_required
 from modules.models import Image
 from modules.utils_processors import get_global_settings
 from modules import cache
@@ -71,9 +71,9 @@ def discover():
         elif section.identifier == 'most_downloaded':
             section_data['most_downloaded'] = fetch_game_details(db.session.execute(select(Game).filter(Game.times_downloaded > 0).order_by(Game.times_downloaded.desc())).scalars().all())
         elif section.identifier == 'highest_rated':
-            section_data['highest_rated'] = fetch_game_details(db.session.execute(select(Game).filter(Game.rating != None).order_by(Game.rating.desc())).scalars().all())
+            section_data['highest_rated'] = fetch_game_details(db.session.execute(select(Game).filter(Game.rating.isnot(None)).order_by(Game.rating.desc())).scalars().all())
         elif section.identifier == 'last_updated':
-            section_data['last_updated'] = fetch_game_details(db.session.execute(select(Game).filter(Game.last_updated != None).order_by(Game.last_updated.desc())).scalars().all())
+            section_data['last_updated'] = fetch_game_details(db.session.execute(select(Game).filter(Game.last_updated.isnot(None)).order_by(Game.last_updated.desc())).scalars().all())
         elif section.identifier == 'most_favorited':
             most_favorited = db.session.execute(
                 select(Game, func.count(user_favorites.c.user_id).label('favorite_count'))

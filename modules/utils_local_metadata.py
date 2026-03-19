@@ -114,7 +114,7 @@ def write_local_metadata(full_disk_path, igdb_id, game_title=None, manually_veri
             if not is_safe:
                 logger.error(f"🚫 [LOCAL METADATA] Security: Cannot write to unsafe path {full_disk_path}: {error_message}")
                 return False
-            logger.info(f"✅ [LOCAL METADATA] Security check passed")
+            logger.info("✅ [LOCAL METADATA] Security check passed")
 
         # Check if path exists and is directory
         if not os.path.exists(full_disk_path):
@@ -123,7 +123,7 @@ def write_local_metadata(full_disk_path, igdb_id, game_title=None, manually_veri
         if not os.path.isdir(full_disk_path):
             logger.error(f"🚫 [LOCAL METADATA] Path is not a directory: {full_disk_path}")
             return False
-        logger.info(f"✅ [LOCAL METADATA] Path exists and is a directory")
+        logger.info("✅ [LOCAL METADATA] Path exists and is a directory")
 
         # Build metadata object
         metadata = {

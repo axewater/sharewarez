@@ -6,7 +6,6 @@ Provides signal handlers and shutdown state management for clean application exi
 import signal
 import sys
 import threading
-import time
 from typing import Optional
 
 

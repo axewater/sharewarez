@@ -2,7 +2,7 @@ import os
 import json
 import zipfile
 import shutil
-from flask import current_app, flash
+from flask import flash
 from werkzeug.utils import secure_filename
 from modules.models import UserPreference
 from modules import db

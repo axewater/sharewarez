@@ -174,7 +174,7 @@ def process_game_updates(game_name, full_disk_path, updates_folder, library_uuid
 
     try:
         db.session.commit()
-        print(f"Successfully committed GameUpdate records to database")
+        print("Successfully committed GameUpdate records to database")
     except SQLAlchemyError as e:
         print(f"Error committing GameUpdate records to database: {str(e)}")
         db.session.rollback()

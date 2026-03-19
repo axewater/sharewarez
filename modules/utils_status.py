@@ -1,4 +1,3 @@
-import psutil
 import platform
 import socket
 import os
@@ -6,8 +5,6 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import func, select
 from modules.models import User, SystemEvents, GlobalSettings
 from modules import db
-from modules.utils_system_stats import format_bytes
-from modules import app_start_time
 from config import Config
 from urllib.parse import urlparse
 

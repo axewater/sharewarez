@@ -6,8 +6,7 @@ that ensures proper startup order and eliminates duplication.
 
 import os
 import shutil
-from datetime import datetime, timezone
-from sqlalchemy import create_engine, text, select
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 
@@ -78,7 +77,7 @@ class InitializationManager:
                 # Mask password for security
                 masked_url = database_url.split('@')[0].split(':')[0:2]
                 masked_url = ':'.join(masked_url) + ':***@' + database_url.split('@')[1] if '@' in database_url else database_url
-                print(f"🔧 Environment variables loaded successfully")
+                print("🔧 Environment variables loaded successfully")
                 print(f"📊 DATABASE_URL found: {masked_url}")
             else:
                 print("⚠️  DATABASE_URL not found in environment - using config fallback")
@@ -438,7 +437,6 @@ def is_initialization_complete():
         return True
 
     # Check manager state if available
-    global _init_manager
     if _init_manager is not None:
         return _init_manager._initialization_complete
 

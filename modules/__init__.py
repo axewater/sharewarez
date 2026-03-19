@@ -23,7 +23,6 @@ app_version = '2.9.7'
 
 
 def create_app():
-    global s    
     app = Flask(__name__)
     app.config.from_object(Config)
     
@@ -43,7 +42,7 @@ def create_app():
         
         print(f"🧪 PYTEST MODE: Using database: {app.config.get('SQLALCHEMY_DATABASE_URI', 'NOT SET')}")
     
-    csrf = CSRFProtect(app)
+    CSRFProtect(app)
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/library')
 
     # --- BEGIN: Print masked PostgreSQL connection string ---
@@ -87,7 +86,7 @@ def create_app():
     @app.before_request
     def check_setup_status():
         """Check if setup is required and redirect accordingly."""
-        from flask import request, redirect, url_for
+        from flask import request, redirect
         from modules.utils_setup import should_redirect_to_setup, get_setup_redirect_url
         
         # Skip setup checks for certain endpoints

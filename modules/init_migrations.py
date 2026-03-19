@@ -5,9 +5,7 @@ before worker processes are spawned.
 """
 
 import os
-from sqlalchemy import create_engine
 from modules.updateschema import DatabaseManager
-from config import Config
 
 
 def run_database_migrations():
@@ -70,8 +68,7 @@ def cleanup_orphaned_scan_jobs():
         from modules.models import ScanJob
         from modules import db
         from sqlalchemy import select
-        from datetime import datetime, timezone
-        
+
         # Find all jobs that are still marked as 'Running'
         running_jobs = db.session.execute(select(ScanJob).filter_by(status='Running')).scalars().all()
         

@@ -3,8 +3,8 @@ import os
 from datetime import datetime
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy import select, func
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import select
 from flask import current_app, flash, redirect, url_for, session, copy_current_request_context
 from modules.utils_functions import (
     load_scanning_filter_patterns,
@@ -242,7 +242,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                         result['unmatched'] = True
                         print(f"[PROCESS INFO] Game '{game_name}' could not be matched to IGDB database or was already unmatched.")
                         print(f"[PROCESS INFO] Game path: {full_disk_path}")
-                        print(f"[PROCESS INFO] This is informational, not an error")
+                        print("[PROCESS INFO] This is informational, not an error")
                         
                 finally:
                     igdb_rate_limiter.release()
@@ -393,7 +393,7 @@ def scan_and_add_games(folder_path, scan_mode='folders', library_uuid=None, remo
                         scan_job_entry.folders_failed += 1
                         print(f"[SCAN INFO] Game '{game_name}' could not be matched to IGDB database or was already unmatched.")
                         print(f"[SCAN INFO] Game path: {full_disk_path}")
-                        print(f"[SCAN INFO] This is informational, not an error")
+                        print("[SCAN INFO] This is informational, not an error")
 
                 except Exception as e:
                     print(f"[SCAN EXCEPTION] Exception processing game '{game_name}': {str(e)}")
@@ -506,7 +506,7 @@ def handle_auto_scan(auto_form):
     
         library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalars().first()
         if not library:
-            print(f"Selected library does not exist. Please select a valid library.")
+            print("Selected library does not exist. Please select a valid library.")
             flash('Selected library does not exist. Please select a valid library.', 'error')
             return redirect(url_for('main.scan_management', active_tab='auto'))
 

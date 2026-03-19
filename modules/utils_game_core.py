@@ -1,7 +1,6 @@
 from datetime import datetime, UTC
 from flask import flash, current_app, abort, has_request_context
-from flask_login import current_user
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select, update, delete
 from werkzeug.utils import secure_filename
 import os, uuid
@@ -511,7 +510,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
                     if involved_company_ids:
                         enumerate_companies(new_game, new_game.igdb_id, involved_company_ids)
                     else:
-                        print(f"No involved companies found for game from local metadata.")
+                        print("No involved companies found for game from local metadata.")
 
                 if 'themes' in response_json[0]:
                     for theme_data in response_json[0]['themes']:
@@ -566,7 +565,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
                         filename=settings.get('local_metadata_filename', 'sharewarez.json')
                     )
                     if not write_success:
-                        print(f"⚠️ [LOCAL METADATA] Failed to write metadata file (already exists or permission issue)")
+                        print("⚠️ [LOCAL METADATA] Failed to write metadata file (already exists or permission issue)")
 
                 return new_game
             else:
@@ -580,7 +579,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
                 )
                 # Fall through to normal search below
         else:
-            print(f"📝 [LOCAL METADATA] No existing metadata file found, will attempt IGDB search")
+            print("📝 [LOCAL METADATA] No existing metadata file found, will attempt IGDB search")
 
     platform_id = PLATFORM_IDS.get(library.platform.name)
 
@@ -677,7 +676,7 @@ def retrieve_and_save_game(game_name, full_disk_path, scan_job_id=None, library_
             try:
                 new_game.nfo_content = nfo_content
                 for column in new_game.__table__.columns:
-                    attr = getattr(new_game, column.name)
+                    getattr(new_game, column.name)
                 db.session.commit()
                 print(f"Game and its images saved successfully : {new_game.name}.")
 
@@ -1147,7 +1146,7 @@ def start_turbo_background_downloader(interval_seconds=30, max_workers=4, batch_
     
     thread = threading.Thread(target=turbo_background_worker, daemon=True)
     thread.start()
-    print(f"🔥 TURBO BACKGROUND DOWNLOADER LAUNCHED!")
+    print("🔥 TURBO BACKGROUND DOWNLOADER LAUNCHED!")
     return thread
 
 
@@ -1173,7 +1172,7 @@ def find_missing_images_for_library(library_uuid=None, app=None):
                 print(f"🔍 Checking for missing images in library {library_uuid}")
             else:
                 images_query = select(Image)
-                print(f"🔍 Checking for missing images across all libraries")
+                print("🔍 Checking for missing images across all libraries")
             
             # Get all images with download URLs
             all_images = db.session.execute(images_query.filter(Image.download_url.isnot(None))).scalars().all()
@@ -1276,7 +1275,7 @@ def queue_missing_images_for_download(missing_images_list, app=None):
             # Trigger immediate download if turbo mode is enabled
             settings = db.session.execute(select(GlobalSettings)).scalar_one_or_none()
             if settings and settings.use_turbo_image_downloads:
-                print(f"🚀 Turbo mode enabled - triggering immediate download")
+                print("🚀 Turbo mode enabled - triggering immediate download")
                 # Run a small batch download to start processing immediately
                 download_result = turbo_download_images(
                     batch_size=min(20, queued_count), 

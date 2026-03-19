@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template, request, jsonify, current_app
-from flask_login import login_required, current_user
+from flask import Blueprint, render_template, request, jsonify
+from flask_login import login_required
 from modules.utils_auth import admin_required
 from modules.utils_processors import get_global_settings
 from modules.models import GlobalSettings

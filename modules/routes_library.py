@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from modules.models import Library, Game, Genre, GameMode, PlayerPerspective, Theme, Image, UserPreference
 from modules import db
@@ -110,44 +110,19 @@ def library():
     library_data = get_library_count()
     games_count_data = get_games_count()
     
-    context = {
-        'games': game_data,
-        'library_count': library_data,
-        'games_count': games_count_data,
-        'total': total,
-        'pages': pages,
-        'current_page': current_page,
-        'user_per_page': per_page,
-        'user_default_sort': sort_by,
-        'user_default_sort_order': sort_order,
-        'filters': filters,
-        'form': CsrfForm()
-    }
-    games = game_data
-    library_count = library_data
-    games_count = games_count_data
-    total = total
-    pages = pages
-    current_page = current_page
-    user_per_page = per_page
-    user_default_sort = sort_by
-    user_default_sort_order = sort_order
-    filters = filters
-    form = CsrfForm()
-
     return render_template(
         'games/library_browser.html',
-        games=games,
-        library_count=library_count,
-        games_count=games_count,
+        games=game_data,
+        library_count=library_data,
+        games_count=games_count_data,
         total=total,
         pages=pages,
         current_page=current_page,
-        user_per_page=user_per_page,
-        user_default_sort=user_default_sort,
-        user_default_sort_order=user_default_sort_order,
+        user_per_page=per_page,
+        user_default_sort=sort_by,
+        user_default_sort_order=sort_order,
         filters=filters,
-        form=form,
+        form=CsrfForm(),
         library_uuid = library_uuid,
         is_admin=current_user.role == 'admin'
     )

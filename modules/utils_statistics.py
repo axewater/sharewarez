@@ -2,8 +2,6 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import func, select
 from modules.models import DownloadRequest, Game, User, user_favorites, InviteToken
 from modules import db
-import shutil
-import os
 
 def get_download_statistics():
     """Gather various download statistics"""

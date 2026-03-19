@@ -1,16 +1,13 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_required, current_user
+from flask import Blueprint, render_template, redirect, url_for, flash
+from flask_login import login_required
 from modules.utils_auth import admin_required
 from modules.utils_processors import get_global_settings
 from modules.utils_system_stats import format_bytes, get_cpu_usage, get_memory_usage, get_disk_usage, get_process_count, get_open_files, get_warez_folder_usage
 from modules.utils_uptime import get_formatted_system_uptime, get_formatted_app_uptime
 from modules.utils_status import get_system_info, get_config_values, get_active_users, get_log_info, check_server_settings, get_database_info
 from modules import app_version, app_start_time
-from modules import db, cache
-from datetime import datetime, timedelta
-from sqlalchemy import func
+from modules import cache
 from modules.utils_logging import log_system_event
-import platform, socket
 
 info_bp = Blueprint('info', __name__)
 

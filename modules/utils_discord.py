@@ -1,10 +1,7 @@
 from discord_webhook import DiscordWebhook, DiscordEmbed
-from flask import current_app
-from modules.models import GlobalSettings, Library, Game, GameURL, db
+from modules.models import GlobalSettings, Library, Game, db
 from sqlalchemy import select
 import os
-import time
-from datetime import datetime
 from modules.utils_igdb_api import get_cover_url
 from modules.utils_functions import format_size
 

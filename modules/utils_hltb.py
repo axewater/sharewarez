@@ -4,7 +4,6 @@
 import time
 import threading
 from datetime import datetime, timezone
-from flask import current_app
 from modules import db
 from modules.models import GlobalSettings, Game
 from sqlalchemy import select, create_engine

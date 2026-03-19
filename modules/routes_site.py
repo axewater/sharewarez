@@ -4,13 +4,11 @@ from flask_login import login_required, logout_user, current_user
 
 from sqlalchemy import func, select
 from modules import db
-from flask import flash
 import os
 import random
 import re
 from datetime import datetime
-from modules.models import User, Image, Game, Library, Genre, Theme
-from modules.platform import LibraryPlatform
+from modules.models import Image, Game, Library, Genre, Theme
 from modules.utils_processors import get_global_settings
 from modules.utils_auth import admin_required
 from modules.utils_functions import format_size

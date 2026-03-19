@@ -4,16 +4,14 @@ This file wraps the Flask app to be compatible with ASGI servers like uvicorn
 and provides async file streaming for downloads.
 """
 
-import sys
 import os
 import re
 import json
 import uuid
-from urllib.parse import unquote
 from asgiref.wsgi import WsgiToAsgi
 
 from modules import create_app, db
-from modules.models import User, DownloadRequest, Game
+from modules.models import DownloadRequest, Game
 from modules.async_streaming import create_async_streaming_response, async_generate_zipstream_response
 from modules.utils_security import is_safe_path, get_allowed_base_directories
 from modules.utils_logging import log_system_event
@@ -238,15 +236,12 @@ class LazyASGIApp:
             # Decode Flask session using Flask's session interface
             with self._flask_app.app_context():
                 from flask.sessions import SecureCookieSessionInterface
-                from urllib.parse import unquote
-                
                 # Create a session interface to decode the cookie
                 session_interface = SecureCookieSessionInterface()
                 
                 # Create a fake request context to use Flask's session decoding
                 from flask import Request
-                from werkzeug.datastructures import EnvironHeaders
-                
+
                 # Create minimal WSGI environ for the request
                 environ = {
                     'REQUEST_METHOD': 'GET',

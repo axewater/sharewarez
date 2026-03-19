@@ -1,6 +1,6 @@
 import smtplib, socket, traceback
 from email.message import EmailMessage
-from flask import flash, current_app, url_for, render_template
+from flask import flash, url_for, render_template
 from modules import db
 from modules.models import GlobalSettings
 from sqlalchemy import select
@@ -75,7 +75,7 @@ def is_server_reachable(server, port):
             # Handle different SMTP security protocols
             if port == 465:  # SMTPS - Direct SSL/TLS
                 context = ssl.create_default_context()
-                with context.wrap_socket(sock, server_hostname=server) as ssl_sock:
+                with context.wrap_socket(sock, server_hostname=server):
                     print(f"Direct SSL/TLS connection successful to {server}:{port}")
             elif port == 587:  # SMTP with STARTTLS
                 smtp = smtplib.SMTP(server, port)
