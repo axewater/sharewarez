@@ -54,8 +54,8 @@ letsrebuild.md
 htmlcov/
 
 # Static uploads (these should be mounted as volumes)
-modules/static/library/images/
-modules/static/library/zips/
+sharewarez/static/library/images/
+sharewarez/static/library/zips/
 
 # OS
 .DS_Store

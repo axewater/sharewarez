@@ -7,9 +7,9 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 from sqlalchemy import select
-from modules import db
-from modules.models import DownloadRequest, Game, User, GlobalSettings, Library, SystemEvents
-from modules.platform import LibraryPlatform
+from sharewarez import db
+from sharewarez.models import DownloadRequest, Game, User, GlobalSettings, Library, SystemEvents
+from sharewarez.platform import LibraryPlatform
 
 
 @pytest.fixture

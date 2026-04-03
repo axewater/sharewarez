@@ -1,5 +1,5 @@
 """
-Unit tests for modules.routes_admin_ext.whitelist
+Unit tests for sharewarez.routes_admin_ext.whitelist
 
 Tests whitelist management routes including adding, deleting, and viewing whitelist entries.
 """
@@ -11,7 +11,7 @@ from flask import url_for
 from uuid import uuid4
 from sqlalchemy import select
 
-from modules.models import Whitelist, User
+from sharewarez.models import Whitelist, User
 
 
 @pytest.fixture
@@ -107,7 +107,7 @@ class TestWhitelistRoutes:
         response = client.get('/admin/whitelist')
         assert response.status_code == 302  # Redirect due to admin_required decorator
 
-    @patch('modules.routes_admin_ext.whitelist.log_system_event')
+    @patch('sharewarez.routes_admin_ext.whitelist.log_system_event')
     def test_whitelist_get_displays_entries(self, mock_log, client, admin_user, 
                                           whitelist_entries, registered_user_for_whitelist):
         """Test GET /admin/whitelist displays whitelist entries with registration status."""
@@ -124,7 +124,7 @@ class TestWhitelistRoutes:
         assert whitelist_entries[1].email in response_text
         assert whitelist_entries[2].email in response_text
 
-    @patch('modules.routes_admin_ext.whitelist.log_system_event')
+    @patch('sharewarez.routes_admin_ext.whitelist.log_system_event')
     def test_whitelist_post_adds_new_email(self, mock_log, client, db_session, admin_user):
         """Test POST /admin/whitelist adds new email to whitelist."""
         with client.session_transaction() as sess:
@@ -153,7 +153,7 @@ class TestWhitelistRoutes:
             event_level='information'
         )
 
-    @patch('modules.routes_admin_ext.whitelist.log_system_event')
+    @patch('sharewarez.routes_admin_ext.whitelist.log_system_event')
     def test_whitelist_post_normalizes_email(self, mock_log, client, db_session, admin_user):
         """Test POST /admin/whitelist normalizes email (strips whitespace, lowercases)."""
         with client.session_transaction() as sess:
@@ -190,7 +190,7 @@ class TestWhitelistRoutes:
             # This is actually acceptable behavior - the form should reject malformed input
             assert 'successfully added' not in response.get_data(as_text=True)
 
-    @patch('modules.routes_admin_ext.whitelist.log_system_event')
+    @patch('sharewarez.routes_admin_ext.whitelist.log_system_event')
     def test_whitelist_post_rejects_long_email(self, mock_log, client, db_session, admin_user):
         """Test POST /admin/whitelist rejects email longer than 120 characters."""
         with client.session_transaction() as sess:
@@ -217,7 +217,7 @@ class TestWhitelistRoutes:
         # so just verify no success message and email wasn't added
         assert 'successfully added' not in response_text
 
-    @patch('modules.routes_admin_ext.whitelist.log_system_event')
+    @patch('sharewarez.routes_admin_ext.whitelist.log_system_event')
     def test_whitelist_post_rejects_invalid_email_format(self, mock_log, client, db_session, admin_user):
         """Test POST /admin/whitelist rejects invalid email formats."""
         with client.session_transaction() as sess:
@@ -250,7 +250,7 @@ class TestWhitelistRoutes:
             # Check that the form didn't succeed - no success message shown
             assert 'successfully added' not in response_text
 
-    @patch('modules.routes_admin_ext.whitelist.log_system_event')
+    @patch('sharewarez.routes_admin_ext.whitelist.log_system_event')
     def test_whitelist_post_handles_duplicate_email(self, mock_log, client, db_session, admin_user, whitelist_entries):
         """Test POST /admin/whitelist handles duplicate email gracefully."""
         with client.session_transaction() as sess:
@@ -275,7 +275,7 @@ class TestWhitelistRoutes:
         response_text = response.get_data(as_text=True)
         assert 'already in the whitelist' in response_text
 
-    @patch('modules.routes_admin_ext.whitelist.log_system_event')
+    @patch('sharewarez.routes_admin_ext.whitelist.log_system_event')
     def test_whitelist_post_handles_database_error(self, mock_log, client, db_session, admin_user):
         """Test POST /admin/whitelist handles database errors gracefully."""
         with client.session_transaction() as sess:
@@ -283,7 +283,7 @@ class TestWhitelistRoutes:
             sess['_fresh'] = True
         
         # Mock database error
-        with patch('modules.routes_admin_ext.whitelist.db.session.commit', side_effect=Exception('Database error')):
+        with patch('sharewarez.routes_admin_ext.whitelist.db.session.commit', side_effect=Exception('Database error')):
             response = client.post('/admin/whitelist', data={
                 'email': 'test@example.com'
             }, follow_redirects=True)
@@ -346,7 +346,7 @@ class TestDeleteWhitelistRoute:
         response = client.delete('/admin/whitelist/99999')
         assert response.status_code == 404
 
-    @patch('modules.routes_admin_ext.whitelist.log_system_event')
+    @patch('sharewarez.routes_admin_ext.whitelist.log_system_event')
     def test_delete_whitelist_successful(self, mock_log, client, db_session, admin_user, whitelist_entries):
         """Test DELETE /admin/whitelist/<id> successfully deletes entry."""
         with client.session_transaction() as sess:
@@ -375,7 +375,7 @@ class TestDeleteWhitelistRoute:
             event_level='information'
         )
 
-    @patch('modules.routes_admin_ext.whitelist.log_system_event')
+    @patch('sharewarez.routes_admin_ext.whitelist.log_system_event')
     def test_delete_whitelist_handles_database_error(self, mock_log, client, db_session, admin_user, whitelist_entries):
         """Test DELETE /admin/whitelist/<id> handles database errors gracefully."""
         with client.session_transaction() as sess:
@@ -385,7 +385,7 @@ class TestDeleteWhitelistRoute:
         entry_id = whitelist_entries[0].id
         
         # Mock database error
-        with patch('modules.routes_admin_ext.whitelist.db.session.commit', side_effect=Exception('Database error')):
+        with patch('sharewarez.routes_admin_ext.whitelist.db.session.commit', side_effect=Exception('Database error')):
             response = client.delete(f'/admin/whitelist/{entry_id}')
             
             assert response.status_code == 500
@@ -404,7 +404,7 @@ class TestDeleteWhitelistRoute:
 class TestWhitelistRegistrationStatus:
     """Tests for whitelist registration status checking functionality."""
 
-    @patch('modules.routes_admin_ext.whitelist.log_system_event')
+    @patch('sharewarez.routes_admin_ext.whitelist.log_system_event')
     def test_whitelist_shows_registration_status(self, mock_log, client, db_session, admin_user, 
                                                whitelist_entries, registered_user_for_whitelist):
         """Test that whitelist view correctly shows registration status for entries."""
@@ -422,7 +422,7 @@ class TestWhitelistRegistrationStatus:
         assert whitelist_entries[1].email in response_text
         assert whitelist_entries[2].email in response_text
 
-    @patch('modules.routes_admin_ext.whitelist.log_system_event')
+    @patch('sharewarez.routes_admin_ext.whitelist.log_system_event')
     def test_whitelist_efficient_registration_check(self, mock_log, client, db_session, admin_user):
         """Test that registration status is checked efficiently (no N+1 queries)."""
         # Use unique email suffix to avoid collisions
@@ -470,7 +470,7 @@ class TestWhitelistRegistrationStatus:
 class TestWhitelistSecurityValidation:
     """Tests for security-related validation in whitelist routes."""
 
-    @patch('modules.routes_admin_ext.whitelist.log_system_event')
+    @patch('sharewarez.routes_admin_ext.whitelist.log_system_event')
     def test_whitelist_sanitizes_input(self, mock_log, client, db_session, admin_user):
         """Test that whitelist input is properly sanitized."""
         with client.session_transaction() as sess:
@@ -496,7 +496,7 @@ class TestWhitelistSecurityValidation:
         ).scalars().first()
         assert whitelist_entry is None
 
-    @patch('modules.routes_admin_ext.whitelist.log_system_event')
+    @patch('sharewarez.routes_admin_ext.whitelist.log_system_event')
     def test_whitelist_handles_sql_injection_attempts(self, mock_log, client, db_session, admin_user):
         """Test that whitelist handles SQL injection attempts."""
         with client.session_transaction() as sess:

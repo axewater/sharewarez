@@ -24,7 +24,7 @@ else:
         "Tests cannot run without explicit test database configuration."
     )
 
-from modules import create_app, db
+from sharewarez import create_app, db
 
 @pytest.fixture(scope='function')
 def app():

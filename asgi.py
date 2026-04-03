@@ -10,11 +10,11 @@ import json
 import uuid
 from asgiref.wsgi import WsgiToAsgi
 
-from modules import create_app, db
-from modules.models import DownloadRequest, Game
-from modules.async_streaming import create_async_streaming_response, async_generate_zipstream_response
-from modules.utils_security import is_safe_path, get_allowed_base_directories
-from modules.utils_logging import log_system_event
+from sharewarez import create_app, db
+from sharewarez.models import DownloadRequest, Game
+from sharewarez.async_streaming import create_async_streaming_response, async_generate_zipstream_response
+from sharewarez.utils.security import is_safe_path, get_allowed_base_directories
+from sharewarez.utils.event_logging import log_system_event
 from sqlalchemy import select
 
 
@@ -419,7 +419,7 @@ class LazyASGIApp:
             # Application is starting up
             try:
                 # Register graceful shutdown handlers
-                from modules.utils_shutdown import register_shutdown_handlers
+                from sharewarez.utils.shutdown import register_shutdown_handlers
                 register_shutdown_handlers()
                 await send({"type": "lifespan.startup.complete"})
             except Exception as e:
@@ -430,7 +430,7 @@ class LazyASGIApp:
             # Application is shutting down
             try:
                 # Request graceful shutdown
-                from modules.utils_shutdown import request_shutdown
+                from sharewarez.utils.shutdown import request_shutdown
                 request_shutdown()
                 print("🛑 ASGI lifespan shutdown initiated")
                 await send({"type": "lifespan.shutdown.complete"})

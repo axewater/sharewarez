@@ -6,9 +6,9 @@ from unittest.mock import patch, MagicMock, mock_open
 from uuid import uuid4
 from flask import Flask
 
-from modules import create_app, db
-from modules.models import Game
-from modules.utils_gamenames import (
+from sharewarez import create_app, db
+from sharewarez.models import Game
+from sharewarez.utils.gamenames import (
     get_game_names_from_folder,
     get_game_names_from_files,
     get_game_name_by_uuid,
@@ -21,7 +21,7 @@ from modules.utils_gamenames import (
 def safe_cleanup_database(db_session):
     """Safely clean up database records respecting foreign key constraints.""" 
     from sqlalchemy import delete
-    from modules.models import Library, Image
+    from sharewarez.models import Library, Image
     
     try:
         # Clean up in order to respect foreign key constraints
@@ -46,8 +46,8 @@ def temp_directory():
 @pytest.fixture
 def sample_games(db_session):
     """Create sample games for testing."""
-    from modules.models import Library
-    from modules.platform import LibraryPlatform
+    from sharewarez.models import Library
+    from sharewarez.platform import LibraryPlatform
     
     # First create a library that games can reference
     library = Library(
@@ -110,7 +110,7 @@ class TestGetGameNamesFromFolder:
         assert 'Nethack' in names
         assert 'Adventure Game' in names
     
-    @patch('modules.utils_gamenames.flash')
+    @patch('sharewarez.utils.gamenames.flash')
     def test_non_existent_folder(self, mock_flash, capsys):
         """Test behavior when folder doesn't exist."""
         result = get_game_names_from_folder('/non/existent/path', [], [])
@@ -121,7 +121,7 @@ class TestGetGameNamesFromFolder:
         mock_flash.assert_called_once()
     
     @patch('os.access')
-    @patch('modules.utils_gamenames.flash')
+    @patch('sharewarez.utils.gamenames.flash')
     def test_folder_without_read_permissions(self, mock_flash, mock_access, temp_directory, capsys):
         """Test behavior when folder exists but is not readable."""
         mock_access.return_value = False

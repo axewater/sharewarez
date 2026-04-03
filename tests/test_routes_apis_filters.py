@@ -1,5 +1,5 @@
 """
-Unit tests for modules.routes_apis.filters
+Unit tests for sharewarez.routes_apis.filters
 
 Tests the filter API endpoints including authentication, successful data retrieval,
 error handling, and logging functionality.
@@ -10,13 +10,13 @@ from unittest.mock import patch, MagicMock
 from uuid import uuid4
 from sqlalchemy.exc import SQLAlchemyError
 
-from modules.models import User, Genre, Theme, GameMode, PlayerPerspective
+from sharewarez.models import User, Genre, Theme, GameMode, PlayerPerspective
 
 
 def safe_cleanup_database(db_session):
     """Safely clean up database records respecting foreign key constraints."""
     from sqlalchemy import delete
-    from modules.models import SystemEvents
+    from sharewarez.models import SystemEvents
     
     # Clean up in order of dependencies
     db_session.execute(delete(SystemEvents))
@@ -328,7 +328,7 @@ class TestFiltersAPIEmptyDatabase:
 class TestFiltersAPIErrorHandling:
     """Test error handling scenarios."""
     
-    @patch('modules.routes_apis.filters.db.session.execute')
+    @patch('sharewarez.routes_apis.filters.db.session.execute')
     def test_genres_database_error(self, mock_execute, client, regular_user):
         """Test handling of database errors in genres endpoint."""
         mock_execute.side_effect = SQLAlchemyError("Database connection failed")
@@ -344,7 +344,7 @@ class TestFiltersAPIErrorHandling:
         assert data['status'] == 'error'
         assert 'Database error retrieving genres' in data['message']
     
-    @patch('modules.routes_apis.filters.db.session.execute')
+    @patch('sharewarez.routes_apis.filters.db.session.execute')
     def test_themes_general_exception(self, mock_execute, client, regular_user):
         """Test handling of general exceptions in themes endpoint."""
         mock_execute.side_effect = Exception("Unexpected error")
@@ -360,7 +360,7 @@ class TestFiltersAPIErrorHandling:
         assert data['status'] == 'error'
         assert 'Error retrieving themes' in data['message']
     
-    @patch('modules.routes_apis.filters.db.session.execute')
+    @patch('sharewarez.routes_apis.filters.db.session.execute')
     def test_game_modes_database_error(self, mock_execute, client, regular_user):
         """Test handling of database errors in game modes endpoint."""
         mock_execute.side_effect = SQLAlchemyError("Table not found")
@@ -376,7 +376,7 @@ class TestFiltersAPIErrorHandling:
         assert data['status'] == 'error'
         assert 'Database error retrieving game_modes' in data['message']
     
-    @patch('modules.routes_apis.filters.db.session.execute')
+    @patch('sharewarez.routes_apis.filters.db.session.execute')
     def test_player_perspectives_general_exception(self, mock_execute, client, regular_user):
         """Test handling of general exceptions in player perspectives endpoint."""
         mock_execute.side_effect = Exception("Memory error")
@@ -396,8 +396,8 @@ class TestFiltersAPIErrorHandling:
 class TestFiltersAPILogging:
     """Test logging behavior for filter endpoints."""
     
-    @patch('modules.routes_apis.filters.log_system_event')
-    @patch('modules.routes_apis.filters.db.session.execute')
+    @patch('sharewarez.routes_apis.filters.log_system_event')
+    @patch('sharewarez.routes_apis.filters.db.session.execute')
     def test_themes_error_logging(self, mock_execute, mock_log, client, regular_user):
         """Test that error logging occurs for failed themes retrieval."""
         mock_execute.side_effect = SQLAlchemyError("Connection timeout")
@@ -444,7 +444,7 @@ class TestFiltersAPIResponseFormat:
             assert isinstance(item['id'], int)
             assert isinstance(item['name'], str)
     
-    @patch('modules.routes_apis.filters.db.session.execute')
+    @patch('sharewarez.routes_apis.filters.db.session.execute')
     def test_error_response_structure(self, mock_execute, client, regular_user):
         """Test that error responses have correct structure."""
         mock_execute.side_effect = SQLAlchemyError("Test error")

@@ -8,9 +8,9 @@ from uuid import uuid4
 from datetime import datetime, timezone
 
 from sqlalchemy import select
-from modules import db
-from modules.models import User, Game, Library, SystemEvents
-from modules.platform import LibraryPlatform
+from sharewarez import db
+from sharewarez.models import User, Game, Library, SystemEvents
+from sharewarez.platform import LibraryPlatform
 
 
 @pytest.fixture
@@ -209,7 +209,7 @@ class TestDownloadRomRoute:
         assert response.status_code == 302  # Should redirect to login
         assert 'login' in response.location or '/auth' in response.location
     
-    @patch('modules.routes_downloads_ext.play.log_system_event')
+    @patch('sharewarez.routes_downloads_ext.play.log_system_event')
     def test_downloadrom_invalid_uuid_format(self, mock_log, client, authenticated_user):
         """Test downloadrom reaches Flask route (should not happen with ASGI)."""
         with client.session_transaction() as sess:
@@ -231,7 +231,7 @@ class TestDownloadRomRoute:
         assert call_args[1]['event_type'] == 'system'
         assert call_args[1]['event_level'] == 'warning'
     
-    @patch('modules.routes_downloads_ext.play.log_system_event')
+    @patch('sharewarez.routes_downloads_ext.play.log_system_event')
     def test_downloadrom_valid_uuid_nonexistent_game(self, mock_log, client, authenticated_user):
         """Test downloadrom reaches Flask route (should not happen with ASGI)."""
         with client.session_transaction() as sess:
@@ -253,7 +253,7 @@ class TestDownloadRomRoute:
         assert call_args[1]['event_type'] == 'system'
         assert call_args[1]['event_level'] == 'warning'
     
-    @patch('modules.routes_downloads_ext.play.log_system_event')
+    @patch('sharewarez.routes_downloads_ext.play.log_system_event')
     def test_downloadrom_game_file_not_exists(self, mock_log, client, authenticated_user, test_game_with_nonexistent_file):
         """Test downloadrom reaches Flask route (should not happen with ASGI)."""
         with client.session_transaction() as sess:
@@ -274,7 +274,7 @@ class TestDownloadRomRoute:
         assert call_args[1]['event_type'] == 'system'
         assert call_args[1]['event_level'] == 'warning'
     
-    @patch('modules.routes_downloads_ext.play.log_system_event')
+    @patch('sharewarez.routes_downloads_ext.play.log_system_event')
     def test_downloadrom_path_traversal_attempt(self, mock_log, client, authenticated_user, test_game_with_unsafe_path):
         """Test downloadrom reaches Flask route (should not happen with ASGI)."""
         with client.session_transaction() as sess:
@@ -295,7 +295,7 @@ class TestDownloadRomRoute:
         assert call_args[1]['event_type'] == 'system'
         assert call_args[1]['event_level'] == 'warning'
     
-    @patch('modules.routes_downloads_ext.play.log_system_event')
+    @patch('sharewarez.routes_downloads_ext.play.log_system_event')
     def test_downloadrom_folder_not_supported(self, mock_log, client, authenticated_user, test_game_with_folder):
         """Test downloadrom reaches Flask route (should not happen with ASGI)."""
         with client.session_transaction() as sess:
@@ -316,7 +316,7 @@ class TestDownloadRomRoute:
         assert call_args[1]['event_type'] == 'system'
         assert call_args[1]['event_level'] == 'warning'
     
-    @patch('modules.routes_downloads_ext.play.log_system_event')
+    @patch('sharewarez.routes_downloads_ext.play.log_system_event')
     def test_downloadrom_successful_download(self, mock_log, client, 
                                            authenticated_user, test_game_with_file, app):
         """Test downloadrom reaches Flask route (should not happen with ASGI)."""
@@ -339,7 +339,7 @@ class TestDownloadRomRoute:
         assert call_args[1]['event_type'] == 'system'
         assert call_args[1]['event_level'] == 'warning'
     
-    @patch('modules.routes_downloads_ext.play.log_system_event')
+    @patch('sharewarez.routes_downloads_ext.play.log_system_event')
     def test_downloadrom_logs_security_events(self, mock_log, client, authenticated_user):
         """Test that Flask route logs system events when reached unexpectedly."""
         with client.session_transaction() as sess:
@@ -362,7 +362,7 @@ class TestDownloadRomRoute:
             assert call_args[1]['event_level'] == 'warning'
             assert 'Flask ROM download route reached unexpectedly' in call_args[0][0]
     
-    @patch('modules.routes_downloads_ext.play.log_system_event')
+    @patch('sharewarez.routes_downloads_ext.play.log_system_event')
     def test_downloadrom_sql_injection_attempt(self, mock_log, client, authenticated_user):
         """Test that Flask route is reached for SQL injection attempts."""
         with client.session_transaction() as sess:
@@ -391,7 +391,7 @@ class TestDownloadRomRoute:
             assert call_args[1]['event_level'] == 'warning'
             assert 'Flask ROM download route reached unexpectedly' in call_args[0][0]
     
-    @patch('modules.routes_downloads_ext.play.log_system_event')
+    @patch('sharewarez.routes_downloads_ext.play.log_system_event')
     def test_downloadrom_allowed_directories_validation(self, mock_log, client, 
                                                       authenticated_user, app):
         """Test downloadrom reaches Flask route (should not happen with ASGI)."""
@@ -437,7 +437,7 @@ class TestDownloadRomRoute:
 class TestSecurityIntegration:
     """Integration tests for security features."""
     
-    @patch('modules.routes_downloads_ext.play.log_system_event')
+    @patch('sharewarez.routes_downloads_ext.play.log_system_event')
     def test_comprehensive_security_flow(self, mock_log, client, authenticated_user, 
                                        test_game_with_file, app):
         """Test downloadrom reaches Flask route (should not happen with ASGI)."""

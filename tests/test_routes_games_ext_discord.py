@@ -2,8 +2,8 @@ import pytest
 import json
 from uuid import uuid4
 from unittest.mock import patch, MagicMock
-from modules import create_app, db
-from modules.models import User, GlobalSettings, Game, Library
+from sharewarez import create_app, db
+from sharewarez.models import User, GlobalSettings, Game, Library
 from sqlalchemy import select
 
 
@@ -77,7 +77,7 @@ class TestDiscordNotificationRoute:
         """Create a test game."""
         with app.app_context():
             # Create a library first - need to import LibraryPlatform
-            from modules.models import LibraryPlatform
+            from sharewarez.models import LibraryPlatform
             library = Library(
                 name="Test Library",
                 platform=LibraryPlatform.PCWIN
@@ -186,7 +186,7 @@ class TestDiscordNotificationRoute:
             assert data['success'] is False
             assert 'not found' in data['message']
     
-    @patch('modules.routes_games_ext.discord.discord_webhook')
+    @patch('sharewarez.routes_games_ext.discord.discord_webhook')
     def test_trigger_discord_notification_success(self, mock_discord_webhook, client, admin_user, test_game, app):
         """Test successful Discord notification."""
         with app.app_context():
@@ -212,7 +212,7 @@ class TestDiscordNotificationRoute:
         assert 'notification sent' in data['message'].lower()
         mock_discord_webhook.assert_called_once_with(test_game, manual_trigger=True)
     
-    @patch('modules.routes_games_ext.discord.discord_webhook')
+    @patch('sharewarez.routes_games_ext.discord.discord_webhook')
     def test_trigger_discord_notification_webhook_error(self, mock_discord_webhook, client, admin_user, test_game, app):
         """Test Discord notification when webhook fails."""
         with app.app_context():

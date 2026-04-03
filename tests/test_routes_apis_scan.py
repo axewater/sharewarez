@@ -5,10 +5,10 @@ from uuid import uuid4
 from datetime import datetime, timezone, timedelta
 from flask import url_for
 
-from modules import db
-from modules.models import User, Library, ScanJob, UnmatchedFolder
-from modules.platform import LibraryPlatform
-from modules.utils_functions import PLATFORM_IDS
+from sharewarez import db
+from sharewarez.models import User, Library, ScanJob, UnmatchedFolder
+from sharewarez.platform import LibraryPlatform
+from sharewarez.utils.functions import PLATFORM_IDS
 
 
 def safe_cleanup_database(db_session):
@@ -430,7 +430,7 @@ class TestUnmatchedFolders:
         assert folder['platform_id'] == PLATFORM_IDS.get('PCWIN')  # Should be 6
         assert folder['platform_id'] == 6
     
-    @patch('modules.routes_apis.scan.PLATFORM_IDS', {})  # Mock empty PLATFORM_IDS in the route module
+    @patch('sharewarez.routes_apis.scan.PLATFORM_IDS', {})  # Mock empty PLATFORM_IDS in the route module
     def test_unmatched_folders_no_platform_mapping(self, client, admin_user, db_session):
         """Test unmatched_folders when platform exists but has no ID mapping."""
         # Create library with a platform that won't be in PLATFORM_IDS
@@ -494,7 +494,7 @@ class TestUnmatchedFolders:
             sess['_fresh'] = True
         
         # Mock the query to return None platform (simulating edge case)
-        with patch('modules.routes_apis.scan.db.session.execute') as mock_execute:
+        with patch('sharewarez.routes_apis.scan.db.session.execute') as mock_execute:
             # Create a mock result that simulates None platform
             mock_result_row = Mock()
             mock_result_row.id = unmatched.id

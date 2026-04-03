@@ -1,5 +1,5 @@
 """
-Unit tests for modules.routes_apis.browse
+Unit tests for sharewarez.routes_apis.browse
 
 Tests the browse_folders_ss API endpoint including authentication, authorization,
 directory browsing, security, and error handling.
@@ -12,7 +12,7 @@ import tempfile
 from unittest.mock import patch, MagicMock
 from uuid import uuid4
 
-from modules.models import User
+from sharewarez.models import User
 
 
 @pytest.fixture
@@ -84,8 +84,8 @@ class TestBrowseFoldersSS:
         response = client.get('/api/browse_folders_ss')
         assert response.status_code == 302  # Redirect due to admin_required decorator
     
-    @patch('modules.routes_apis.browse.os')
-    @patch('modules.routes_apis.browse.current_app', new_callable=MagicMock)
+    @patch('sharewarez.routes_apis.browse.os')
+    @patch('sharewarez.routes_apis.browse.current_app', new_callable=MagicMock)
     def test_browse_base_directory_posix(self, mock_current_app, mock_os, client, admin_user, mock_filesystem):
         """Test browsing the base directory on POSIX systems."""
         # Setup mocks
@@ -143,8 +143,8 @@ class TestBrowseFoldersSS:
             assert directory['ext'] is None
             assert directory['size'] is None
     
-    @patch('modules.routes_apis.browse.os')
-    @patch('modules.routes_apis.browse.current_app', new_callable=MagicMock)
+    @patch('sharewarez.routes_apis.browse.os')
+    @patch('sharewarez.routes_apis.browse.current_app', new_callable=MagicMock)
     def test_browse_base_directory_windows(self, mock_current_app, mock_os, client, admin_user, mock_filesystem):
         """Test browsing the base directory on Windows systems."""
         # Setup mocks
@@ -180,8 +180,8 @@ class TestBrowseFoldersSS:
         assert isinstance(data, list)
         assert len(data) == 2
     
-    @patch('modules.routes_apis.browse.os')
-    @patch('modules.routes_apis.browse.current_app', new_callable=MagicMock)
+    @patch('sharewarez.routes_apis.browse.os')
+    @patch('sharewarez.routes_apis.browse.current_app', new_callable=MagicMock)
     def test_browse_subdirectory(self, mock_current_app, mock_os, client, admin_user):
         """Test browsing a subdirectory with proper path handling."""
         # Setup mocks
@@ -225,8 +225,8 @@ class TestBrowseFoldersSS:
         assert file_item['ext'] == 'txt'
         assert file_item['size'] == 250
     
-    @patch('modules.routes_apis.browse.os')
-    @patch('modules.routes_apis.browse.current_app', new_callable=MagicMock)
+    @patch('sharewarez.routes_apis.browse.os')
+    @patch('sharewarez.routes_apis.browse.current_app', new_callable=MagicMock)
     def test_directory_traversal_prevention(self, mock_current_app, mock_os, client, admin_user):
         """Test that directory traversal attacks are prevented."""
         # Setup mocks
@@ -256,8 +256,8 @@ class TestBrowseFoldersSS:
         assert 'error' in data
         assert data['error'] == 'Access denied'
     
-    @patch('modules.routes_apis.browse.os')
-    @patch('modules.routes_apis.browse.current_app', new_callable=MagicMock)
+    @patch('sharewarez.routes_apis.browse.os')
+    @patch('sharewarez.routes_apis.browse.current_app', new_callable=MagicMock)
     def test_nonexistent_directory(self, mock_current_app, mock_os, client, admin_user):
         """Test handling of nonexistent directories."""
         # Setup mocks
@@ -285,8 +285,8 @@ class TestBrowseFoldersSS:
         assert 'error' in data
         assert 'SS folder browser: Folder not found' in data['error']
     
-    @patch('modules.routes_apis.browse.os')
-    @patch('modules.routes_apis.browse.current_app', new_callable=MagicMock)
+    @patch('sharewarez.routes_apis.browse.os')
+    @patch('sharewarez.routes_apis.browse.current_app', new_callable=MagicMock)
     def test_file_metadata_accuracy(self, mock_current_app, mock_os, client, admin_user):
         """Test that file metadata is accurate including extensions and sizes."""
         # Setup mocks
@@ -362,8 +362,8 @@ class TestBrowseFoldersSS:
                 assert item['ext'] == ''  # No extension
                 assert item['size'] == 512
     
-    @patch('modules.routes_apis.browse.os')
-    @patch('modules.routes_apis.browse.current_app', new_callable=MagicMock)
+    @patch('sharewarez.routes_apis.browse.os')
+    @patch('sharewarez.routes_apis.browse.current_app', new_callable=MagicMock)
     def test_response_sorting(self, mock_current_app, mock_os, client, admin_user):
         """Test that response is properly sorted (directories first, then files alphabetically)."""
         # Setup mocks
@@ -426,8 +426,8 @@ class TestBrowseFoldersSS:
         all_names = [item['name'] for item in data]
         assert all_names == ['alpha_dir', 'gamma_dir', 'beta_file.txt', 'zebra_file.txt']
     
-    @patch('modules.routes_apis.browse.os')
-    @patch('modules.routes_apis.browse.current_app', new_callable=MagicMock)
+    @patch('sharewarez.routes_apis.browse.os')
+    @patch('sharewarez.routes_apis.browse.current_app', new_callable=MagicMock)
     def test_empty_directory(self, mock_current_app, mock_os, client, admin_user):
         """Test browsing an empty directory."""
         # Setup mocks

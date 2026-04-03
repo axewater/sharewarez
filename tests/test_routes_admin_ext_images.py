@@ -2,7 +2,7 @@
 import pytest
 from unittest.mock import patch, MagicMock, mock_open
 from flask import json
-from modules.models import Image, Game, Library, LibraryPlatform, User
+from sharewarez.models import Image, Game, Library, LibraryPlatform, User
 from uuid import uuid4
 import os
 
@@ -366,9 +366,9 @@ class TestDownloadImagesAPI:
         db_session.add(pending_image)
         db_session.flush()
 
-        with patch('modules.utils_functions.download_image') as mock_download, \
+        with patch('sharewarez.utils.functions.download_image') as mock_download, \
              patch('os.path.join') as mock_join, \
-             patch('modules.routes_admin_ext.images.current_app') as mock_app:
+             patch('sharewarez.routes_admin_ext.images.current_app') as mock_app:
             
             mock_app.config = {'IMAGE_SAVE_PATH': '/test/path'}
             mock_join.return_value = '/test/path/cover.jpg'
@@ -426,7 +426,7 @@ class TestDownloadImagesAPI:
         assert data['success'] is True
         assert data['downloaded'] == 0
 
-    @patch('modules.utils_game_core.download_pending_images')
+    @patch('sharewarez.utils.game_core.download_pending_images')
     def test_batch_download_success(self, mock_batch_download, client, admin_user):
         """Test batch downloading images."""
         with client.session_transaction() as sess:
@@ -476,7 +476,7 @@ class TestDownloadImagesAPI:
         db_session.add(pending_image)
         db_session.flush()
 
-        with patch('modules.utils_functions.download_image') as mock_download:
+        with patch('sharewarez.utils.functions.download_image') as mock_download:
             mock_download.side_effect = Exception("Download failed")
             
             response = client.post('/admin/api/download_images', 
@@ -569,7 +569,7 @@ class TestDeleteImageAPI:
 
         with patch('os.path.exists') as mock_exists, \
              patch('os.remove') as mock_remove, \
-             patch('modules.routes_admin_ext.images.current_app') as mock_app:
+             patch('sharewarez.routes_admin_ext.images.current_app') as mock_app:
             
             mock_app.config = {'IMAGE_SAVE_PATH': '/test/path'}
             mock_exists.return_value = True
@@ -602,7 +602,7 @@ class TestDeleteImageAPI:
         db_session.flush()
         image_id = test_image.id
 
-        with patch('modules.db.session.delete') as mock_delete:
+        with patch('sharewarez.db.session.delete') as mock_delete:
             mock_delete.side_effect = Exception("Database error")
             
             response = client.delete(f'/admin/api/delete_image/{image_id}')

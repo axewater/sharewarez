@@ -3,7 +3,7 @@ import platform
 import sys
 from datetime import datetime, timedelta
 from unittest.mock import patch, mock_open, MagicMock
-from modules.utils_uptime import (
+from sharewarez.utils.uptime import (
     get_system_uptime,
     format_uptime,
     get_formatted_system_uptime,
@@ -160,7 +160,7 @@ class TestFormatUptime:
 class TestGetFormattedSystemUptime:
     """Test formatted system uptime functionality."""
     
-    @patch('modules.utils_uptime.get_system_uptime', return_value=3661)
+    @patch('sharewarez.utils.uptime.get_system_uptime', return_value=3661)
     def test_get_formatted_system_uptime_success(self, mock_get_uptime):
         """Test successful formatted system uptime retrieval."""
         result = get_formatted_system_uptime()
@@ -168,7 +168,7 @@ class TestGetFormattedSystemUptime:
         assert result == "1 hour, 1 minute"
         mock_get_uptime.assert_called_once()
     
-    @patch('modules.utils_uptime.get_system_uptime', return_value=None)
+    @patch('sharewarez.utils.uptime.get_system_uptime', return_value=None)
     def test_get_formatted_system_uptime_failure(self, mock_get_uptime):
         """Test formatted system uptime when get_system_uptime fails."""
         result = get_formatted_system_uptime()
@@ -176,7 +176,7 @@ class TestGetFormattedSystemUptime:
         assert result == "Unavailable"
         mock_get_uptime.assert_called_once()
     
-    @patch('modules.utils_uptime.get_system_uptime', return_value=30)
+    @patch('sharewarez.utils.uptime.get_system_uptime', return_value=30)
     def test_get_formatted_system_uptime_short_duration(self, mock_get_uptime):
         """Test formatted system uptime for short durations."""
         result = get_formatted_system_uptime()

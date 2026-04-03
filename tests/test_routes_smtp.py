@@ -3,9 +3,9 @@ import json
 from unittest.mock import patch, Mock, MagicMock
 from uuid import uuid4
 
-from modules import create_app, db
-from modules.models import User, GlobalSettings
-from modules.utils_smtp_test import SMTPTester
+from sharewarez import create_app, db
+from sharewarez.models import User, GlobalSettings
+from sharewarez.utils.smtp_test import SMTPTester
 from sqlalchemy import select, delete
 
 
@@ -68,7 +68,7 @@ def create_test_settings(db_session):
 class TestSmtpContextProcessor:
     """Test the SMTP context processor."""
     
-    @patch('modules.routes_smtp.get_global_settings')
+    @patch('sharewarez.routes_smtp.get_global_settings')
     def test_inject_settings_cached(self, mock_get_settings, app):
         """Test that inject_settings returns global settings."""
         # Mock the settings
@@ -80,7 +80,7 @@ class TestSmtpContextProcessor:
         mock_get_settings.return_value = mock_settings
         
         with app.app_context():
-            from modules.routes_smtp import inject_settings
+            from sharewarez.routes_smtp import inject_settings
             result = inject_settings()
             
             assert result == mock_settings
@@ -93,7 +93,7 @@ class TestSmtpSettings:
     def test_get_requires_login(self, client, admin_user):
         """Test that GET request requires login."""
         # Ensure admin user exists and setup is completed
-        from modules.utils_setup import mark_setup_complete
+        from sharewarez.utils.setup import mark_setup_complete
         mark_setup_complete()
         
         response = client.get('/admin/smtp_settings')
@@ -109,7 +109,7 @@ class TestSmtpSettings:
         response = client.get('/admin/smtp_settings')
         assert response.status_code == 302  # Redirected by admin_required
     
-    @patch('modules.routes_smtp.render_template')
+    @patch('sharewarez.routes_smtp.render_template')
     def test_get_success_no_settings(self, mock_render, client, admin_user, db_session):
         """Test GET request with no existing settings."""
         # Delete any existing settings first
@@ -133,7 +133,7 @@ class TestSmtpSettings:
         assert kwargs['settings'] is not None
         assert isinstance(kwargs['settings'], GlobalSettings)
     
-    @patch('modules.routes_smtp.render_template')
+    @patch('sharewarez.routes_smtp.render_template')
     def test_get_success_with_settings(self, mock_render, client, admin_user, db_session):
         """Test GET request with existing settings."""
         # Delete any default settings first, then use our test settings
@@ -465,7 +465,7 @@ class TestSmtpSettings:
             'smtp_server': 'smtp.example.com'
         }
         
-        with patch('modules.routes_smtp.db.session.commit', side_effect=Exception('Database error')):
+        with patch('sharewarez.routes_smtp.db.session.commit', side_effect=Exception('Database error')):
             response = client.post('/admin/smtp_settings', json=data)
             
             assert response.status_code == 500
@@ -552,7 +552,7 @@ class TestSmtpTest:
         # The message will be about invalid port number since settings exist but are None
         assert 'port number' in response_data['message']
     
-    @patch('modules.routes_smtp.SMTPTester')
+    @patch('sharewarez.routes_smtp.SMTPTester')
     def test_post_success(self, mock_smtp_tester_class, client, admin_user, db_session):
         """Test POST request with successful SMTP test."""
         # Delete any default settings and use only our test settings
@@ -587,7 +587,7 @@ class TestSmtpTest:
             timeout=10
         )
     
-    @patch('modules.routes_smtp.SMTPTester')
+    @patch('sharewarez.routes_smtp.SMTPTester')
     def test_post_failure(self, mock_smtp_tester_class, client, admin_user, db_session):
         """Test POST request with failed SMTP test."""
         # Delete any default settings and use only our test settings
@@ -622,7 +622,7 @@ class TestSmtpTest:
             timeout=10
         )
     
-    @patch('modules.routes_smtp.SMTPTester')
+    @patch('sharewarez.routes_smtp.SMTPTester')
     @patch('builtins.print')
     def test_post_debug_print(self, mock_print, mock_smtp_tester_class, client, admin_user, db_session):
         """Test POST request includes debug print statement."""

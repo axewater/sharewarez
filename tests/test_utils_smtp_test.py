@@ -3,7 +3,7 @@ import socket
 import ssl
 import smtplib
 from unittest.mock import patch, MagicMock, call
-from modules.utils_smtp_test import SMTPTester, main
+from sharewarez.utils.smtp_test import SMTPTester, main
 
 
 class TestSMTPTesterInit:
@@ -114,9 +114,9 @@ class TestSMTPTesterConnection:
         mock_smtp.has_extn.return_value = True
         return mock_smtp
 
-    @patch('modules.utils_smtp_test.log_system_event')
-    @patch('modules.utils_smtp_test.socket.create_connection')
-    @patch('modules.utils_smtp_test.smtplib.SMTP')
+    @patch('sharewarez.utils.smtp_test.log_system_event')
+    @patch('sharewarez.utils.smtp_test.socket.create_connection')
+    @patch('sharewarez.utils.smtp_test.smtplib.SMTP')
     def test_connection_success_basic(self, mock_smtp_class, mock_socket, mock_log, tester, mock_smtp):
         """Test successful basic connection without authentication."""
         # Setup mocks
@@ -149,9 +149,9 @@ class TestSMTPTesterConnection:
             event_level='information'
         )
 
-    @patch('modules.utils_smtp_test.log_system_event')
-    @patch('modules.utils_smtp_test.socket.create_connection')
-    @patch('modules.utils_smtp_test.smtplib.SMTP')
+    @patch('sharewarez.utils.smtp_test.log_system_event')
+    @patch('sharewarez.utils.smtp_test.socket.create_connection')
+    @patch('sharewarez.utils.smtp_test.smtplib.SMTP')
     def test_connection_success_with_auth(self, mock_smtp_class, mock_socket, mock_log, tester, mock_smtp):
         """Test successful connection with authentication."""
         # Setup mocks
@@ -171,10 +171,10 @@ class TestSMTPTesterConnection:
         assert result['auth_status'] == 'Authentication successful'
         mock_smtp.login.assert_called_once_with('testuser', 'testpass')
 
-    @patch('modules.utils_smtp_test.log_system_event')
-    @patch('modules.utils_smtp_test.socket.create_connection')
-    @patch('modules.utils_smtp_test.smtplib.SMTP')
-    @patch('modules.utils_smtp_test.ssl.create_default_context')
+    @patch('sharewarez.utils.smtp_test.log_system_event')
+    @patch('sharewarez.utils.smtp_test.socket.create_connection')
+    @patch('sharewarez.utils.smtp_test.smtplib.SMTP')
+    @patch('sharewarez.utils.smtp_test.ssl.create_default_context')
     def test_connection_success_with_tls(self, mock_ssl_context, mock_smtp_class, mock_socket, mock_log, tester, mock_smtp):
         """Test successful connection with TLS."""
         # Setup mocks
@@ -193,9 +193,9 @@ class TestSMTPTesterConnection:
         # EHLO should be called twice: once initially, once after STARTTLS
         assert mock_smtp.ehlo.call_count == 2
 
-    @patch('modules.utils_smtp_test.log_system_event')
-    @patch('modules.utils_smtp_test.socket.create_connection')
-    @patch('modules.utils_smtp_test.smtplib.SMTP')
+    @patch('sharewarez.utils.smtp_test.log_system_event')
+    @patch('sharewarez.utils.smtp_test.socket.create_connection')
+    @patch('sharewarez.utils.smtp_test.smtplib.SMTP')
     def test_connection_no_tls(self, mock_smtp_class, mock_socket, mock_log, tester, mock_smtp):
         """Test connection with TLS disabled."""
         # Setup mocks
@@ -210,8 +210,8 @@ class TestSMTPTesterConnection:
         mock_smtp.has_extn.assert_not_called()
         mock_smtp.starttls.assert_not_called()
 
-    @patch('modules.utils_smtp_test.socket.create_connection')
-    @patch('modules.utils_smtp_test.smtplib.SMTP')
+    @patch('sharewarez.utils.smtp_test.socket.create_connection')
+    @patch('sharewarez.utils.smtp_test.smtplib.SMTP')
     def test_connection_starttls_not_supported(self, mock_smtp_class, mock_socket, tester, mock_smtp):
         """Test connection when STARTTLS is not supported by server."""
         # Setup mocks
@@ -226,8 +226,8 @@ class TestSMTPTesterConnection:
         assert success is False
         assert result == "STARTTLS not supported by server (not found in extensions)"
 
-    @patch('modules.utils_smtp_test.socket.create_connection')
-    @patch('modules.utils_smtp_test.smtplib.SMTP')
+    @patch('sharewarez.utils.smtp_test.socket.create_connection')
+    @patch('sharewarez.utils.smtp_test.smtplib.SMTP')
     def test_connection_auth_failure(self, mock_smtp_class, mock_socket, tester, mock_smtp):
         """Test connection with authentication failure."""
         # Setup mocks
@@ -246,7 +246,7 @@ class TestSMTPTesterConnection:
         assert success is False
         assert result == "Authentication failed - invalid credentials"
 
-    @patch('modules.utils_smtp_test.socket.create_connection')
+    @patch('sharewarez.utils.smtp_test.socket.create_connection')
     def test_connection_socket_timeout(self, mock_socket, tester):
         """Test connection with socket timeout."""
         # Setup mock to raise timeout
@@ -259,7 +259,7 @@ class TestSMTPTesterConnection:
         assert success is False
         assert result == "Connection timed out"
 
-    @patch('modules.utils_smtp_test.socket.create_connection')
+    @patch('sharewarez.utils.smtp_test.socket.create_connection')
     def test_connection_dns_failure(self, mock_socket, tester):
         """Test connection with DNS lookup failure."""
         # Setup mock to raise DNS error
@@ -272,7 +272,7 @@ class TestSMTPTesterConnection:
         assert success is False
         assert result == "DNS lookup failed"
 
-    @patch('modules.utils_smtp_test.socket.create_connection')
+    @patch('sharewarez.utils.smtp_test.socket.create_connection')
     def test_connection_ssl_error(self, mock_socket, tester):
         """Test connection with SSL/TLS error."""
         # Setup mock to raise SSL error during socket connection
@@ -286,9 +286,9 @@ class TestSMTPTesterConnection:
         # The SSL error message might be formatted as a tuple by str()
         assert "SSL/TLS error:" in result and "SSL handshake failed" in result
 
-    @patch('modules.utils_smtp_test.log_system_event')
-    @patch('modules.utils_smtp_test.socket.create_connection')
-    @patch('modules.utils_smtp_test.smtplib.SMTP')
+    @patch('sharewarez.utils.smtp_test.log_system_event')
+    @patch('sharewarez.utils.smtp_test.socket.create_connection')
+    @patch('sharewarez.utils.smtp_test.smtplib.SMTP')
     def test_connection_smtp_exception(self, mock_smtp_class, mock_socket, mock_log, tester, mock_smtp):
         """Test connection with SMTP protocol exception."""
         # Setup mocks
@@ -310,7 +310,7 @@ class TestSMTPTesterConnection:
             event_level='information'
         )
 
-    @patch('modules.utils_smtp_test.socket.create_connection')
+    @patch('sharewarez.utils.smtp_test.socket.create_connection')
     def test_connection_unexpected_error(self, mock_socket, tester):
         """Test connection with unexpected error."""
         # Setup mock to raise unexpected exception
@@ -327,8 +327,8 @@ class TestSMTPTesterConnection:
         """Test that debug mode enables SMTP debug output."""
         debug_tester = SMTPTester(debug=True)
         
-        with patch('modules.utils_smtp_test.socket.create_connection') as mock_socket, \
-             patch('modules.utils_smtp_test.smtplib.SMTP') as mock_smtp_class:
+        with patch('sharewarez.utils.smtp_test.socket.create_connection') as mock_socket, \
+             patch('sharewarez.utils.smtp_test.smtplib.SMTP') as mock_smtp_class:
             
             mock_socket.return_value.close.return_value = None
             mock_smtp = MagicMock()
@@ -342,8 +342,8 @@ class TestSMTPTesterConnection:
             # Verify debug was enabled
             mock_smtp.set_debuglevel.assert_called_once_with(1)
 
-    @patch('modules.utils_smtp_test.socket.create_connection')
-    @patch('modules.utils_smtp_test.smtplib.SMTP')
+    @patch('sharewarez.utils.smtp_test.socket.create_connection')
+    @patch('sharewarez.utils.smtp_test.smtplib.SMTP')
     def test_connection_custom_timeout(self, mock_smtp_class, mock_socket, tester):
         """Test connection with custom timeout."""
         # Setup mocks
@@ -360,9 +360,9 @@ class TestSMTPTesterConnection:
         mock_socket.assert_called_once_with(('smtp.example.com', 587), timeout=30)
         mock_smtp_class.assert_called_once_with('smtp.example.com', 587, timeout=30)
 
-    @patch('modules.utils_smtp_test.log_system_event')
-    @patch('modules.utils_smtp_test.socket.create_connection')
-    @patch('modules.utils_smtp_test.smtplib.SMTP')
+    @patch('sharewarez.utils.smtp_test.log_system_event')
+    @patch('sharewarez.utils.smtp_test.socket.create_connection')
+    @patch('sharewarez.utils.smtp_test.smtplib.SMTP')
     def test_connection_server_capabilities(self, mock_smtp_class, mock_socket, mock_log, tester):
         """Test that server capabilities are properly parsed and returned."""
         # Setup mocks
@@ -390,9 +390,9 @@ class TestSMTPTesterConnection:
         assert capabilities['Pipeline'] is True
         assert capabilities['8BITMIME'] is True
 
-    @patch('modules.utils_smtp_test.log_system_event')
-    @patch('modules.utils_smtp_test.socket.create_connection')
-    @patch('modules.utils_smtp_test.smtplib.SMTP')
+    @patch('sharewarez.utils.smtp_test.log_system_event')
+    @patch('sharewarez.utils.smtp_test.socket.create_connection')
+    @patch('sharewarez.utils.smtp_test.smtplib.SMTP')
     def test_connection_quit_exception_handling(self, mock_smtp_class, mock_socket, mock_log, tester):
         """Test that exceptions during SMTP quit are handled gracefully."""
         # Setup mocks
@@ -416,8 +416,8 @@ class TestSMTPTesterConnection:
 class TestMainFunction:
     """Test the main CLI function."""
     
-    @patch('modules.utils_smtp_test.SMTPTester')
-    @patch('modules.utils_smtp_test.sys.argv', ['smtp_test.py', '--host', 'smtp.example.com', '--port', '587'])
+    @patch('sharewarez.utils.smtp_test.SMTPTester')
+    @patch('sharewarez.utils.smtp_test.sys.argv', ['smtp_test.py', '--host', 'smtp.example.com', '--port', '587'])
     def test_main_basic_success(self, mock_tester_class):
         """Test main function with basic successful connection."""
         # Setup mocks
@@ -448,9 +448,9 @@ class TestMainFunction:
         # Verify success output
         mock_print.assert_any_call("\n✅ SMTP Configuration Test Successful!")
 
-    @patch('modules.utils_smtp_test.SMTPTester')
-    @patch('modules.utils_smtp_test.getpass', return_value='testpass')
-    @patch('modules.utils_smtp_test.sys.argv', [
+    @patch('sharewarez.utils.smtp_test.SMTPTester')
+    @patch('sharewarez.utils.smtp_test.getpass', return_value='testpass')
+    @patch('sharewarez.utils.smtp_test.sys.argv', [
         'smtp_test.py', '--host', 'smtp.example.com', '--port', '587',
         '--username', 'testuser', '--debug', '--no-tls'
     ])
@@ -476,9 +476,9 @@ class TestMainFunction:
             timeout=10
         )
 
-    @patch('modules.utils_smtp_test.SMTPTester')
-    @patch('modules.utils_smtp_test.getpass')
-    @patch('modules.utils_smtp_test.sys.argv', [
+    @patch('sharewarez.utils.smtp_test.SMTPTester')
+    @patch('sharewarez.utils.smtp_test.getpass')
+    @patch('sharewarez.utils.smtp_test.sys.argv', [
         'smtp_test.py', '--host', 'smtp.example.com', '--port', '587',
         '--username', 'testuser'
     ])
@@ -507,8 +507,8 @@ class TestMainFunction:
             timeout=10
         )
 
-    @patch('modules.utils_smtp_test.SMTPTester')
-    @patch('modules.utils_smtp_test.sys.argv', ['smtp_test.py', '--host', 'smtp.example.com', '--port', '587'])
+    @patch('sharewarez.utils.smtp_test.SMTPTester')
+    @patch('sharewarez.utils.smtp_test.sys.argv', ['smtp_test.py', '--host', 'smtp.example.com', '--port', '587'])
     def test_main_connection_failure(self, mock_tester_class):
         """Test main function with connection failure."""
         # Setup mocks
@@ -527,8 +527,8 @@ class TestMainFunction:
         # Verify failure output
         mock_print.assert_any_call("\n❌ SMTP Configuration Test Failed: Connection failed")
 
-    @patch('modules.utils_smtp_test.sys.argv', ['smtp_test.py', '--host', 'smtp.example.com', '--port', '587', '--timeout', '30'])
-    @patch('modules.utils_smtp_test.SMTPTester')
+    @patch('sharewarez.utils.smtp_test.sys.argv', ['smtp_test.py', '--host', 'smtp.example.com', '--port', '587', '--timeout', '30'])
+    @patch('sharewarez.utils.smtp_test.SMTPTester')
     def test_main_custom_timeout(self, mock_tester_class):
         """Test main function with custom timeout."""
         # Setup mocks

@@ -20,8 +20,8 @@ if [[ "$FORCE_SETUP" == "true" ]]; then
 from dotenv import load_dotenv
 load_dotenv()
 
-from modules import create_app, db
-from modules.utils_setup import reset_setup_state
+from sharewarez import create_app, db
+from sharewarez.utils.setup import reset_setup_state
 
 # Create app and reset database
 app = create_app()
@@ -44,7 +44,7 @@ echo "Starting SharewareZ with uvicorn in Docker container..."
 
 # Run complete startup initialization once before starting workers
 python3 -c "
-from modules.startup_init import run_complete_startup_initialization
+from sharewarez.init_manager import run_complete_startup_initialization
 import sys
 
 print('🚀 Starting SharewareZ initialization...')

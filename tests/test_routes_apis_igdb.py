@@ -4,16 +4,16 @@ from unittest.mock import patch, Mock
 from uuid import uuid4
 from flask import url_for
 
-from modules import db
-from modules.models import User, Game, Library
-from modules.platform import LibraryPlatform
-from modules.utils_game_core import check_existing_game_by_igdb_id
+from sharewarez import db
+from sharewarez.models import User, Game, Library
+from sharewarez.platform import LibraryPlatform
+from sharewarez.utils.game_core import check_existing_game_by_igdb_id
 
 
 def safe_cleanup_database(db_session):
     """Completely clean up ALL test data - this is a test database, nuke everything!"""
     from sqlalchemy import text
-    from modules.models import (
+    from sharewarez.models import (
         Game, User, Library, DownloadRequest, Newsletter, 
         SystemEvents, InviteToken, Image, GameURL, ScanJob,
         UnmatchedFolder, GameUpdate, GameExtra, GlobalSettings,
@@ -206,7 +206,7 @@ class TestGetCompanyRole:
         response = client.get('/api/get_company_role?game_igdb_id=123&company_id=xyz')
         assert response.status_code == 400
     
-    @patch('modules.routes_apis.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_apis.igdb.make_igdb_api_request')
     def test_get_company_role_successful_developer(self, mock_api_request, client, admin_user, mock_involved_companies_response):
         """Test successful get_company_role for developer."""
         mock_api_request.return_value = mock_involved_companies_response
@@ -230,7 +230,7 @@ class TestGetCompanyRole:
             "fields company.name, developer, publisher, game;\n                where game=12345 & id=(789);"
         )
     
-    @patch('modules.routes_apis.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_apis.igdb.make_igdb_api_request')
     def test_get_company_role_successful_publisher(self, mock_api_request, client, admin_user):
         """Test successful get_company_role for publisher."""
         mock_response = [
@@ -254,7 +254,7 @@ class TestGetCompanyRole:
         assert data['role'] == 'Publisher'
         assert data['company_name'] == 'Publisher Company'
     
-    @patch('modules.routes_apis.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_apis.igdb.make_igdb_api_request')
     def test_get_company_role_not_found(self, mock_api_request, client, admin_user):
         """Test get_company_role with role not found."""
         mock_response = [
@@ -278,7 +278,7 @@ class TestGetCompanyRole:
         assert data['role'] == 'Not Found'
         assert data['company_name'] == 'Other Company'
     
-    @patch('modules.routes_apis.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_apis.igdb.make_igdb_api_request')
     def test_get_company_role_api_error(self, mock_api_request, client, admin_user):
         """Test get_company_role with API error."""
         mock_api_request.return_value = {'error': 'API Error'}
@@ -293,7 +293,7 @@ class TestGetCompanyRole:
         data = response.get_json()
         assert data['error'] == 'No data found or error in response.'
     
-    @patch('modules.routes_apis.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_apis.igdb.make_igdb_api_request')
     def test_get_company_role_empty_response(self, mock_api_request, client, admin_user):
         """Test get_company_role with empty response."""
         mock_api_request.return_value = []
@@ -308,7 +308,7 @@ class TestGetCompanyRole:
         data = response.get_json()
         assert data['error'] == 'No data found or error in response.'
     
-    @patch('modules.routes_apis.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_apis.igdb.make_igdb_api_request')
     def test_get_company_role_invalid_company_structure(self, mock_api_request, client, admin_user):
         """Test get_company_role with invalid company data structure."""
         mock_response = [
@@ -331,7 +331,7 @@ class TestGetCompanyRole:
         data = response.get_json()
         assert data['error'] == 'Company with given ID not found in the specified game.'
     
-    @patch('modules.routes_apis.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_apis.igdb.make_igdb_api_request')
     def test_get_company_role_exception(self, mock_api_request, client, admin_user):
         """Test get_company_role with exception during processing."""
         mock_api_request.side_effect = Exception("Connection error")
@@ -380,7 +380,7 @@ class TestGetCoverThumbnail:
         data = response.get_json()
         assert data['error'] == 'Invalid input. The ID must be numeric.'
     
-    @patch('modules.routes_apis.igdb.get_cover_thumbnail_url')
+    @patch('sharewarez.routes_apis.igdb.get_cover_thumbnail_url')
     def test_get_cover_thumbnail_successful(self, mock_get_cover, client, admin_user, mock_cover_response):
         """Test successful get_cover_thumbnail."""
         mock_get_cover.return_value = mock_cover_response
@@ -397,7 +397,7 @@ class TestGetCoverThumbnail:
         
         mock_get_cover.assert_called_once_with(12345)
     
-    @patch('modules.routes_apis.igdb.get_cover_thumbnail_url')
+    @patch('sharewarez.routes_apis.igdb.get_cover_thumbnail_url')
     def test_get_cover_thumbnail_not_found(self, mock_get_cover, client, admin_user):
         """Test get_cover_thumbnail when cover URL cannot be retrieved."""
         mock_get_cover.return_value = None
@@ -434,7 +434,7 @@ class TestSearchIgdbById:
         data = response.get_json()
         assert data['error'] == 'IGDB ID is required'
     
-    @patch('modules.routes_apis.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_apis.igdb.make_igdb_api_request')
     def test_search_igdb_by_id_successful(self, mock_api_request, client, admin_user, mock_game_data):
         """Test successful search_igdb_by_id."""
         mock_api_request.return_value = [mock_game_data]
@@ -461,7 +461,7 @@ class TestSearchIgdbById:
     """
         mock_api_request.assert_called_once_with("https://api.igdb.com/v4/games", expected_query)
     
-    @patch('modules.routes_apis.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_apis.igdb.make_igdb_api_request')
     def test_search_igdb_by_id_api_error(self, mock_api_request, client, admin_user):
         """Test search_igdb_by_id with API error."""
         mock_api_request.return_value = {'error': 'API connection failed'}
@@ -476,7 +476,7 @@ class TestSearchIgdbById:
         data = response.get_json()
         assert data['error'] == 'API connection failed'
     
-    @patch('modules.routes_apis.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_apis.igdb.make_igdb_api_request')
     def test_search_igdb_by_id_not_found(self, mock_api_request, client, admin_user):
         """Test search_igdb_by_id when game not found."""
         mock_api_request.return_value = []
@@ -513,7 +513,7 @@ class TestSearchIgdbByName:
         data = response.get_json()
         assert data['error'] == 'No game name provided'
     
-    @patch('modules.routes_apis.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_apis.igdb.make_igdb_api_request')
     def test_search_igdb_by_name_successful(self, mock_api_request, client, admin_user, mock_game_data):
         """Test successful search_igdb_by_name."""
         mock_api_request.return_value = [mock_game_data]
@@ -537,7 +537,7 @@ class TestSearchIgdbByName:
                           total_rating_count, storyline;search "Test Game"; limit 10;'''
         mock_api_request.assert_called_once_with('https://api.igdb.com/v4/games', expected_query)
     
-    @patch('modules.routes_apis.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_apis.igdb.make_igdb_api_request')
     def test_search_igdb_by_name_with_platform(self, mock_api_request, client, admin_user, mock_game_data):
         """Test search_igdb_by_name with platform filter."""
         mock_api_request.return_value = [mock_game_data]
@@ -559,7 +559,7 @@ class TestSearchIgdbByName:
                           total_rating_count, storyline;search "Test Game"; where platforms = (6); limit 10;'''
         mock_api_request.assert_called_once_with('https://api.igdb.com/v4/games', expected_query)
     
-    @patch('modules.routes_apis.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_apis.igdb.make_igdb_api_request')
     def test_search_igdb_by_name_invalid_platform(self, mock_api_request, client, admin_user, mock_game_data):
         """Test search_igdb_by_name with invalid platform_id."""
         mock_api_request.return_value = [mock_game_data]
@@ -578,7 +578,7 @@ class TestSearchIgdbByName:
                           total_rating_count, storyline;search "Test Game"; limit 10;'''
         mock_api_request.assert_called_once_with('https://api.igdb.com/v4/games', expected_query)
     
-    @patch('modules.routes_apis.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_apis.igdb.make_igdb_api_request')
     def test_search_igdb_by_name_api_error(self, mock_api_request, client, admin_user):
         """Test search_igdb_by_name with API error."""
         mock_api_request.return_value = {'error': 'Search failed'}
@@ -629,7 +629,7 @@ class TestCheckIgdbId:
         assert data['message'] == 'Invalid request'
         assert data['available'] is False
     
-    @patch('modules.routes_apis.igdb.check_existing_game_by_igdb_id')
+    @patch('sharewarez.routes_apis.igdb.check_existing_game_by_igdb_id')
     def test_check_igdb_id_available(self, mock_check_existing, client, admin_user):
         """Test check_igdb_id when IGDB ID is available."""
         mock_check_existing.return_value = None  # Game doesn't exist
@@ -646,7 +646,7 @@ class TestCheckIgdbId:
         
         mock_check_existing.assert_called_once_with(12345)
     
-    @patch('modules.routes_apis.igdb.check_existing_game_by_igdb_id')
+    @patch('sharewarez.routes_apis.igdb.check_existing_game_by_igdb_id')
     def test_check_igdb_id_not_available(self, mock_check_existing, client, sample_game, db_session):
         """Test check_igdb_id when IGDB ID is not available."""
         mock_check_existing.return_value = sample_game  # Game exists
@@ -709,7 +709,7 @@ class TestIgdbApiBlueprint:
 class TestIgdbApiIntegration:
     """Integration tests for IGDB API routes."""
     
-    @patch('modules.routes_apis.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_apis.igdb.make_igdb_api_request')
     def test_igdb_api_workflow_search_and_check(self, mock_api_request, client, admin_user, mock_game_data):
         """Test complete workflow: search by name, then check if ID is available."""
         mock_api_request.return_value = [mock_game_data]
@@ -751,8 +751,8 @@ class TestIgdbApiIntegration:
             data = response.get_json()
             assert 'error' in data or 'message' in data
     
-    @patch('modules.routes_apis.igdb.make_igdb_api_request')
-    @patch('modules.routes_apis.igdb.get_cover_thumbnail_url')
+    @patch('sharewarez.routes_apis.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_apis.igdb.get_cover_thumbnail_url')
     def test_igdb_cover_integration(self, mock_get_cover, mock_api_request, client, admin_user, mock_game_data, mock_cover_response):
         """Test integration between game search and cover retrieval."""
         mock_api_request.return_value = [mock_game_data]

@@ -2,9 +2,9 @@ import pytest
 from flask import url_for
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
-from modules.models import User, SystemEvents, DiscoverySection
-from modules import db
-from modules.routes_admin_ext.system import (
+from sharewarez.models import User, SystemEvents, DiscoverySection
+from sharewarez import db
+from sharewarez.routes_admin_ext.system import (
     validate_pagination_params, 
     parse_date_filter, 
     validate_json_request,
@@ -359,7 +359,7 @@ class TestUpdateSectionOrderAPI:
                              json=data, content_type='application/json')
         assert response.status_code == 302
     
-    @patch('modules.routes_admin_ext.system.log_system_event')
+    @patch('sharewarez.routes_admin_ext.system.log_system_event')
     def test_update_section_order_success(self, mock_log, client, admin_user, sample_discovery_sections, db_session):
         """Test successful section order update."""
         with client.session_transaction() as sess:
@@ -529,7 +529,7 @@ class TestUpdateSectionVisibilityAPI:
                              json=data, content_type='application/json')
         assert response.status_code == 302
     
-    @patch('modules.routes_admin_ext.system.log_system_event')
+    @patch('sharewarez.routes_admin_ext.system.log_system_event')
     def test_update_section_visibility_success(self, mock_log, client, admin_user, sample_discovery_sections, db_session):
         """Test successful section visibility update."""
         with client.session_transaction() as sess:
@@ -644,7 +644,7 @@ class TestUpdateSectionVisibilityAPI:
 class TestSystemIntegration:
     """Integration tests for system functionality."""
     
-    @patch('modules.routes_admin_ext.system.log_system_event')
+    @patch('sharewarez.routes_admin_ext.system.log_system_event')
     def test_complete_section_management_workflow(self, mock_log, client, admin_user, sample_discovery_sections, db_session):
         """Test complete workflow of managing discovery sections."""
         with client.session_transaction() as sess:
@@ -736,7 +736,7 @@ class TestClearSystemLogsAPI:
         assert f"System logs cleared by admin user '{admin_user.name}' (ID: {admin_user.id})" in audit_log.event_text
         assert f"{initial_count} logs were deleted" in audit_log.event_text
     
-    @patch('modules.routes_admin_ext.system.log_system_event')
+    @patch('sharewarez.routes_admin_ext.system.log_system_event')
     def test_clear_logs_empty_database(self, mock_log, client, admin_user, db_session):
         """Test clearing logs when database is already empty."""
         with client.session_transaction() as sess:
@@ -763,7 +763,7 @@ class TestClearSystemLogsAPI:
             audit_user=admin_user.id
         )
     
-    @patch('modules.routes_admin_ext.system.log_system_event')
+    @patch('sharewarez.routes_admin_ext.system.log_system_event')
     def test_clear_logs_database_error(self, mock_log, client, admin_user, sample_system_events, db_session):
         """Test error handling when database operation fails."""
         with client.session_transaction() as sess:
@@ -782,7 +782,7 @@ class TestClearSystemLogsAPI:
                 # Allow other operations (like count queries) to proceed normally
                 return original_execute(statement)
         
-        with patch('modules.routes_admin_ext.system.db.session.execute', side_effect=mock_execute):
+        with patch('sharewarez.routes_admin_ext.system.db.session.execute', side_effect=mock_execute):
             response = client.delete('/admin/api/system_logs/clear')
             
             assert response.status_code == 500
@@ -816,7 +816,7 @@ class TestClearSystemLogsAPI:
         response = client.put('/admin/api/system_logs/clear')
         assert response.status_code == 405  # Method Not Allowed
     
-    @patch('modules.routes_admin_ext.system.log_system_event')
+    @patch('sharewarez.routes_admin_ext.system.log_system_event')
     def test_clear_logs_includes_user_details(self, mock_log, client, admin_user, sample_system_events, db_session):
         """Test that the log entry includes proper user details."""
         with client.session_transaction() as sess:
@@ -884,7 +884,7 @@ class TestSystemIntegrationExtended:
         assert response.status_code == 200
         # Should only show admin_action events with information level from yesterday onwards
     
-    @patch('modules.routes_admin_ext.system.log_system_event')
+    @patch('sharewarez.routes_admin_ext.system.log_system_event')
     def test_error_handling_with_database_rollback(self, mock_log, client, admin_user, sample_discovery_sections, db_session):
         """Test that database errors are handled properly with rollback."""
         with client.session_transaction() as sess:
@@ -895,7 +895,7 @@ class TestSystemIntegrationExtended:
         section = sample_discovery_sections[0]
         
         # Simulate a database error by mocking the commit method
-        with patch('modules.routes_admin_ext.system.db.session.commit') as mock_commit:
+        with patch('sharewarez.routes_admin_ext.system.db.session.commit') as mock_commit:
             mock_commit.side_effect = Exception("Database connection lost")
             
             data = {'sections': [{'id': section.id, 'order': 1}]}

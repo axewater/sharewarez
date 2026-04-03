@@ -3,11 +3,11 @@ from unittest.mock import patch, Mock
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from modules import create_app, db
-from modules.models import (
+from sharewarez import create_app, db
+from sharewarez.models import (
     Game, Library, DiscoverySection, Image, User
 )
-from modules.platform import LibraryPlatform
+from sharewarez.platform import LibraryPlatform
 from sqlalchemy import select
 
 
@@ -138,8 +138,8 @@ def test_images(db_session, test_games):
 class TestDiscoverRoute:
     """Test the discover route functionality."""
 
-    @patch('modules.routes_discover.get_loc')
-    @patch('modules.routes_discover.get_global_settings')
+    @patch('sharewarez.routes_discover.get_loc')
+    @patch('sharewarez.routes_discover.get_global_settings')
     def test_discover_route_requires_login(self, mock_get_global_settings, mock_get_loc, client):
         """Test that discover route requires authentication."""
         mock_get_global_settings.return_value = {}
@@ -150,8 +150,8 @@ class TestDiscoverRoute:
         assert response.status_code == 302
         assert '/login' in response.location
 
-    @patch('modules.routes_discover.get_loc')
-    @patch('modules.routes_discover.get_global_settings')
+    @patch('sharewarez.routes_discover.get_loc')
+    @patch('sharewarez.routes_discover.get_global_settings')
     def test_discover_route_with_authenticated_user_mock(self, mock_get_global_settings, 
                                                         mock_get_loc, app, test_discovery_sections,
                                                         test_games, test_libraries, test_images):
@@ -162,7 +162,7 @@ class TestDiscoverRoute:
         with app.test_client() as client:
             with app.app_context():
                 # Test that the route can be imported and the core logic works
-                from modules.routes_discover import discover
+                from sharewarez.routes_discover import discover
                 assert callable(discover)
                 
                 # Test database queries work correctly
@@ -270,14 +270,14 @@ class TestGameDetails:
 class TestContextProcessor:
     """Test the context processor functionality."""
 
-    @patch('modules.routes_discover.get_global_settings')
+    @patch('sharewarez.routes_discover.get_global_settings')
     def test_inject_settings_context_processor(self, mock_get_global_settings, app):
         """Test that the context processor injects global settings."""
         mock_settings = {'theme': 'default', 'site_name': 'SharewareZ'}
         mock_get_global_settings.return_value = mock_settings
         
         with app.app_context():
-            from modules.routes_discover import inject_settings
+            from sharewarez.routes_discover import inject_settings
             result = inject_settings()
             
         assert result == mock_settings

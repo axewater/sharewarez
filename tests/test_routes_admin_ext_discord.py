@@ -1,5 +1,5 @@
 """
-Unit tests for modules.routes_admin_ext.discord
+Unit tests for sharewarez.routes_admin_ext.discord
 
 Tests Discord webhook management routes including settings and testing functionality.
 """
@@ -10,7 +10,7 @@ from unittest.mock import patch, MagicMock
 from flask import url_for
 from uuid import uuid4
 
-from modules.models import GlobalSettings, User
+from sharewarez.models import GlobalSettings, User
 
 
 @pytest.fixture
@@ -155,9 +155,9 @@ class TestDiscordSettings:
         response = client.post('/admin/discord_settings', data={})
         assert response.status_code == 302  # Redirect due to admin_required decorator
     
-    @patch('modules.routes_admin_ext.discord.validate_discord_webhook_url')
-    @patch('modules.routes_admin_ext.discord.validate_discord_bot_name')
-    @patch('modules.routes_admin_ext.discord.validate_discord_avatar_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_webhook_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_bot_name')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_avatar_url')
     def test_discord_settings_post_with_invalid_webhook(self, mock_avatar_val, mock_name_val, mock_webhook_val, client, admin_user, db_session):
         """Test discord_settings POST with invalid webhook URL."""
         mock_webhook_val.return_value = (False, "Invalid webhook URL")
@@ -177,9 +177,9 @@ class TestDiscordSettings:
         assert response.status_code == 200
         assert b'Webhook URL error: Invalid webhook URL' in response.data
     
-    @patch('modules.routes_admin_ext.discord.validate_discord_webhook_url')
-    @patch('modules.routes_admin_ext.discord.validate_discord_bot_name')
-    @patch('modules.routes_admin_ext.discord.validate_discord_avatar_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_webhook_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_bot_name')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_avatar_url')
     def test_discord_settings_post_with_invalid_bot_name(self, mock_avatar_val, mock_name_val, mock_webhook_val, client, admin_user, db_session):
         """Test discord_settings POST with invalid bot name."""
         mock_webhook_val.return_value = (True, "https://discord.com/api/webhooks/123/test")
@@ -199,9 +199,9 @@ class TestDiscordSettings:
         assert response.status_code == 200
         assert b'Bot name error: Bot name too long' in response.data
     
-    @patch('modules.routes_admin_ext.discord.validate_discord_webhook_url')
-    @patch('modules.routes_admin_ext.discord.validate_discord_bot_name')
-    @patch('modules.routes_admin_ext.discord.validate_discord_avatar_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_webhook_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_bot_name')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_avatar_url')
     def test_discord_settings_post_with_invalid_avatar_url(self, mock_avatar_val, mock_name_val, mock_webhook_val, client, admin_user, db_session):
         """Test discord_settings POST with invalid avatar URL."""
         mock_webhook_val.return_value = (True, "https://discord.com/api/webhooks/123/test")
@@ -221,9 +221,9 @@ class TestDiscordSettings:
         assert response.status_code == 200
         assert b'Avatar URL error: Invalid avatar URL' in response.data
     
-    @patch('modules.routes_admin_ext.discord.validate_discord_webhook_url')
-    @patch('modules.routes_admin_ext.discord.validate_discord_bot_name')
-    @patch('modules.routes_admin_ext.discord.validate_discord_avatar_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_webhook_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_bot_name')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_avatar_url')
     def test_discord_settings_post_creates_new_settings(self, mock_avatar_val, mock_name_val, mock_webhook_val, client, admin_user, db_session):
         """Test discord_settings POST creates new settings when none exist."""
         mock_webhook_val.return_value = (True, "https://discord.com/api/webhooks/123/test")
@@ -249,9 +249,9 @@ class TestDiscordSettings:
         assert settings.discord_bot_name == "Test Bot"
         assert settings.discord_bot_avatar_url == "https://example.com/avatar.png"
     
-    @patch('modules.routes_admin_ext.discord.validate_discord_webhook_url')
-    @patch('modules.routes_admin_ext.discord.validate_discord_bot_name')
-    @patch('modules.routes_admin_ext.discord.validate_discord_avatar_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_webhook_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_bot_name')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_avatar_url')
     def test_discord_settings_post_updates_existing_settings(self, mock_avatar_val, mock_name_val, mock_webhook_val, client, admin_user, db_session):
         """Test discord_settings POST updates existing settings."""
         from sqlalchemy import select
@@ -289,9 +289,9 @@ class TestDiscordSettings:
         # But we can verify the route executed successfully with the expected success message
         # The mocked validation functions confirm the correct flow was executed
     
-    @patch('modules.routes_admin_ext.discord.validate_discord_webhook_url')
-    @patch('modules.routes_admin_ext.discord.validate_discord_bot_name')
-    @patch('modules.routes_admin_ext.discord.validate_discord_avatar_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_webhook_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_bot_name')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_avatar_url')
     def test_discord_settings_post_handles_database_error(self, mock_avatar_val, mock_name_val, mock_webhook_val, client, admin_user, db_session):
         """Test discord_settings POST handles database errors gracefully."""
         mock_webhook_val.return_value = (True, "https://discord.com/api/webhooks/123/test")
@@ -302,7 +302,7 @@ class TestDiscordSettings:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_admin_ext.discord.db.session.commit', side_effect=Exception("Database error")):
+        with patch('sharewarez.routes_admin_ext.discord.db.session.commit', side_effect=Exception("Database error")):
             response = client.post('/admin/discord_settings', data={
                 'discord_webhook_url': 'https://discord.com/api/webhooks/123/test',
                 'discord_bot_name': 'Test Bot',
@@ -332,7 +332,7 @@ class TestTestDiscordWebhook:
                              json={'webhook_url': 'test'})
         assert response.status_code == 302  # Redirect due to admin_required decorator
     
-    @patch('modules.routes_admin_ext.discord.validate_discord_webhook_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_webhook_url')
     def test_test_discord_webhook_with_invalid_webhook_url(self, mock_webhook_val, client, admin_user):
         """Test test_discord_webhook with invalid webhook URL."""
         mock_webhook_val.return_value = (False, "Invalid webhook URL")
@@ -353,8 +353,8 @@ class TestTestDiscordWebhook:
         assert data['success'] is False
         assert 'Webhook URL error: Invalid webhook URL' in data['message']
     
-    @patch('modules.routes_admin_ext.discord.validate_discord_webhook_url')
-    @patch('modules.routes_admin_ext.discord.validate_discord_bot_name')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_webhook_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_bot_name')
     def test_test_discord_webhook_with_invalid_bot_name(self, mock_name_val, mock_webhook_val, client, admin_user):
         """Test test_discord_webhook with invalid bot name."""
         mock_webhook_val.return_value = (True, "https://discord.com/api/webhooks/123/test")
@@ -376,9 +376,9 @@ class TestTestDiscordWebhook:
         assert data['success'] is False
         assert 'Bot name error: Bot name too long' in data['message']
     
-    @patch('modules.routes_admin_ext.discord.validate_discord_webhook_url')
-    @patch('modules.routes_admin_ext.discord.validate_discord_bot_name')
-    @patch('modules.routes_admin_ext.discord.validate_discord_avatar_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_webhook_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_bot_name')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_avatar_url')
     def test_test_discord_webhook_with_invalid_avatar_url(self, mock_avatar_val, mock_name_val, mock_webhook_val, client, admin_user):
         """Test test_discord_webhook with invalid avatar URL."""
         mock_webhook_val.return_value = (True, "https://discord.com/api/webhooks/123/test")
@@ -401,10 +401,10 @@ class TestTestDiscordWebhook:
         assert data['success'] is False
         assert 'Avatar URL error: Invalid avatar URL' in data['message']
     
-    @patch('modules.routes_admin_ext.discord.validate_discord_webhook_url')
-    @patch('modules.routes_admin_ext.discord.validate_discord_bot_name')
-    @patch('modules.routes_admin_ext.discord.validate_discord_avatar_url')
-    @patch('modules.routes_admin_ext.discord.DiscordWebhookHandler')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_webhook_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_bot_name')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_avatar_url')
+    @patch('sharewarez.routes_admin_ext.discord.DiscordWebhookHandler')
     def test_test_discord_webhook_successful_test(self, mock_handler_class, mock_avatar_val, mock_name_val, mock_webhook_val, client, admin_user):
         """Test successful Discord webhook test."""
         mock_webhook_val.return_value = (True, "https://discord.com/api/webhooks/123/test")
@@ -442,10 +442,10 @@ class TestTestDiscordWebhook:
         mock_handler.create_embed.assert_called_once()
         mock_handler.send_webhook.assert_called_once()
     
-    @patch('modules.routes_admin_ext.discord.validate_discord_webhook_url')
-    @patch('modules.routes_admin_ext.discord.validate_discord_bot_name')
-    @patch('modules.routes_admin_ext.discord.validate_discord_avatar_url')
-    @patch('modules.routes_admin_ext.discord.DiscordWebhookHandler')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_webhook_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_bot_name')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_avatar_url')
+    @patch('sharewarez.routes_admin_ext.discord.DiscordWebhookHandler')
     def test_test_discord_webhook_failed_send(self, mock_handler_class, mock_avatar_val, mock_name_val, mock_webhook_val, client, admin_user):
         """Test Discord webhook test when send fails."""
         mock_webhook_val.return_value = (True, "https://discord.com/api/webhooks/123/test")
@@ -474,10 +474,10 @@ class TestTestDiscordWebhook:
         assert data['success'] is False
         assert data['message'] == 'Failed to send test message'
     
-    @patch('modules.routes_admin_ext.discord.validate_discord_webhook_url')
-    @patch('modules.routes_admin_ext.discord.validate_discord_bot_name')
-    @patch('modules.routes_admin_ext.discord.validate_discord_avatar_url')
-    @patch('modules.routes_admin_ext.discord.DiscordWebhookHandler')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_webhook_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_bot_name')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_avatar_url')
+    @patch('sharewarez.routes_admin_ext.discord.DiscordWebhookHandler')
     def test_test_discord_webhook_value_error(self, mock_handler_class, mock_avatar_val, mock_name_val, mock_webhook_val, client, admin_user):
         """Test Discord webhook test handles ValueError from handler."""
         mock_webhook_val.return_value = (True, "https://discord.com/api/webhooks/123/test")
@@ -505,10 +505,10 @@ class TestTestDiscordWebhook:
         assert data['success'] is False
         assert data['message'] == 'Invalid webhook configuration'
     
-    @patch('modules.routes_admin_ext.discord.validate_discord_webhook_url')
-    @patch('modules.routes_admin_ext.discord.validate_discord_bot_name')
-    @patch('modules.routes_admin_ext.discord.validate_discord_avatar_url')
-    @patch('modules.routes_admin_ext.discord.DiscordWebhookHandler')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_webhook_url')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_bot_name')
+    @patch('sharewarez.routes_admin_ext.discord.validate_discord_avatar_url')
+    @patch('sharewarez.routes_admin_ext.discord.DiscordWebhookHandler')
     def test_test_discord_webhook_general_exception(self, mock_handler_class, mock_avatar_val, mock_name_val, mock_webhook_val, client, admin_user):
         """Test Discord webhook test handles general exceptions."""
         mock_webhook_val.return_value = (True, "https://discord.com/api/webhooks/123/test")
@@ -553,7 +553,7 @@ class TestTestDiscordWebhook:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_admin_ext.discord.validate_discord_webhook_url') as mock_webhook_val:
+        with patch('sharewarez.routes_admin_ext.discord.validate_discord_webhook_url') as mock_webhook_val:
             mock_webhook_val.return_value = (False, "Webhook URL is required")
             
             response = client.post('/admin/test_discord_webhook',

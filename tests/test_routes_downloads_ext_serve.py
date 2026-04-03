@@ -3,7 +3,7 @@ import json
 from unittest.mock import patch
 from uuid import uuid4
 
-from modules.models import DownloadRequest, Game, User
+from sharewarez.models import DownloadRequest, Game, User
 
 
 def authenticate_user(client, user):
@@ -34,8 +34,8 @@ def authenticated_user(db_session):
 @pytest.fixture
 def test_library(db_session):
     """Create a test library for testing."""
-    from modules.models import Library
-    from modules.platform import LibraryPlatform
+    from sharewarez.models import Library
+    from sharewarez.platform import LibraryPlatform
     library = Library(
         uuid=str(uuid4()),
         name='Test Library',
@@ -91,7 +91,7 @@ class TestDownloadZipRoute:
         assert response.status_code == 302
         assert '/login' in response.location
 
-    @patch('modules.routes_downloads_ext.serve.log_system_event')
+    @patch('sharewarez.routes_downloads_ext.serve.log_system_event')
     def test_download_zip_returns_asgi_error(self, mock_log, client, authenticated_user, sample_download_request):
         """Test that Flask download route returns error since ASGI should handle downloads."""
         authenticate_user(client, authenticated_user)

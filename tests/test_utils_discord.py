@@ -5,10 +5,10 @@ from unittest.mock import Mock, patch, MagicMock, call, ANY
 from uuid import uuid4
 from datetime import datetime, timezone
 
-from modules import create_app, db
-from modules.models import Library, GlobalSettings, Game, GameURL
-from modules.platform import LibraryPlatform
-from modules.utils_discord import (
+from sharewarez import create_app, db
+from sharewarez.models import Library, GlobalSettings, Game, GameURL
+from sharewarez.platform import LibraryPlatform
+from sharewarez.utils.discord import (
     get_folder_size_in_bytes,
     discord_webhook,
     get_library_by_uuid,
@@ -148,10 +148,10 @@ class TestGetFolderSizeInBytes:
 class TestDiscordWebhook:
     """Test discord_webhook function."""
 
-    @patch('modules.utils_discord.get_cover_url')
-    @patch('modules.utils_discord.format_size')
-    @patch('modules.utils_discord.DiscordWebhook')
-    @patch('modules.utils_discord.DiscordEmbed')
+    @patch('sharewarez.utils.discord.get_cover_url')
+    @patch('sharewarez.utils.discord.format_size')
+    @patch('sharewarez.utils.discord.DiscordWebhook')
+    @patch('sharewarez.utils.discord.DiscordEmbed')
     def test_successful_webhook_execution(self, mock_embed_class, mock_webhook_class, 
                                         mock_format_size, mock_get_cover_url, app, db_session, capsys):
         """Test successful Discord webhook execution with all components."""
@@ -252,10 +252,10 @@ class TestDiscordWebhook:
             captured = capsys.readouterr()
             assert f"Game with UUID '{nonexistent_uuid}' could not be found. Exiting." in captured.out
 
-    @patch('modules.utils_discord.get_cover_url')
-    @patch('modules.utils_discord.format_size')
-    @patch('modules.utils_discord.DiscordWebhook')
-    @patch('modules.utils_discord.DiscordEmbed')
+    @patch('sharewarez.utils.discord.get_cover_url')
+    @patch('sharewarez.utils.discord.format_size')
+    @patch('sharewarez.utils.discord.DiscordWebhook')
+    @patch('sharewarez.utils.discord.DiscordEmbed')
     def test_game_with_no_summary(self, mock_embed_class, mock_webhook_class, 
                                 mock_format_size, mock_get_cover_url, app, db_session):
         """Test webhook execution with game that has no summary."""
@@ -295,10 +295,10 @@ class TestDiscordWebhook:
                 color="03b2f8"
             )
 
-    @patch('modules.utils_discord.get_cover_url')
-    @patch('modules.utils_discord.format_size')
-    @patch('modules.utils_discord.DiscordWebhook')
-    @patch('modules.utils_discord.DiscordEmbed')
+    @patch('sharewarez.utils.discord.get_cover_url')
+    @patch('sharewarez.utils.discord.format_size')
+    @patch('sharewarez.utils.discord.DiscordWebhook')
+    @patch('sharewarez.utils.discord.DiscordEmbed')
     def test_webhook_response_handling_with_redaction(self, mock_embed_class, mock_webhook_class,
                                                     mock_format_size, mock_get_cover_url,
                                                     app, db_session, capsys):
@@ -326,10 +326,10 @@ class TestDiscordWebhook:
             assert "***WEBHOOK_URL_REDACTED***" in captured.out
             assert settings.discord_webhook_url not in captured.out
 
-    @patch('modules.utils_discord.get_cover_url')
-    @patch('modules.utils_discord.format_size')
-    @patch('modules.utils_discord.DiscordWebhook')
-    @patch('modules.utils_discord.DiscordEmbed')
+    @patch('sharewarez.utils.discord.get_cover_url')
+    @patch('sharewarez.utils.discord.format_size')
+    @patch('sharewarez.utils.discord.DiscordWebhook')
+    @patch('sharewarez.utils.discord.DiscordEmbed')
     def test_no_webhook_response(self, mock_embed_class, mock_webhook_class,
                                 mock_format_size, mock_get_cover_url,
                                 app, db_session, capsys):
@@ -517,7 +517,7 @@ class TestGetGameByFullDiskPath:
             
             assert result is None
 
-    @patch('modules.utils_discord.db.session.execute')
+    @patch('sharewarez.utils.discord.db.session.execute')
     def test_exception_handling(self, mock_execute, app, capsys):
         """Test exception handling in get_game_by_full_disk_path."""
         with app.app_context():

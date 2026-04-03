@@ -9,12 +9,12 @@ from io import BytesIO
 from werkzeug.datastructures import FileStorage
 from sqlalchemy import select, func
 
-from modules import create_app, db
-from modules.models import (
+from sharewarez import create_app, db
+from sharewarez.models import (
     User, Game, Library, Genre, GameMode, Theme, Platform, 
     PlayerPerspective, Image, ScanJob, UnmatchedFolder, user_favorites
 )
-from modules.platform import LibraryPlatform
+from sharewarez.platform import LibraryPlatform
 
 
 
@@ -142,13 +142,13 @@ def test_image(db_session, test_game):
 class TestMainBlueprint:
     """Test cases for the main blueprint (routes.py)."""
 
-    @patch('modules.routes.get_global_settings')
+    @patch('sharewarez.routes.get_global_settings')
     def test_inject_settings_context_processor(self, mock_get_global_settings, app, db_session):
         """Test the inject_settings context processor."""
         mock_get_global_settings.return_value = {'test_setting': 'test_value'}
         
         with app.app_context():
-            from modules.routes import inject_settings
+            from sharewarez.routes import inject_settings
             result = inject_settings()
             assert result == {'test_setting': 'test_value'}
             mock_get_global_settings.assert_called_once()
@@ -238,9 +238,9 @@ class TestMainBlueprint:
         assert response.status_code == 302  # Redirect to login
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.os.path.exists')
-    @patch('modules.routes.os.access')
-    @patch('modules.routes.get_game_names_from_folder')
+    @patch('sharewarez.routes.os.path.exists')
+    @patch('sharewarez.routes.os.access')
+    @patch('sharewarez.routes.get_game_names_from_folder')
     def test_scan_folder_valid_path(self, mock_get_games, mock_access, mock_exists, mock_current_user, 
                                    client, app, db_session, admin_user, test_library):
         """Test scan_folder with valid folder path."""
@@ -262,7 +262,7 @@ class TestMainBlueprint:
         assert response.status_code == 200
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.os.path.exists')
+    @patch('sharewarez.routes.os.path.exists')
     def test_scan_folder_invalid_path(self, mock_exists, mock_current_user, client, app, db_session, admin_user, test_library):
         """Test scan_folder with invalid folder path."""
         mock_current_user.is_authenticated = True
@@ -294,7 +294,7 @@ class TestMainBlueprint:
         assert response.status_code == 200
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.handle_auto_scan')
+    @patch('sharewarez.routes.handle_auto_scan')
     def test_scan_management_auto_scan(self, mock_handle_auto_scan, mock_current_user, 
                                       client, app, db_session, admin_user, test_library):
         """Test scan_management with auto scan submission."""
@@ -316,7 +316,7 @@ class TestMainBlueprint:
         mock_handle_auto_scan.assert_called_once()
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.handle_manual_scan')
+    @patch('sharewarez.routes.handle_manual_scan')
     def test_scan_management_manual_scan(self, mock_handle_manual_scan, mock_current_user, 
                                         client, app, db_session, admin_user, test_library):
         """Test scan_management with manual scan submission."""
@@ -338,7 +338,7 @@ class TestMainBlueprint:
         mock_handle_manual_scan.assert_called_once()
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.handle_delete_unmatched')
+    @patch('sharewarez.routes.handle_delete_unmatched')
     def test_scan_management_delete_unmatched(self, mock_handle_delete, mock_current_user, 
                                              client, app, db_session, admin_user):
         """Test scan_management with delete unmatched submission."""
@@ -401,8 +401,8 @@ class TestMainBlueprint:
         assert test_scan_job.status == 'Completed'
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.Thread')
-    @patch('modules.routes.copy_current_request_context')
+    @patch('sharewarez.routes.Thread')
+    @patch('sharewarez.routes.copy_current_request_context')
     def test_restart_scan_job(self, mock_copy_context, mock_thread, mock_current_user, 
                              client, app, db_session, admin_user, test_scan_job):
         """Test restarting a scan job."""
@@ -437,7 +437,7 @@ class TestMainBlueprint:
         assert response.status_code == 302  # Redirect
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.is_scan_job_running')
+    @patch('sharewarez.routes.is_scan_job_running')
     def test_edit_game_images(self, mock_is_scan_running, mock_current_user, 
                              client, app, db_session, admin_user, test_game, test_image):
         """Test edit game images route."""
@@ -452,7 +452,7 @@ class TestMainBlueprint:
         assert response.status_code == 200
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.is_scan_job_running')
+    @patch('sharewarez.routes.is_scan_job_running')
     def test_edit_game_images_scan_running(self, mock_is_scan_running, mock_current_user, 
                                           client, app, db_session, admin_user, test_game):
         """Test edit game images when scan is running."""
@@ -467,9 +467,9 @@ class TestMainBlueprint:
         assert response.status_code == 200
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.is_scan_job_running')
-    @patch('modules.routes.PILImage.open')
-    @patch('modules.routes.os.path.join')
+    @patch('sharewarez.routes.is_scan_job_running')
+    @patch('sharewarez.routes.PILImage.open')
+    @patch('sharewarez.routes.os.path.join')
     def test_upload_image_success(self, mock_path_join, mock_pil_open, mock_is_scan_running, 
                                  mock_current_user, client, app, db_session, admin_user, test_game):
         """Test successful image upload."""
@@ -505,7 +505,7 @@ class TestMainBlueprint:
         assert data['message'] == 'File uploaded successfully'
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.is_scan_job_running')
+    @patch('sharewarez.routes.is_scan_job_running')
     def test_upload_image_scan_running(self, mock_is_scan_running, mock_current_user, 
                                       client, app, db_session, admin_user, test_game):
         """Test image upload when scan is running."""
@@ -528,7 +528,7 @@ class TestMainBlueprint:
         assert response.status_code == 403
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.is_scan_job_running')
+    @patch('sharewarez.routes.is_scan_job_running')
     def test_upload_image_no_file(self, mock_is_scan_running, mock_current_user, 
                                  client, app, db_session, admin_user, test_game):
         """Test image upload without file."""
@@ -543,7 +543,7 @@ class TestMainBlueprint:
         assert response.status_code == 400
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.is_scan_job_running')
+    @patch('sharewarez.routes.is_scan_job_running')
     def test_upload_image_invalid_extension(self, mock_is_scan_running, mock_current_user, 
                                            client, app, db_session, admin_user, test_game):
         """Test image upload with invalid file extension."""
@@ -566,9 +566,9 @@ class TestMainBlueprint:
         assert response.status_code == 400
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.is_scan_job_running')
-    @patch('modules.routes.os.path.exists')
-    @patch('modules.routes.os.remove')
+    @patch('sharewarez.routes.is_scan_job_running')
+    @patch('sharewarez.routes.os.path.exists')
+    @patch('sharewarez.routes.os.remove')
     def test_delete_image_success(self, mock_remove, mock_exists, mock_is_scan_running, 
                                  mock_current_user, client, app, db_session, admin_user, test_image):
         """Test successful image deletion."""
@@ -589,7 +589,7 @@ class TestMainBlueprint:
         assert data['message'] == 'Image deleted successfully'
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.is_scan_job_running')
+    @patch('sharewarez.routes.is_scan_job_running')
     def test_delete_image_scan_running(self, mock_is_scan_running, mock_current_user, 
                                       client, app, db_session, admin_user, test_image):
         """Test image deletion when scan is running."""
@@ -605,7 +605,7 @@ class TestMainBlueprint:
         assert response.status_code == 403
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.is_scan_job_running')
+    @patch('sharewarez.routes.is_scan_job_running')
     def test_delete_image_invalid_request(self, mock_is_scan_running, mock_current_user, 
                                          client, app, db_session, admin_user):
         """Test image deletion with invalid request."""
@@ -746,9 +746,9 @@ class TestMainBlueprint:
         assert data['status'] == 'success'
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.Thread')
-    @patch('modules.routes.copy_current_request_context')
-    @patch('modules.routes.get_game_name_by_uuid')
+    @patch('sharewarez.routes.Thread')
+    @patch('sharewarez.routes.copy_current_request_context')
+    @patch('sharewarez.routes.get_game_name_by_uuid')
     def test_refresh_game_images(self, mock_get_name, mock_copy_context, mock_thread, 
                                 mock_current_user, client, app, db_session, admin_user, test_game):
         """Test refreshing game images."""
@@ -764,7 +764,7 @@ class TestMainBlueprint:
         assert response.status_code == 302  # Redirect
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.get_game_name_by_uuid')
+    @patch('sharewarez.routes.get_game_name_by_uuid')
     def test_refresh_game_images_ajax(self, mock_get_name, mock_current_user, 
                                      client, app, db_session, admin_user, test_game):
         """Test refreshing game images via AJAX."""
@@ -784,8 +784,8 @@ class TestMainBlueprint:
         assert 'message' in data
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.is_scan_job_running')
-    @patch('modules.routes.delete_game')
+    @patch('sharewarez.routes.is_scan_job_running')
+    @patch('sharewarez.routes.delete_game')
     def test_delete_game_route(self, mock_delete_game, mock_is_scan_running, mock_current_user, 
                               client, app, db_session, admin_user, test_game):
         """Test deleting a game."""
@@ -805,7 +805,7 @@ class TestMainBlueprint:
         mock_delete_game.assert_called_once_with(test_game.uuid)
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.is_scan_job_running')
+    @patch('sharewarez.routes.is_scan_job_running')
     def test_delete_game_route_scan_running(self, mock_is_scan_running, mock_current_user, 
                                            client, app, db_session, admin_user, test_game):
         """Test deleting a game when scan is running."""
@@ -825,8 +825,8 @@ class TestMainBlueprint:
         assert 'Cannot delete the game while a scan job is running' in data['message']
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.os.path.exists')
-    @patch('modules.routes.os.remove')
+    @patch('sharewarez.routes.os.path.exists')
+    @patch('sharewarez.routes.os.remove')
     def test_delete_folder_file(self, mock_remove, mock_exists, mock_current_user, 
                                client, app, db_session, admin_user):
         """Test deleting a file via delete_folder route."""
@@ -838,15 +838,15 @@ class TestMainBlueprint:
         with client.session_transaction() as sess:
             sess['_user_id'] = str(admin_user.id)
         
-        with patch('modules.routes.os.path.isfile', return_value=True):
+        with patch('sharewarez.routes.os.path.isfile', return_value=True):
             response = client.post('/delete_folder', 
                                   json={'folder_path': '/test/file.txt'})
             assert response.status_code == 200
             mock_remove.assert_called_once()
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.os.path.exists')
-    @patch('modules.routes.shutil.rmtree')
+    @patch('sharewarez.routes.os.path.exists')
+    @patch('sharewarez.routes.shutil.rmtree')
     def test_delete_folder_directory(self, mock_rmtree, mock_exists, mock_current_user, 
                                     client, app, db_session, admin_user):
         """Test deleting a directory via delete_folder route."""
@@ -857,7 +857,7 @@ class TestMainBlueprint:
         with client.session_transaction() as sess:
             sess['_user_id'] = str(admin_user.id)
         
-        with patch('modules.routes.os.path.isfile', return_value=False):
+        with patch('sharewarez.routes.os.path.isfile', return_value=False):
             response = client.post('/delete_folder', 
                                   json={'folder_path': '/test/folder'})
             assert response.status_code == 200
@@ -876,11 +876,11 @@ class TestMainBlueprint:
         assert response.status_code == 400
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.is_scan_job_running')
-    @patch('modules.routes.os.path.isdir')
-    @patch('modules.routes.shutil.rmtree')
-    @patch('modules.routes.os.path.exists')
-    @patch('modules.routes.delete_game')
+    @patch('sharewarez.routes.is_scan_job_running')
+    @patch('sharewarez.routes.os.path.isdir')
+    @patch('sharewarez.routes.shutil.rmtree')
+    @patch('sharewarez.routes.os.path.exists')
+    @patch('sharewarez.routes.delete_game')
     def test_delete_full_game(self, mock_delete_game, mock_exists, mock_rmtree, 
                              mock_isdir, mock_is_scan_running, mock_current_user, 
                              client, app, db_session, admin_user, test_game):
@@ -905,7 +905,7 @@ class TestMainBlueprint:
         mock_delete_game.assert_called_once_with(test_game.uuid)
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.is_scan_job_running')
+    @patch('sharewarez.routes.is_scan_job_running')
     def test_delete_full_game_scan_running(self, mock_is_scan_running, mock_current_user, 
                                           client, app, db_session, admin_user, test_game):
         """Test delete_full_game when scan is running."""
@@ -924,7 +924,7 @@ class TestMainBlueprint:
         assert data['success'] == False
 
     @patch('flask_login.current_user')
-    @patch('modules.routes.is_scan_job_running')
+    @patch('sharewarez.routes.is_scan_job_running')
     def test_delete_full_game_no_uuid(self, mock_is_scan_running, mock_current_user, 
                                      client, app, db_session, admin_user):
         """Test delete_full_game without game UUID."""
@@ -986,7 +986,7 @@ class TestMainBlueprint:
         """Test verify_file template global with existing file."""
         with app.app_context():
             verify_file = app.jinja_env.globals['verify_file']
-            with patch('modules.routes.os.path.exists', return_value=True):
+            with patch('sharewarez.routes.os.path.exists', return_value=True):
                 result = verify_file('/test/path')
                 assert result == True
 
@@ -994,8 +994,8 @@ class TestMainBlueprint:
         """Test verify_file template global with non-existing file."""
         with app.app_context():
             verify_file = app.jinja_env.globals['verify_file']
-            with patch('modules.routes.os.path.exists', return_value=False):
-                with patch('modules.routes.os.access', return_value=False):
+            with patch('sharewarez.routes.os.path.exists', return_value=False):
+                with patch('sharewarez.routes.os.access', return_value=False):
                     result = verify_file('/test/path')
                     assert result == False
 
@@ -1003,8 +1003,8 @@ class TestMainBlueprint:
         """Test verify_file template global with accessible file."""
         with app.app_context():
             verify_file = app.jinja_env.globals['verify_file']
-            with patch('modules.routes.os.path.exists', return_value=False):
-                with patch('modules.routes.os.access', return_value=True):
+            with patch('sharewarez.routes.os.path.exists', return_value=False):
+                with patch('sharewarez.routes.os.access', return_value=True):
                     result = verify_file('/test/path')
                     assert result == True
 
@@ -1018,8 +1018,8 @@ class TestErrorHandling:
         mock_current_user.is_authenticated = True
         mock_current_user.role = 'admin'
         
-        with patch('modules.routes.is_scan_job_running', return_value=False):
-            with patch('modules.routes.PILImage.open', side_effect=IOError("Invalid image")):
+        with patch('sharewarez.routes.is_scan_job_running', return_value=False):
+            with patch('sharewarez.routes.PILImage.open', side_effect=IOError("Invalid image")):
                 test_file = FileStorage(
                     stream=BytesIO(b'invalid image data'),
                     filename='test.jpg',
@@ -1040,7 +1040,7 @@ class TestErrorHandling:
         mock_current_user.is_authenticated = True
         mock_current_user.role = 'admin'
         
-        with patch('modules.routes.is_scan_job_running', return_value=False):
+        with patch('sharewarez.routes.is_scan_job_running', return_value=False):
             with client.session_transaction() as sess:
                 sess['_user_id'] = str(admin_user.id)
             
@@ -1054,9 +1054,9 @@ class TestErrorHandling:
         mock_current_user.is_authenticated = True
         mock_current_user.role = 'admin'
         
-        with patch('modules.routes.os.path.exists', return_value=True):
-            with patch('modules.routes.os.path.isfile', return_value=True):
-                with patch('modules.routes.os.remove', side_effect=PermissionError("Permission denied")):
+        with patch('sharewarez.routes.os.path.exists', return_value=True):
+            with patch('sharewarez.routes.os.path.isfile', return_value=True):
+                with patch('sharewarez.routes.os.remove', side_effect=PermissionError("Permission denied")):
                     with client.session_transaction() as sess:
                         sess['_user_id'] = str(admin_user.id)
                     
@@ -1070,8 +1070,8 @@ class TestErrorHandling:
         mock_current_user.is_authenticated = True
         mock_current_user.role = 'admin'
         
-        with patch('modules.routes.is_scan_job_running', return_value=False):
-            with patch('modules.routes.os.path.isdir', return_value=False):
+        with patch('sharewarez.routes.is_scan_job_running', return_value=False):
+            with patch('sharewarez.routes.os.path.isdir', return_value=False):
                 with client.session_transaction() as sess:
                     sess['_user_id'] = str(admin_user.id)
                 

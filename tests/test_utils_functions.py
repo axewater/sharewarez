@@ -8,9 +8,9 @@ import requests
 import requests.exceptions
 from wtforms.validators import ValidationError
 
-from modules import create_app, db
-from modules.models import ReleaseGroup, Library, Game, GlobalSettings, User
-from modules.utils_functions import (
+from sharewarez import create_app, db
+from sharewarez.models import ReleaseGroup, Library, Game, GlobalSettings, User
+from sharewarez.utils.functions import (
     format_size, square_image, get_folder_size_in_bytes, get_folder_size_in_bytes_updates,
     read_first_nfo_content, download_image, comma_separated_urls, website_category_to_string,
     PLATFORM_IDS, load_scanning_filter_patterns, get_library_count, get_games_count,
@@ -154,7 +154,7 @@ class TestFormatSize:
 class TestSquareImage:
     """Test cases for square_image function."""
     
-    @patch('modules.utils_functions.PILImage')
+    @patch('sharewarez.utils.functions.PILImage')
     def test_square_image_already_square(self, mock_pil):
         """Test square_image when image is already square."""
         # Mock image that's already the target size
@@ -166,7 +166,7 @@ class TestSquareImage:
         mock_image.thumbnail.assert_called_once_with((100, 100))
         assert result == mock_image
     
-    @patch('modules.utils_functions.PILImage')
+    @patch('sharewarez.utils.functions.PILImage')
     def test_square_image_needs_padding(self, mock_pil):
         """Test square_image when image needs padding."""
         # Mock image that needs padding
@@ -183,7 +183,7 @@ class TestSquareImage:
         mock_new_image.paste.assert_called_once()
         assert result == mock_new_image
     
-    @patch('modules.utils_functions.PILImage')
+    @patch('sharewarez.utils.functions.PILImage')
     def test_square_image_different_aspect_ratio(self, mock_pil):
         """Test square_image with different aspect ratios."""
         mock_image = MagicMock()
@@ -375,7 +375,7 @@ class TestReadFirstNfoContent:
 class TestDownloadImage:
     """Test cases for download_image function."""
     
-    @patch('modules.utils_functions.requests')
+    @patch('sharewarez.utils.functions.requests')
     @patch('os.makedirs')
     @patch('os.path.exists')
     @patch('os.access')
@@ -401,7 +401,7 @@ class TestDownloadImage:
             mock_file.assert_called_once_with('/path/to/save/image.jpg', 'wb')
             mock_file().write.assert_called_once_with(b'fake_image_data')
     
-    @patch('modules.utils_functions.requests')
+    @patch('sharewarez.utils.functions.requests')
     def test_download_image_url_transformation(self, mock_requests):
         """Test URL transformation from thumb to original."""
         mock_response = MagicMock()
@@ -416,7 +416,7 @@ class TestDownloadImage:
                     download_image('https://example.com/t_thumb/image.jpg', '/path/image.jpg')
                     mock_requests.get.assert_called_with('https://example.com/t_original/image.jpg')
     
-    @patch('modules.utils_functions.requests')
+    @patch('sharewarez.utils.functions.requests')
     def test_download_image_http_error(self, mock_requests):
         """Test download_image with HTTP error."""
         mock_response = MagicMock()
@@ -427,7 +427,7 @@ class TestDownloadImage:
             download_image('https://example.com/image.jpg', '/path/image.jpg')
             mock_print.assert_called_with("Failed to download the image. Status Code: 404")
     
-    @patch('modules.utils_functions.requests')
+    @patch('sharewarez.utils.functions.requests')
     @patch('os.makedirs')
     @patch('os.path.exists')
     def test_download_image_create_directory(self, mock_exists, mock_makedirs, mock_requests):
@@ -590,7 +590,7 @@ class TestLoadScanningFilterPatterns:
     def test_load_scanning_filter_patterns_empty_db(self, db_session):
         """Test load_scanning_filter_patterns with empty database."""
         # Mock empty database response
-        with patch('modules.utils_functions.db.session.execute') as mock_execute:
+        with patch('sharewarez.utils.functions.db.session.execute') as mock_execute:
             mock_scalars = MagicMock()
             mock_scalars.all.return_value = []
             mock_execute.return_value.scalars.return_value = mock_scalars
@@ -602,7 +602,7 @@ class TestLoadScanningFilterPatterns:
     def test_load_scanning_filter_patterns_db_error(self, db_session):
         """Test load_scanning_filter_patterns handles database errors."""
         from sqlalchemy.exc import SQLAlchemyError
-        with patch('modules.utils_functions.db.session.execute', side_effect=SQLAlchemyError("DB Error")):
+        with patch('sharewarez.utils.functions.db.session.execute', side_effect=SQLAlchemyError("DB Error")):
             with patch('builtins.print') as mock_print:
                 insensitive, sensitive = load_scanning_filter_patterns()
                 assert insensitive == []
@@ -623,8 +623,8 @@ class TestGetLibraryCount:
         ]
         
         with app.app_context():
-            with patch('modules.utils_functions.db.session.execute') as mock_execute:
-                with patch('modules.utils_functions.url_for', return_value='/static/default.jpg') as mock_url_for:
+            with patch('sharewarez.utils.functions.db.session.execute') as mock_execute:
+                with patch('sharewarez.utils.functions.url_for', return_value='/static/default.jpg') as mock_url_for:
                     mock_scalars = MagicMock()
                     mock_scalars.all.return_value = mock_libraries
                     mock_execute.return_value.scalars.return_value = mock_scalars
@@ -635,7 +635,7 @@ class TestGetLibraryCount:
     def test_get_library_count_empty_db(self, db_session):
         """Test get_library_count with no libraries."""
         # Mock empty database response
-        with patch('modules.utils_functions.db.session.execute') as mock_execute:
+        with patch('sharewarez.utils.functions.db.session.execute') as mock_execute:
             mock_scalars = MagicMock()
             mock_scalars.all.return_value = []
             mock_execute.return_value.scalars.return_value = mock_scalars
@@ -648,7 +648,7 @@ class TestGetLibraryCount:
         # Mock sample libraries response
         mock_libraries = [MagicMock(), MagicMock(), MagicMock()]
         
-        with patch('modules.utils_functions.db.session.execute') as mock_execute:
+        with patch('sharewarez.utils.functions.db.session.execute') as mock_execute:
             mock_scalars = MagicMock()
             mock_scalars.all.return_value = mock_libraries
             mock_execute.return_value.scalars.return_value = mock_scalars
@@ -672,7 +672,7 @@ class TestGetGamesCount:
             MagicMock(uuid='game5', name='Game 5')
         ]
         
-        with patch('modules.utils_functions.db.session.execute') as mock_execute:
+        with patch('sharewarez.utils.functions.db.session.execute') as mock_execute:
             mock_scalars = MagicMock()
             mock_scalars.all.return_value = mock_games
             mock_execute.return_value.scalars.return_value = mock_scalars
@@ -683,7 +683,7 @@ class TestGetGamesCount:
     def test_get_games_count_empty_db(self, db_session):
         """Test get_games_count with no games."""
         # Mock empty database response  
-        with patch('modules.utils_functions.db.session.execute') as mock_execute:
+        with patch('sharewarez.utils.functions.db.session.execute') as mock_execute:
             mock_scalars = MagicMock()
             mock_scalars.all.return_value = []
             mock_execute.return_value.scalars.return_value = mock_scalars
@@ -696,7 +696,7 @@ class TestGetGamesCount:
         # Mock sample games response
         mock_games = [MagicMock() for _ in range(5)]
         
-        with patch('modules.utils_functions.db.session.execute') as mock_execute:
+        with patch('sharewarez.utils.functions.db.session.execute') as mock_execute:
             mock_scalars = MagicMock()
             mock_scalars.all.return_value = mock_games
             mock_execute.return_value.scalars.return_value = mock_scalars

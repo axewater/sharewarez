@@ -4,13 +4,13 @@ from uuid import uuid4
 from datetime import datetime, timezone
 from sqlalchemy import select
 
-from modules import create_app, db
-from modules.models import (
+from sharewarez import create_app, db
+from sharewarez.models import (
     User, Game, Library, GameUpdate, GameExtra, GameURL, Image, 
     Genre, GameMode, Theme, Platform, PlayerPerspective, Developer, 
     Publisher, SystemEvents, Category, Status
 )
-from modules.platform import LibraryPlatform
+from sharewarez.platform import LibraryPlatform
 
 
 @pytest.fixture
@@ -186,7 +186,7 @@ class TestGameDetailsRouteAuthentication:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.details.log_system_event') as mock_log:
+        with patch('sharewarez.routes_games_ext.details.log_system_event') as mock_log:
             response = client.get(f'/game_details/{test_game.uuid}')
         
         assert response.status_code == 200
@@ -202,7 +202,7 @@ class TestGameDetailsRouteValidation:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.details.log_system_event') as mock_log:
+        with patch('sharewarez.routes_games_ext.details.log_system_event') as mock_log:
             response = client.get('/game_details/invalid-uuid-format')
         
         assert response.status_code == 404
@@ -220,7 +220,7 @@ class TestGameDetailsRouteValidation:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.details.log_system_event') as mock_log:
+        with patch('sharewarez.routes_games_ext.details.log_system_event') as mock_log:
             response = client.get(f'/game_details/{nonexistent_uuid}')
         
         assert response.status_code == 404
@@ -238,7 +238,7 @@ class TestGameDetailsRouteValidation:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.details.log_system_event') as mock_log:
+        with patch('sharewarez.routes_games_ext.details.log_system_event') as mock_log:
             response = client.get(f'/game_details/{long_invalid_string}')
         
         assert response.status_code == 404
@@ -259,7 +259,7 @@ class TestGameDetailsRouteResponse:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.details.log_system_event') as mock_log:
+        with patch('sharewarez.routes_games_ext.details.log_system_event') as mock_log:
             response = client.get(f'/game_details/{test_game.uuid}')
         
         assert response.status_code == 200
@@ -278,7 +278,7 @@ class TestGameDetailsRouteResponse:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.details.render_template') as mock_render:
+        with patch('sharewarez.routes_games_ext.details.render_template') as mock_render:
             mock_render.return_value = 'mocked response'
             response = client.get(f'/game_details/{test_game.uuid}')
         
@@ -297,8 +297,8 @@ class TestGameDetailsRouteResponse:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.details.render_template') as mock_render:
-            with patch('modules.routes_games_ext.details.sanitize_string_input') as mock_sanitize:
+        with patch('sharewarez.routes_games_ext.details.render_template') as mock_render:
+            with patch('sharewarez.routes_games_ext.details.sanitize_string_input') as mock_sanitize:
                 mock_sanitize.return_value = 'sanitized_nfo_content'
                 mock_render.return_value = 'mocked response'
                 
@@ -320,7 +320,7 @@ class TestGameDetailsRouteResponse:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.details.render_template') as mock_render:
+        with patch('sharewarez.routes_games_ext.details.render_template') as mock_render:
             mock_render.return_value = 'mocked response'
             response = client.get(f'/game_details/{test_game.uuid}')
         
@@ -350,7 +350,7 @@ class TestGameDetailsRouteLogging:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.details.log_system_event') as mock_log:
+        with patch('sharewarez.routes_games_ext.details.log_system_event') as mock_log:
             response = client.get(f'/game_details/{test_game.uuid}')
         
         # Verify initial access request is logged with truncated UUID
@@ -366,7 +366,7 @@ class TestGameDetailsRouteLogging:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.details.log_system_event') as mock_log:
+        with patch('sharewarez.routes_games_ext.details.log_system_event') as mock_log:
             response = client.get(f'/game_details/{test_game.uuid}')
         
         # Verify successful access is logged with game details
@@ -407,8 +407,8 @@ class TestGameDetailsUtilityFunctionLogging:
         """Test that get_game_by_uuid function logs appropriately."""
         with app.app_context():
             # Need to set up Flask-Login context
-            with patch('modules.utils_game_core.log_system_event') as mock_log:
-                from modules.utils_game_core import get_game_by_uuid
+            with patch('sharewarez.utils.game_core.log_system_event') as mock_log:
+                from sharewarez.utils.game_core import get_game_by_uuid
                 result = get_game_by_uuid(test_game.uuid)
         
         assert result.uuid == test_game.uuid
@@ -425,8 +425,8 @@ class TestGameDetailsUtilityFunctionLogging:
         """Test logging when game is not found."""
         nonexistent_uuid = str(uuid4())
         with app.app_context():
-            with patch('modules.utils_game_core.log_system_event') as mock_log:
-                from modules.utils_game_core import get_game_by_uuid
+            with patch('sharewarez.utils.game_core.log_system_event') as mock_log:
+                from sharewarez.utils.game_core import get_game_by_uuid
                 result = get_game_by_uuid(nonexistent_uuid)
         
         assert result is None
@@ -448,7 +448,7 @@ class TestGameDetailsTemplateSecurity:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.details.render_template') as mock_render:
+        with patch('sharewarez.routes_games_ext.details.render_template') as mock_render:
             mock_render.return_value = 'mocked response'
             response = client.get(f'/game_details/{test_game.uuid}')
         
@@ -456,7 +456,7 @@ class TestGameDetailsTemplateSecurity:
         args, kwargs = mock_render.call_args
         assert 'form' in kwargs
         # Verify it's a CSRF form
-        from modules.forms import CsrfForm
+        from sharewarez.forms import CsrfForm
         assert isinstance(kwargs['form'], CsrfForm)
     
     def test_game_details_template_context(self, client, test_user, test_game):
@@ -465,7 +465,7 @@ class TestGameDetailsTemplateSecurity:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.details.render_template') as mock_render:
+        with patch('sharewarez.routes_games_ext.details.render_template') as mock_render:
             mock_render.return_value = 'mocked response'
             response = client.get(f'/game_details/{test_game.uuid}')
         
@@ -498,7 +498,7 @@ class TestGameDetailsErrorHandling:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.details.render_template') as mock_render:
+        with patch('sharewarez.routes_games_ext.details.render_template') as mock_render:
             mock_render.return_value = 'mocked response'
             response = client.get(f'/game_details/{game.uuid}')
         
@@ -523,7 +523,7 @@ class TestGameDetailsErrorHandling:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.details.log_system_event') as mock_log:
+        with patch('sharewarez.routes_games_ext.details.log_system_event') as mock_log:
             response = client.get(f'/game_details/{game.uuid}')
         
         assert response.status_code == 200
@@ -542,7 +542,7 @@ class TestGameDetailsErrorHandling:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.details.log_system_event') as mock_log:
+        with patch('sharewarez.routes_games_ext.details.log_system_event') as mock_log:
             response = client.get(f'/game_details/{nonexistent_uuid}')
         
         assert response.status_code == 404
@@ -562,7 +562,7 @@ class TestGameDetailsPerformance:
         
         # Simply test that the route works without errors
         # The actual query efficiency would be better tested with a database profiler
-        with patch('modules.routes_games_ext.details.log_system_event') as mock_log:
+        with patch('sharewarez.routes_games_ext.details.log_system_event') as mock_log:
             response = client.get(f'/game_details/{test_game.uuid}')
         
         # Verify successful response

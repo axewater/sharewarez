@@ -5,9 +5,9 @@ import tempfile
 import zipfile
 from flask import url_for
 from unittest.mock import patch, MagicMock, mock_open
-from modules.models import User
-from modules import db
-from modules.routes_admin_ext.themes import validate_theme_file, is_valid_theme_name
+from sharewarez.models import User
+from sharewarez import db
+from sharewarez.routes_admin_ext.themes import validate_theme_file, is_valid_theme_name
 from uuid import uuid4
 from io import BytesIO
 
@@ -216,7 +216,7 @@ class TestManageThemesRoute:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_admin_ext.themes.ThemeManager') as mock_theme_manager:
+        with patch('sharewarez.routes_admin_ext.themes.ThemeManager') as mock_theme_manager:
             mock_instance = MagicMock()
             mock_theme_manager.return_value = mock_instance
             mock_instance.get_installed_themes.return_value = []
@@ -225,8 +225,8 @@ class TestManageThemesRoute:
             response = client.get('/admin/themes')
             assert response.status_code == 200
 
-    @patch('modules.routes_admin_ext.themes.ThemeManager')
-    @patch('modules.routes_admin_ext.themes.Path')
+    @patch('sharewarez.routes_admin_ext.themes.ThemeManager')
+    @patch('sharewarez.routes_admin_ext.themes.Path')
     def test_manage_themes_upload_folder_creation(self, mock_path, mock_theme_manager, 
                                                  client, admin_user, sample_theme_data):
         """Test upload folder creation when it doesn't exist."""
@@ -256,8 +256,8 @@ class TestManageThemesRoute:
         mock_upload_folder.mkdir.assert_called_once()
         assert response.status_code == 302  # Redirect after processing
 
-    @patch('modules.routes_admin_ext.themes.ThemeManager')
-    @patch('modules.routes_admin_ext.themes.Path')
+    @patch('sharewarez.routes_admin_ext.themes.ThemeManager')
+    @patch('sharewarez.routes_admin_ext.themes.Path')
     def test_manage_themes_upload_folder_creation_error(self, mock_path, mock_theme_manager, 
                                                        client, admin_user, sample_theme_data):
         """Test error handling when upload folder creation fails."""
@@ -284,8 +284,8 @@ class TestManageThemesRoute:
         response = client.post('/admin/themes', data=data, content_type='multipart/form-data')
         assert response.status_code == 302  # Redirect after error
 
-    @patch('modules.routes_admin_ext.themes.ThemeManager')
-    @patch('modules.routes_admin_ext.themes.Path')
+    @patch('sharewarez.routes_admin_ext.themes.ThemeManager')
+    @patch('sharewarez.routes_admin_ext.themes.Path')
     def test_manage_themes_successful_upload(self, mock_path, mock_theme_manager, client, admin_user, sample_theme_data):
         """Test successful theme upload."""
         with client.session_transaction() as sess:
@@ -312,8 +312,8 @@ class TestManageThemesRoute:
         assert response.status_code == 302  # Redirect after success
         mock_instance.upload_theme.assert_called_once()
 
-    @patch('modules.routes_admin_ext.themes.ThemeManager')
-    @patch('modules.routes_admin_ext.themes.Path')
+    @patch('sharewarez.routes_admin_ext.themes.ThemeManager')
+    @patch('sharewarez.routes_admin_ext.themes.Path')
     def test_manage_themes_upload_failure(self, mock_path, mock_theme_manager, client, admin_user, sample_theme_data):
         """Test theme upload failure."""
         with client.session_transaction() as sess:
@@ -339,8 +339,8 @@ class TestManageThemesRoute:
         response = client.post('/admin/themes', data=data, content_type='multipart/form-data')
         assert response.status_code == 302  # Redirect after failure
 
-    @patch('modules.routes_admin_ext.themes.ThemeManager')
-    @patch('modules.routes_admin_ext.themes.Path')
+    @patch('sharewarez.routes_admin_ext.themes.ThemeManager')
+    @patch('sharewarez.routes_admin_ext.themes.Path')
     def test_manage_themes_upload_value_error(self, mock_path, mock_theme_manager, client, admin_user, sample_theme_data):
         """Test theme upload with ValueError."""
         with client.session_transaction() as sess:
@@ -366,8 +366,8 @@ class TestManageThemesRoute:
         response = client.post('/admin/themes', data=data, content_type='multipart/form-data')
         assert response.status_code == 302  # Redirect after error
 
-    @patch('modules.routes_admin_ext.themes.ThemeManager')
-    @patch('modules.routes_admin_ext.themes.Path')
+    @patch('sharewarez.routes_admin_ext.themes.ThemeManager')
+    @patch('sharewarez.routes_admin_ext.themes.Path')
     def test_manage_themes_upload_unexpected_error(self, mock_path, mock_theme_manager, client, admin_user, sample_theme_data):
         """Test theme upload with unexpected error."""
         with client.session_transaction() as sess:
@@ -393,9 +393,9 @@ class TestManageThemesRoute:
         response = client.post('/admin/themes', data=data, content_type='multipart/form-data')
         assert response.status_code == 302  # Redirect after error
 
-    @patch('modules.routes_admin_ext.themes.validate_theme_file')
-    @patch('modules.routes_admin_ext.themes.ThemeManager')
-    @patch('modules.routes_admin_ext.themes.Path')
+    @patch('sharewarez.routes_admin_ext.themes.validate_theme_file')
+    @patch('sharewarez.routes_admin_ext.themes.ThemeManager')
+    @patch('sharewarez.routes_admin_ext.themes.Path')
     def test_manage_themes_file_too_large(self, mock_path, mock_theme_manager, mock_validate, client, admin_user, sample_theme_data):
         """Test theme upload with file too large."""
         with client.session_transaction() as sess:
@@ -488,7 +488,7 @@ class TestDeleteThemeRoute:
         assert response.status_code == 302
         assert 'login' in response.location
 
-    @patch('modules.routes_admin_ext.themes.ThemeManager')
+    @patch('sharewarez.routes_admin_ext.themes.ThemeManager')
     def test_delete_theme_success(self, mock_theme_manager, client, admin_user):
         """Test successful theme deletion."""
         with client.session_transaction() as sess:
@@ -502,7 +502,7 @@ class TestDeleteThemeRoute:
         assert response.status_code == 302  # Redirect after deletion
         mock_instance.delete_themefile.assert_called_once_with('test_theme')
 
-    @patch('modules.routes_admin_ext.themes.ThemeManager')
+    @patch('sharewarez.routes_admin_ext.themes.ThemeManager')
     def test_delete_theme_value_error(self, mock_theme_manager, client, admin_user):
         """Test theme deletion with ValueError."""
         with client.session_transaction() as sess:
@@ -516,7 +516,7 @@ class TestDeleteThemeRoute:
         response = client.post('/admin/themes/delete/Default')
         assert response.status_code == 302  # Redirect after error
 
-    @patch('modules.routes_admin_ext.themes.ThemeManager')
+    @patch('sharewarez.routes_admin_ext.themes.ThemeManager')
     def test_delete_theme_unexpected_error(self, mock_theme_manager, client, admin_user):
         """Test theme deletion with unexpected error."""
         with client.session_transaction() as sess:
@@ -560,7 +560,7 @@ class TestResetDefaultThemesRoute:
         assert response.status_code == 302
         assert 'login' in response.location
 
-    @patch('modules.routes_admin_ext.themes.log_system_event')
+    @patch('sharewarez.routes_admin_ext.themes.log_system_event')
     @patch('os.path.exists')
     def test_reset_default_themes_missing_source(self, mock_exists, mock_log, client, admin_user):
         """Test reset default themes when source directory is missing."""
@@ -574,7 +574,7 @@ class TestResetDefaultThemesRoute:
         assert response.status_code == 302  # Redirect after error
         mock_log.assert_called()
 
-    @patch('modules.routes_admin_ext.themes.log_system_event')
+    @patch('sharewarez.routes_admin_ext.themes.log_system_event')
     @patch('shutil.copytree')
     @patch('shutil.rmtree')
     @patch('pathlib.Path.exists')
@@ -592,7 +592,7 @@ class TestResetDefaultThemesRoute:
         mock_copytree.assert_called_once()
         mock_log.assert_called()
 
-    @patch('modules.routes_admin_ext.themes.log_system_event')
+    @patch('sharewarez.routes_admin_ext.themes.log_system_event')
     @patch('shutil.copytree')
     @patch('pathlib.Path.exists')
     def test_reset_default_themes_copy_failure(self, mock_exists, mock_copytree, mock_log, client, admin_user):
@@ -608,7 +608,7 @@ class TestResetDefaultThemesRoute:
         assert response.status_code == 302
         mock_log.assert_called()
 
-    @patch('modules.routes_admin_ext.themes.log_system_event')
+    @patch('sharewarez.routes_admin_ext.themes.log_system_event')
     @patch('os.path.exists')
     def test_reset_default_themes_unexpected_error(self, mock_exists, mock_log, client, admin_user):
         """Test reset default themes with unexpected error."""
@@ -674,7 +674,7 @@ class TestThemeRoutesIntegration:
             assert response.status_code == 302
             assert 'login' in response.location
 
-    @patch('modules.routes_admin_ext.themes.ThemeManager')
+    @patch('sharewarez.routes_admin_ext.themes.ThemeManager')
     def test_theme_workflow_complete(self, mock_theme_manager, client, admin_user, sample_theme_data):
         """Test complete theme management workflow."""
         with client.session_transaction() as sess:

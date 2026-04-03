@@ -1,7 +1,7 @@
 import pytest
 import os
 from unittest.mock import patch, MagicMock, mock_open
-from modules.utils_system_stats import (
+from sharewarez.utils.system_stats import (
     get_cpu_usage,
     get_memory_usage,
     get_disk_usage,
@@ -15,8 +15,8 @@ from modules.utils_system_stats import (
 class TestGetCpuUsage:
     """Tests for get_cpu_usage function."""
 
-    @patch('modules.utils_system_stats.psutil.cpu_count')
-    @patch('modules.utils_system_stats.psutil.cpu_percent')
+    @patch('sharewarez.utils.system_stats.psutil.cpu_count')
+    @patch('sharewarez.utils.system_stats.psutil.cpu_percent')
     def test_get_cpu_usage_success(self, mock_cpu_percent, mock_cpu_count):
         """Test successful CPU usage retrieval."""
         # Setup mocks
@@ -38,8 +38,8 @@ class TestGetCpuUsage:
         mock_cpu_count.assert_any_call(logical=False)
         mock_cpu_count.assert_any_call(logical=True)
 
-    @patch('modules.utils_system_stats.psutil.cpu_count')
-    @patch('modules.utils_system_stats.psutil.cpu_percent')
+    @patch('sharewarez.utils.system_stats.psutil.cpu_count')
+    @patch('sharewarez.utils.system_stats.psutil.cpu_percent')
     @patch('builtins.print')
     def test_get_cpu_usage_exception(self, mock_print, mock_cpu_percent, mock_cpu_count):
         """Test CPU usage retrieval with exception."""
@@ -56,7 +56,7 @@ class TestGetCpuUsage:
 class TestGetMemoryUsage:
     """Tests for get_memory_usage function."""
 
-    @patch('modules.utils_system_stats.psutil.virtual_memory')
+    @patch('sharewarez.utils.system_stats.psutil.virtual_memory')
     def test_get_memory_usage_success(self, mock_virtual_memory):
         """Test successful memory usage retrieval."""
         # Create mock memory object
@@ -77,7 +77,7 @@ class TestGetMemoryUsage:
         
         mock_virtual_memory.assert_called_once()
 
-    @patch('modules.utils_system_stats.psutil.virtual_memory')
+    @patch('sharewarez.utils.system_stats.psutil.virtual_memory')
     @patch('builtins.print')
     def test_get_memory_usage_exception(self, mock_print, mock_virtual_memory):
         """Test memory usage retrieval with exception."""
@@ -93,9 +93,9 @@ class TestGetMemoryUsage:
 class TestGetDiskUsage:
     """Tests for get_disk_usage function."""
 
-    @patch('modules.utils_system_stats.psutil.disk_usage')
-    @patch('modules.utils_system_stats.os.path.exists')
-    @patch('modules.utils_system_stats.os.name', 'posix')
+    @patch('sharewarez.utils.system_stats.psutil.disk_usage')
+    @patch('sharewarez.utils.system_stats.os.path.exists')
+    @patch('sharewarez.utils.system_stats.os.name', 'posix')
     def test_get_disk_usage_success_posix(self, mock_exists, mock_disk_usage):
         """Test successful disk usage retrieval on POSIX systems."""
         mock_exists.return_value = True
@@ -108,7 +108,7 @@ class TestGetDiskUsage:
         mock_disk.percent = 50.0
         mock_disk_usage.return_value = mock_disk
         
-        with patch('modules.utils_system_stats.Config') as mock_config:
+        with patch('sharewarez.utils.system_stats.Config') as mock_config:
             mock_config.BASE_FOLDER_POSIX = '/test/posix/path'
             
             result = get_disk_usage()
@@ -122,9 +122,9 @@ class TestGetDiskUsage:
             mock_exists.assert_called_once_with('/test/posix/path')
             mock_disk_usage.assert_called_once_with('/test/posix/path')
 
-    @patch('modules.utils_system_stats.psutil.disk_usage')
-    @patch('modules.utils_system_stats.os.path.exists')
-    @patch('modules.utils_system_stats.os.name', 'nt')
+    @patch('sharewarez.utils.system_stats.psutil.disk_usage')
+    @patch('sharewarez.utils.system_stats.os.path.exists')
+    @patch('sharewarez.utils.system_stats.os.name', 'nt')
     def test_get_disk_usage_success_windows(self, mock_exists, mock_disk_usage):
         """Test successful disk usage retrieval on Windows systems."""
         mock_exists.return_value = True
@@ -136,7 +136,7 @@ class TestGetDiskUsage:
         mock_disk.percent = 50.0
         mock_disk_usage.return_value = mock_disk
         
-        with patch('modules.utils_system_stats.Config') as mock_config:
+        with patch('sharewarez.utils.system_stats.Config') as mock_config:
             mock_config.BASE_FOLDER_WINDOWS = 'C:\\test\\windows\\path'
             
             result = get_disk_usage()
@@ -150,12 +150,12 @@ class TestGetDiskUsage:
             mock_exists.assert_called_once_with('C:\\test\\windows\\path')
             mock_disk_usage.assert_called_once_with('C:\\test\\windows\\path')
 
-    @patch('modules.utils_system_stats.os.path.exists')
+    @patch('sharewarez.utils.system_stats.os.path.exists')
     def test_get_disk_usage_path_not_exists(self, mock_exists):
         """Test disk usage when base path doesn't exist."""
         mock_exists.return_value = False
         
-        with patch('modules.utils_system_stats.Config') as mock_config:
+        with patch('sharewarez.utils.system_stats.Config') as mock_config:
             mock_config.BASE_FOLDER_POSIX = '/nonexistent/path'
             
             result = get_disk_usage()
@@ -163,15 +163,15 @@ class TestGetDiskUsage:
             assert result is None
             mock_exists.assert_called_once_with('/nonexistent/path')
 
-    @patch('modules.utils_system_stats.psutil.disk_usage')
-    @patch('modules.utils_system_stats.os.path.exists')
+    @patch('sharewarez.utils.system_stats.psutil.disk_usage')
+    @patch('sharewarez.utils.system_stats.os.path.exists')
     @patch('builtins.print')
     def test_get_disk_usage_exception(self, mock_print, mock_exists, mock_disk_usage):
         """Test disk usage retrieval with exception."""
         mock_exists.return_value = True
         mock_disk_usage.side_effect = Exception('Disk error')
         
-        with patch('modules.utils_system_stats.Config') as mock_config:
+        with patch('sharewarez.utils.system_stats.Config') as mock_config:
             mock_config.BASE_FOLDER_POSIX = '/test/path'
             
             result = get_disk_usage()
@@ -184,8 +184,8 @@ class TestGetDiskUsage:
 class TestGetWarezFolderUsage:
     """Tests for get_warez_folder_usage function."""
 
-    @patch('modules.utils_system_stats.psutil.disk_usage')
-    @patch('modules.utils_system_stats.os.path.exists')
+    @patch('sharewarez.utils.system_stats.psutil.disk_usage')
+    @patch('sharewarez.utils.system_stats.os.path.exists')
     def test_get_warez_folder_usage_success(self, mock_exists, mock_disk_usage):
         """Test successful warez folder usage retrieval."""
         mock_exists.return_value = True
@@ -197,7 +197,7 @@ class TestGetWarezFolderUsage:
         mock_disk.percent = 50.0
         mock_disk_usage.return_value = mock_disk
         
-        with patch('modules.utils_system_stats.Config') as mock_config:
+        with patch('sharewarez.utils.system_stats.Config') as mock_config:
             mock_config.DATA_FOLDER_WAREZ = '/warez/folder/path'
             
             result = get_warez_folder_usage()
@@ -211,12 +211,12 @@ class TestGetWarezFolderUsage:
             mock_exists.assert_called_once_with('/warez/folder/path')
             mock_disk_usage.assert_called_once_with('/warez/folder/path')
 
-    @patch('modules.utils_system_stats.os.path.exists')
+    @patch('sharewarez.utils.system_stats.os.path.exists')
     def test_get_warez_folder_usage_path_not_exists(self, mock_exists):
         """Test warez folder usage when path doesn't exist."""
         mock_exists.return_value = False
         
-        with patch('modules.utils_system_stats.Config') as mock_config:
+        with patch('sharewarez.utils.system_stats.Config') as mock_config:
             mock_config.DATA_FOLDER_WAREZ = '/nonexistent/warez/path'
             
             result = get_warez_folder_usage()
@@ -224,15 +224,15 @@ class TestGetWarezFolderUsage:
             assert result is None
             mock_exists.assert_called_once_with('/nonexistent/warez/path')
 
-    @patch('modules.utils_system_stats.psutil.disk_usage')
-    @patch('modules.utils_system_stats.os.path.exists')
+    @patch('sharewarez.utils.system_stats.psutil.disk_usage')
+    @patch('sharewarez.utils.system_stats.os.path.exists')
     @patch('builtins.print')
     def test_get_warez_folder_usage_exception(self, mock_print, mock_exists, mock_disk_usage):
         """Test warez folder usage retrieval with exception."""
         mock_exists.return_value = True
         mock_disk_usage.side_effect = Exception('Warez disk error')
         
-        with patch('modules.utils_system_stats.Config') as mock_config:
+        with patch('sharewarez.utils.system_stats.Config') as mock_config:
             mock_config.DATA_FOLDER_WAREZ = '/warez/path'
             
             result = get_warez_folder_usage()
@@ -300,7 +300,7 @@ class TestFormatBytes:
 class TestGetProcessCount:
     """Tests for get_process_count function."""
 
-    @patch('modules.utils_system_stats.psutil.pids')
+    @patch('sharewarez.utils.system_stats.psutil.pids')
     def test_get_process_count_success(self, mock_pids):
         """Test successful process count retrieval."""
         mock_pids.return_value = [1, 2, 3, 4, 5, 100, 200, 300, 400, 500]
@@ -310,7 +310,7 @@ class TestGetProcessCount:
         assert result == 10
         mock_pids.assert_called_once()
 
-    @patch('modules.utils_system_stats.psutil.pids')
+    @patch('sharewarez.utils.system_stats.psutil.pids')
     def test_get_process_count_empty_list(self, mock_pids):
         """Test process count with empty PID list."""
         mock_pids.return_value = []
@@ -320,7 +320,7 @@ class TestGetProcessCount:
         assert result == 0
         mock_pids.assert_called_once()
 
-    @patch('modules.utils_system_stats.psutil.pids')
+    @patch('sharewarez.utils.system_stats.psutil.pids')
     @patch('builtins.print')
     def test_get_process_count_exception(self, mock_print, mock_pids):
         """Test process count retrieval with exception."""
@@ -336,7 +336,7 @@ class TestGetProcessCount:
 class TestGetOpenFiles:
     """Tests for get_open_files function."""
 
-    @patch('modules.utils_system_stats.platform.system')
+    @patch('sharewarez.utils.system_stats.platform.system')
     @patch('builtins.open', new_callable=mock_open, read_data='1024\t0\t2048')
     def test_get_open_files_linux_success(self, mock_file, mock_system):
         """Test successful open files count on Linux."""
@@ -348,8 +348,8 @@ class TestGetOpenFiles:
         mock_file.assert_called_once_with('/proc/sys/fs/file-nr')
         mock_system.assert_called_once()
 
-    @patch('modules.utils_system_stats.platform.system')
-    @patch('modules.utils_system_stats.psutil.Process')
+    @patch('sharewarez.utils.system_stats.platform.system')
+    @patch('sharewarez.utils.system_stats.psutil.Process')
     def test_get_open_files_windows_success(self, mock_process_class, mock_system):
         """Test successful open files count on Windows."""
         mock_system.return_value = 'Windows'
@@ -366,7 +366,7 @@ class TestGetOpenFiles:
         mock_process_class.assert_called_once()
         mock_process.open_files.assert_called_once()
 
-    @patch('modules.utils_system_stats.platform.system')
+    @patch('sharewarez.utils.system_stats.platform.system')
     @patch('builtins.open', new_callable=mock_open)
     @patch('builtins.print')
     def test_get_open_files_linux_exception(self, mock_print, mock_file, mock_system):
@@ -380,8 +380,8 @@ class TestGetOpenFiles:
         mock_print.assert_called_once()
         assert 'Error getting open files count' in str(mock_print.call_args)
 
-    @patch('modules.utils_system_stats.platform.system')
-    @patch('modules.utils_system_stats.psutil.Process')
+    @patch('sharewarez.utils.system_stats.platform.system')
+    @patch('sharewarez.utils.system_stats.psutil.Process')
     @patch('builtins.print')
     def test_get_open_files_windows_exception(self, mock_print, mock_process_class, mock_system):
         """Test open files count on Windows with exception."""
@@ -394,8 +394,8 @@ class TestGetOpenFiles:
         mock_print.assert_called_once()
         assert 'Error getting open files count' in str(mock_print.call_args)
 
-    @patch('modules.utils_system_stats.platform.system')
-    @patch('modules.utils_system_stats.psutil.Process')
+    @patch('sharewarez.utils.system_stats.platform.system')
+    @patch('sharewarez.utils.system_stats.psutil.Process')
     def test_get_open_files_other_platform(self, mock_process_class, mock_system):
         """Test open files count on other platforms (non-Linux/Windows)."""
         mock_system.return_value = 'Darwin'  # macOS

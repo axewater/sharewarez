@@ -1,7 +1,7 @@
 import pytest
 from flask import url_for
-from modules.models import User
-from modules import db
+from sharewarez.models import User
+from sharewarez import db
 from uuid import uuid4
 
 

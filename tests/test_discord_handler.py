@@ -5,7 +5,7 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from modules.discord_handler import DiscordWebhookHandler
+from sharewarez.discord_handler import DiscordWebhookHandler
 from discord_webhook import DiscordEmbed
 from requests.exceptions import RequestException, HTTPError, Timeout
 from tenacity import RetryError
@@ -179,14 +179,14 @@ class TestDiscordWebhookHandler(unittest.TestCase):
     
     def test_create_embed_error_handling(self):
         """Test error handling in embed creation."""
-        with patch('modules.discord_handler.DiscordEmbed') as mock_embed:
+        with patch('sharewarez.discord_handler.DiscordEmbed') as mock_embed:
             mock_embed.side_effect = Exception("Embed creation failed")
             
             with self.assertRaises(Exception):
                 self.handler.create_embed("Title")
     
     # Webhook Sending Tests
-    @patch('modules.discord_handler.DiscordWebhook')
+    @patch('sharewarez.discord_handler.DiscordWebhook')
     def test_send_webhook_success(self, mock_webhook_class):
         """Test successful webhook sending."""
         # Setup mock response
@@ -221,7 +221,7 @@ class TestDiscordWebhookHandler(unittest.TestCase):
         with self.assertRaises((ValueError, RetryError)):
             result = handler.send_webhook(embed)
     
-    @patch('modules.discord_handler.DiscordWebhook')
+    @patch('sharewarez.discord_handler.DiscordWebhook')
     def test_send_webhook_rate_limited(self, mock_webhook_class):
         """Test webhook sending handles rate limiting."""
         mock_response = Mock()
@@ -240,7 +240,7 @@ class TestDiscordWebhookHandler(unittest.TestCase):
             handler = DiscordWebhookHandler(self.valid_webhook_url)  
             handler.send_webhook(embed)
     
-    @patch('modules.discord_handler.DiscordWebhook')
+    @patch('sharewarez.discord_handler.DiscordWebhook')
     def test_send_webhook_http_error(self, mock_webhook_class):
         """Test webhook sending handles HTTP errors."""
         mock_response = Mock()
@@ -256,7 +256,7 @@ class TestDiscordWebhookHandler(unittest.TestCase):
             handler = DiscordWebhookHandler(self.valid_webhook_url)
             handler.send_webhook(embed)
     
-    @patch('modules.discord_handler.DiscordWebhook')
+    @patch('sharewarez.discord_handler.DiscordWebhook')
     def test_send_webhook_timeout(self, mock_webhook_class):
         """Test webhook sending handles timeout."""
         mock_webhook = Mock()
@@ -269,7 +269,7 @@ class TestDiscordWebhookHandler(unittest.TestCase):
             handler = DiscordWebhookHandler(self.valid_webhook_url)
             handler.send_webhook(embed)
     
-    @patch('modules.discord_handler.DiscordWebhook')
+    @patch('sharewarez.discord_handler.DiscordWebhook')
     def test_send_webhook_request_exception(self, mock_webhook_class):
         """Test webhook sending handles request exceptions."""
         mock_webhook = Mock()
@@ -282,7 +282,7 @@ class TestDiscordWebhookHandler(unittest.TestCase):
             handler = DiscordWebhookHandler(self.valid_webhook_url)
             handler.send_webhook(embed)
     
-    @patch('modules.discord_handler.DiscordWebhook')
+    @patch('sharewarez.discord_handler.DiscordWebhook')
     def test_send_webhook_status_204(self, mock_webhook_class):
         """Test webhook sending accepts 204 status code."""
         mock_response = Mock()

@@ -19,7 +19,7 @@ from difflib import SequenceMatcher
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from config import Config
-from modules.models import Game, Library
+from sharewarez.models import Game, Library
 
 # Color codes for terminal output
 class Colors:

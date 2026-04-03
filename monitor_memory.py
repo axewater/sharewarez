@@ -26,7 +26,7 @@ def get_sharewarez_processes():
                 'asgi:asgi_app' in cmdline,
                 'sharewarez' in cmdline.lower(),
                 '/var/www/sharewarez' in cmdline,
-                'modules' in cmdline and 'create_app' in cmdline
+                'sharewarez' in cmdline and 'create_app' in cmdline
             ]):
                 processes.append({
                     'pid': proc.info['pid'],

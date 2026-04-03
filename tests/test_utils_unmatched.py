@@ -3,14 +3,14 @@ from unittest.mock import patch, MagicMock
 from datetime import datetime, timezone
 from uuid import uuid4
 from sqlalchemy.exc import SQLAlchemyError
-from modules.models import UnmatchedFolder, Library, ScanJob
-from modules.utils_unmatched import handle_delete_unmatched
+from sharewarez.models import UnmatchedFolder, Library, ScanJob
+from sharewarez.utils.unmatched import handle_delete_unmatched
 
 
 @pytest.fixture
 def sample_library(db_session):
     """Create a sample library for testing."""
-    from modules.models import LibraryPlatform
+    from sharewarez.models import LibraryPlatform
     library = Library(
         uuid=str(uuid4()),
         name='Test Library',
@@ -62,11 +62,11 @@ def sample_unmatched_folders(db_session, sample_library, sample_scan_job):
 class TestHandleDeleteUnmatchedOnly:
     """Tests for handle_delete_unmatched function with all=False (replaces clear_only_unmatched_folders tests)."""
 
-    @patch('modules.utils_unmatched.log_system_event')
-    @patch('modules.utils_unmatched.redirect')
-    @patch('modules.utils_unmatched.url_for')
-    @patch('modules.utils_unmatched.flash')
-    @patch('modules.utils_unmatched.logger')
+    @patch('sharewarez.utils.unmatched.log_system_event')
+    @patch('sharewarez.utils.unmatched.redirect')
+    @patch('sharewarez.utils.unmatched.url_for')
+    @patch('sharewarez.utils.unmatched.flash')
+    @patch('sharewarez.utils.unmatched.logger')
     def test_handle_delete_unmatched_only_success(self, mock_logger, mock_flash, 
                                                  mock_url_for, mock_redirect, mock_log_system_event,
                                                  app, db_session, sample_unmatched_folders):
@@ -77,9 +77,9 @@ class TestHandleDeleteUnmatchedOnly:
         
         with app.app_context():
             with app.test_request_context():
-                with patch('modules.utils_unmatched.current_user') as mock_current_user, \
-                     patch('modules.utils_unmatched.request') as mock_request, \
-                     patch('modules.utils_unmatched.session') as mock_session:
+                with patch('sharewarez.utils.unmatched.current_user') as mock_current_user, \
+                     patch('sharewarez.utils.unmatched.request') as mock_request, \
+                     patch('sharewarez.utils.unmatched.session') as mock_session:
                     
                     mock_current_user.name = 'testuser'
                     mock_current_user.role = 'admin'
@@ -103,11 +103,11 @@ class TestHandleDeleteUnmatchedOnly:
                     
                     assert result == mock_redirect_response
 
-    @patch('modules.utils_unmatched.log_system_event')
-    @patch('modules.utils_unmatched.redirect')
-    @patch('modules.utils_unmatched.url_for')
-    @patch('modules.utils_unmatched.flash')
-    @patch('modules.utils_unmatched.logger')
+    @patch('sharewarez.utils.unmatched.log_system_event')
+    @patch('sharewarez.utils.unmatched.redirect')
+    @patch('sharewarez.utils.unmatched.url_for')
+    @patch('sharewarez.utils.unmatched.flash')
+    @patch('sharewarez.utils.unmatched.logger')
     def test_handle_delete_unmatched_only_no_folders(self, mock_logger, mock_flash,
                                                     mock_url_for, mock_redirect, mock_log_system_event,
                                                     app, db_session, sample_library, sample_scan_job):
@@ -131,9 +131,9 @@ class TestHandleDeleteUnmatchedOnly:
         
         with app.app_context():
             with app.test_request_context():
-                with patch('modules.utils_unmatched.current_user') as mock_current_user, \
-                     patch('modules.utils_unmatched.request') as mock_request, \
-                     patch('modules.utils_unmatched.session') as mock_session:
+                with patch('sharewarez.utils.unmatched.current_user') as mock_current_user, \
+                     patch('sharewarez.utils.unmatched.request') as mock_request, \
+                     patch('sharewarez.utils.unmatched.session') as mock_session:
                     
                     mock_current_user.name = 'testuser'
                     mock_current_user.role = 'admin'
@@ -152,12 +152,12 @@ class TestHandleDeleteUnmatchedOnly:
                     
                     assert result == mock_redirect_response
 
-    @patch('modules.utils_unmatched.log_system_event')
-    @patch('modules.utils_unmatched.db.session.execute')
-    @patch('modules.utils_unmatched.redirect')
-    @patch('modules.utils_unmatched.url_for')
-    @patch('modules.utils_unmatched.flash')
-    @patch('modules.utils_unmatched.logger')
+    @patch('sharewarez.utils.unmatched.log_system_event')
+    @patch('sharewarez.utils.unmatched.db.session.execute')
+    @patch('sharewarez.utils.unmatched.redirect')
+    @patch('sharewarez.utils.unmatched.url_for')
+    @patch('sharewarez.utils.unmatched.flash')
+    @patch('sharewarez.utils.unmatched.logger')
     def test_handle_delete_unmatched_only_database_error(self, mock_logger, mock_flash,
                                                         mock_url_for, mock_redirect,
                                                         mock_execute, mock_log_system_event, app, db_session):
@@ -169,9 +169,9 @@ class TestHandleDeleteUnmatchedOnly:
         
         with app.app_context():
             with app.test_request_context():
-                with patch('modules.utils_unmatched.current_user') as mock_current_user, \
-                     patch('modules.utils_unmatched.request') as mock_request, \
-                     patch('modules.utils_unmatched.session') as mock_session:
+                with patch('sharewarez.utils.unmatched.current_user') as mock_current_user, \
+                     patch('sharewarez.utils.unmatched.request') as mock_request, \
+                     patch('sharewarez.utils.unmatched.session') as mock_session:
                     
                     mock_current_user.name = 'testuser'
                     mock_current_user.role = 'admin'
@@ -191,12 +191,12 @@ class TestHandleDeleteUnmatchedOnly:
                     
                     assert result == mock_redirect_response
 
-    @patch('modules.utils_unmatched.log_system_event')
-    @patch('modules.utils_unmatched.db.session.execute')
-    @patch('modules.utils_unmatched.redirect')
-    @patch('modules.utils_unmatched.url_for')
-    @patch('modules.utils_unmatched.flash')
-    @patch('modules.utils_unmatched.logger')
+    @patch('sharewarez.utils.unmatched.log_system_event')
+    @patch('sharewarez.utils.unmatched.db.session.execute')
+    @patch('sharewarez.utils.unmatched.redirect')
+    @patch('sharewarez.utils.unmatched.url_for')
+    @patch('sharewarez.utils.unmatched.flash')
+    @patch('sharewarez.utils.unmatched.logger')
     def test_handle_delete_unmatched_only_unexpected_error(self, mock_logger, mock_flash,
                                                           mock_url_for, mock_redirect,
                                                           mock_execute, mock_log_system_event, app, db_session):
@@ -208,9 +208,9 @@ class TestHandleDeleteUnmatchedOnly:
         
         with app.app_context():
             with app.test_request_context():
-                with patch('modules.utils_unmatched.current_user') as mock_current_user, \
-                     patch('modules.utils_unmatched.request') as mock_request, \
-                     patch('modules.utils_unmatched.session') as mock_session:
+                with patch('sharewarez.utils.unmatched.current_user') as mock_current_user, \
+                     patch('sharewarez.utils.unmatched.request') as mock_request, \
+                     patch('sharewarez.utils.unmatched.session') as mock_session:
                     
                     mock_current_user.name = 'testuser'
                     mock_current_user.role = 'admin'
@@ -234,11 +234,11 @@ class TestHandleDeleteUnmatchedOnly:
 class TestHandleDeleteUnmatched:
     """Tests for handle_delete_unmatched function."""
 
-    @patch('modules.utils_unmatched.log_system_event')
-    @patch('modules.utils_unmatched.redirect')
-    @patch('modules.utils_unmatched.url_for')
-    @patch('modules.utils_unmatched.flash')
-    @patch('modules.utils_unmatched.logger')
+    @patch('sharewarez.utils.unmatched.log_system_event')
+    @patch('sharewarez.utils.unmatched.redirect')
+    @patch('sharewarez.utils.unmatched.url_for')
+    @patch('sharewarez.utils.unmatched.flash')
+    @patch('sharewarez.utils.unmatched.logger')
     def test_handle_delete_unmatched_all_true(self, mock_logger, mock_flash, mock_url_for,
                                              mock_redirect, mock_log_system_event, app, db_session, sample_unmatched_folders):
         """Test deleting all unmatched folders when all=True."""
@@ -249,9 +249,9 @@ class TestHandleDeleteUnmatched:
         with app.app_context():
             with app.test_request_context():
                 # Mock Flask-Login current_user and session within context
-                with patch('modules.utils_unmatched.current_user') as mock_current_user, \
-                     patch('modules.utils_unmatched.request') as mock_request, \
-                     patch('modules.utils_unmatched.session') as mock_session:
+                with patch('sharewarez.utils.unmatched.current_user') as mock_current_user, \
+                     patch('sharewarez.utils.unmatched.request') as mock_request, \
+                     patch('sharewarez.utils.unmatched.session') as mock_session:
                     
                     mock_current_user.name = 'testuser'
                     mock_current_user.role = 'admin'
@@ -277,11 +277,11 @@ class TestHandleDeleteUnmatched:
                     
                     assert result == mock_redirect_response
 
-    @patch('modules.utils_unmatched.log_system_event')
-    @patch('modules.utils_unmatched.redirect')
-    @patch('modules.utils_unmatched.url_for')
-    @patch('modules.utils_unmatched.flash')
-    @patch('modules.utils_unmatched.logger')
+    @patch('sharewarez.utils.unmatched.log_system_event')
+    @patch('sharewarez.utils.unmatched.redirect')
+    @patch('sharewarez.utils.unmatched.url_for')
+    @patch('sharewarez.utils.unmatched.flash')
+    @patch('sharewarez.utils.unmatched.logger')
     def test_handle_delete_unmatched_all_false(self, mock_logger, mock_flash, mock_url_for,
                                               mock_redirect, mock_log_system_event, app, db_session, sample_unmatched_folders):
         """Test deleting only 'Unmatched' status folders when all=False."""
@@ -292,9 +292,9 @@ class TestHandleDeleteUnmatched:
         with app.app_context():
             with app.test_request_context():
                 # Mock Flask-Login current_user and session within context
-                with patch('modules.utils_unmatched.current_user') as mock_current_user, \
-                     patch('modules.utils_unmatched.request') as mock_request, \
-                     patch('modules.utils_unmatched.session') as mock_session:
+                with patch('sharewarez.utils.unmatched.current_user') as mock_current_user, \
+                     patch('sharewarez.utils.unmatched.request') as mock_request, \
+                     patch('sharewarez.utils.unmatched.session') as mock_session:
                     
                     mock_current_user.name = 'testuser'
                     mock_current_user.role = 'admin'
@@ -317,12 +317,12 @@ class TestHandleDeleteUnmatched:
                     
                     assert result == mock_redirect_response
 
-    @patch('modules.utils_unmatched.log_system_event')
-    @patch('modules.utils_unmatched.db.session.execute')
-    @patch('modules.utils_unmatched.redirect')
-    @patch('modules.utils_unmatched.url_for')
-    @patch('modules.utils_unmatched.flash')
-    @patch('modules.utils_unmatched.logger')
+    @patch('sharewarez.utils.unmatched.log_system_event')
+    @patch('sharewarez.utils.unmatched.db.session.execute')
+    @patch('sharewarez.utils.unmatched.redirect')
+    @patch('sharewarez.utils.unmatched.url_for')
+    @patch('sharewarez.utils.unmatched.flash')
+    @patch('sharewarez.utils.unmatched.logger')
     def test_handle_delete_unmatched_database_error(self, mock_logger, mock_flash, mock_url_for,
                                                    mock_redirect, mock_execute, mock_log_system_event, app, db_session):
         """Test handling of database errors in handle_delete_unmatched."""
@@ -336,9 +336,9 @@ class TestHandleDeleteUnmatched:
         with app.app_context():
             with app.test_request_context():
                 # Mock Flask-Login current_user and session within context
-                with patch('modules.utils_unmatched.current_user') as mock_current_user, \
-                     patch('modules.utils_unmatched.request') as mock_request, \
-                     patch('modules.utils_unmatched.session') as mock_session:
+                with patch('sharewarez.utils.unmatched.current_user') as mock_current_user, \
+                     patch('sharewarez.utils.unmatched.request') as mock_request, \
+                     patch('sharewarez.utils.unmatched.session') as mock_session:
                     
                     mock_current_user.name = 'testuser'
                     mock_current_user.role = 'admin'
@@ -358,12 +358,12 @@ class TestHandleDeleteUnmatched:
                     
                     assert result == mock_redirect_response
 
-    @patch('modules.utils_unmatched.log_system_event')
-    @patch('modules.utils_unmatched.db.session.execute')
-    @patch('modules.utils_unmatched.redirect')
-    @patch('modules.utils_unmatched.url_for')
-    @patch('modules.utils_unmatched.flash')
-    @patch('modules.utils_unmatched.logger')
+    @patch('sharewarez.utils.unmatched.log_system_event')
+    @patch('sharewarez.utils.unmatched.db.session.execute')
+    @patch('sharewarez.utils.unmatched.redirect')
+    @patch('sharewarez.utils.unmatched.url_for')
+    @patch('sharewarez.utils.unmatched.flash')
+    @patch('sharewarez.utils.unmatched.logger')
     def test_handle_delete_unmatched_unexpected_error(self, mock_logger, mock_flash, mock_url_for,
                                                      mock_redirect, mock_execute, mock_log_system_event, app, db_session):
         """Test handling of unexpected errors in handle_delete_unmatched."""
@@ -377,9 +377,9 @@ class TestHandleDeleteUnmatched:
         with app.app_context():
             with app.test_request_context():
                 # Mock Flask-Login current_user and session within context
-                with patch('modules.utils_unmatched.current_user') as mock_current_user, \
-                     patch('modules.utils_unmatched.request') as mock_request, \
-                     patch('modules.utils_unmatched.session') as mock_session:
+                with patch('sharewarez.utils.unmatched.current_user') as mock_current_user, \
+                     patch('sharewarez.utils.unmatched.request') as mock_request, \
+                     patch('sharewarez.utils.unmatched.session') as mock_session:
                     
                     mock_current_user.name = 'testuser'
                     mock_current_user.role = 'admin'
@@ -399,11 +399,11 @@ class TestHandleDeleteUnmatched:
                     
                     assert result == mock_redirect_response
 
-    @patch('modules.utils_unmatched.log_system_event')
-    @patch('modules.utils_unmatched.redirect')
-    @patch('modules.utils_unmatched.url_for')
-    @patch('modules.utils_unmatched.flash')
-    @patch('modules.utils_unmatched.logger')
+    @patch('sharewarez.utils.unmatched.log_system_event')
+    @patch('sharewarez.utils.unmatched.redirect')
+    @patch('sharewarez.utils.unmatched.url_for')
+    @patch('sharewarez.utils.unmatched.flash')
+    @patch('sharewarez.utils.unmatched.logger')
     def test_handle_delete_unmatched_no_folders_to_delete(self, mock_logger, mock_flash, mock_url_for,
                                                          mock_redirect, mock_log_system_event, app, db_session, 
                                                          sample_library, sample_scan_job):
@@ -428,9 +428,9 @@ class TestHandleDeleteUnmatched:
         with app.app_context():
             with app.test_request_context():
                 # Mock Flask-Login current_user and session within context
-                with patch('modules.utils_unmatched.current_user') as mock_current_user, \
-                     patch('modules.utils_unmatched.request') as mock_request, \
-                     patch('modules.utils_unmatched.session') as mock_session:
+                with patch('sharewarez.utils.unmatched.current_user') as mock_current_user, \
+                     patch('sharewarez.utils.unmatched.request') as mock_request, \
+                     patch('sharewarez.utils.unmatched.session') as mock_session:
                     
                     mock_current_user.name = 'testuser'
                     mock_current_user.role = 'admin'
@@ -450,11 +450,11 @@ class TestHandleDeleteUnmatched:
                     
                     assert result == mock_redirect_response
 
-    @patch('modules.utils_unmatched.log_system_event')
-    @patch('modules.utils_unmatched.redirect')
-    @patch('modules.utils_unmatched.url_for')
-    @patch('modules.utils_unmatched.flash')
-    @patch('modules.utils_unmatched.logger')
+    @patch('sharewarez.utils.unmatched.log_system_event')
+    @patch('sharewarez.utils.unmatched.redirect')
+    @patch('sharewarez.utils.unmatched.url_for')
+    @patch('sharewarez.utils.unmatched.flash')
+    @patch('sharewarez.utils.unmatched.logger')
     def test_handle_delete_unmatched_logging_output(self, mock_logger, mock_flash, mock_url_for,
                                                    mock_redirect, mock_log_system_event, app, db_session, sample_unmatched_folders):
         """Test that proper logging output is generated."""
@@ -465,9 +465,9 @@ class TestHandleDeleteUnmatched:
         with app.app_context():
             with app.test_request_context():
                 # Mock Flask-Login current_user and session within context
-                with patch('modules.utils_unmatched.current_user') as mock_current_user, \
-                     patch('modules.utils_unmatched.request') as mock_request, \
-                     patch('modules.utils_unmatched.session') as mock_session:
+                with patch('sharewarez.utils.unmatched.current_user') as mock_current_user, \
+                     patch('sharewarez.utils.unmatched.request') as mock_request, \
+                     patch('sharewarez.utils.unmatched.session') as mock_session:
                     
                     mock_current_user.name = 'testuser'
                     mock_current_user.role = 'admin'

@@ -7,8 +7,8 @@ import shutil
 from unittest.mock import patch, mock_open, MagicMock
 from flask import Flask
 from uuid import uuid4
-from modules.models import User, UserPreference
-from modules.utils_themes import ThemeManager
+from sharewarez.models import User, UserPreference
+from sharewarez.utils.themes import ThemeManager
 
 
 @pytest.fixture
@@ -69,7 +69,7 @@ class TestThemeManagerInit:
         manager = ThemeManager(sample_app)
         
         assert manager.app == sample_app
-        assert 'modules/static/library/themes' in manager.theme_folder
+        assert 'sharewarez/static/library/themes' in manager.theme_folder
         assert os.path.isabs(manager.theme_folder)
 
 
@@ -235,7 +235,7 @@ class TestUploadTheme:
                 assert result is None
 
     @patch('os.path.exists', return_value=False)
-    @patch('modules.utils_themes.flash')
+    @patch('sharewarez.utils.themes.flash')
     def test_upload_theme_upload_folder_missing(self, mock_flash, mock_exists, theme_manager):
         """Test theme upload when upload folder doesn't exist."""
         with theme_manager.app.app_context():
@@ -246,7 +246,7 @@ class TestUploadTheme:
         mock_flash.assert_called_once_with('Error: Library folder does not exist.', 'error')
 
     @patch('os.path.exists')
-    @patch('modules.utils_themes.flash')
+    @patch('sharewarez.utils.themes.flash')
     def test_upload_theme_missing_theme_json(self, mock_flash, mock_exists, theme_manager):
         """Test theme upload with missing theme.json."""
         mock_exists.side_effect = lambda path: 'UPLOAD_FOLDER' in path or 'themes' in path
@@ -267,7 +267,7 @@ class TestUploadTheme:
         assert result is None
 
     @patch('os.path.exists')
-    @patch('modules.utils_themes.flash')
+    @patch('sharewarez.utils.themes.flash')
     def test_upload_theme_missing_css_folder(self, mock_flash, mock_exists, theme_manager, sample_theme_data):
         """Test theme upload with missing CSS folder."""
         mock_exists.side_effect = lambda path: 'UPLOAD_FOLDER' in path or 'themes' in path
@@ -387,7 +387,7 @@ class TestDeleteThemeFile:
 
     @patch('os.path.exists', return_value=True)
     @patch('shutil.rmtree')
-    @patch('modules.utils_themes.db')
+    @patch('sharewarez.utils.themes.db')
     def test_delete_theme_success(self, mock_db, mock_rmtree, mock_exists, theme_manager, db_session):
         """Test successful theme deletion."""
         # Setup mock db session
@@ -413,7 +413,7 @@ class TestDeleteThemeFile:
 
     @patch('os.path.exists', return_value=True)
     @patch('shutil.rmtree')
-    @patch('modules.utils_themes.db')
+    @patch('sharewarez.utils.themes.db')
     def test_delete_theme_updates_user_preferences(self, mock_db, mock_rmtree, mock_exists, 
                                                   theme_manager, sample_user_with_preference):
         """Test that theme deletion updates user preferences."""

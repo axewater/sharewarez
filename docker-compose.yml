@@ -22,7 +22,7 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - DATA_FOLDER_WAREZ=/storage
-      - UPLOAD_FOLDER=/app/modules/static/library
+      - UPLOAD_FOLDER=/app/sharewarez/static/library
       - SECRET_KEY=${SECRET_KEY}
       - DEV_MODE=${DEV_MODE:-false}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -30,7 +30,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - "${DATA_FOLDER_WAREZ}:/storage:ro"
-      - "${UPLOAD_FOLDER}:/app/modules/static/library"
+      - "${UPLOAD_FOLDER}:/app/sharewarez/static/library"
     depends_on:
       db:
         condition: service_healthy

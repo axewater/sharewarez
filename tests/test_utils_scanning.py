@@ -4,12 +4,12 @@ from unittest.mock import patch, MagicMock, mock_open
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from modules import create_app, db
-from modules.models import (
+from sharewarez import create_app, db
+from sharewarez.models import (
     Game, Library, LibraryPlatform, UnmatchedFolder, 
     GameUpdate, GameExtra, GlobalSettings, ScanJob, Image
 )
-from modules.utils_scanning import (
+from sharewarez.utils.scanning import (
     try_add_game, process_game_with_fallback, log_unmatched_folder,
     process_game_updates, process_game_extras, refresh_images_in_background,
     delete_game_images, is_scan_job_running
@@ -132,7 +132,7 @@ def mock_igdb_response():
 class TestTryAddGame:
     """Test the try_add_game function."""
     
-    @patch('modules.utils_game_core.retrieve_and_save_game')
+    @patch('sharewarez.utils.game_core.retrieve_and_save_game')
     def test_try_add_game_success(self, mock_retrieve, db_session, sample_library, sample_scan_job):
         """Test successful game addition."""
         mock_retrieve.return_value = MagicMock(spec=Game)
@@ -154,7 +154,7 @@ class TestTryAddGame:
             settings=None
         )
     
-    @patch('modules.utils_game_core.retrieve_and_save_game')
+    @patch('sharewarez.utils.game_core.retrieve_and_save_game')
     def test_try_add_game_retrieve_fails(self, mock_retrieve, db_session, sample_library, sample_scan_job):
         """Test game addition when retrieve_and_save_game fails."""
         mock_retrieve.return_value = None
@@ -194,7 +194,7 @@ class TestTryAddGame:
         
         assert result is False
     
-    @patch('modules.utils_game_core.retrieve_and_save_game')
+    @patch('sharewarez.utils.game_core.retrieve_and_save_game')
     def test_try_add_game_existing_game_check_exists_false(self, mock_retrieve, db_session, sample_library, sample_scan_job, sample_game):
         """Test game addition with existing game and check_exists=False."""
         mock_retrieve.return_value = MagicMock(spec=Game)
@@ -214,7 +214,7 @@ class TestTryAddGame:
 class TestProcessGameWithFallback:
     """Test the process_game_with_fallback function."""
     
-    @patch('modules.utils_scanning.try_add_game')
+    @patch('sharewarez.utils.scanning.try_add_game')
     def test_process_game_with_fallback_success_first_try(self, mock_try_add, db_session, sample_library, sample_scan_job):
         """Test successful game processing on first try."""
         mock_try_add.return_value = True
@@ -237,7 +237,7 @@ class TestProcessGameWithFallback:
             settings=None
         )
     
-    @patch('modules.utils_scanning.try_add_game')
+    @patch('sharewarez.utils.scanning.try_add_game')
     def test_process_game_with_fallback_success_with_fallback(self, mock_try_add, db_session, sample_library, sample_scan_job):
         """Test successful game processing with fallback name."""
         mock_try_add.side_effect = [False, True]  # First call fails, second succeeds
@@ -306,8 +306,8 @@ class TestProcessGameWithFallback:
         fresh_scan_job = db_session.get(ScanJob, sample_scan_job.id)
         assert fresh_scan_job.folders_failed == original_failed_count + 1
     
-    @patch('modules.utils_scanning.try_add_game')
-    @patch('modules.utils_scanning.log_unmatched_folder')
+    @patch('sharewarez.utils.scanning.try_add_game')
+    @patch('sharewarez.utils.scanning.log_unmatched_folder')
     def test_process_game_with_fallback_complete_failure(self, mock_log_unmatched, mock_try_add, db_session, sample_library, sample_scan_job):
         """Test processing when all attempts fail."""
         mock_try_add.return_value = False
@@ -397,7 +397,7 @@ class TestProcessGameUpdates:
             return []
         
         with patch('os.listdir', side_effect=listdir_side_effect), \
-             patch('modules.utils_scanning.read_first_nfo_content', return_value='Test NFO content'):
+             patch('sharewarez.utils.scanning.read_first_nfo_content', return_value='Test NFO content'):
             process_game_updates(
                 sample_game.name,
                 sample_game.full_disk_path,
@@ -461,7 +461,7 @@ class TestProcessGameExtras:
         mock_isdir.return_value = False
         
         with patch('os.listdir', return_value=['extra1.txt', 'extra2.pdf', 'ignored.nfo']), \
-             patch('modules.utils_scanning.read_first_nfo_content', return_value='Test NFO content'):
+             patch('sharewarez.utils.scanning.read_first_nfo_content', return_value='Test NFO content'):
             process_game_extras(
                 sample_game.name,
                 sample_game.full_disk_path,
@@ -497,9 +497,9 @@ class TestProcessGameExtras:
 class TestRefreshImagesInBackground:
     """Test the refresh_images_in_background function."""
     
-    @patch('modules.utils_scanning.delete_game_images')
-    @patch('modules.utils_game_core.process_and_save_image')
-    @patch('modules.utils_scanning.make_igdb_api_request')
+    @patch('sharewarez.utils.scanning.delete_game_images')
+    @patch('sharewarez.utils.game_core.process_and_save_image')
+    @patch('sharewarez.utils.scanning.make_igdb_api_request')
     def test_refresh_images_in_background_success(self, mock_api, mock_process_image, mock_delete_images,
                                                 app, db_session, sample_game, mock_igdb_response):
         """Test successful image refresh."""
@@ -520,7 +520,7 @@ class TestRefreshImagesInBackground:
         expected_calls = 3  # 1 cover + 2 screenshots
         assert mock_process_image.call_count == expected_calls
     
-    @patch('modules.utils_scanning.make_igdb_api_request')
+    @patch('sharewarez.utils.scanning.make_igdb_api_request')
     def test_refresh_images_in_background_api_error(self, mock_api, app, db_session, sample_game):
         """Test image refresh when API returns error."""
         mock_api.return_value = {'error': 'API Error'}

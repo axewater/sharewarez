@@ -1,7 +1,7 @@
 import pytest
 from flask import url_for
-from modules.models import GlobalSettings, User
-from modules import db
+from sharewarez.models import GlobalSettings, User
+from sharewarez import db
 from uuid import uuid4
 import time
 import json
@@ -202,7 +202,7 @@ class TestIGDBSettingsRoute:
         response_data = response.get_json()
         assert response_data['status'] == 'success'
     
-    @patch('modules.routes_admin_ext.igdb.db.session.commit')
+    @patch('sharewarez.routes_admin_ext.igdb.db.session.commit')
     def test_igdb_settings_post_database_error(self, mock_commit, client, admin_user):
         """Test POST request handles database errors."""
         mock_commit.side_effect = Exception("Database error")
@@ -286,7 +286,7 @@ class TestIGDBTestRoute:
         assert response_data['status'] == 'error'
         assert 'not configured' in response_data['message']
     
-    @patch('modules.routes_admin_ext.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_admin_ext.igdb.make_igdb_api_request')
     def test_test_igdb_successful_api_call(self, mock_api_request, client, admin_user, clean_global_settings):
         """Test successful IGDB API test."""
         # Mock successful API response
@@ -312,7 +312,7 @@ class TestIGDBTestRoute:
         db.session.refresh(clean_global_settings)
         assert clean_global_settings.igdb_last_tested is not None
     
-    @patch('modules.routes_admin_ext.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_admin_ext.igdb.make_igdb_api_request')
     def test_test_igdb_invalid_api_response(self, mock_api_request, client, admin_user, clean_global_settings):
         """Test IGDB test with invalid API response."""
         # Mock invalid API response (not a list)
@@ -328,7 +328,7 @@ class TestIGDBTestRoute:
         assert response_data['status'] == 'error'
         assert 'Invalid API response' in response_data['message']
     
-    @patch('modules.routes_admin_ext.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_admin_ext.igdb.make_igdb_api_request')
     def test_test_igdb_api_exception(self, mock_api_request, client, admin_user, clean_global_settings):
         """Test IGDB test when API call raises exception."""
         # Mock API request to raise an exception
@@ -384,7 +384,7 @@ class TestIGDBIntegration:
             assert url_for('admin2.igdb_settings') == '/admin/igdb_settings'
             assert url_for('admin2.test_igdb') == '/admin/test_igdb'
     
-    @patch('modules.routes_admin_ext.igdb.make_igdb_api_request')
+    @patch('sharewarez.routes_admin_ext.igdb.make_igdb_api_request')
     def test_igdb_last_tested_timestamp_update(self, mock_api_request, client, admin_user, clean_global_settings):
         """Test that igdb_last_tested timestamp is properly updated."""
         # Mock successful API response

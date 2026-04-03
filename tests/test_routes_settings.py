@@ -8,9 +8,9 @@ from io import BytesIO
 from werkzeug.datastructures import FileStorage
 from PIL import Image as PILImage
 
-from modules import create_app, db
-from modules.models import User, InviteToken, UserPreference
-from modules.forms import EditProfileForm, UserPasswordForm, UserPreferencesForm
+from sharewarez import create_app, db
+from sharewarez.models import User, InviteToken, UserPreference
+from sharewarez.forms import EditProfileForm, UserPasswordForm, UserPreferencesForm
 
 
 
@@ -128,7 +128,7 @@ def create_test_file(filename='test.png', size=1024):
 class TestSettingsContextProcessor:
     """Test the settings context processor."""
     
-    @patch('modules.routes_settings.get_global_settings')
+    @patch('sharewarez.routes_settings.get_global_settings')
     def test_inject_settings_cached(self, mock_get_settings, app):
         """Test that inject_settings returns global settings."""
         # Mock the settings
@@ -140,7 +140,7 @@ class TestSettingsContextProcessor:
         mock_get_settings.return_value = mock_settings
         
         with app.app_context():
-            from modules.routes_settings import inject_settings
+            from sharewarez.routes_settings import inject_settings
             result = inject_settings()
             
             assert result == mock_settings
@@ -156,7 +156,7 @@ class TestSettingsProfileEdit:
         assert response.status_code == 302
         assert '/login' in response.location
     
-    @patch('modules.routes_settings.render_template')
+    @patch('sharewarez.routes_settings.render_template')
     def test_get_profile_edit_authenticated(self, mock_render, client, test_user):
         """Test GET request with authenticated user."""
         mock_render.return_value = 'rendered template'
@@ -185,7 +185,7 @@ class TestSettingsProfileEdit:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_settings.EditProfileForm') as mock_form_class:
+        with patch('sharewarez.routes_settings.EditProfileForm') as mock_form_class:
             mock_form = MagicMock()
             mock_form.validate_on_submit.return_value = True
             mock_form.avatar.data = None
@@ -204,7 +204,7 @@ class TestSettingsProfileEdit:
             sess['_fresh'] = True
         
         # Test basic form submission without file - this validates the route works
-        with patch('modules.routes_settings.EditProfileForm') as mock_form_class:
+        with patch('sharewarez.routes_settings.EditProfileForm') as mock_form_class:
             mock_form = MagicMock()
             mock_form.validate_on_submit.return_value = True
             mock_form.avatar.data = None  # No file uploaded
@@ -222,7 +222,7 @@ class TestSettingsProfileEdit:
             sess['_fresh'] = True
         
         # Test that the route correctly handles form validation
-        with patch('modules.routes_settings.EditProfileForm') as mock_form_class:
+        with patch('sharewarez.routes_settings.EditProfileForm') as mock_form_class:
             mock_form = MagicMock()
             mock_form.validate_on_submit.return_value = True
             mock_form.avatar.data = None  # No file for this simplified test
@@ -239,7 +239,7 @@ class TestSettingsProfileEdit:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_settings.EditProfileForm') as mock_form_class:
+        with patch('sharewarez.routes_settings.EditProfileForm') as mock_form_class:
             mock_form = MagicMock()
             mock_form.validate_on_submit.return_value = True
             
@@ -251,7 +251,7 @@ class TestSettingsProfileEdit:
             mock_form.avatar.data = mock_file
             mock_form_class.return_value = mock_form
             
-            with patch('modules.routes_settings.flash') as mock_flash:
+            with patch('sharewarez.routes_settings.flash') as mock_flash:
                 response = client.post('/settings_profile_edit', data={}, follow_redirects=False)
                 
                 assert response.status_code == 302
@@ -263,7 +263,7 @@ class TestSettingsProfileEdit:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_settings.EditProfileForm') as mock_form_class:
+        with patch('sharewarez.routes_settings.EditProfileForm') as mock_form_class:
             mock_form = MagicMock()
             mock_form.validate_on_submit.return_value = True
             
@@ -275,9 +275,9 @@ class TestSettingsProfileEdit:
             mock_form.avatar.data = mock_file
             mock_form_class.return_value = mock_form
             
-            with patch('modules.routes_settings.os.path.exists', return_value=False), \
-                 patch('modules.routes_settings.os.makedirs', side_effect=OSError('Permission denied')), \
-                 patch('modules.routes_settings.flash') as mock_flash:
+            with patch('sharewarez.routes_settings.os.path.exists', return_value=False), \
+                 patch('sharewarez.routes_settings.os.makedirs', side_effect=OSError('Permission denied')), \
+                 patch('sharewarez.routes_settings.flash') as mock_flash:
                 
                 response = client.post('/settings_profile_edit', data={}, follow_redirects=False)
                 
@@ -290,14 +290,14 @@ class TestSettingsProfileEdit:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_settings.EditProfileForm') as mock_form_class:
+        with patch('sharewarez.routes_settings.EditProfileForm') as mock_form_class:
             mock_form = MagicMock()
             mock_form.validate_on_submit.return_value = True
             mock_form.avatar.data = None
             mock_form_class.return_value = mock_form
             
-            with patch('modules.routes_settings.db.session.commit', side_effect=Exception('Database error')):
-                with patch('modules.routes_settings.flash') as mock_flash:
+            with patch('sharewarez.routes_settings.db.session.commit', side_effect=Exception('Database error')):
+                with patch('sharewarez.routes_settings.flash') as mock_flash:
                     response = client.post('/settings_profile_edit', data={}, follow_redirects=False)
                     
                     assert response.status_code == 302
@@ -309,7 +309,7 @@ class TestSettingsProfileEdit:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_settings.EditProfileForm') as mock_form_class:
+        with patch('sharewarez.routes_settings.EditProfileForm') as mock_form_class:
             mock_form = MagicMock()
             mock_form.validate_on_submit.return_value = False
             mock_avatar_field = MagicMock()
@@ -318,9 +318,9 @@ class TestSettingsProfileEdit:
             mock_form.errors = {'avatar': ['Invalid file type']}
             mock_form_class.return_value = mock_form
             
-            with patch('modules.routes_settings.render_template') as mock_render:
+            with patch('sharewarez.routes_settings.render_template') as mock_render:
                 mock_render.return_value = 'error template'
-                with patch('modules.routes_settings.flash') as mock_flash:
+                with patch('sharewarez.routes_settings.flash') as mock_flash:
                     response = client.post('/settings_profile_edit', data={})
                     
                     assert response.status_code == 200
@@ -336,7 +336,7 @@ class TestSettingsProfileView:
         assert response.status_code == 302
         assert '/login' in response.location
     
-    @patch('modules.routes_settings.render_template')
+    @patch('sharewarez.routes_settings.render_template')
     def test_get_profile_view_authenticated(self, mock_render, client, test_user, invite_tokens, db_session):
         """Test GET request with authenticated user."""
         mock_render.return_value = 'rendered template'
@@ -367,7 +367,7 @@ class TestAccountPasswordChange:
         assert response.status_code == 302
         assert '/login' in response.location
     
-    @patch('modules.routes_settings.render_template')
+    @patch('sharewarez.routes_settings.render_template')
     def test_get_password_change_authenticated(self, mock_render, client, test_user):
         """Test GET request with authenticated user."""
         mock_render.return_value = 'rendered template'
@@ -397,13 +397,13 @@ class TestAccountPasswordChange:
             'confirm_password': 'newpassword123'
         }
         
-        with patch('modules.routes_settings.UserPasswordForm') as mock_form_class:
+        with patch('sharewarez.routes_settings.UserPasswordForm') as mock_form_class:
             mock_form = MagicMock()
             mock_form.validate_on_submit.return_value = True
             mock_form.password.data = 'newpassword123'
             mock_form_class.return_value = mock_form
             
-            with patch('modules.routes_settings.flash') as mock_flash:
+            with patch('sharewarez.routes_settings.flash') as mock_flash:
                 response = client.post('/settings_password', data=form_data, follow_redirects=False)
                 
                 assert response.status_code == 302
@@ -420,14 +420,14 @@ class TestAccountPasswordChange:
             'confirm_password': 'newpassword123'
         }
         
-        with patch('modules.routes_settings.UserPasswordForm') as mock_form_class:
+        with patch('sharewarez.routes_settings.UserPasswordForm') as mock_form_class:
             mock_form = MagicMock()
             mock_form.validate_on_submit.return_value = True
             mock_form.password.data = 'newpassword123'
             mock_form_class.return_value = mock_form
             
-            with patch('modules.routes_settings.db.session.commit', side_effect=Exception('Database error')):
-                with patch('modules.routes_settings.flash') as mock_flash:
+            with patch('sharewarez.routes_settings.db.session.commit', side_effect=Exception('Database error')):
+                with patch('sharewarez.routes_settings.flash') as mock_flash:
                     response = client.post('/settings_password', data=form_data)
                     
                     assert response.status_code == 200
@@ -443,7 +443,7 @@ class TestSettingsPanel:
         assert response.status_code == 302
         assert '/login' in response.location
     
-    @patch('modules.routes_settings.render_template')
+    @patch('sharewarez.routes_settings.render_template')
     def test_get_settings_panel_authenticated(self, mock_render, client, test_user):
         """Test GET request with authenticated user."""
         mock_render.return_value = 'rendered template'
@@ -477,7 +477,7 @@ class TestSettingsPanel:
             'theme': 'dark'
         }
         
-        with patch('modules.routes_settings.UserPreferencesForm') as mock_form_class:
+        with patch('sharewarez.routes_settings.UserPreferencesForm') as mock_form_class:
             mock_form = MagicMock()
             mock_form.validate_on_submit.return_value = True
             mock_form.items_per_page.data = 50
@@ -514,7 +514,7 @@ class TestSettingsPanel:
             'theme': 'light'
         }
         
-        with patch('modules.routes_settings.UserPreferencesForm') as mock_form_class:
+        with patch('sharewarez.routes_settings.UserPreferencesForm') as mock_form_class:
             mock_form = MagicMock()
             mock_form.validate_on_submit.return_value = True
             mock_form.items_per_page.data = 100
@@ -549,7 +549,7 @@ class TestSettingsPanel:
             'theme': 'default'  # Should be stored as None
         }
         
-        with patch('modules.routes_settings.UserPreferencesForm') as mock_form_class:
+        with patch('sharewarez.routes_settings.UserPreferencesForm') as mock_form_class:
             mock_form = MagicMock()
             mock_form.validate_on_submit.return_value = True
             mock_form.items_per_page.data = 20
@@ -586,7 +586,7 @@ class TestSettingsPanel:
             'theme': 'dark'
         }
         
-        with patch('modules.routes_settings.UserPreferencesForm') as mock_form_class:
+        with patch('sharewarez.routes_settings.UserPreferencesForm') as mock_form_class:
             mock_form = MagicMock()
             mock_form.validate_on_submit.return_value = True
             mock_form.items_per_page.data = 20
@@ -595,7 +595,7 @@ class TestSettingsPanel:
             mock_form.theme.data = 'dark'
             mock_form_class.return_value = mock_form
             
-            with patch('modules.routes_settings.db.session.commit', side_effect=Exception('Database error')):
+            with patch('sharewarez.routes_settings.db.session.commit', side_effect=Exception('Database error')):
                 response = client.post('/settings_panel', data=form_data)
                 
                 assert response.status_code == 500
@@ -609,7 +609,7 @@ class TestSettingsPanel:
             sess['_user_id'] = str(test_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_settings.UserPreferencesForm') as mock_form_class:
+        with patch('sharewarez.routes_settings.UserPreferencesForm') as mock_form_class:
             mock_form = MagicMock()
             mock_form.validate_on_submit.return_value = False
             mock_form.errors = {'items_per_page': ['Invalid choice']}

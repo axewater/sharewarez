@@ -1,5 +1,5 @@
 import pytest
-from modules.utils_filename import sanitize_filename
+from sharewarez.utils.filename import sanitize_filename
 
 
 class TestSanitizeFilename:

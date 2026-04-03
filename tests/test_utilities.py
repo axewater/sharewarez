@@ -7,10 +7,10 @@ from datetime import datetime, timedelta
 from threading import Thread
 import time
 
-from modules import create_app, db
-from modules.models import Library, GlobalSettings, AllowedFileType, ScanJob, Game
-from modules.platform import LibraryPlatform
-from modules.utilities import scan_and_add_games, handle_auto_scan, handle_manual_scan
+from sharewarez import create_app, db
+from sharewarez.models import Library, GlobalSettings, AllowedFileType, ScanJob, Game
+from sharewarez.platform import LibraryPlatform
+from sharewarez.utilities import scan_and_add_games, handle_auto_scan, handle_manual_scan
 from sqlalchemy import select
 
 
@@ -64,7 +64,7 @@ def cleanup_after_each_test(db_session):
 class TestScanAndAddGamesCore:
     """Test core functionality of scan_and_add_games with comprehensive assertions."""
     
-    @patch('modules.utilities.is_scan_job_running')
+    @patch('sharewarez.utilities.is_scan_job_running')
     def test_early_return_when_scan_running(self, mock_is_running, app):
         """Test that function returns early if scan is already running with no side effects."""
         mock_is_running.return_value = True
@@ -91,7 +91,7 @@ class TestScanAndAddGamesCore:
         nonexistent_uuid = str(uuid4())
         
         with app.app_context():
-            with patch('modules.utilities.is_scan_job_running', return_value=False):
+            with patch('sharewarez.utilities.is_scan_job_running', return_value=False):
                 initial_jobs = db_session.execute(select(ScanJob)).scalars().all()
                 initial_count = len(initial_jobs)
                 
@@ -128,11 +128,11 @@ class TestHandleAutoScanCore:
                 initial_scan_jobs = db_session.execute(select(ScanJob)).scalars().all()
                 initial_count = len(initial_scan_jobs)
                 
-                with patch('modules.utilities.flash') as mock_flash:
-                    with patch('modules.utilities.redirect') as mock_redirect:
-                        with patch('modules.utilities.url_for') as mock_url_for:
+                with patch('sharewarez.utilities.flash') as mock_flash:
+                    with patch('sharewarez.utilities.redirect') as mock_redirect:
+                        with patch('sharewarez.utilities.url_for') as mock_url_for:
                             mock_session = {}
-                            with patch('modules.utilities.session', mock_session):
+                            with patch('sharewarez.utilities.session', mock_session):
                                 mock_url_for.return_value = '/scan'
                                 mock_redirect.return_value = 'redirected_response'
                                 
@@ -200,11 +200,11 @@ class TestHandleAutoScanCore:
         
         with app.app_context():
             with app.test_request_context():
-                with patch('modules.utilities.flash') as mock_flash:
-                    with patch('modules.utilities.redirect') as mock_redirect:
-                        with patch('modules.utilities.url_for') as mock_url_for:
+                with patch('sharewarez.utilities.flash') as mock_flash:
+                    with patch('sharewarez.utilities.redirect') as mock_redirect:
+                        with patch('sharewarez.utilities.url_for') as mock_url_for:
                             mock_session = {}
-                            with patch('modules.utilities.session', mock_session):
+                            with patch('sharewarez.utilities.session', mock_session):
                                 mock_url_for.return_value = '/scan_management'
                                 mock_redirect.return_value = 'blocked_response'
                                 
@@ -259,10 +259,10 @@ class TestHandleManualScanCore:
         with app.app_context():
             with app.test_request_context():
                 mock_session = {}
-                with patch('modules.utilities.session', mock_session):
-                    with patch('modules.utilities.flash') as mock_flash:
-                        with patch('modules.utilities.redirect'):
-                            with patch('modules.utilities.url_for'):
+                with patch('sharewarez.utilities.session', mock_session):
+                    with patch('sharewarez.utilities.flash') as mock_flash:
+                        with patch('sharewarez.utilities.redirect'):
+                            with patch('sharewarez.utilities.url_for'):
                                 handle_manual_scan(mock_form)
                                 
                                 mock_flash.assert_called_with('Manual scan form validation failed.', 'error')
@@ -278,12 +278,12 @@ class TestHandleManualScanCore:
         
         with app.app_context():
             with app.test_request_context():
-                with patch('modules.utilities.db.session') as mock_db_session:
+                with patch('sharewarez.utilities.db.session') as mock_db_session:
                     mock_session = {}
-                    with patch('modules.utilities.session', mock_session):
-                        with patch('modules.utilities.flash') as mock_flash:
-                            with patch('modules.utilities.redirect'):
-                                with patch('modules.utilities.url_for'):
+                    with patch('sharewarez.utilities.session', mock_session):
+                        with patch('sharewarez.utilities.flash') as mock_flash:
+                            with patch('sharewarez.utilities.redirect'):
+                                with patch('sharewarez.utilities.url_for'):
                                     mock_db_session.execute.return_value.scalars.return_value.first.return_value = mock_running_job
                                     
                                     handle_manual_scan(mock_form)
@@ -325,7 +325,7 @@ class TestUtilitiesWithRealDatabase:
         db_session.commit()
         
         with app.app_context():
-            with patch('modules.utilities.is_scan_job_running', return_value=False):
+            with patch('sharewarez.utilities.is_scan_job_running', return_value=False):
                 with patch('os.path.exists', return_value=False):  # Force folder access failure
                     with patch('os.access', return_value=False):
                         scan_and_add_games("/nonexistent/path", library_uuid=library.uuid)
@@ -339,7 +339,7 @@ class TestUtilitiesWithRealDatabase:
     def test_library_validation(self, app, db_session):
         """Test that function handles missing library gracefully."""
         with app.app_context():
-            with patch('modules.utilities.is_scan_job_running', return_value=False):
+            with patch('sharewarez.utilities.is_scan_job_running', return_value=False):
                 result = scan_and_add_games("/fake/path", library_uuid="nonexistent-uuid")
                 assert result is None
 
@@ -469,7 +469,7 @@ class TestAdvancedScanScenarios:
         assert len(initial_games) == 3
         
         with app.app_context():
-            with patch('modules.utilities.is_scan_job_running', return_value=False):
+            with patch('sharewarez.utilities.is_scan_job_running', return_value=False):
                 with patch('os.path.exists') as mock_exists:
                     with patch('os.access', return_value=True):
                         # Mock to return some dummy games so scan doesn't return early
@@ -477,10 +477,10 @@ class TestAdvancedScanScenarios:
                             {'name': 'Dummy Game 1', 'full_path': '/dummy/game1'},
                             {'name': 'Dummy Game 2', 'full_path': '/dummy/game2'}
                         ]
-                        with patch('modules.utilities.get_game_names_from_folder', return_value=dummy_games):
-                            with patch('modules.utilities.load_scanning_filter_patterns', return_value=([], [])):
-                                with patch('modules.utils_scanning.process_game_with_fallback', return_value=True):  # Mock successful processing
-                                    with patch('modules.utilities.remove_from_lib') as mock_remove:
+                        with patch('sharewarez.utilities.get_game_names_from_folder', return_value=dummy_games):
+                            with patch('sharewarez.utilities.load_scanning_filter_patterns', return_value=([], [])):
+                                with patch('sharewarez.utils.scanning.process_game_with_fallback', return_value=True):  # Mock successful processing
+                                    with patch('sharewarez.utilities.remove_from_lib') as mock_remove:
                                         
                                         # Configure path existence - only first game exists
                                         def exists_side_effect(path):
@@ -548,10 +548,10 @@ class TestAdvancedScanScenarios:
         
         with app.app_context():
             # Test 1: Database error during initial ScanJob creation
-            with patch('modules.utilities.is_scan_job_running', return_value=False):
+            with patch('sharewarez.utilities.is_scan_job_running', return_value=False):
                 with patch('os.path.exists', return_value=True):
                     with patch('os.access', return_value=True):
-                        with patch('modules.utilities.db.session.commit') as mock_commit:
+                        with patch('sharewarez.utilities.db.session.commit') as mock_commit:
                             from sqlalchemy.exc import SQLAlchemyError
                             
                             # Simulate database error on first commit (ScanJob creation)
@@ -564,12 +564,12 @@ class TestAdvancedScanScenarios:
                             mock_commit.assert_called_once()
             
             # Test 2: Database error during final commit  
-            with patch('modules.utilities.is_scan_job_running', return_value=False):
+            with patch('sharewarez.utilities.is_scan_job_running', return_value=False):
                 with patch('os.path.exists', return_value=True):
                     with patch('os.access', return_value=True):
-                        with patch('modules.utilities.get_game_names_from_folder', return_value=[]):
-                            with patch('modules.utilities.load_scanning_filter_patterns', return_value=([], [])):
-                                with patch('modules.utilities.db.session.commit') as mock_commit:
+                        with patch('sharewarez.utilities.get_game_names_from_folder', return_value=[]):
+                            with patch('sharewarez.utilities.load_scanning_filter_patterns', return_value=([], [])):
+                                with patch('sharewarez.utilities.db.session.commit') as mock_commit:
                                     from sqlalchemy.exc import SQLAlchemyError
                                     
                                     # Track commits and fail on final one

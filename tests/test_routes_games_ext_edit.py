@@ -6,13 +6,13 @@ from sqlalchemy import select
 from werkzeug.datastructures import ImmutableMultiDict
 from urllib.parse import urlparse
 
-from modules import create_app, db
-from modules.models import (
+from sharewarez import create_app, db
+from sharewarez.models import (
     User, Game, Library, Developer, Publisher, SystemEvents,
     Category, Status, Genre, GameMode, Theme, Platform, PlayerPerspective
 )
-from modules.platform import LibraryPlatform
-from modules.forms import AddGameForm
+from sharewarez.platform import LibraryPlatform
+from sharewarez.forms import AddGameForm
 
 
 @pytest.fixture
@@ -177,9 +177,9 @@ class TestGameEditSecurityValidation:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path') as mock_safe_path:
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path') as mock_safe_path:
             mock_safe_path.return_value = (False, "Access denied - path outside allowed directories")
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories') as mock_bases:
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories') as mock_bases:
                 mock_bases.return_value = ['/allowed/path']
                 
                 response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
@@ -190,7 +190,7 @@ class TestGameEditSecurityValidation:
     def test_url_validation_code_exists(self, client, admin_user, test_game):
         """Test that URL validation code exists in the route."""
         # This test verifies that the URL validation logic is present in the code
-        from modules.routes_games_ext.edit import game_edit
+        from sharewarez.routes_games_ext.edit import game_edit
         import inspect
         
         source = inspect.getsource(game_edit)
@@ -203,7 +203,7 @@ class TestGameEditSecurityValidation:
     def test_security_functions_imported(self, client, admin_user, test_game):
         """Test that security functions are properly imported."""
         # This test verifies the security imports are in place
-        from modules.routes_games_ext import edit
+        from sharewarez.routes_games_ext import edit
         
         # Verify security functions are imported
         assert hasattr(edit, 'is_safe_path')
@@ -218,10 +218,10 @@ class TestGameEditSecurityValidation:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
-                with patch('modules.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
-                    with patch('modules.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+                with patch('sharewarez.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
+                    with patch('sharewarez.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
                         response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         # Should redirect on success (302) or stay on form (200)
@@ -232,7 +232,7 @@ class TestGameEditSecurityValidation:
     def test_category_validation_code_exists(self, client, admin_user, test_game):
         """Test that category validation code exists in the route."""
         # This test verifies that the category validation logic is present in the code
-        from modules.routes_games_ext.edit import game_edit
+        from sharewarez.routes_games_ext.edit import game_edit
         import inspect
         
         source = inspect.getsource(game_edit)
@@ -254,10 +254,10 @@ class TestGameEditInputValidation:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
-                with patch('modules.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
-                    with patch('modules.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+                with patch('sharewarez.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
+                    with patch('sharewarez.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
                         response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         # Should show warning about truncation
@@ -272,10 +272,10 @@ class TestGameEditInputValidation:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
-                with patch('modules.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
-                    with patch('modules.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+                with patch('sharewarez.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
+                    with patch('sharewarez.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
                         response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         # Should show warning about truncation
@@ -290,10 +290,10 @@ class TestGameEditInputValidation:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
-                with patch('modules.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
-                    with patch('modules.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+                with patch('sharewarez.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
+                    with patch('sharewarez.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
                         response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         # Should not show validation error for Unicode
@@ -309,10 +309,10 @@ class TestGameEditInputValidation:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
-                with patch('modules.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
-                    with patch('modules.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+                with patch('sharewarez.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
+                    with patch('sharewarez.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
                         response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         # Should not show validation error for Unicode
@@ -328,8 +328,8 @@ class TestGameEditInputValidation:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
                 response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         assert response.status_code == 200  # Renders form with error
@@ -343,8 +343,8 @@ class TestGameEditInputValidation:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
                 response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         assert response.status_code == 200  # Renders form with error
@@ -358,8 +358,8 @@ class TestGameEditInputValidation:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
                 response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         assert response.status_code == 200  # Renders form with error
@@ -375,7 +375,7 @@ class TestGameEditErrorHandling:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_scan_job_running', return_value=True):
+        with patch('sharewarez.routes_games_ext.edit.is_scan_job_running', return_value=True):
             response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         assert response.status_code == 200  # Renders form with error
@@ -397,8 +397,8 @@ class TestGameEditErrorHandling:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
                 response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         assert response.status_code == 200  # Renders form with error
@@ -410,9 +410,9 @@ class TestGameEditErrorHandling:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
-                with patch('modules.routes_games_ext.edit.get_folder_size_in_bytes_updates', side_effect=OSError("Permission denied")):
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+                with patch('sharewarez.routes_games_ext.edit.get_folder_size_in_bytes_updates', side_effect=OSError("Permission denied")):
                     response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         assert response.status_code == 200  # Renders form with error
@@ -424,7 +424,7 @@ class TestGameEditErrorHandling:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=[]):
+        with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=[]):
             response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         assert response.status_code == 200  # Renders form with error
@@ -437,7 +437,7 @@ class TestGameEditAtomicOperations:
     def test_igdb_id_atomic_check_code_exists(self, client, admin_user, test_game):
         """Test that IGDB ID atomic check code exists."""
         # This test verifies that the atomic locking logic is present in the code
-        from modules.routes_games_ext.edit import game_edit
+        from sharewarez.routes_games_ext.edit import game_edit
         import inspect
         
         source = inspect.getsource(game_edit)
@@ -449,7 +449,7 @@ class TestGameEditAtomicOperations:
     def test_database_error_handling_code_exists(self, client, admin_user, test_game):
         """Test that database error handling code exists."""
         # This test verifies that proper error handling is present in the code
-        from modules.routes_games_ext.edit import game_edit
+        from sharewarez.routes_games_ext.edit import game_edit
         import inspect
         
         source = inspect.getsource(game_edit)
@@ -472,10 +472,10 @@ class TestGameEditLogging:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path') as mock_safe_path:
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path') as mock_safe_path:
             mock_safe_path.return_value = (False, "Access denied")
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
-                with patch('modules.routes_games_ext.edit.current_app.logger') as mock_logger:
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+                with patch('sharewarez.routes_games_ext.edit.current_app.logger') as mock_logger:
                     response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         # Verify security error was logged
@@ -490,11 +490,11 @@ class TestGameEditLogging:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
-                with patch('modules.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
-                    with patch('modules.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
-                        with patch('modules.routes_games_ext.edit.log_system_event') as mock_log:
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+                with patch('sharewarez.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
+                    with patch('sharewarez.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
+                        with patch('sharewarez.routes_games_ext.edit.log_system_event') as mock_log:
                             response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         # Verify audit event was logged
@@ -512,12 +512,12 @@ class TestGameEditLogging:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
-                with patch('modules.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
-                    with patch('modules.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
-                        with patch('modules.routes_games_ext.edit.sanitize_path_for_logging') as mock_sanitize:
-                            with patch('modules.routes_games_ext.edit.current_app.logger') as mock_logger:
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+                with patch('sharewarez.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
+                    with patch('sharewarez.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
+                        with patch('sharewarez.routes_games_ext.edit.sanitize_path_for_logging') as mock_sanitize:
+                            with patch('sharewarez.routes_games_ext.edit.current_app.logger') as mock_logger:
                                 mock_sanitize.return_value = '/home/[USER]/sensitive/path/game'
                                 response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
@@ -534,10 +534,10 @@ class TestGameEditSuccessScenarios:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
-                with patch('modules.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=2048000):
-                    with patch('modules.routes_games_ext.edit.read_first_nfo_content', return_value='Updated NFO'):
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+                with patch('sharewarez.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=2048000):
+                    with patch('sharewarez.routes_games_ext.edit.read_first_nfo_content', return_value='Updated NFO'):
                         response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         # Should redirect to library on success
@@ -553,7 +553,7 @@ class TestGameEditSuccessScenarios:
     def test_image_refresh_code_exists(self, client, admin_user, test_game):
         """Test that image refresh code exists in the route."""
         # This test verifies that image refresh logic is present in the code
-        from modules.routes_games_ext.edit import game_edit
+        from sharewarez.routes_games_ext.edit import game_edit
         import inspect
         
         source = inspect.getsource(game_edit)
@@ -571,10 +571,10 @@ class TestGameEditSuccessScenarios:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
-                with patch('modules.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
-                    with patch('modules.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+                with patch('sharewarez.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
+                    with patch('sharewarez.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
                         response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         # Verify new developer was created
@@ -592,10 +592,10 @@ class TestGameEditSuccessScenarios:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
-                with patch('modules.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
-                    with patch('modules.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+                with patch('sharewarez.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
+                    with patch('sharewarez.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
                         response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         # Verify new publisher was created
@@ -643,7 +643,7 @@ class TestGameEditFormValidation:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.current_app.logger') as mock_logger:
+        with patch('sharewarez.routes_games_ext.edit.current_app.logger') as mock_logger:
             response = client.post(f'/game_edit/{test_game.uuid}', data=invalid_data)
         
         # Verify form validation failure was logged
@@ -664,10 +664,10 @@ class TestGameEditDatabaseOperations:
             sess['_user_id'] = str(admin_user.id)
             sess['_fresh'] = True
         
-        with patch('modules.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
-                with patch('modules.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
-                    with patch('modules.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+                with patch('sharewarez.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=1024):
+                    with patch('sharewarez.routes_games_ext.edit.read_first_nfo_content', return_value='NFO'):
                         response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         if response.status_code in [200, 302]:  # Success
@@ -681,10 +681,10 @@ class TestGameEditDatabaseOperations:
             sess['_fresh'] = True
         
         new_size = 5000000
-        with patch('modules.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
-            with patch('modules.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
-                with patch('modules.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=new_size):
-                    with patch('modules.routes_games_ext.edit.read_first_nfo_content', return_value='New NFO'):
+        with patch('sharewarez.routes_games_ext.edit.is_safe_path', return_value=(True, None)):
+            with patch('sharewarez.routes_games_ext.edit.get_allowed_base_directories', return_value=['/allowed']):
+                with patch('sharewarez.routes_games_ext.edit.get_folder_size_in_bytes_updates', return_value=new_size):
+                    with patch('sharewarez.routes_games_ext.edit.read_first_nfo_content', return_value='New NFO'):
                         response = client.post(f'/game_edit/{test_game.uuid}', data=form_data)
         
         if response.status_code in [200, 302]:  # Success

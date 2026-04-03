@@ -2,9 +2,9 @@ import pytest
 import json
 from flask import url_for
 from unittest.mock import patch, MagicMock
-from modules.models import User, DownloadRequest, Game, Library, InviteToken, user_favorites
-from modules.platform import LibraryPlatform
-from modules import db
+from sharewarez.models import User, DownloadRequest, Game, Library, InviteToken, user_favorites
+from sharewarez.platform import LibraryPlatform
+from sharewarez import db
 from uuid import uuid4
 from datetime import datetime, timezone, timedelta
 
@@ -145,7 +145,7 @@ class TestStatisticsRoutes:
         assert response.status_code == 200
         assert b'statistics' in response.data or b'Statistics' in response.data
 
-    @patch('modules.routes_downloads_ext.statistics.get_download_statistics')
+    @patch('sharewarez.routes_downloads_ext.statistics.get_download_statistics')
     def test_statistics_data_admin_user(self, mock_stats, client, admin_user, sample_statistics_data):
         """Test admin user access to statistics data endpoint."""
         mock_stats.return_value = sample_statistics_data
@@ -166,7 +166,7 @@ class TestStatisticsRoutes:
         assert 'top_games' in data
         assert 'download_trends' in data
 
-    @patch('modules.routes_downloads_ext.statistics.get_download_statistics')
+    @patch('sharewarez.routes_downloads_ext.statistics.get_download_statistics')
     def test_statistics_data_structure(self, mock_stats, client, admin_user, sample_statistics_data):
         """Test the structure of statistics data response."""
         mock_stats.return_value = sample_statistics_data
@@ -187,7 +187,7 @@ class TestStatisticsRoutes:
             assert isinstance(data[section_name]['labels'], list)
             assert isinstance(data[section_name]['data'], list)
 
-    @patch('modules.routes_downloads_ext.statistics.get_download_statistics')
+    @patch('sharewarez.routes_downloads_ext.statistics.get_download_statistics')
     def test_statistics_data_empty_database(self, mock_stats, client, admin_user):
         """Test statistics data with empty database."""
         empty_stats = {
@@ -271,7 +271,7 @@ class TestStatisticsIntegration:
         for section in data.values():
             assert len(section['labels']) == len(section['data'])
 
-    @patch('modules.routes_downloads_ext.statistics.get_download_statistics')
+    @patch('sharewarez.routes_downloads_ext.statistics.get_download_statistics')
     def test_statistics_error_handling(self, mock_stats, client, admin_user):
         """Test error handling when statistics function fails."""
         mock_stats.side_effect = Exception("Database error")

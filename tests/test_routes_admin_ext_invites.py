@@ -1,5 +1,5 @@
 """
-Unit tests for modules.routes_admin_ext.invites
+Unit tests for sharewarez.routes_admin_ext.invites
 
 Tests invite management routes including viewing users with invite quotas and updating invite counts.
 """
@@ -11,7 +11,7 @@ from uuid import uuid4
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import text
 
-from modules.models import User, InviteToken
+from sharewarez.models import User, InviteToken
 
 
 @pytest.fixture(scope='function', autouse=True)
@@ -142,7 +142,7 @@ class TestManageInvitesAuthentication:
 class TestManageInvitesGet:
     """Test GET requests to manage_invites route."""
 
-    @patch('modules.routes_admin_ext.invites.render_template')
+    @patch('sharewarez.routes_admin_ext.invites.render_template')
     def test_admin_can_access_manage_invites_empty(self, mock_render, client, admin_user):
         """Test admin can access manage invites page with no users."""
         mock_render.return_value = 'mocked_template'
@@ -162,7 +162,7 @@ class TestManageInvitesGet:
         assert len(kwargs['users']) == 1  # Only the admin user
         assert kwargs['user_unused_invites'] == {admin_user.user_id: 0}
 
-    @patch('modules.routes_admin_ext.invites.render_template')
+    @patch('sharewarez.routes_admin_ext.invites.render_template')
     def test_admin_can_access_with_multiple_users(self, mock_render, client, admin_user, regular_user):
         """Test admin can access manage invites page with multiple users."""
         mock_render.return_value = 'mocked_template'
@@ -180,7 +180,7 @@ class TestManageInvitesGet:
         assert kwargs['user_unused_invites'][admin_user.user_id] == 0
         assert kwargs['user_unused_invites'][regular_user.user_id] == 0
 
-    @patch('modules.routes_admin_ext.invites.render_template')
+    @patch('sharewarez.routes_admin_ext.invites.render_template')
     def test_admin_sees_correct_unused_invite_count(self, mock_render, client, admin_user, regular_user, invite_token_unused, invite_token_used):
         """Test that unused invite counts are calculated correctly."""
         mock_render.return_value = 'mocked_template'
@@ -197,7 +197,7 @@ class TestManageInvitesGet:
         assert kwargs['user_unused_invites'][regular_user.user_id] == 1
         assert kwargs['user_unused_invites'][admin_user.user_id] == 0
 
-    @patch('modules.routes_admin_ext.invites.render_template')
+    @patch('sharewarez.routes_admin_ext.invites.render_template')
     def test_admin_sees_multiple_unused_invites(self, mock_render, client, admin_user, regular_user, db_session):
         """Test that multiple unused invites are counted correctly."""
         # Create multiple unused invite tokens for regular user
@@ -392,7 +392,7 @@ class TestManageInvitesEdgeCases:
         
         assert response.status_code == 200  # Renders template after processingful update
         # User quota should remain unchanged (added 0)
-        from modules import db
+        from sharewarez import db
         db.session.refresh(regular_user)
         assert regular_user.invite_quota == original_quota
 
@@ -427,11 +427,11 @@ class TestManageInvitesEdgeCases:
         
         assert response.status_code == 200  # Renders template after processingful update
         # User quota should remain unchanged (added 0)
-        from modules import db
+        from sharewarez import db
         db.session.refresh(regular_user)
         assert regular_user.invite_quota == original_quota
 
-    @patch('modules.routes_admin_ext.invites.render_template')
+    @patch('sharewarez.routes_admin_ext.invites.render_template')
     def test_database_error_handling_get(self, mock_render, client, admin_user, regular_user, monkeypatch):
         """Test that database errors in GET request are handled gracefully."""
         mock_render.return_value = 'mocked_template'
@@ -441,7 +441,7 @@ class TestManageInvitesEdgeCases:
             sess['_fresh'] = True
 
         # Mock the select function to throw an exception
-        with patch('modules.routes_admin_ext.invites.select') as mock_select:
+        with patch('sharewarez.routes_admin_ext.invites.select') as mock_select:
             mock_select.side_effect = Exception("Database connection failed")
 
             # This should now handle the database error gracefully
@@ -461,7 +461,7 @@ class TestManageInvitesEdgeCases:
             sess['_fresh'] = True
 
         # Mock the select function to throw an exception during user lookup
-        with patch('modules.routes_admin_ext.invites.select') as mock_select:
+        with patch('sharewarez.routes_admin_ext.invites.select') as mock_select:
             mock_select.side_effect = Exception("Database connection failed")
 
             # This should handle the database error and redirect

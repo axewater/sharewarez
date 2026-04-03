@@ -1,9 +1,9 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timezone
-from modules import create_app, db
-from modules.models import SystemEvents, User
-from modules.utils_logging import log_system_event
+from sharewarez import create_app, db
+from sharewarez.models import SystemEvents, User
+from sharewarez.utils.event_logging import log_system_event
 
 
 # Helper function to create test users
@@ -83,8 +83,8 @@ class TestLogSystemEvent:
             assert event is not None
             assert event.audit_user is None  # 'system' gets converted to None
     
-    @patch('modules.utils_logging.db')
-    @patch('modules.utils_logging.current_user')
+    @patch('sharewarez.utils.event_logging.db')
+    @patch('sharewarez.utils.event_logging.current_user')
     def test_log_system_event_with_current_user(self, mock_current_user, mock_db, app):
         """Test logging when current_user is available."""
         # Mock current_user.id
@@ -102,7 +102,7 @@ class TestLogSystemEvent:
             assert added_event.audit_user == 123
             mock_db.session.commit.assert_called_once()
     
-    @patch('modules.utils_logging.current_user')
+    @patch('sharewarez.utils.event_logging.current_user')
     def test_log_system_event_with_current_user_no_id(self, mock_current_user, app, db_session):
         """Test logging when current_user has no id attribute."""
         # Mock current_user without id attribute
@@ -144,7 +144,7 @@ class TestLogSystemEvent:
             assert event.event_type == "y" * 32
             assert event.event_level == "z" * 32
     
-    @patch('modules.utils_logging.db')
+    @patch('sharewarez.utils.event_logging.db')
     def test_log_system_event_database_error(self, mock_db, app):
         """Test error handling when database operation fails."""
         # Mock database session to raise an exception
@@ -159,7 +159,7 @@ class TestLogSystemEvent:
                 mock_db.session.rollback.assert_called_once()
                 mock_print.assert_called_once_with("Error logging system event: Database error")
     
-    @patch('modules.utils_logging.db')
+    @patch('sharewarez.utils.event_logging.db')
     def test_log_system_event_commit_error(self, mock_db, app):
         """Test error handling when database commit fails."""
         # Mock database commit to raise an exception
@@ -206,7 +206,7 @@ class TestLogSystemEvent:
             assert event.event_type == ""
             assert event.event_level == ""
     
-    @patch('modules.utils_logging.db')
+    @patch('sharewarez.utils.event_logging.db')
     def test_log_system_event_with_integer_audit_user(self, mock_db, app):
         """Test logging with integer audit_user."""
         with app.app_context():

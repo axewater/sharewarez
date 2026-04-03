@@ -3,8 +3,8 @@ import os
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
-from modules.models import User, SystemEvents, GlobalSettings
-from modules.utils_status import (
+from sharewarez.models import User, SystemEvents, GlobalSettings
+from sharewarez.utils.status import (
     get_system_info,
     get_config_values,
     get_active_users,
@@ -16,11 +16,11 @@ from modules.utils_status import (
 class TestGetSystemInfo:
     """Tests for get_system_info function."""
 
-    @patch('modules.utils_status.socket.gethostbyname')
-    @patch('modules.utils_status.socket.gethostname')
-    @patch('modules.utils_status.platform.python_version')
-    @patch('modules.utils_status.platform.version')
-    @patch('modules.utils_status.platform.system')
+    @patch('sharewarez.utils.status.socket.gethostbyname')
+    @patch('sharewarez.utils.status.socket.gethostname')
+    @patch('sharewarez.utils.status.platform.python_version')
+    @patch('sharewarez.utils.status.platform.version')
+    @patch('sharewarez.utils.status.platform.system')
     def test_get_system_info_success(self, mock_system, mock_version, mock_python_version,
                                    mock_hostname, mock_gethostbyname):
         """Test successful system info retrieval."""
@@ -44,11 +44,11 @@ class TestGetSystemInfo:
         current_time = result['Current Time']
         datetime.strptime(current_time, "%Y-%m-%d %H:%M:%S")
 
-    @patch('modules.utils_status.socket.gethostbyname')
-    @patch('modules.utils_status.socket.gethostname')
-    @patch('modules.utils_status.platform.python_version')
-    @patch('modules.utils_status.platform.version')
-    @patch('modules.utils_status.platform.system')
+    @patch('sharewarez.utils.status.socket.gethostbyname')
+    @patch('sharewarez.utils.status.socket.gethostname')
+    @patch('sharewarez.utils.status.platform.python_version')
+    @patch('sharewarez.utils.status.platform.version')
+    @patch('sharewarez.utils.status.platform.system')
     @patch('builtins.print')
     def test_get_system_info_network_error(self, mock_print, mock_system, mock_version, 
                                          mock_python_version, mock_hostname, mock_gethostbyname):
@@ -77,8 +77,8 @@ class TestGetSystemInfo:
 class TestGetConfigValues:
     """Tests for get_config_values function."""
 
-    @patch('modules.utils_status.os.path.exists')
-    @patch('modules.utils_status.os.access')
+    @patch('sharewarez.utils.status.os.path.exists')
+    @patch('sharewarez.utils.status.os.access')
     def test_get_config_values_with_existing_paths(self, mock_access, mock_exists):
         """Test config values retrieval with existing accessible paths."""
         # Mock all paths exist and are accessible
@@ -86,7 +86,7 @@ class TestGetConfigValues:
         mock_access.return_value = True
         
         # Mock Config class with test paths
-        with patch('modules.utils_status.Config') as mock_config:
+        with patch('sharewarez.utils.status.Config') as mock_config:
             mock_config.DATA_FOLDER_WAREZ = '/test/warez/path'
             mock_config.IMAGE_SAVE_PATH = '/test/images/path'
             mock_config.UPLOAD_FOLDER = '/test/uploads/path'
@@ -101,8 +101,8 @@ class TestGetConfigValues:
                 assert result[key]['read'] is True
                 assert result[key]['write'] is True
 
-    @patch('modules.utils_status.os.path.exists')
-    @patch('modules.utils_status.os.access')
+    @patch('sharewarez.utils.status.os.path.exists')
+    @patch('sharewarez.utils.status.os.access')
     def test_get_config_values_with_nonexistent_paths(self, mock_access, mock_exists):
         """Test config values retrieval with non-existent paths."""
         # Mock paths don't exist
@@ -110,7 +110,7 @@ class TestGetConfigValues:
         mock_access.return_value = False
         
         # Mock Config class with test paths
-        with patch('modules.utils_status.Config') as mock_config:
+        with patch('sharewarez.utils.status.Config') as mock_config:
             mock_config.DATA_FOLDER_WAREZ = '/nonexistent/path'
             
             result = get_config_values()
@@ -120,8 +120,8 @@ class TestGetConfigValues:
                 assert result['DATA_FOLDER_WAREZ']['read'] is False
                 assert result['DATA_FOLDER_WAREZ']['write'] is False
 
-    @patch('modules.utils_status.os.path.exists')
-    @patch('modules.utils_status.os.access')
+    @patch('sharewarez.utils.status.os.path.exists')
+    @patch('sharewarez.utils.status.os.access')
     def test_get_config_values_mixed_permissions(self, mock_access, mock_exists):
         """Test config values with mixed read/write permissions."""
         mock_exists.return_value = True
@@ -135,7 +135,7 @@ class TestGetConfigValues:
         
         mock_access.side_effect = mock_access_func
         
-        with patch('modules.utils_status.Config') as mock_config:
+        with patch('sharewarez.utils.status.Config') as mock_config:
             mock_config.DATA_FOLDER_WAREZ = '/readonly/path'
             
             result = get_config_values()

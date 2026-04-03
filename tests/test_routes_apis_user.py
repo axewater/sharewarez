@@ -1,5 +1,5 @@
 """
-Unit tests for modules.routes_apis.user
+Unit tests for sharewarez.routes_apis.user
 
 Tests the user API endpoints including current user role retrieval,
 username checking, and favorite game management functionality.
@@ -9,7 +9,7 @@ import pytest
 import json
 from uuid import uuid4
 
-from modules.models import User, Game, Library, LibraryPlatform
+from sharewarez.models import User, Game, Library, LibraryPlatform
 
 
 @pytest.fixture

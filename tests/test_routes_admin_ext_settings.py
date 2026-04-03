@@ -2,9 +2,9 @@ import pytest
 import json
 from flask import url_for
 from unittest.mock import patch, MagicMock
-from modules.models import User, GlobalSettings
-from modules import db, cache
-from modules.routes_admin_ext.settings import (
+from sharewarez.models import User, GlobalSettings
+from sharewarez import db, cache
+from sharewarez.routes_admin_ext.settings import (
     validate_settings_data, get_or_create_settings_record, 
     update_settings_fields, build_current_settings,
     DEFAULT_SETTINGS, FIELD_MAPPINGS,
@@ -164,13 +164,13 @@ class TestGetOrCreateSettingsRecord:
     
     def test_get_existing_settings_record(self, db_session, global_settings):
         """Test retrieving existing settings record."""
-        with patch('modules.routes_admin_ext.settings.db.session', db_session):
+        with patch('sharewarez.routes_admin_ext.settings.db.session', db_session):
             record = get_or_create_settings_record()
             assert record.id == global_settings.id
 
     def test_create_new_settings_record(self, db_session, clean_settings):
         """Test creating new settings record when none exists."""
-        with patch('modules.routes_admin_ext.settings.db.session', db_session):
+        with patch('sharewarez.routes_admin_ext.settings.db.session', db_session):
             record = get_or_create_settings_record()
             assert record is not None
             assert record.settings == {}
@@ -315,8 +315,8 @@ class TestSettingsRoutes:
         data = json.loads(response.data)
         assert 'errors' in data
 
-    @patch('modules.routes_admin_ext.settings.log_system_event')
-    @patch('modules.routes_admin_ext.settings.cache.delete')
+    @patch('sharewarez.routes_admin_ext.settings.log_system_event')
+    @patch('sharewarez.routes_admin_ext.settings.cache.delete')
     def test_update_settings_success(self, mock_cache_delete, mock_log_event, 
                                    client, admin_user, db_session, clean_settings):
         """Test successful settings update."""
@@ -348,7 +348,7 @@ class TestSettingsRoutes:
         mock_log_event.assert_called_once()
         mock_cache_delete.assert_called_once_with('global_settings')
 
-    @patch('modules.routes_admin_ext.settings.db.session.commit')
+    @patch('sharewarez.routes_admin_ext.settings.db.session.commit')
     def test_update_settings_database_error(self, mock_commit, client, admin_user):
         """Test settings update with database error."""
         mock_commit.side_effect = Exception('Database error')
@@ -377,8 +377,8 @@ class TestLegacyRouteHandler:
         response = client.get('/admin/new_server_settings')
         assert response.status_code == 200
 
-    @patch('modules.routes_admin_ext.settings.log_system_event')
-    @patch('modules.routes_admin_ext.settings.cache.delete')
+    @patch('sharewarez.routes_admin_ext.settings.log_system_event')
+    @patch('sharewarez.routes_admin_ext.settings.cache.delete')
     def test_legacy_route_post(self, mock_cache_delete, mock_log_event,
                              client, admin_user, clean_settings):
         """Test legacy route with POST method."""
@@ -394,8 +394,8 @@ class TestLegacyRouteHandler:
 class TestSettingsIntegration:
     """Integration tests for settings functionality."""
     
-    @patch('modules.routes_admin_ext.settings.log_system_event')
-    @patch('modules.routes_admin_ext.settings.cache.delete')
+    @patch('sharewarez.routes_admin_ext.settings.log_system_event')
+    @patch('sharewarez.routes_admin_ext.settings.cache.delete')
     def test_complete_settings_workflow(self, mock_cache_delete, mock_log_event,
                                       client, admin_user, db_session, clean_settings):
         """Test complete settings workflow from GET to POST."""
@@ -450,8 +450,8 @@ class TestSettingsIntegration:
             'updateFolderName': 'persistent_updates'
         }
         
-        with patch('modules.routes_admin_ext.settings.log_system_event'), \
-             patch('modules.routes_admin_ext.settings.cache.delete'):
+        with patch('sharewarez.routes_admin_ext.settings.log_system_event'), \
+             patch('sharewarez.routes_admin_ext.settings.cache.delete'):
             response = client.post('/admin/settings', json=initial_settings)
             assert response.status_code == 200
         
@@ -462,8 +462,8 @@ class TestSettingsIntegration:
             'turboDownloadThreads': 15  # New field
         }
         
-        with patch('modules.routes_admin_ext.settings.log_system_event'), \
-             patch('modules.routes_admin_ext.settings.cache.delete'):
+        with patch('sharewarez.routes_admin_ext.settings.log_system_event'), \
+             patch('sharewarez.routes_admin_ext.settings.cache.delete'):
             response = client.post('/admin/settings', json=updated_settings)
             assert response.status_code == 200
         

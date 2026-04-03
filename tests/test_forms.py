@@ -11,7 +11,7 @@ from flask_wtf import CSRFProtect
 from wtforms.validators import ValidationError
 
 # Import forms to test
-from modules.forms import (
+from sharewarez.forms import (
     SetupForm, LoginForm, ResetPasswordRequestForm, AutoScanForm,
     WhitelistForm, EditProfileForm, ScanFolderForm, InviteForm,
     UserDetailForm, UserPasswordForm, NewsletterForm, EditUserForm,
@@ -337,7 +337,7 @@ class TestFormChoices(unittest.TestCase):
 
     def test_user_preferences_form_choices(self):
         """Test UserPreferencesForm has correct choices."""
-        with patch('modules.forms.ThemeManager') as mock_theme_manager:
+        with patch('sharewarez.forms.ThemeManager') as mock_theme_manager:
             mock_instance = MagicMock()
             mock_instance.get_installed_themes.return_value = [
                 {'name': 'dark'},
@@ -404,7 +404,7 @@ class TestFormSpecialCases(unittest.TestCase):
 
     def test_csrf_protect_form_empty(self):
         """Test CsrfProtectForm is empty."""
-        from modules.forms import CsrfProtectForm, CsrfForm
+        from sharewarez.forms import CsrfProtectForm, CsrfForm
         csrf_form = CsrfProtectForm()
         # Should have no fields except CSRF token
         field_names = [name for name in csrf_form._fields.keys() if name != 'csrf_token']
@@ -414,7 +414,7 @@ class TestFormSpecialCases(unittest.TestCase):
         field_names2 = [name for name in csrf_form2._fields.keys() if name != 'csrf_token']
         self.assertEqual(len(field_names2), 0)
 
-    @patch('modules.forms.comma_separated_urls')
+    @patch('sharewarez.forms.comma_separated_urls')
     def test_add_game_form_video_urls_validator(self, mock_validator):
         """Test AddGameForm uses comma_separated_urls validator."""
         mock_validator.return_value = True

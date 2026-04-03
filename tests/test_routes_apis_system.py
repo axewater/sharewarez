@@ -6,9 +6,9 @@ from unittest.mock import patch, MagicMock
 from uuid import uuid4
 from pathlib import Path
 
-from modules import db
-from modules.models import User, AllowedFileType, IgnoredFileType
-from modules.platform import LibraryPlatform, Emulator
+from sharewarez import db
+from sharewarez.models import User, AllowedFileType, IgnoredFileType
+from sharewarez.platform import LibraryPlatform, Emulator
 
 
 def safe_cleanup_database(db_session):
@@ -476,8 +476,8 @@ class TestPathAvailabilityCheck:
                     assert data['available'] is False
                     assert 'Access denied' in data['error'] or 'outside allowed directories' in data['error']
 
-    @patch('modules.routes_apis.system.current_app', spec=True)
-    @patch('modules.routes_apis.system.Path', spec=True)
+    @patch('sharewarez.routes_apis.system.current_app', spec=True)
+    @patch('sharewarez.routes_apis.system.Path', spec=True)
     def test_valid_path_exists(self, mock_path_class, mock_app, client, regular_user):
         """Test checking existence of valid path that exists."""
         mock_app.config.get.side_effect = lambda key: {
@@ -492,7 +492,7 @@ class TestPathAvailabilityCheck:
         mock_path_class.return_value = mock_path_obj
         
         # Mock is_safe_path to return True for valid paths
-        with patch('modules.routes_apis.system.is_safe_path') as mock_safe_path:
+        with patch('sharewarez.routes_apis.system.is_safe_path') as mock_safe_path:
             mock_safe_path.return_value = (True, None)
             
             with client.session_transaction() as sess:
@@ -504,8 +504,8 @@ class TestPathAvailabilityCheck:
             data = response.get_json()
             assert data['available'] is True
 
-    @patch('modules.routes_apis.system.current_app', spec=True)
-    @patch('modules.routes_apis.system.Path', spec=True)
+    @patch('sharewarez.routes_apis.system.current_app', spec=True)
+    @patch('sharewarez.routes_apis.system.Path', spec=True)
     def test_valid_path_does_not_exist(self, mock_path_class, mock_app, client, regular_user):
         """Test checking existence of valid path that doesn't exist."""
         mock_app.config.get.side_effect = lambda key: {
@@ -519,7 +519,7 @@ class TestPathAvailabilityCheck:
         mock_path_obj.exists.return_value = False
         mock_path_class.return_value = mock_path_obj
         
-        with patch('modules.routes_apis.system.is_safe_path') as mock_safe_path:
+        with patch('sharewarez.routes_apis.system.is_safe_path') as mock_safe_path:
             mock_safe_path.return_value = (True, None)
             
             with client.session_transaction() as sess:
@@ -531,8 +531,8 @@ class TestPathAvailabilityCheck:
             data = response.get_json()
             assert data['available'] is False
 
-    @patch('modules.routes_apis.system.current_app', spec=True)
-    @patch('modules.routes_apis.system.Path', spec=True)
+    @patch('sharewarez.routes_apis.system.current_app', spec=True)
+    @patch('sharewarez.routes_apis.system.Path', spec=True)
     def test_path_resolution_error(self, mock_path_class, mock_app, client, regular_user):
         """Test handling of path resolution errors."""
         mock_app.config.get.side_effect = lambda key: {
@@ -546,7 +546,7 @@ class TestPathAvailabilityCheck:
         mock_path_obj.resolve.side_effect = OSError("Permission denied")
         mock_path_class.return_value = mock_path_obj
         
-        with patch('modules.routes_apis.system.is_safe_path') as mock_safe_path:
+        with patch('sharewarez.routes_apis.system.is_safe_path') as mock_safe_path:
             mock_safe_path.return_value = (True, None)
             
             with client.session_transaction() as sess:
@@ -622,7 +622,7 @@ class TestEmulatorEndpoints:
         data = response.get_json()
         assert 'Platform not supported' in data['error']
 
-    @patch('modules.routes_apis.system.Emulator', spec=True)
+    @patch('sharewarez.routes_apis.system.Emulator', spec=True)
     def test_emulator_retrieval_error_handling(self, mock_emulator, client, regular_user):
         """Test error handling when emulator retrieval fails."""
         mock_emulator.__iter__.side_effect = Exception("Database error")
@@ -642,7 +642,7 @@ class TestSecurityHelperFunctions:
     
     def test_validate_file_type_value_valid_inputs(self):
         """Test file type validation with valid inputs."""
-        from modules.routes_apis.system import validate_file_type_value
+        from sharewarez.routes_apis.system import validate_file_type_value
         
         valid_inputs = [
             ('exe', 'exe'),
@@ -658,7 +658,7 @@ class TestSecurityHelperFunctions:
 
     def test_validate_file_type_value_invalid_inputs(self):
         """Test file type validation with invalid inputs."""
-        from modules.routes_apis.system import validate_file_type_value
+        from sharewarez.routes_apis.system import validate_file_type_value
         
         invalid_inputs = [
             None,
@@ -678,7 +678,7 @@ class TestSecurityHelperFunctions:
 
     def test_is_safe_path_valid_paths(self):
         """Test path safety validation with valid paths."""
-        from modules.routes_apis.system import is_safe_path
+        from sharewarez.routes_apis.system import is_safe_path
         
         allowed_bases = ['/allowed/games', '/allowed/apps']
         
@@ -690,7 +690,7 @@ class TestSecurityHelperFunctions:
         
         for path in valid_paths:
             # Mock Path behavior for testing
-            with patch('modules.routes_apis.system.Path', spec=True) as mock_path:
+            with patch('sharewarez.routes_apis.system.Path', spec=True) as mock_path:
                 mock_path_obj = MagicMock()
                 mock_path_obj.relative_to = MagicMock()  # Won't raise ValueError for valid paths
                 mock_path.return_value.resolve.return_value = mock_path_obj
@@ -701,7 +701,7 @@ class TestSecurityHelperFunctions:
 
     def test_is_safe_path_invalid_paths(self):
         """Test path safety validation with invalid paths."""
-        from modules.routes_apis.system import is_safe_path
+        from sharewarez.routes_apis.system import is_safe_path
         
         allowed_bases = ['/allowed/games']
         
@@ -722,7 +722,7 @@ class TestSecurityHelperFunctions:
 
     def test_validate_json_input_valid(self, app):
         """Test JSON input validation with valid data."""
-        from modules.routes_apis.system import validate_json_input
+        from sharewarez.routes_apis.system import validate_json_input
         
         with app.test_request_context(json={'value': 'test', 'id': 123}):
             data, error = validate_json_input(['value'])
@@ -731,7 +731,7 @@ class TestSecurityHelperFunctions:
 
     def test_validate_json_input_missing_fields(self, app):
         """Test JSON input validation with missing required fields."""
-        from modules.routes_apis.system import validate_json_input
+        from sharewarez.routes_apis.system import validate_json_input
         
         with app.test_request_context(json={'id': 123}):
             data, error = validate_json_input(['value', 'id'])
@@ -740,7 +740,7 @@ class TestSecurityHelperFunctions:
 
     def test_validate_json_input_not_json(self, app):
         """Test JSON input validation with non-JSON request."""
-        from modules.routes_apis.system import validate_json_input
+        from sharewarez.routes_apis.system import validate_json_input
         
         with app.test_request_context(data='not json', content_type='text/plain'):
             data, error = validate_json_input()

@@ -5,9 +5,9 @@ import smtplib
 from unittest.mock import patch, MagicMock, call
 from datetime import datetime, timezone
 
-from modules import create_app, db
-from modules.models import GlobalSettings
-from modules.utils_smtp import (
+from sharewarez import create_app, db
+from sharewarez.models import GlobalSettings
+from sharewarez.utils.smtp import (
     get_smtp_settings, is_smtp_config_valid, is_server_reachable,
     send_email, send_password_reset_email, send_invite_email
 )
@@ -128,7 +128,7 @@ class TestGetSMTPSettings:
 class TestIsSMTPConfigValid:
     """Test is_smtp_config_valid function."""
     
-    @patch('modules.utils_smtp.get_smtp_settings')
+    @patch('sharewarez.utils.smtp.get_smtp_settings')
     def test_config_valid_complete(self, mock_get_settings):
         """Test validation with complete valid configuration."""
         mock_get_settings.return_value = {
@@ -147,7 +147,7 @@ class TestIsSMTPConfigValid:
         assert is_valid is True
         assert message == "Configuration valid"
     
-    @patch('modules.utils_smtp.get_smtp_settings')
+    @patch('sharewarez.utils.smtp.get_smtp_settings')
     def test_config_smtp_disabled(self, mock_get_settings):
         """Test validation when SMTP is disabled."""
         # When SMTP is disabled, get_smtp_settings returns None
@@ -157,7 +157,7 @@ class TestIsSMTPConfigValid:
         with pytest.raises(TypeError):
             is_smtp_config_valid()
     
-    @patch('modules.utils_smtp.get_smtp_settings')
+    @patch('sharewarez.utils.smtp.get_smtp_settings')
     def test_config_missing_single_field(self, mock_get_settings):
         """Test validation with single missing required field."""
         mock_get_settings.return_value = {
@@ -176,7 +176,7 @@ class TestIsSMTPConfigValid:
         assert is_valid is False
         assert message == "Missing required fields: SMTP Server"
     
-    @patch('modules.utils_smtp.get_smtp_settings')
+    @patch('sharewarez.utils.smtp.get_smtp_settings')
     def test_config_missing_multiple_fields(self, mock_get_settings):
         """Test validation with multiple missing required fields."""
         mock_get_settings.return_value = {
@@ -198,7 +198,7 @@ class TestIsSMTPConfigValid:
         assert "SMTP Port" in message
         assert "Password" in message
     
-    @patch('modules.utils_smtp.get_smtp_settings')
+    @patch('sharewarez.utils.smtp.get_smtp_settings')
     def test_config_invalid_port_non_numeric(self, mock_get_settings):
         """Test validation with non-numeric port."""
         mock_get_settings.return_value = {
@@ -217,7 +217,7 @@ class TestIsSMTPConfigValid:
         assert is_valid is False
         assert message == "Port must be a valid number"
     
-    @patch('modules.utils_smtp.get_smtp_settings')
+    @patch('sharewarez.utils.smtp.get_smtp_settings')
     def test_config_invalid_port_out_of_range(self, mock_get_settings):
         """Test validation with port out of range."""
         mock_get_settings.return_value = {
@@ -236,7 +236,7 @@ class TestIsSMTPConfigValid:
         assert is_valid is False
         assert message == "Invalid port number"
     
-    @patch('modules.utils_smtp.get_smtp_settings')
+    @patch('sharewarez.utils.smtp.get_smtp_settings')
     def test_config_invalid_port_zero(self, mock_get_settings):
         """Test validation with zero port."""
         mock_get_settings.return_value = {
@@ -259,7 +259,7 @@ class TestIsSMTPConfigValid:
 class TestIsServerReachable:
     """Test is_server_reachable function."""
     
-    @patch('modules.utils_smtp.socket.create_connection')
+    @patch('sharewarez.utils.smtp.socket.create_connection')
     @patch('ssl.create_default_context')
     def test_server_reachable_port_465_success(self, mock_ssl_context, mock_socket):
         """Test successful connection to SMTPS port 465."""
@@ -283,8 +283,8 @@ class TestIsServerReachable:
         mock_print.assert_any_call("Basic connection successful to smtp.example.com:465")
         mock_print.assert_any_call("Direct SSL/TLS connection successful to smtp.example.com:465")
     
-    @patch('modules.utils_smtp.socket.create_connection')
-    @patch('modules.utils_smtp.smtplib.SMTP')
+    @patch('sharewarez.utils.smtp.socket.create_connection')
+    @patch('sharewarez.utils.smtp.smtplib.SMTP')
     @patch('ssl.create_default_context')
     def test_server_reachable_port_587_success(self, mock_ssl_context, mock_smtp_class, mock_socket):
         """Test successful connection to SMTP port 587 with STARTTLS."""
@@ -314,7 +314,7 @@ class TestIsServerReachable:
         mock_print.assert_any_call("Basic connection successful to smtp.example.com:587")
         mock_print.assert_any_call("STARTTLS connection successful to smtp.example.com:587")
     
-    @patch('modules.utils_smtp.socket.create_connection')
+    @patch('sharewarez.utils.smtp.socket.create_connection')
     def test_server_reachable_socket_timeout(self, mock_socket):
         """Test server unreachable due to socket timeout."""
         mock_socket.side_effect = socket.timeout()
@@ -327,7 +327,7 @@ class TestIsServerReachable:
         assert result is False
         mock_print.assert_called_with("Connection timeout to smtp.example.com:587")
     
-    @patch('modules.utils_smtp.socket.create_connection')
+    @patch('sharewarez.utils.smtp.socket.create_connection')
     def test_server_reachable_ssl_error(self, mock_socket):
         """Test server unreachable due to SSL error."""
         mock_socket.side_effect = ssl.SSLError("SSL handshake failed")
@@ -341,7 +341,7 @@ class TestIsServerReachable:
         # SSL error message includes the exception args tuple
         mock_print.assert_called_with("SSL/TLS error connecting to smtp.example.com:465: ('SSL handshake failed',)")
     
-    @patch('modules.utils_smtp.socket.create_connection')
+    @patch('sharewarez.utils.smtp.socket.create_connection')
     def test_server_reachable_general_exception(self, mock_socket):
         """Test server unreachable due to general exception."""
         mock_socket.side_effect = ConnectionRefusedError("Connection refused")
@@ -364,9 +364,9 @@ class TestSendEmail:
         self.test_subject = "Test Subject"
         self.test_template = "<h1>Test Email</h1>"
     
-    @patch('modules.utils_smtp.log_system_event')
-    @patch('modules.utils_smtp.flash')
-    @patch('modules.utils_smtp.get_smtp_settings')
+    @patch('sharewarez.utils.smtp.log_system_event')
+    @patch('sharewarez.utils.smtp.flash')
+    @patch('sharewarez.utils.smtp.get_smtp_settings')
     def test_send_email_no_settings(self, mock_get_settings, mock_flash, mock_log):
         """Test send_email when SMTP settings are not configured."""
         mock_get_settings.return_value = None
@@ -380,9 +380,9 @@ class TestSendEmail:
         mock_print.assert_any_call("SMTP settings not configured. Email not sent.")
         mock_flash.assert_called_with("SMTP settings not configured. Email not sent.", "error")
     
-    @patch('modules.utils_smtp.log_system_event')
-    @patch('modules.utils_smtp.flash')
-    @patch('modules.utils_smtp.get_smtp_settings')
+    @patch('sharewarez.utils.smtp.log_system_event')
+    @patch('sharewarez.utils.smtp.flash')
+    @patch('sharewarez.utils.smtp.get_smtp_settings')
     def test_send_email_smtp_disabled(self, mock_get_settings, mock_flash, mock_log):
         """Test send_email when SMTP is disabled."""
         mock_get_settings.return_value = {'SMTP_ENABLED': False}
@@ -396,10 +396,10 @@ class TestSendEmail:
         mock_print.assert_any_call("SMTP is not enabled. Email not sent.")
         mock_flash.assert_called_with("SMTP is not enabled. Email not sent.", "error")
     
-    @patch('modules.utils_smtp.log_system_event')
-    @patch('modules.utils_smtp.flash')
-    @patch('modules.utils_smtp.is_smtp_config_valid')
-    @patch('modules.utils_smtp.get_smtp_settings')
+    @patch('sharewarez.utils.smtp.log_system_event')
+    @patch('sharewarez.utils.smtp.flash')
+    @patch('sharewarez.utils.smtp.is_smtp_config_valid')
+    @patch('sharewarez.utils.smtp.get_smtp_settings')
     def test_send_email_invalid_config(self, mock_get_settings, mock_is_valid, mock_flash, mock_log):
         """Test send_email with invalid SMTP configuration."""
         mock_get_settings.return_value = {'SMTP_ENABLED': True}
@@ -414,11 +414,11 @@ class TestSendEmail:
         mock_print.assert_any_call("Invalid SMTP configuration: Missing required fields: SMTP Server")
         mock_flash.assert_called_with("Invalid SMTP configuration: Missing required fields: SMTP Server", "error")
     
-    @patch('modules.utils_smtp.log_system_event')
-    @patch('modules.utils_smtp.flash')
-    @patch('modules.utils_smtp.is_server_reachable')
-    @patch('modules.utils_smtp.is_smtp_config_valid')
-    @patch('modules.utils_smtp.get_smtp_settings')
+    @patch('sharewarez.utils.smtp.log_system_event')
+    @patch('sharewarez.utils.smtp.flash')
+    @patch('sharewarez.utils.smtp.is_server_reachable')
+    @patch('sharewarez.utils.smtp.is_smtp_config_valid')
+    @patch('sharewarez.utils.smtp.get_smtp_settings')
     def test_send_email_server_unreachable(self, mock_get_settings, mock_is_valid, mock_is_reachable, mock_flash, mock_log):
         """Test send_email when server is unreachable."""
         mock_get_settings.return_value = {
@@ -445,12 +445,12 @@ class TestSendEmail:
             event_level='error'
         )
     
-    @patch('modules.utils_smtp.log_system_event')
-    @patch('modules.utils_smtp.flash')
-    @patch('modules.utils_smtp.smtplib.SMTP')
-    @patch('modules.utils_smtp.is_server_reachable')
-    @patch('modules.utils_smtp.is_smtp_config_valid')
-    @patch('modules.utils_smtp.get_smtp_settings')
+    @patch('sharewarez.utils.smtp.log_system_event')
+    @patch('sharewarez.utils.smtp.flash')
+    @patch('sharewarez.utils.smtp.smtplib.SMTP')
+    @patch('sharewarez.utils.smtp.is_server_reachable')
+    @patch('sharewarez.utils.smtp.is_smtp_config_valid')
+    @patch('sharewarez.utils.smtp.get_smtp_settings')
     def test_send_email_success(self, mock_get_settings, mock_is_valid, mock_is_reachable, mock_smtp_class, mock_flash, mock_log):
         """Test successful email sending."""
         # Setup mocks
@@ -490,12 +490,12 @@ class TestSendEmail:
             event_level='information'
         )
     
-    @patch('modules.utils_smtp.log_system_event')
-    @patch('modules.utils_smtp.flash')
-    @patch('modules.utils_smtp.smtplib.SMTP')
-    @patch('modules.utils_smtp.is_server_reachable')
-    @patch('modules.utils_smtp.is_smtp_config_valid')
-    @patch('modules.utils_smtp.get_smtp_settings')
+    @patch('sharewarez.utils.smtp.log_system_event')
+    @patch('sharewarez.utils.smtp.flash')
+    @patch('sharewarez.utils.smtp.smtplib.SMTP')
+    @patch('sharewarez.utils.smtp.is_server_reachable')
+    @patch('sharewarez.utils.smtp.is_smtp_config_valid')
+    @patch('sharewarez.utils.smtp.get_smtp_settings')
     def test_send_email_auth_error(self, mock_get_settings, mock_is_valid, mock_is_reachable, mock_smtp_class, mock_flash, mock_log):
         """Test send_email with SMTP authentication error."""
         # Setup mocks
@@ -525,12 +525,12 @@ class TestSendEmail:
         mock_print.assert_any_call("SMTP Authentication failed: (535, 'Authentication failed')")
         mock_flash.assert_called_with("SMTP Authentication failed: (535, 'Authentication failed')", "error")
     
-    @patch('modules.utils_smtp.log_system_event')
-    @patch('modules.utils_smtp.flash')
-    @patch('modules.utils_smtp.smtplib.SMTP')
-    @patch('modules.utils_smtp.is_server_reachable')
-    @patch('modules.utils_smtp.is_smtp_config_valid')
-    @patch('modules.utils_smtp.get_smtp_settings')
+    @patch('sharewarez.utils.smtp.log_system_event')
+    @patch('sharewarez.utils.smtp.flash')
+    @patch('sharewarez.utils.smtp.smtplib.SMTP')
+    @patch('sharewarez.utils.smtp.is_server_reachable')
+    @patch('sharewarez.utils.smtp.is_smtp_config_valid')
+    @patch('sharewarez.utils.smtp.get_smtp_settings')
     def test_send_email_smtp_exception(self, mock_get_settings, mock_is_valid, mock_is_reachable, mock_smtp_class, mock_flash, mock_log):
         """Test send_email with SMTP protocol exception."""
         # Setup mocks
@@ -560,12 +560,12 @@ class TestSendEmail:
         mock_print.assert_any_call("SMTP error occurred: Message rejected")
         mock_flash.assert_called_with("SMTP error occurred: Message rejected", "error")
     
-    @patch('modules.utils_smtp.log_system_event')
-    @patch('modules.utils_smtp.flash')
-    @patch('modules.utils_smtp.smtplib.SMTP')
-    @patch('modules.utils_smtp.is_server_reachable')
-    @patch('modules.utils_smtp.is_smtp_config_valid')
-    @patch('modules.utils_smtp.get_smtp_settings')
+    @patch('sharewarez.utils.smtp.log_system_event')
+    @patch('sharewarez.utils.smtp.flash')
+    @patch('sharewarez.utils.smtp.smtplib.SMTP')
+    @patch('sharewarez.utils.smtp.is_server_reachable')
+    @patch('sharewarez.utils.smtp.is_smtp_config_valid')
+    @patch('sharewarez.utils.smtp.get_smtp_settings')
     def test_send_email_timeout_error(self, mock_get_settings, mock_is_valid, mock_is_reachable, mock_smtp_class, mock_flash, mock_log):
         """Test send_email with socket timeout."""
         # Setup mocks
@@ -593,12 +593,12 @@ class TestSendEmail:
         mock_print.assert_any_call("Connection timed out: Connection timed out")
         mock_flash.assert_called_with("Connection timed out while sending email", "error")
     
-    @patch('modules.utils_smtp.log_system_event')
-    @patch('modules.utils_smtp.flash')
-    @patch('modules.utils_smtp.smtplib.SMTP')
-    @patch('modules.utils_smtp.is_server_reachable')
-    @patch('modules.utils_smtp.is_smtp_config_valid')
-    @patch('modules.utils_smtp.get_smtp_settings')
+    @patch('sharewarez.utils.smtp.log_system_event')
+    @patch('sharewarez.utils.smtp.flash')
+    @patch('sharewarez.utils.smtp.smtplib.SMTP')
+    @patch('sharewarez.utils.smtp.is_server_reachable')
+    @patch('sharewarez.utils.smtp.is_smtp_config_valid')
+    @patch('sharewarez.utils.smtp.get_smtp_settings')
     def test_send_email_dns_error(self, mock_get_settings, mock_is_valid, mock_is_reachable, mock_smtp_class, mock_flash, mock_log):
         """Test send_email with DNS lookup failure."""
         # Setup mocks
@@ -626,13 +626,13 @@ class TestSendEmail:
         mock_print.assert_any_call("DNS lookup failed: DNS lookup failed")
         mock_flash.assert_called_with("DNS lookup failed for SMTP server", "error")
     
-    @patch('modules.utils_smtp.traceback.format_exc')
-    @patch('modules.utils_smtp.log_system_event')
-    @patch('modules.utils_smtp.flash')
-    @patch('modules.utils_smtp.smtplib.SMTP')
-    @patch('modules.utils_smtp.is_server_reachable')
-    @patch('modules.utils_smtp.is_smtp_config_valid')
-    @patch('modules.utils_smtp.get_smtp_settings')
+    @patch('sharewarez.utils.smtp.traceback.format_exc')
+    @patch('sharewarez.utils.smtp.log_system_event')
+    @patch('sharewarez.utils.smtp.flash')
+    @patch('sharewarez.utils.smtp.smtplib.SMTP')
+    @patch('sharewarez.utils.smtp.is_server_reachable')
+    @patch('sharewarez.utils.smtp.is_smtp_config_valid')
+    @patch('sharewarez.utils.smtp.get_smtp_settings')
     def test_send_email_unexpected_error(self, mock_get_settings, mock_is_valid, mock_is_reachable, 
                                        mock_smtp_class, mock_flash, mock_log, mock_traceback):
         """Test send_email with unexpected error."""
@@ -672,8 +672,8 @@ class TestSendEmail:
 class TestSendPasswordResetEmail:
     """Test send_password_reset_email function."""
     
-    @patch('modules.utils_smtp.send_email')
-    @patch('modules.utils_smtp.url_for')
+    @patch('sharewarez.utils.smtp.send_email')
+    @patch('sharewarez.utils.smtp.url_for')
     def test_send_password_reset_email(self, mock_url_for, mock_send_email):
         """Test sending password reset email."""
         # Setup mocks
@@ -704,8 +704,8 @@ class TestSendPasswordResetEmail:
 class TestSendInviteEmail:
     """Test send_invite_email function."""
     
-    @patch('modules.utils_smtp.send_email')
-    @patch('modules.utils_smtp.render_template')
+    @patch('sharewarez.utils.smtp.send_email')
+    @patch('sharewarez.utils.smtp.render_template')
     def test_send_invite_email(self, mock_render_template, mock_send_email):
         """Test sending invite email."""
         # Setup mocks

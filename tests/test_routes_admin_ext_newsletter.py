@@ -1,8 +1,8 @@
 import pytest
 from flask import url_for
 from unittest.mock import patch, MagicMock
-from modules.models import User, Newsletter, GlobalSettings
-from modules import db
+from sharewarez.models import User, Newsletter, GlobalSettings
+from sharewarez import db
 from uuid import uuid4
 
 
@@ -202,7 +202,7 @@ class TestNewsletterRoute:
         assert b'Newsletter' in response.data
         assert b'Test Newsletter' in response.data
 
-    @patch('modules.routes_admin_ext.newsletter.mail.send')
+    @patch('sharewarez.routes_admin_ext.newsletter.mail.send')
     def test_newsletter_post_success(self, mock_mail_send, client, admin_user, global_settings_smtp_enabled, db_session):
         """Test successful newsletter sending via POST."""
         with client.session_transaction() as sess:
@@ -235,7 +235,7 @@ class TestNewsletterRoute:
         # Verify email was attempted to be sent
         mock_mail_send.assert_called_once()
 
-    @patch('modules.routes_admin_ext.newsletter.mail.send')
+    @patch('sharewarez.routes_admin_ext.newsletter.mail.send')
     def test_newsletter_post_email_failure(self, mock_mail_send, client, admin_user, global_settings_smtp_enabled, db_session):
         """Test newsletter sending when email fails."""
         mock_mail_send.side_effect = Exception('SMTP connection failed')
@@ -324,7 +324,7 @@ class TestViewNewsletterRoute:
 class TestNewsletterIntegration:
     """Integration tests for newsletter functionality."""
     
-    @patch('modules.routes_admin_ext.newsletter.mail.send')
+    @patch('sharewarez.routes_admin_ext.newsletter.mail.send')
     def test_newsletter_workflow_complete(self, mock_mail_send, client, admin_user, global_settings_smtp_enabled, db_session):
         """Test complete newsletter workflow from creation to viewing."""
         with client.session_transaction() as sess:
@@ -376,7 +376,7 @@ class TestNewsletterIntegration:
         db_session.commit()
 
         # Test various recipient formats
-        with patch('modules.routes_admin_ext.newsletter.mail.send'):
+        with patch('sharewarez.routes_admin_ext.newsletter.mail.send'):
             data = {
                 'subject': 'Recipient Test',
                 'content': '<p>Testing recipients</p>',

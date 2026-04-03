@@ -791,7 +791,7 @@ BASE_FOLDER_POSIX=/
 SECRET_KEY=$SECRET_KEY
 
 # Upload directory for cover images and zips
-UPLOAD_FOLDER=$SCRIPT_DIR/modules/static/library
+UPLOAD_FOLDER=$SCRIPT_DIR/sharewarez/static/library
 
 # Development mode
 DEV_MODE=${DEV_MODE:-false}
@@ -816,7 +816,7 @@ validate_installation() {
         source "$SCRIPT_DIR/venv/bin/activate"
 
         # Test Flask app creation
-        if python3 -c "from modules import create_app; app = create_app(); print('Flask app creation: OK')" >/dev/null 2>&1; then
+        if python3 -c "from sharewarez import create_app; app = create_app(); print('Flask app creation: OK')" >/dev/null 2>&1; then
             print_success "Flask application setup validated"
         else
             print_error "Flask application validation failed"

@@ -32,14 +32,14 @@ if "%FORCE_SETUP%"=="true" (
     echo [~] Force setup mode - resetting database...
 
     REM Environment variables are already loaded from .env file above
-    python -c "from modules import create_app, db; from modules.utils_setup import reset_setup_state; app = create_app(); app.app_context().push(); print('Dropping all tables...'); db.drop_all(); print('Recreating all tables...'); db.create_all(); print('Database reset complete.'); reset_setup_state(); print('Setup state reset - setup wizard will run on next startup'); print('Database reset complete. Run startweb_windows.cmd to start the server.')"
+    python -c "from sharewarez import create_app, db; from sharewarez.utils.setup import reset_setup_state; app = create_app(); app.app_context().push(); print('Dropping all tables...'); db.drop_all(); print('Recreating all tables...'); db.create_all(); print('Database reset complete.'); reset_setup_state(); print('Setup state reset - setup wizard will run on next startup'); print('Database reset complete. Run startweb_windows.cmd to start the server.')"
     exit /b 0
 )
 
 echo Starting SharewareZ with uvicorn...
 
 REM Run complete startup initialization once before starting workers
-python -c "from modules.startup_init import run_complete_startup_initialization; import sys; print('[*] Starting SharewareZ initialization...'); result = run_complete_startup_initialization(); print('[+] Initialization completed - starting workers...' if result else '[-] Startup initialization failed!'); sys.exit(0 if result else 1)"
+python -c "from sharewarez.init_manager import run_complete_startup_initialization; import sys; print('[*] Starting SharewareZ initialization...'); result = run_complete_startup_initialization(); print('[+] Initialization completed - starting workers...' if result else '[-] Startup initialization failed!'); sys.exit(0 if result else 1)"
 
 if %errorlevel% neq 0 (
     echo [-] Startup initialization failed!
