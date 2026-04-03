@@ -2,7 +2,6 @@ __pycache__
 config.portainer
 config.backup
 config.py.backup
-config.py
 .env
 .env.bak
 /db_data/
@@ -11,8 +10,8 @@ app.db
 instance/app.db
 /logs/*
 /logs
-modules/static/library/images
-/modules/static/images/*.jpg
+sharewarez/static/library/images
+/sharewarez/static/images/*.jpg
 /venv
 /.venv
 /.codebuddy
@@ -20,7 +19,7 @@ modules/static/library/images
 .codebuddy
 /.git
 /.github
-/modules/static/library/zips/
+/sharewarez/static/library/zips/
 CLAUDE.md
 /.claude/*
 .claude/settings.local.json
@@ -85,9 +84,9 @@ letsrebuild.md
 htmlcov/
 
 # Static uploads and generated files (these should be mounted as volumes or generated)
-modules/static/library/images/
-modules/static/library/zips/
-modules/static/library/themes/
+sharewarez/static/library/images/
+sharewarez/static/library/zips/
+sharewarez/static/library/themes/
 
 # OS
 .DS_Store

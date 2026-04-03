@@ -1,0 +1,29 @@
+import os, secrets
+
+class Config(object):
+    # Set Database connection string here or in your .env file, when using docker set the hostname to 'db'
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/sharewarez')
+    
+    # Set the path to the folder where the game files are stored (ie: use c:\gamez for windows or /gamez for linux)
+    DATA_FOLDER_WAREZ = os.getenv('DATA_FOLDER_WAREZ', r'Z:\gamez')
+    
+    # OS-specific base folder paths
+    if os.name == 'nt':  # Windows
+        BASE_FOLDER_WINDOWS = os.getenv('BASE_FOLDER_WINDOWS', 'Z:\\')
+    else:  # POSIX (Linux, Unix, MacOS, etc.)
+        BASE_FOLDER_POSIX = os.getenv('BASE_FOLDER_POSIX', '/storage')
+
+    # YOU CAN LEAVE ALL THESE SETTINGS AT DEFAULT:
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'sharewarez/static/library')
+    SECRET_KEY = os.getenv('SECRET_KEY') or 'you-will-never-guess-this'
+    IMAGE_SAVE_PATH = os.path.join(os.path.dirname(__file__), 'sharewarez/static/library/images')
+    IGDB_API_ENDPOINT = os.getenv('IGDB_API_ENDPOINT', 'https://api.igdb.com/v4/games')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # Zipstream configuration for streaming ZIP downloads
+    ZIPSTREAM_CHUNK_SIZE = int(os.getenv('ZIPSTREAM_CHUNK_SIZE', 65536))  # 64KB chunks for memory efficiency
+    ZIPSTREAM_COMPRESSION_LEVEL = int(os.getenv('ZIPSTREAM_COMPRESSION_LEVEL', 0))  # ZIP_STORED for compatibility
+    ZIPSTREAM_ENABLE_ZIP64 = os.getenv('ZIPSTREAM_ENABLE_ZIP64', 'True').lower() == 'true'  # Support large games
+
+    # Development mode - forces theme files to be recopied on startup (helpful for theme development)
+    DEV_MODE = os.getenv('DEV_MODE', 'false').lower() == 'true'
