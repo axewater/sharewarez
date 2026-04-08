@@ -2,12 +2,11 @@
 #
 # Setup Instructions:
 # 1. Copy .env.docker.example to .env and customize your settings
-# 2. Create the directories specified in DATA_FOLDER_WAREZ and UPLOAD_FOLDER
-# 3. Run: docker-compose up -d
+# 2. Run: docker-compose up -d
 #
 # Volume Mounts:
-# - Mount your games directory to /storage in the container
-# - Mount upload directory for persistent cover images and zips
+# - DATA_FOLDER_WAREZ: Your games directory, mounted read-only to /storage
+# - LIBRARY_HOST_PATH: Persistent storage for cover images, themes, and zips (default: ./data/library)
 
 services:
   app:
@@ -30,7 +29,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - "${DATA_FOLDER_WAREZ}:/storage:ro"
-      - "${UPLOAD_FOLDER}:/app/sharewarez/static/library"
+      - "${LIBRARY_HOST_PATH:-./data/library}:/app/sharewarez/static/library"
     depends_on:
       db:
         condition: service_healthy

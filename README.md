@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.9.7
+# 🎮 SharewareZ v2.9.8
 
 SharewareZ transforms any game folder into a searchable library with IGDB integration, adding cover images, screenshots, and metadata for enhanced filtering.
 Invite your friends securely and share your favorite games!
@@ -261,9 +261,10 @@ docker-compose up -d
 1. Clone repository and navigate to folder
 2. Copy `.env.docker.example` to `.env`
 3. Edit `.env` file - set `DATA_FOLDER_WAREZ` to your games directory
-4. Run `docker-compose up -d`
-5. Open browser to `http://localhost:5006`
-6. Complete setup wizard and create admin account
+4. Optionally set `LIBRARY_HOST_PATH` to change where cover images and themes are stored (defaults to `./data/library`)
+5. Run `docker-compose up -d`
+6. Open browser to `http://localhost:5006`
+7. Complete setup wizard and create admin account
 
 **Management commands:**
 ```bash
@@ -341,6 +342,11 @@ PORT=3000
 
 
 ## Changelog
+
+  Version 2.9.8
+
+  - 🐳 Docker: Library storage path no longer defaults to /app on host root. New LIBRARY_HOST_PATH variable defaults to ./data/library relative to the project
+  - 📝 Updated .env examples to clarify host vs container paths
 
   Version 2.9.6
 

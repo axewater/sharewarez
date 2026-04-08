@@ -88,6 +88,9 @@ sharewarez/static/library/images/
 sharewarez/static/library/zips/
 sharewarez/static/library/themes/
 
+# Docker library host path (default mount point for persistent library data)
+data/
+
 # OS
 .DS_Store
 Thumbs.db
