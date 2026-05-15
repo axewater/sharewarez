@@ -154,6 +154,19 @@ nano .env
 - `DATA_FOLDER_WAREZ=/path/to/your/games/folder`
 - `SECRET_KEY=your_secure_random_key_here`
 
+> **⚠️ SECRET_KEY is mandatory.** The application **will refuse to start** if `SECRET_KEY`
+> is unset or still has the placeholder/example value. This is intentional: the secret
+> key signs session and "remember me" cookies, so a missing or shared key is a security
+> risk. Generate a strong random value with:
+>
+> ```bash
+> python -c 'import secrets; print(secrets.token_urlsafe(64))'
+> ```
+>
+> Paste the output as the `SECRET_KEY` value in your `.env` file. Use a **different**
+> key per deployment, and never commit it to version control. (The test suite is
+> exempt and auto-generates a throwaway key when running under `pytest`.)
+
 **Step 5: Start SharewareZ**
 ```bash
 # IMPORTANT: Make all shell scripts executable first
@@ -221,6 +234,19 @@ notepad .env
 - `DATABASE_URL=postgresql://postgres:your_postgres_password@localhost:5432/sharewarez`
 - `DATA_FOLDER_WAREZ=C:\Path\To\Your\Games\Folder`
 - `SECRET_KEY=your_secure_random_key_here`
+
+> **⚠️ SECRET_KEY is mandatory.** The application **will refuse to start** if `SECRET_KEY`
+> is unset or still has the placeholder/example value. This is intentional: the secret
+> key signs session and "remember me" cookies, so a missing or shared key is a security
+> risk. Generate a strong random value with:
+>
+> ```powershell
+> python -c "import secrets; print(secrets.token_urlsafe(64))"
+> ```
+>
+> Paste the output as the `SECRET_KEY` value in your `.env` file. Use a **different**
+> key per deployment, and never commit it to version control. (The test suite is
+> exempt and auto-generates a throwaway key when running under `pytest`.)
 
 **Step 5: Start SharewareZ**
 ```powershell

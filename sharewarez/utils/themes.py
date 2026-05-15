@@ -60,6 +60,19 @@ class ThemeManager:
 
         try:
             with zipfile.ZipFile(theme_zip, 'r') as zip_ref:
+                temp_dir_real = os.path.realpath(temp_dir)
+                for member in zip_ref.infolist():
+                    # Reject absolute paths, drive letters, and any traversal
+                    member_name = member.filename
+                    if member_name.startswith(('/', '\\')) or (len(member_name) > 1 and member_name[1] == ':'):
+                        raise ValueError(f"Unsafe absolute path in zip: {member_name}")
+                    target_path = os.path.realpath(os.path.join(temp_dir, member_name))
+                    if target_path != temp_dir_real and not target_path.startswith(temp_dir_real + os.sep):
+                        raise ValueError(f"Unsafe path in zip (traversal): {member_name}")
+                    # Reject symlinks/hardlinks and other non-regular entries
+                    mode = member.external_attr >> 16
+                    if mode and (mode & 0o170000) not in (0o040000, 0o100000, 0):
+                        raise ValueError(f"Unsafe entry type in zip: {member_name}")
                 zip_ref.extractall(temp_dir)
 
             theme_json_path = os.path.join(temp_dir, 'theme.json')
