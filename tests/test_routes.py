@@ -1066,21 +1066,26 @@ class TestErrorHandling:
 
     @patch('flask_login.current_user')  
     def test_delete_full_game_folder_not_found(self, mock_current_user, client, app, db_session, admin_user, test_game):
-        """Test delete_full_game with non-existent folder."""
+        """A game missing from disk must still be removable from the library."""
         mock_current_user.is_authenticated = True
         mock_current_user.role = 'admin'
-        
+
+        game_uuid = test_game.uuid
+
         with patch('sharewarez.routes.is_scan_job_running', return_value=False):
             with patch('sharewarez.routes.os.path.isdir', return_value=False):
                 with client.session_transaction() as sess:
                     sess['_user_id'] = str(admin_user.id)
-                
-                response = client.post('/delete_full_game', 
-                                      json={'game_uuid': test_game.uuid})
-                assert response.status_code == 404
-                
+
+                response = client.post('/delete_full_game',
+                                      json={'game_uuid': game_uuid})
+                assert response.status_code == 200
+
                 data = json.loads(response.data)
-                assert data['success'] == False
+                assert data['success'] == True
+
+                # The stranded database entry is gone.
+                assert db_session.query(Game).filter_by(uuid=game_uuid).first() is None
 
     @patch('flask_login.current_user')
     def test_delete_all_unmatched_folders_db_error(self, mock_current_user, client, app, db_session, admin_user):

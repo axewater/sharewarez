@@ -11,6 +11,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
 from sqlalchemy import func, select, delete, and_
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import NotFound
 from sharewarez import db, cache
 from datetime import datetime, timezone
 from PIL import Image as PILImage
@@ -698,6 +699,9 @@ def delete_game_route(game_uuid):
     try:
         delete_game(game_uuid)
         return jsonify({'success': True, 'message': 'Game removed from library successfully.'}), 200
+    except NotFound:
+        print(f"Error: game UUID {game_uuid} not found")
+        return jsonify({'success': False, 'message': 'Game not found.'}), 404
     except Exception as e:
         print(f"Error deleting game {game_uuid}: {e}")
         return jsonify({'success': False, 'message': f'Error removing game: {str(e)}'}), 500
@@ -766,28 +770,37 @@ def delete_full_game():
     full_path = game_to_delete.full_disk_path
     print(f"Route: /delete_full_game - Full path: {full_path}")
 
-    if not os.path.exists(full_path):
-        print("Route: /delete_full_game - Game does not exist on disk.")
-        return jsonify({'success': False, 'message': 'Game does not exist on disk.'}), 404
+    # A game whose files are already gone must still be removable from the
+    # library, otherwise the entry is stranded with no way to delete it.
+    on_disk = bool(full_path) and os.path.exists(full_path)
+    if not on_disk:
+        print("Route: /delete_full_game - Nothing on disk, cleaning up database entry only.")
 
     try:
-        is_directory = os.path.isdir(full_path)
-        
-        if is_directory:
-            print(f"Deleting game folder: {full_path}")
-            shutil.rmtree(full_path)
-        else:
-            print(f"Deleting game file: {full_path}")
-            os.remove(full_path)
-        
-        if os.path.exists(full_path):
-            raise Exception("Deletion failed - file/folder still exists")
-        
-        print(f"Game deleted from disk: {full_path} - initiating database cleanup.")
+        is_directory = on_disk and os.path.isdir(full_path)
+
+        if on_disk:
+            if is_directory:
+                print(f"Deleting game folder: {full_path}")
+                shutil.rmtree(full_path)
+            else:
+                print(f"Deleting game file: {full_path}")
+                os.remove(full_path)
+
+            if os.path.exists(full_path):
+                raise Exception("Deletion failed - file/folder still exists")
+
+            print(f"Game deleted from disk: {full_path} - initiating database cleanup.")
+
         delete_game(game_uuid)
         print("Database and image cleanup complete.")
-        
-        success_message = 'Game and its folder have been deleted successfully.' if is_directory else 'Game file has been deleted successfully.'
+
+        if not on_disk:
+            success_message = 'Game was not present on disk; removed from the library.'
+        elif is_directory:
+            success_message = 'Game and its folder have been deleted successfully.'
+        else:
+            success_message = 'Game file has been deleted successfully.'
         return jsonify({'success': True, 'message': success_message}), 200
     except Exception as e:
         error_message = f"Error deleting game from disk: {e}"

@@ -586,12 +586,11 @@ class TestGameManagementFunctions:
         assert game is None
     
     def test_delete_game_with_exception(self, db_session, sample_game, sample_global_settings):
-        """Test delete_game handles database errors."""
-        # Mock database session to raise exception
+        """Test delete_game re-raises database errors so callers can report them."""
         with patch('sharewarez.utils.game_core.db.session.delete', side_effect=Exception("DB Error")):
             with patch('builtins.print'):
-                # Function handles exceptions internally, should not raise
-                delete_game(sample_game.uuid)
+                with pytest.raises(Exception, match="DB Error"):
+                    delete_game(sample_game.uuid)
     
     def test_delete_game_not_found(self, app, db_session, sample_global_settings):
         """Test delete_game with non-existent game raises 404."""

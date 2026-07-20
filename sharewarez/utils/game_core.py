@@ -9,7 +9,8 @@ from sharewarez import db
 from sharewarez.models import (
     Game, Image, Library, GlobalSettings,
     Developer, Publisher, Genre, Theme, GameMode, Platform, 
-    PlayerPerspective, GameURL, ScanJob, Category, Status
+    PlayerPerspective, GameURL, ScanJob, Category, Status,
+    game_developer_association
 )
 from sharewarez.utils.functions import (
     read_first_nfo_content, delete_associations_for_game,
@@ -880,32 +881,42 @@ def delete_game(game_identifier):
         game_uuid_str = game_to_delete.uuid
     else:
         try:
-            valid_uuid = uuid.UUID(game_identifier, version=4)
-            game_uuid_str = str(valid_uuid)
-            game_to_delete = db.session.execute(select(Game).filter_by(uuid=game_uuid_str)).scalar_one_or_none() or abort(404)
-        except ValueError:
+            # Parse without forcing version=4: uuid.UUID(x, version=4) rewrites the
+            # version/variant bits, so a non-v4 UUID would be looked up under a
+            # different string and never be found.
+            game_uuid_str = str(uuid.UUID(game_identifier))
+        except (ValueError, AttributeError, TypeError):
             print(f"Invalid UUID format: {game_identifier}")
             abort(404)
-        except Exception as e:
-            print(f"Error fetching game with UUID {game_uuid_str}: {e}")
+        game_to_delete = db.session.execute(select(Game).filter_by(uuid=game_uuid_str)).scalar_one_or_none()
+        if game_to_delete is None:
+            print(f"No game found with UUID {game_uuid_str}")
             abort(404)
 
     try:
         print(f"Found game to delete: {game_to_delete}")
         db.session.execute(delete(GameURL).filter_by(game_uuid=game_uuid_str))
-        delete_associations_for_game(game_to_delete)        
+        delete_associations_for_game(game_to_delete)
+        # game_developer_association has a FK to games but no relationship on the
+        # Game model, so the ORM never clears it. Rows left here (from older
+        # schema versions) block the delete with a FK violation.
+        db.session.execute(
+            game_developer_association.delete().where(
+                game_developer_association.c.game_id == game_to_delete.id
+            )
+        )
         delete_game_images(game_uuid_str)
         db.session.delete(game_to_delete)
         db.session.commit()
-        # flash('Game and its images have been deleted successfully.', 'success')
         print(f'Deleted game with UUID: {game_uuid_str}')
     except Exception as e:
         db.session.rollback()
         print(f'Error deleting game with UUID {game_uuid_str}: {e}')
         if has_request_context():
             flash(f'Error deleting game: {e}', 'error')
-        else:
-            print(f'Error deleting game: {e}')
+        # Re-raise so the caller reports the real failure. Swallowing this made
+        # /delete_game return "success" while the game was still in the library.
+        raise
 
 
 def download_pending_images(batch_size=10, delay_between_downloads=1, app=None):
