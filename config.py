@@ -15,9 +15,32 @@ def _load_secret_key():
         "and set it in your .env file before starting the application."
     )
 
+def _load_database_uri():
+    """Load DATABASE_URL from env. Fail loudly if unset.
+
+    There is deliberately NO default. This used to fall back to
+    postgresql://postgres:postgres@localhost:5432/sharewarez — the PostgreSQL
+    superuser, which holds rights over every database on the host (and can run
+    shell commands there via COPY..TO PROGRAM) to do one app's CRUD. It worked
+    on every machine, which is exactly why nobody noticed it.
+
+    Failing to start is the correct direction to fail: a default that works by
+    being more privileged than the app needs is one nobody ever looks at again.
+    """
+    uri = os.getenv('DATABASE_URL')
+    if uri:
+        return uri
+    raise RuntimeError(
+        "DATABASE_URL environment variable is not set. Set it in your .env file, e.g. "
+        "postgresql://sharewarez_app:<password>@localhost:5432/sharewarez "
+        "(when using docker, the hostname is 'db'). Use a dedicated role that owns "
+        "only this application's tables - never the postgres superuser."
+    )
+
+
 class Config(object):
-    # Set Database connection string here or in your .env file, when using docker set the hostname to 'db'
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/sharewarez')
+    # Set Database connection string in your .env file; when using docker the hostname is 'db'.
+    SQLALCHEMY_DATABASE_URI = _load_database_uri()
 
     # Set the path to the folder where the game files are stored (ie: use c:\gamez for windows or /gamez for linux)
     DATA_FOLDER_WAREZ = os.getenv('DATA_FOLDER_WAREZ', r'Z:\gamez')

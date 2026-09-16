@@ -115,12 +115,34 @@ sudo systemctl enable postgresql
 sudo -u postgres psql
 ```
 ```sql
--- In PostgreSQL shell, create database and user
+-- In PostgreSQL shell, create database and user.
+-- The database is OWNED by sharewarezuser: SharewareZ creates and alters its own
+-- tables at startup, and PostgreSQL checks ownership for that, not just INSERT
+-- and UPDATE rights.
 CREATE DATABASE sharewarez;
 CREATE USER sharewarezuser WITH ENCRYPTED PASSWORD 'your_password_here';
+ALTER DATABASE sharewarez OWNER TO sharewarezuser;
 GRANT ALL PRIVILEGES ON DATABASE sharewarez TO sharewarezuser;
+
+-- REQUIRED on PostgreSQL 15 and newer. Since 15, GRANT ALL PRIVILEGES ON
+-- DATABASE no longer carries the right to create tables in the `public` schema.
+-- Without this line the app starts and then fails with
+-- "permission denied for schema public" the moment it builds its tables.
+\c sharewarez
+GRANT USAGE, CREATE ON SCHEMA public TO sharewarezuser;
+
+-- Optional but recommended: stop every other role on this server from being
+-- able to open a session against this database.
+REVOKE ALL ON DATABASE sharewarez FROM PUBLIC;
+GRANT CONNECT ON DATABASE sharewarez TO sharewarezuser;
 \q
 ```
+
+> **⚠️ Do not use the `postgres` superuser in `DATABASE_URL`.** It holds rights
+> over *every* database on the server, can read every other application's stored
+> password hashes, and can run shell commands on the database host through
+> `COPY ... TO PROGRAM`. SharewareZ needs none of that — a role that owns its own
+> database is enough, and it is what the steps above create.
 
 **Step 3: Clone and Set up SharewareZ**
 ```bash
@@ -231,7 +253,13 @@ notepad .env
 ```
 
 **Important**: Update these values in your `.env` file:
-- `DATABASE_URL=postgresql://postgres:your_postgres_password@localhost:5432/sharewarez`
+- `DATABASE_URL=postgresql://sharewarezuser:your_password_here@localhost:5432/sharewarez`
+
+> **⚠️ Do not use the `postgres` superuser here.** In pgAdmin, also create a
+> login role (`sharewarezuser`), make it the **owner** of the `sharewarez`
+> database, and grant it `USAGE, CREATE` on the `public` schema — required on
+> PostgreSQL 15+. A superuser connection gives a web app rights over every
+> database on the server and a path to running shell commands on its host.
 - `DATA_FOLDER_WAREZ=C:\Path\To\Your\Games\Folder`
 - `SECRET_KEY=your_secure_random_key_here`
 
@@ -270,8 +298,10 @@ cd sharewarez
 
 # Copy and configure environment file
 cp .env.docker.example .env
-# Edit .env file with your game directory path:
-# DATA_FOLDER_WAREZ=/path/to/your/games
+# Edit .env and set, at minimum:
+#   DATA_FOLDER_WAREZ=/path/to/your/games
+#   SECRET_KEY=...        (app refuses to start with the example value)
+#   APP_DB_PASSWORD=...   (db refuses to initialise with the example value)
 
 # Start with Docker Compose
 docker-compose up -d
@@ -287,10 +317,22 @@ docker-compose up -d
 1. Clone repository and navigate to folder
 2. Copy `.env.docker.example` to `.env`
 3. Edit `.env` file - set `DATA_FOLDER_WAREZ` to your games directory
-4. Optionally set `LIBRARY_HOST_PATH` to change where cover images and themes are stored (defaults to `./data/library`)
-5. Run `docker-compose up -d`
-6. Open browser to `http://localhost:5006`
-7. Complete setup wizard and create admin account
+4. **Set `SECRET_KEY`.** It ships as a placeholder and the app *refuses to
+   start* until you change it, because it signs your session cookies. Generate
+   one with `python -c 'import secrets; print(secrets.token_urlsafe(64))'`
+5. **Set `APP_DB_PASSWORD`** to a long random string. This is the password for
+   the role SharewareZ connects as; the database container creates that role for
+   you on first start and **refuses to initialise** while the value is still the
+   example one. (It deliberately does *not* connect as the `postgres`
+   superuser - see the notes in `.env.docker.example`.)
+6. Optionally set `LIBRARY_HOST_PATH` to change where cover images and themes are stored (defaults to `./data/library`)
+7. Run `docker-compose up -d`
+8. Open browser to `http://localhost:5006`
+9. Complete setup wizard and create admin account
+
+> **Note:** `APP_DB_PASSWORD` is only read the *first* time the database volume
+> is created. To change it afterwards, change it in the database
+> (`ALTER ROLE sharewarez_app PASSWORD '...'`) and in `.env`, then restart.
 
 **Management commands:**
 ```bash

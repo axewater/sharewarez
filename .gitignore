@@ -94,3 +94,8 @@ data/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local game-library data (~16 GB). Never belongs in the repo, and keeping it
+# untracked without an ignore rule meant one `git add -A` away from a public
+# push. Also keeps it out of the Docker build context.
+modules/

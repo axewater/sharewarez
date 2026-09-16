@@ -11,10 +11,17 @@ if [[ -n "$DATABASE_URL" ]]; then
     DB_USER=$(echo $DATABASE_URL | sed -n 's/.*:\/\/\([^:]*\):.*/\1/p')
     DB_PORT=$(echo $DATABASE_URL | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
 else
-    # Fall back to individual environment variables
-    DB_HOST=${DATABASE_HOST:-db}
-    DB_USER=${POSTGRES_USER:-postgres}
-    DB_PORT=${DATABASE_PORT:-5432}
+    # No fallback to POSTGRES_USER/POSTGRES_PASSWORD. That path defaulted to the
+    # postgres superuser, so a missing DATABASE_URL silently started the app with
+    # rights over every database on the server instead of failing. config.py
+    # refuses to start for the same reason; refuse here too, before the wait loop
+    # spends five minutes reporting a connection problem that is really a
+    # configuration one.
+    echo "❌ DATABASE_URL is not set."
+    echo "   Set it in your .env file, e.g."
+    echo "   DATABASE_URL=postgresql://sharewarez_app:<password>@db:5432/sharewarez"
+    echo "   Use a dedicated role that owns only this app's tables, never the postgres superuser."
+    exit 1
 fi
 
 # Function to check if PostgreSQL is ready using Python
@@ -40,14 +47,9 @@ try:
             connect_timeout=5
         )
     else:
-        conn = psycopg2.connect(
-            host='${DB_HOST}',
-            port=${DB_PORT},
-            user='${DB_USER}',
-            password=os.environ.get('POSTGRES_PASSWORD', 'postgres'),
-            database=os.environ.get('POSTGRES_DB', 'sharewarez'),
-            connect_timeout=5
-        )
+        # Unreachable: the shell above exits when DATABASE_URL is unset. Kept as
+        # an explicit failure so this never quietly grows a superuser fallback again.
+        raise SystemExit('DATABASE_URL is required')
     conn.close()
     print('✅ PostgreSQL connection successful')
 except Exception as e:
