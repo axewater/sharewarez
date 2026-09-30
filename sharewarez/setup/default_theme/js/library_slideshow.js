@@ -1,3 +1,13 @@
+function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function debounce(func, wait, immediate) {
     var timeout;
     return function() {
@@ -77,9 +87,9 @@ const showDetailsDebounced = debounce(function(element, gameUuid, rowid) {
             detailsHtml += '</div></div>'; // End slideshow container
 
             detailsHtml += `<div class="game-info-box" style="animation: fadein 0.5s;">
-                                <div class="game-name">${element.dataset.name}</div>
-                                <div class="game-size chip file-size-chip">${element.dataset.size}</div>
-                                <div>${element.dataset.genres.split(', ').map(genre => `<span class="chip">${genre}</span>`).join('')}</div>
+                                <div class="game-name">${escapeHtml(element.dataset.name)}</div>
+                                <div class="game-size chip file-size-chip">${escapeHtml(element.dataset.size)}</div>
+                                <div>${element.dataset.genres.split(', ').map(genre => `<span class="chip">${escapeHtml(genre)}</span>`).join('')}</div>
                             </div>`;
 
             detailsDiv.innerHTML = detailsHtml;

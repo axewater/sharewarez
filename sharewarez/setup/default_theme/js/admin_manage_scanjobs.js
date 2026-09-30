@@ -3,6 +3,16 @@ import { fileIcons } from './config/file_type_icons.js';
 var currentPathAuto = '';
 var currentPathManual = '';
 
+function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function showSpinner() {
     document.getElementById('globalSpinner').style.display = 'block';
 }
@@ -225,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <span class="progress-numbers">${processed}/${job.total_folders} (${percentage}%)</span>
                                 </div>
                                 <div class="progress-status">
-                                    <small class="text-bright-green">${job.current_processing || 'Processing...'}</small>
+                                    <small class="text-bright-green">${escapeHtml(job.current_processing) || 'Processing...'}</small>
                                 </div>
                             </div>
                         `;
@@ -276,8 +286,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${job.id.substring(0, 8)}</td>
-                        <td>${job.library_name || 'N/A'}</td>
-                        <td>${job.scan_folder || 'N/A'}</td>
+                        <td>${escapeHtml(job.library_name) || 'N/A'}</td>
+                        <td>${escapeHtml(job.scan_folder) || 'N/A'}</td>
                         <td>${getDisplayStatus(job)}</td>
                         <td>${progressColumn}</td>
                         <td>${actionsColumn}</td>
@@ -307,13 +317,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button onclick="clearEntry('${folder.id}')" class="btn btn-info btn-sm" title="Remove from unmatched list"><i class="fas fa-eraser"></i></button>
                         <form class="delete-folder-form" style="display: inline;">
                             <input type="hidden" name="csrf_token" value="${csrfToken}">
-                            <input type="hidden" name="folder_path" value="${folder.folder_path}">
+                            <input type="hidden" name="folder_path" value="${escapeHtml(folder.folder_path)}">
                             <button type="submit" class="btn btn-danger btn-sm" title="Delete the folder from disk"><i class="fas fa-trash-alt"></i></button>
                         </form>
                         <form action="/add_game_manual" method="GET" style="display: inline;">
-                            <input type="hidden" name="full_disk_path" value="${folder.folder_path}">
+                            <input type="hidden" name="full_disk_path" value="${escapeHtml(folder.folder_path)}">
                             <input type="hidden" name="library_uuid" value="${folder.library_uuid}">
-                            <input type="hidden" name="platform_name" value="${folder.platform_name}">
+                            <input type="hidden" name="platform_name" value="${escapeHtml(folder.platform_name)}">
                             <input type="hidden" name="platform_id" value="${folder.platform_id}">
                             <input type="hidden" name="from_unmatched" value="true">
                             <button type="submit" class="btn btn-primary btn-sm" title="Attempt manual IGDB search"><i class="fas fa-search"></i></button>
@@ -326,10 +336,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     row.setAttribute('data-library-name', folder.library_name.toLowerCase());
                     row.setAttribute('data-platform-name', folder.platform_name.toLowerCase());
                     row.innerHTML = `
-                        <td><i class="fas fa-folder"></i> ${folder.folder_path}</td>
-                        <td><span class="status-${folder.status.toLowerCase()}">${folder.status}</span></td>
-                        <td>${folder.library_name}</td>
-                        <td>${folder.platform_name}</td>
+                        <td><i class="fas fa-folder"></i> ${escapeHtml(folder.folder_path)}</td>
+                        <td><span class="status-${folder.status.toLowerCase()}">${escapeHtml(folder.status)}</span></td>
+                        <td>${escapeHtml(folder.library_name)}</td>
+                        <td>${escapeHtml(folder.platform_name)}</td>
                         <td>${actionsColumn}</td>
                     `;
                     unmatchedTableBody.appendChild(row);
@@ -652,22 +662,22 @@ function fetchFolders(path, folderContentsId, spinnerId, upButtonId, inputFieldI
             items.forEach(function(item) {
                 var itemElement;
                 if (item.isDir) {
-                    itemElement = $('<div>').html('<i class="fas fa-folder text-warning"></i> ' + item.name);
+                    itemElement = $('<div>').html('<i class="fas fa-folder text-warning"></i> ' + escapeHtml(item.name));
                     var fullPath = path + item.name + "/";
                     $(itemElement).addClass('folder-item').attr('data-path', fullPath);
                 } else {
                     // Get file extension and appropriate icon
                     var ext = item.ext ? item.ext.toLowerCase() : '';
                     var iconClass = fileIcons[ext] || fileIcons['default'];
-                    
+
                     // Format file size
                     var sizeText = formatFileSize(item.size);
-                    
+
                     // Create file element with icon, name, and size
                     itemElement = $('<div>').html(
-                        '<i class="fas ' + iconClass + '"></i> ' + 
-                        item.name + 
-                        '<span class="file-size">(' + sizeText + ')</span>'
+                        '<i class="fas ' + iconClass + '"></i> ' +
+                        escapeHtml(item.name) +
+                        '<span class="file-size">(' + escapeHtml(sizeText) + ')</span>'
                     );
                     $(itemElement)
                         .addClass('file-item')

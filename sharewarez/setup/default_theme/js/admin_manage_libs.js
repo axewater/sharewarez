@@ -1,3 +1,13 @@
+// Library and game names come from folder names and IGDB, so they are set as
+// text rather than parsed as markup.
+function setDeletionProgressText(element, data) {
+    element.textContent = data.message || 'Processing...';
+    if (data.current_game) {
+        element.appendChild(document.createElement('br'));
+        element.appendChild(document.createTextNode(data.current_game));
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize Sortable on the libraries table
     const tbody = document.querySelector('#librariesTable tbody');
@@ -156,11 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Update progress text
-                if (data.current_game) {
-                    progressText.innerHTML = (data.message || 'Processing...') + '<br>' + data.current_game;
-                } else {
-                    progressText.textContent = data.message || 'Processing...';
-                }
+                setDeletionProgressText(progressText, data);
 
                 // Update progress bar if we have progress info
                 if (data.total > 0) {
@@ -236,11 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     // Update progress text
-                    if (data.current_game) {
-                        progressText.innerHTML = (data.message || 'Processing...') + '<br>' + data.current_game;
-                    } else {
-                        progressText.textContent = data.message || 'Processing...';
-                    }
+                    setDeletionProgressText(progressText, data);
 
                     // Update progress bar if we have progress info
                     if (data.total > 0) {

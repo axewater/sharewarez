@@ -41,7 +41,7 @@
     </div>
     <div class="menu-item">
         {% if game.url %}
-        <button type="submit" onclick="window.open('{{ game.url }}', 'target=_new')" class="menu-button">Open IGDB Page</button>
+        <button type="submit" data-url="{{ game.url }}" onclick="window.open(this.dataset.url, 'target=_new')" class="menu-button">Open IGDB Page</button>
         {% endif %}
     </div>
     {% if discord_configured and discord_manual_trigger_enabled and is_admin %}

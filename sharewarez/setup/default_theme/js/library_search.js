@@ -3,6 +3,16 @@
 
 $(document).ready(function() {
 
+    function escapeHtml(value) {
+        if (value === null || value === undefined) return '';
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     function debounce(func, timeout) {
         let timer;
         return function() {
@@ -113,7 +123,7 @@ $(document).ready(function() {
                 // Assume response is an array of suggestions
                 console.log("Search results:", response);
                 var html = response.map(function(item) {
-                    return `<div class="search-result" data-game-uuid="${item.uuid}" tabindex="0">${item.name}</div>`;
+                    return `<div class="search-result" data-game-uuid="${escapeHtml(item.uuid)}" tabindex="0">${escapeHtml(item.name)}</div>`;
                 }).join('');
                 $('#searchResults').html(html);
                 selectedIndex = -1; 

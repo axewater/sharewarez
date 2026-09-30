@@ -1,4 +1,15 @@
 let currentLibrariesSubmenu = null;
+
+function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function setCookie(name, value, days) {
     try {
         var expires = "";
@@ -393,7 +404,7 @@ $(document).ready(function() {
         if (game.url) {
             menuHtml += `
         <div class="menu-item">
-            <button type="submit" onclick="window.open('${game.url}', '_blank')" class="menu-button">Open IGDB Page</button>
+            <button type="submit" data-url="${escapeHtml(game.url)}" onclick="window.open(this.dataset.url, '_blank')" class="menu-button">Open IGDB Page</button>
         </div>`;
         }
         
@@ -471,7 +482,7 @@ $(document).ready(function() {
 
         var gameCardHtml = `
     <div class="game-card-container">
-        <div class="game-card" onmouseover="showDetails(this, '${game.uuid}')" onmouseout="hideDetails()" data-name="${game.name}" data-size="${game.size}" data-genres="${genres}">
+        <div class="game-card" onmouseover="showDetails(this, '${game.uuid}')" onmouseout="hideDetails()" data-name="${escapeHtml(game.name)}" data-size="${escapeHtml(game.size)}" data-genres="${escapeHtml(genres)}">
             <button id="menuButton-${game.uuid}" class="button-glass-hamburger"><i class="fas fa-bars"></i></button>
             <button class="favorite-btn" data-game-uuid="${game.uuid}" data-is-favorite="${game.is_favorite}">
                 <i class="fas fa-heart"></i>
@@ -481,7 +492,7 @@ $(document).ready(function() {
 
             <div class="game-cover">
                 <a href="/game_details/${game.uuid}">
-                <img src="${fullCoverUrl}" alt="${game.name}" class="game-cover">
+                <img src="${fullCoverUrl}" alt="${escapeHtml(game.name)}" class="game-cover">
                 </a>
             </div>
             <div id="details-${game.uuid}" class="popup-game-details hidden">
