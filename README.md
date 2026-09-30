@@ -1,4 +1,4 @@
-# 🎮 SharewareZ v2.9.8
+# 🎮 SharewareZ v2.9.9
 
 SharewareZ transforms any game folder into a searchable library with IGDB integration, adding cover images, screenshots, and metadata for enhanced filtering.
 Invite your friends securely and share your favorite games!
@@ -410,6 +410,14 @@ PORT=3000
 
 
 ## Changelog
+
+  Version 2.9.9
+
+  - 🔒 Security: SECRET_KEY and DATABASE_URL are now required - the app refuses to start rather than fall back to insecure defaults
+  - 🔒 Security: No longer connects to PostgreSQL as the superuser. New Docker installs create a dedicated database role (set APP_DB_PASSWORD in .env); existing installs keep their DATABASE_URL
+  - 🔒 Security: Fixed script injection through game, folder and library names
+  - 👥 Users and games that could not be deleted can now be deleted
+  - 🔧 Database schema updates no longer silently roll back when one step fails
 
   Version 2.9.8
 
