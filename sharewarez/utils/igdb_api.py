@@ -16,7 +16,10 @@ def make_igdb_api_request(endpoint_url, query_params):
     if not settings or not settings.igdb_client_id or not settings.igdb_client_secret:
         return {"error": "IGDB settings not configured in database"}
 
-    access_token = get_access_token(settings.igdb_client_id, settings.igdb_client_secret) 
+    try:
+        access_token = get_access_token(settings.igdb_client_id, settings.igdb_client_secret)
+    except requests.RequestException as e:
+        return {"error": f"make_igdb_api_request Failed to retrieve access token: {e}"}
 
     if not access_token:
         return {"error": "Failed to retrieve access token"}
@@ -28,7 +31,7 @@ def make_igdb_api_request(endpoint_url, query_params):
 
     try:
         # print(f"make_igdb_api_request Attempting to make a request to {endpoint_url} with headers: {headers} and query: {query_params}")
-        response = requests.post(endpoint_url, headers=headers, data=query_params)
+        response = requests.post(endpoint_url, headers=headers, data=query_params, timeout=10)
         response.raise_for_status()
         # print(f"make_igdb_api_request Response from IGDB API: {data}")
         return response.json()
@@ -49,7 +52,7 @@ def get_access_token(client_id, client_secret):
         'client_secret': client_secret,
         'grant_type': 'client_credentials'
     }
-    response = requests.post(url, params=params)
+    response = requests.post(url, params=params, timeout=10)
     if response.status_code == 200:
         return response.json()['access_token']
     else:
@@ -123,26 +126,33 @@ class IGDBRateLimiter:
         
     def acquire(self):
         """Acquire permission to make an IGDB API request."""
-        with self.lock:
-            current_time = time.time()
-            
-            # Remove request times older than 1 second
-            self.request_times = [req_time for req_time in self.request_times 
-                                if current_time - req_time < 1.0]
-            
-            # Wait if we're at the concurrent request limit
-            while self.concurrent_requests >= self.max_concurrent_requests:
-                time.sleep(0.1)
-            
-            # Wait if we've exceeded the rate limit
-            if len(self.request_times) >= self.max_requests_per_second:
-                sleep_time = 1.0 - (current_time - self.request_times[0])
-                if sleep_time > 0:
-                    time.sleep(sleep_time)
-            
-            # Record this request and increment concurrent counter
-            self.request_times.append(current_time)
-            self.concurrent_requests += 1
+        while True:
+            sleep_time = 0
+            with self.lock:
+                current_time = time.time()
+
+                # Remove request times older than 1 second
+                self.request_times = [req_time for req_time in self.request_times
+                                    if current_time - req_time < 1.0]
+
+                if self.concurrent_requests >= self.max_concurrent_requests:
+                    # At the concurrent-request limit. Don't busy-wait while
+                    # holding the lock - release() needs this same lock to
+                    # decrement concurrent_requests, so holding it here would
+                    # deadlock every caller waiting for a free slot.
+                    sleep_time = 0.1
+                elif len(self.request_times) >= self.max_requests_per_second:
+                    remaining = 1.0 - (current_time - self.request_times[0])
+                    sleep_time = remaining if remaining > 0 else 0
+
+                if sleep_time <= 0:
+                    # Record this request and increment concurrent counter
+                    self.request_times.append(current_time)
+                    self.concurrent_requests += 1
+                    return
+
+            # Sleep outside the lock so other threads can acquire/release.
+            time.sleep(sleep_time)
             
     def release(self):
         """Release a concurrent request slot."""

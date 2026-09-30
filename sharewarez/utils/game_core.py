@@ -842,36 +842,36 @@ def get_game_by_uuid(game_uuid):
 def remove_from_lib(game_uuid):
     """
     Remove a game from the library and clean up associated files.
-    
+
     Args:
         game_uuid (str): UUID of the game to remove
-        
+
+    Raises:
+        Exception: if the game exists but deletion fails, so callers (e.g. the
+            scan's "remove missing games" step) don't mistake a failed delete
+            for a successful removal and count it as removed anyway.
+
     Returns:
-        bool: True if successful, False otherwise
+        bool: True if the game was found and removed, False if no game with
+            that UUID existed (nothing to remove).
     """
-    try:
-        # Get the game
-        game = db.session.execute(select(Game).filter_by(uuid=game_uuid)).scalar_one_or_none()
-        if not game:
-            print(f"Game with UUID {game_uuid} not found")
-            return False
-            
-        # Delete associated images from disk
-        delete_game_images(game_uuid)
-        
-        # Delete the game (cascade will handle related records)
-        db.session.delete(game)
-        db.session.commit()
-        
-        log_system_event(f"Game deleted: {game.name} (UUID: {game_uuid})", event_type='game', event_level='information')
-        print(f"Successfully removed game {game.name} (UUID: {game_uuid}) from library")
-        return True
-        
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error removing game from library: {str(e)}")
+    game = db.session.execute(select(Game).filter_by(uuid=game_uuid)).scalar_one_or_none()
+    if not game:
+        print(f"Game with UUID {game_uuid} not found")
         return False
-    
+
+    game_name = game.name
+    # Delegate to delete_game(), which also clears GameURL rows and the
+    # game_developer_association FK-only table (no ORM relationship, so left
+    # rows from older schema versions block the delete with a FK violation),
+    # and re-raises on failure instead of swallowing it.
+    delete_game(game)
+
+    log_system_event(f"Game deleted: {game_name} (UUID: {game_uuid})", event_type='game', event_level='information')
+    print(f"Successfully removed game {game_name} (UUID: {game_uuid}) from library")
+    return True
+
+
 
 def delete_game(game_identifier):
     """Delete a game by UUID or Game object.""" 

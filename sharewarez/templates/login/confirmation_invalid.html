@@ -6,9 +6,8 @@
     <div class="content-login">
         <img src="{{ url_for('static', filename='newstyle/sharewarez_logo.png') }}" alt="ShareWareZ Logo" class="login-logo">
         <h1 class="logo">Invalid Link</h1>
-        <p>The link you've sailed upon is marooned. Check your map (email) for the rightful path or signal (request) a new voyage (activation link).</p>
-        <!-- Button to request a new activation link -->
-        <a href="{{ url_for('auth.request_new_activation') }}" class="btn btn-success">Request New Link</a>
+        <p>The link you've sailed upon is marooned. Check your map (email) for the rightful path, or contact an admin for a new invite.</p>
+        <a href="{{ url_for('login.login') }}" class="btn btn-success">Return to Login</a>
     </div>
 </div>
 {% endblock %}

@@ -941,27 +941,34 @@ class TestMainBlueprint:
         data = json.loads(response.data)
         assert data['success'] == False
 
+    # The background task is stubbed: a real deletion thread outlives this test
+    # and runs into whatever os.path patches later tests apply.
+    @patch('sharewarez.routes.delete_library_background')
     @patch('flask_login.current_user')
-    def test_delete_full_library(self, mock_current_user, 
-                                client, app, db_session, admin_user, test_library, test_game):
+    def test_delete_full_library(self, mock_current_user, mock_background,
+                                client, app, db_session, admin_user, test_library, test_game, tmp_path):
         """Test deleting a full library."""
         mock_current_user.is_authenticated = True
         mock_current_user.role = 'admin'
         mock_current_user.name = admin_user.name
-        
+
         with client.session_transaction() as sess:
             sess['_user_id'] = str(admin_user.id)
-        
-        response = client.post(f'/delete_full_library/{test_library.uuid}')
-        assert response.status_code == 200  # JSON response
-        
-        # Check JSON response
-        json_data = response.get_json()
-        assert json_data['status'] == 'started'
-        assert 'job_id' in json_data
-        
-        # Note: Library deletion now happens in background, so immediate check is not reliable
-        # The actual deletion would be tested in integration tests or by polling the progress endpoint
+
+        with patch('sharewarez.routes._DELETION_PROGRESS_DIR', str(tmp_path)):
+            response = client.post(f'/delete_full_library/{test_library.uuid}')
+            assert response.status_code == 200  # JSON response
+
+            # Check JSON response
+            json_data = response.get_json()
+            assert json_data['status'] == 'started'
+            job_id = json_data['job_id']
+
+            # Progress is recorded where every worker can read it, before the task starts
+            from sharewarez.routes import _get_deletion_progress
+            assert _get_deletion_progress(job_id)['status'] == 'initializing'
+
+        mock_background.assert_called_once_with(test_library.uuid, job_id)
 
     @patch('flask_login.current_user')
     def test_delete_full_library_not_found(self, mock_current_user, client, app, db_session, admin_user):

@@ -1,5 +1,5 @@
 # sharewarez/routes.py
-import uuid, json, os, shutil
+import uuid, json, os, shutil, tempfile
 from threading import Thread
 from flask import (
     render_template, flash, redirect, url_for, request, Blueprint,
@@ -46,8 +46,53 @@ has_initialized_whitelist = False
 has_upgraded_admin = False
 has_initialized_setup = False
 
-# Progress tracking for library deletion
-deletion_progress = {}
+# Progress tracking for library deletion.
+#
+# The app runs as multiple uvicorn worker processes (see startweb.sh), each with
+# its own memory space, so an in-process dict is invisible to whichever worker
+# handles the follow-up SSE/poll request. These helpers persist progress to the
+# shared filesystem instead (atomic write via temp-file + os.replace), which all
+# workers on the same host can see.
+_DELETION_PROGRESS_DIR = os.path.join(tempfile.gettempdir(), 'sharewarez_deletion_progress')
+
+
+def _deletion_progress_path(job_id):
+    os.makedirs(_DELETION_PROGRESS_DIR, exist_ok=True)
+    return os.path.join(_DELETION_PROGRESS_DIR, f'{job_id}.json')
+
+
+def _get_deletion_progress(job_id):
+    path = _deletion_progress_path(job_id)
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, 'r') as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+def _set_deletion_progress(job_id, data):
+    path = _deletion_progress_path(job_id)
+    tmp_path = f'{path}.{os.getpid()}.tmp'
+    with open(tmp_path, 'w') as f:
+        json.dump(data, f)
+    os.replace(tmp_path, path)
+
+
+def _update_deletion_progress(job_id, updates):
+    data = _get_deletion_progress(job_id) or {}
+    data.update(updates)
+    _set_deletion_progress(job_id, data)
+    return data
+
+
+def _clear_deletion_progress(job_id):
+    path = _deletion_progress_path(job_id)
+    try:
+        os.remove(path)
+    except OSError:
+        pass
 
 @bp.context_processor
 @cache.cached(timeout=500, key_prefix='global_settings')
@@ -440,10 +485,12 @@ def upload_image(game_uuid):
 
     file.seek(0)
     max_width, max_height = 1200, 1600
+    resized = False
     if image_type == 'cover':
         if img.width > max_width or img.height > max_height:
-            img.thumbnail((max_width, max_height), PILImage.ANTIALIAS)
-    file.seek(0) 
+            img.thumbnail((max_width, max_height), PILImage.LANCZOS)
+            resized = True
+    file.seek(0)
     # Efficient file size check
     if file.content_length > 3 * 1024 * 1024:  # 3MB in bytes
         return jsonify({'error': 'File size exceeds the 3MB limit'}), 400
@@ -468,7 +515,10 @@ def upload_image(game_uuid):
         short_uuid = str(uuid.uuid4())[:8]
         filename = f"{game_uuid}_{unique_identifier}_{short_uuid}.{file_extension}"
     save_path = os.path.join(current_app.config['IMAGE_SAVE_PATH'], filename)
-    file.save(save_path)
+    if resized:
+        img.save(save_path)
+    else:
+        file.save(save_path)
     print(f"File saved to: {save_path}")
     new_image = Image(game_uuid=game_uuid, image_type=image_type, url=filename)
     db.session.add(new_image)
@@ -717,6 +767,12 @@ def delete_folder():
     if not folder_path:
         return jsonify({'status': 'error', 'message': 'Path is required.'}), 400
 
+    allowed_bases = get_allowed_base_directories(current_app)
+    is_safe, error_message = is_safe_path(folder_path, allowed_bases)
+    if not is_safe:
+        print(f"Security error: delete_folder path validation failed for {folder_path}: {error_message}")
+        return jsonify({'status': 'error', 'message': f'Access denied: {error_message}'}), 403
+
     full_path = os.path.abspath(folder_path)
 
     folder_entry = db.session.execute(select(UnmatchedFolder).filter_by(folder_path=folder_path)).scalar_one_or_none()
@@ -825,29 +881,29 @@ def delete_library_progress(job_id):
         
         # Wait for progress data to appear (up to 10 seconds)
         wait_count = 0
-        while job_id not in deletion_progress and wait_count < 20:
+        while _get_deletion_progress(job_id) is None and wait_count < 20:
             time.sleep(0.5)
             wait_count += 1
-        
-        if job_id not in deletion_progress:
+
+        if _get_deletion_progress(job_id) is None:
             yield f"data: {json.dumps({'status': 'error', 'message': 'Progress data not found'})}\n\n"
             return
-        
+
         # Stream progress updates
-        while job_id in deletion_progress:
-            progress_data = deletion_progress[job_id]
+        progress_data = _get_deletion_progress(job_id)
+        while progress_data is not None:
             yield f"data: {json.dumps(progress_data)}\n\n"
-            
+
             if progress_data.get('status') == 'completed' or progress_data.get('status') == 'error':
                 # Keep data for a moment to ensure client receives it
                 time.sleep(1)
                 # Clean up after completion
-                if job_id in deletion_progress:
-                    del deletion_progress[job_id]
+                _clear_deletion_progress(job_id)
                 break
-            
+
             # Wait before checking again
             time.sleep(0.3)
+            progress_data = _get_deletion_progress(job_id)
     
     # Create response with proper SSE headers
     response = Response(event_stream(), mimetype='text/event-stream')
@@ -864,18 +920,18 @@ def delete_library_background(library_uuid, job_id):
         try:
             library = db.session.execute(select(Library).filter_by(uuid=library_uuid)).scalar_one_or_none()
             if not library:
-                deletion_progress[job_id] = {
+                _set_deletion_progress(job_id, {
                     'status': 'error',
                     'message': 'Library not found',
                     'current': 0,
                     'total': 0
-                }
+                })
                 return
-            
+
             print(f"Background deletion of library: {library.name}")
-            
+
             # Update progress - starting (give UI time to connect)
-            deletion_progress[job_id].update({
+            _update_deletion_progress(job_id, {
                 'status': 'starting',
                 'message': f'Preparing to delete library "{library.name}"...',
                 'current': 0,
@@ -906,17 +962,17 @@ def delete_library_background(library_uuid, job_id):
             games_deleted = 0
             games_failed = 0
             
-            deletion_progress[job_id].update({
+            _update_deletion_progress(job_id, {
                 'status': 'deleting_games',
                 'total': total_games,
                 'current': 0
             })
-            
+
             # Delete games with progress updates
             for i, game in enumerate(games_to_delete, 1):
                 try:
                     # Update progress
-                    deletion_progress[job_id].update({
+                    _update_deletion_progress(job_id, {
                         'current': i,
                         'message': f'Deleting game {i}/{total_games}',
                         'current_game': game.name
@@ -936,7 +992,7 @@ def delete_library_background(library_uuid, job_id):
                     # Continue with other games instead of stopping
             
             # Update progress - cleaning up
-            deletion_progress[job_id].update({
+            _update_deletion_progress(job_id, {
                 'status': 'cleanup',
                 'message': 'Cleaning up scan jobs and library data...',
                 'current': total_games,
@@ -965,7 +1021,7 @@ def delete_library_background(library_uuid, job_id):
             else:
                 message = f'Library "{library_name}" deleted. {games_deleted} games deleted successfully, {games_failed} failed.'
             
-            deletion_progress[job_id] = {
+            _set_deletion_progress(job_id, {
                 'status': 'completed',
                 'message': message,
                 'current': total_games,
@@ -973,18 +1029,18 @@ def delete_library_background(library_uuid, job_id):
                 'games_deleted': games_deleted,
                 'games_failed': games_failed,
                 'library_name': library_name
-            }
-            
+            })
+
         except Exception as e:
             db.session.rollback()
             error_msg = f"Error during library deletion: {str(e)}"
             print(error_msg)
-            deletion_progress[job_id] = {
+            _set_deletion_progress(job_id, {
                 'status': 'error',
                 'message': error_msg,
                 'current': 0,
                 'total': 0
-            }
+            })
     
     # Start the background task
     thread = Thread(target=delete_task, daemon=True)
@@ -1008,14 +1064,15 @@ def delete_full_library(library_uuid=None):
         return jsonify({'status': 'error', 'message': 'Library not found'}), 404
     
     # Create initial progress data immediately in main thread to prevent race condition
-    deletion_progress[job_id] = {
+    _set_deletion_progress(job_id, {
         'status': 'initializing',
         'message': f'Preparing to delete library "{library.name}"...',
         'current': 0,
         'total': 0,
         'library_name': library.name
-    }
-    
+    })
+
+
     # Start background deletion
     delete_library_background(library_uuid, job_id)
     
@@ -1027,8 +1084,9 @@ def delete_full_library(library_uuid=None):
 @admin_required
 def check_deletion_progress(job_id):
     """Simple progress check endpoint as fallback for SSE"""
-    if job_id in deletion_progress:
-        return jsonify(deletion_progress[job_id])
+    progress_data = _get_deletion_progress(job_id)
+    if progress_data is not None:
+        return jsonify(progress_data)
     else:
         return jsonify({'status': 'not_found', 'message': 'Job not found'}), 404
 

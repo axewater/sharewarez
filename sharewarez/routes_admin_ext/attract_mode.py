@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from . import admin2_bp
 from sharewarez.utils.event_logging import log_system_event
 from sharewarez.utils.auth import admin_required
+import copy
 import json
 import logging
 
@@ -192,11 +193,12 @@ def get_attract_mode_settings():
                 'settings': None
             })
 
-        # Start with admin defaults
+        # Start with admin defaults (deep-copied so per-user overrides below never
+        # mutate the shared DEFAULT_ATTRACT_MODE_SETTINGS module-level dict)
         result = {
             'enabled': True,
             'idle_timeout': global_settings.attract_mode_idle_timeout,
-            'settings': global_settings.attract_mode_settings or DEFAULT_ATTRACT_MODE_SETTINGS
+            'settings': copy.deepcopy(global_settings.attract_mode_settings or DEFAULT_ATTRACT_MODE_SETTINGS)
         }
 
         # If user is authenticated, check for user overrides

@@ -85,7 +85,8 @@ class TestMakeIgdbApiRequest:
                 'Client-ID': 'test_client_id',
                 'Authorization': 'Bearer test_token'
             },
-            data='fields name;'
+            data='fields name;',
+            timeout=10
         )
 
     def test_missing_igdb_settings(self, db_session):
@@ -163,7 +164,8 @@ class TestGetAccessToken:
                 'client_id': 'client_id',
                 'client_secret': 'client_secret',
                 'grant_type': 'client_credentials'
-            }
+            },
+            timeout=10
         )
 
     @patch('requests.post')
@@ -326,7 +328,12 @@ class TestIGDBRateLimiter:
     def test_acquire_rate_limit_exceeded(self, mock_sleep, mock_time):
         """Test acquire when rate limit is exceeded."""
         limiter = IGDBRateLimiter(max_requests_per_second=2, max_concurrent_requests=8)
-        mock_time.return_value = 1000.0
+        # Time must advance between iterations. acquire() retries in a loop and
+        # only exits once an old request ages out, so a frozen clock spins
+        # forever - and the patched time.time/time.sleep record every call,
+        # growing without bound. Finite on purpose: a regression here raises
+        # StopIteration instead of exhausting the machine's memory.
+        mock_time.side_effect = [1000.0 + 0.6 * i for i in range(50)]
         
         # Fill up the rate limit
         limiter.request_times = [999.5, 999.7]  # 2 requests in the last second
