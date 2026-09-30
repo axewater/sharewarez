@@ -1,0 +1,9 @@
+# Development-only tools, installed by `./install-linux.sh --dev`.
+# Kept out of requirements.txt so production installs don't carry them.
+-r requirements.txt
+coverage==7.11.0
+flake8==7.3.0
+mccabe==0.7.0
+pycodestyle==2.14.0
+pyflakes==3.4.0
+pytest-cov==7.0.0
