@@ -310,6 +310,59 @@ class DatabaseManager:
             END IF;
         END $$;
 
+        -- Harden FK cascade behavior for FKs into users. Previously these had no
+        -- ON DELETE action, so Postgres defaulted to NO ACTION - any user who had
+        -- ever downloaded something, sent a newsletter, or created/used an invite
+        -- became permanently undeletable (FK violation on DELETE).
+        -- Each FK is rebuilt only while its delete action is still wrong: adding
+        -- a FK re-checks every row under an exclusive lock, which is not something
+        -- to repeat on every startup. Old FKs are found by column rather than by
+        -- name, so one created under a non-default name is replaced too.
+        DO $$
+        DECLARE
+            fk RECORD;
+            old_fk RECORD;
+            n_right INTEGER;
+            n_wrong INTEGER;
+        BEGIN
+            FOR fk IN SELECT * FROM (VALUES
+                ('download_requests', 'user_id',         'id',      'c', 'CASCADE',  false),
+                ('newsletters',       'sender_id',       'id',      'n', 'SET NULL', true),
+                ('invite_tokens',     'creator_user_id', 'user_id', 'n', 'SET NULL', true),
+                ('invite_tokens',     'used_by',         'user_id', 'n', 'SET NULL', false),
+                ('system_events',     'audit_user',      'id',      'n', 'SET NULL', false)
+            ) AS t(tbl, col, ref_col, del_type, del_action, drop_not_null)
+            LOOP
+                CONTINUE WHEN to_regclass(fk.tbl) IS NULL;
+
+                SELECT count(*) FILTER (WHERE c.confdeltype = fk.del_type::"char"),
+                       count(*) FILTER (WHERE c.confdeltype <> fk.del_type::"char")
+                  INTO n_right, n_wrong
+                  FROM pg_constraint c
+                  JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = ANY (c.conkey)
+                 WHERE c.contype = 'f' AND c.conrelid = to_regclass(fk.tbl)
+                   AND c.confrelid = 'users'::regclass AND a.attname = fk.col;
+                CONTINUE WHEN n_right > 0 AND n_wrong = 0;
+
+                FOR old_fk IN
+                    SELECT c.conname FROM pg_constraint c
+                      JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = ANY (c.conkey)
+                     WHERE c.contype = 'f' AND c.conrelid = to_regclass(fk.tbl)
+                       AND c.confrelid = 'users'::regclass AND a.attname = fk.col
+                LOOP
+                    EXECUTE format('ALTER TABLE %I DROP CONSTRAINT %I', fk.tbl, old_fk.conname);
+                END LOOP;
+
+                IF fk.drop_not_null THEN
+                    EXECUTE format('ALTER TABLE %I ALTER COLUMN %I DROP NOT NULL', fk.tbl, fk.col);
+                END IF;
+
+                EXECUTE format('ALTER TABLE %I ADD CONSTRAINT %I FOREIGN KEY (%I) REFERENCES users(%I) ON DELETE %s',
+                               fk.tbl, fk.tbl || '_' || fk.col || '_fkey', fk.col, fk.ref_col, fk.del_action);
+                RAISE NOTICE 'Set ON DELETE % on %.%', fk.del_action, fk.tbl, fk.col;
+            END LOOP;
+        END $$;
+
         """
         print("Upgrading database to the latest schema")
         try:
@@ -320,7 +373,12 @@ class DatabaseManager:
                 for statement in statements:
                     if statement.strip():
                         try:
-                            connection.execute(text(statement))
+                            # Each statement gets its own savepoint. Without one, the
+                            # first failure aborts the whole transaction: every later
+                            # statement is rejected and the upgrade silently rolls
+                            # back, even though this loop carries on.
+                            with connection.begin_nested():
+                                connection.execute(text(statement))
                         except Exception as stmt_error:
                             print(f"Warning: Failed to execute statement: {statement[:100]}...")
                             print(f"Error: {stmt_error}")

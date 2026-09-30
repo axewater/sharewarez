@@ -46,7 +46,7 @@
                 Sent to: <strong>{{ invite.recipient_email }}</strong><br>
                 Status: <strong>{{ "Used" if invite.used else "Pending" }}</strong><br>
                 {% if invite.used %}
-                    Used by: <strong>{{ invite.used_by_user.name }}</strong><br>
+                    Used by: <strong>{{ invite.used_by_user.name if invite.used_by_user else '(deleted user)' }}</strong><br>
                     Used on: <strong>{{ invite.used_at.strftime('%Y-%m-%d %H:%M:%S') }}</strong><br>
                 {% else %}
                     Expires in: 

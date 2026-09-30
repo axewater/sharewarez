@@ -323,7 +323,7 @@ class DownloadRequest(db.Model):
     __tablename__ = 'download_requests'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     game_uuid = db.Column(db.String(36), db.ForeignKey('games.uuid', ondelete='CASCADE'), nullable=False)
     status = db.Column(db.String(50), default='pending')
     zip_file_path = db.Column(db.String, nullable=True)
@@ -405,7 +405,7 @@ class Newsletter(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     subject = db.Column(db.String(255), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
     sent_date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     recipient_count = db.Column(db.Integer, default=0)
     recipients = db.Column(JSON)
@@ -567,12 +567,12 @@ class InviteToken(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     token = db.Column(db.String(256), nullable=False, unique=True)
-    creator_user_id = db.Column(db.String(36), db.ForeignKey('users.user_id'), nullable=False)
+    creator_user_id = db.Column(db.String(36), db.ForeignKey('users.user_id', ondelete='SET NULL'), nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     expires_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc) + timedelta(days=2), nullable=False)
     used = db.Column(db.Boolean, default=False, nullable=False)
     recipient_email = db.Column(db.String(120), nullable=True)
-    used_by = db.Column(db.String(36), db.ForeignKey('users.user_id'), nullable=True)
+    used_by = db.Column(db.String(36), db.ForeignKey('users.user_id', ondelete='SET NULL'), nullable=True)
     used_at = db.Column(db.DateTime, nullable=True)
 
     creator = db.relationship('User', foreign_keys=[creator_user_id], backref='created_invites')
@@ -624,7 +624,7 @@ class SystemEvents(db.Model):
     event_type = db.Column(db.String(32), default='log')
     event_text = db.Column(db.String(256), nullable=False)
     event_level = db.Column(db.String(32), default='information')
-    audit_user = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    audit_user = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
     timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     user = db.relationship('User', backref='system_events')

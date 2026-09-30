@@ -9,7 +9,7 @@
     <div class="card">
         <h1>{{ newsletter.subject }}</h1>
         <div class="newsletter-meta">
-            <p>Sent by: {{ newsletter.sender.name }}</p>
+            <p>Sent by: {{ newsletter.sender.name if newsletter.sender else '(deleted user)' }}</p>
             <p>Date: {{ newsletter.sent_date.strftime('%Y-%m-%d %H:%M:%S') }}</p>
             <p>Recipients: {{ newsletter.recipient_count }}</p>
             <p>Status: 
