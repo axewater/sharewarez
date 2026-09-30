@@ -187,7 +187,6 @@ class TestLogSystemEvent:
             # Just verify the timestamp exists and is a datetime object
             # Don't compare actual times as there may be timezone differences between server and database
             assert isinstance(event.timestamp, datetime)
-            assert event.timestamp.year == 2025  # Basic sanity check
     
     def test_log_system_event_empty_string_handling(self, app, db_session):
         """Test logging with empty strings."""

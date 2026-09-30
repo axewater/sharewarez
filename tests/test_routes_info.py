@@ -85,12 +85,8 @@ class TestAdminServerStatusRoute:
         assert response.status_code == 302
         assert '/login' in response.location
 
-    @patch('sharewarez.routes_info.current_user')
-    def test_admin_server_status_requires_admin_role(self, mock_current_user, client, regular_user):
+    def test_admin_server_status_requires_admin_role(self, client, regular_user):
         """Test that admin server status route requires admin role."""
-        mock_current_user.is_authenticated = True
-        mock_current_user.role = 'user'
-        mock_current_user.id = regular_user.id
         
         with patch('flask_login.utils._get_user', return_value=regular_user):
             response = client.get('/admin/server_status_page')
@@ -114,8 +110,7 @@ class TestAdminServerStatusRoute:
     @patch('sharewarez.routes_info.get_formatted_system_uptime')
     @patch('sharewarez.routes_info.get_formatted_app_uptime')
     @patch('sharewarez.routes_info.format_bytes')
-    @patch('sharewarez.routes_info.current_user')
-    def test_admin_server_status_success(self, mock_current_user, mock_format_bytes,
+    def test_admin_server_status_success(self, mock_format_bytes,
                                        mock_app_uptime, mock_system_uptime, mock_database_info,
                                        mock_log_info, mock_active_users, mock_config_values, mock_system_info,
                                        mock_warez_usage, mock_disk_usage, mock_memory_usage,
@@ -124,9 +119,6 @@ class TestAdminServerStatusRoute:
                                        client, admin_user):
         """Test successful admin server status page rendering."""
         # Mock all the utility functions
-        mock_current_user.is_authenticated = True
-        mock_current_user.role = 'admin'
-        mock_current_user.id = admin_user.id
         
         mock_check_server_settings.return_value = (True, None)
         mock_cpu_usage.return_value = 45.5
@@ -207,14 +199,10 @@ class TestAdminServerStatusRoute:
         assert mock_format_bytes.call_count >= 8  # Should be called for total, used, available, free for each usage dict
 
     @patch('sharewarez.routes_info.check_server_settings')
-    @patch('sharewarez.routes_info.current_user')
-    def test_admin_server_status_invalid_settings(self, mock_current_user,
+    def test_admin_server_status_invalid_settings(self,
                                                  mock_check_server_settings,
                                                  client, admin_user):
         """Test admin server status with invalid server settings."""
-        mock_current_user.is_authenticated = True
-        mock_current_user.role = 'admin'
-        mock_current_user.id = admin_user.id
         
         mock_check_server_settings.return_value = (False, "Database connection failed")
 
@@ -226,15 +214,11 @@ class TestAdminServerStatusRoute:
 
     @patch('sharewarez.routes_info.check_server_settings')
     @patch('sharewarez.routes_info.get_cpu_usage')
-    @patch('sharewarez.routes_info.current_user')
-    def test_admin_server_status_exception_handling(self, mock_current_user,
+    def test_admin_server_status_exception_handling(self,
                                                    mock_cpu_usage,
                                                    mock_check_server_settings,
                                                    client, admin_user):
         """Test admin server status handles exceptions gracefully."""
-        mock_current_user.is_authenticated = True
-        mock_current_user.role = 'admin'
-        mock_current_user.id = admin_user.id
         
         mock_check_server_settings.return_value = (True, None)
         mock_cpu_usage.side_effect = Exception("System error occurred")
@@ -261,8 +245,7 @@ class TestAdminServerStatusRoute:
     @patch('sharewarez.routes_info.get_formatted_system_uptime')
     @patch('sharewarez.routes_info.get_formatted_app_uptime')
     @patch('sharewarez.routes_info.format_bytes')
-    @patch('sharewarez.routes_info.current_user')
-    def test_admin_server_status_with_none_usage_values(self, mock_current_user, mock_format_bytes,
+    def test_admin_server_status_with_none_usage_values(self, mock_format_bytes,
                                                       mock_app_uptime, mock_system_uptime, mock_database_info,
                                                       mock_log_info, mock_active_users, mock_config_values, mock_system_info,
                                                       mock_warez_usage, mock_disk_usage, mock_memory_usage,
@@ -270,9 +253,6 @@ class TestAdminServerStatusRoute:
                                                       mock_check_server_settings, mock_log_system_event,
                                                       client, admin_user):
         """Test admin server status handles None usage values correctly."""
-        mock_current_user.is_authenticated = True
-        mock_current_user.role = 'admin'
-        mock_current_user.id = admin_user.id
         
         mock_check_server_settings.return_value = (True, None)
         mock_cpu_usage.return_value = 45.5
@@ -365,14 +345,10 @@ class TestErrorHandling:
     """Test error handling scenarios."""
 
     @patch('sharewarez.routes_info.check_server_settings')
-    @patch('sharewarez.routes_info.current_user')
-    def test_server_settings_check_failure(self, mock_current_user,
+    def test_server_settings_check_failure(self,
                                           mock_check_server_settings,
                                           client, admin_user):
         """Test handling when server settings check fails."""
-        mock_current_user.is_authenticated = True
-        mock_current_user.role = 'admin'
-        mock_current_user.id = admin_user.id
         
         mock_check_server_settings.return_value = (False, "Configuration error")
 
@@ -383,15 +359,11 @@ class TestErrorHandling:
 
     @patch('sharewarez.routes_info.check_server_settings')
     @patch('sharewarez.routes_info.get_system_info')
-    @patch('sharewarez.routes_info.current_user')
-    def test_system_info_exception(self, mock_current_user,
+    def test_system_info_exception(self,
                                  mock_get_system_info,
                                  mock_check_server_settings,
                                  client, admin_user):
         """Test handling when system info gathering fails."""
-        mock_current_user.is_authenticated = True
-        mock_current_user.role = 'admin'
-        mock_current_user.id = admin_user.id
         
         mock_check_server_settings.return_value = (True, None)
         mock_get_system_info.side_effect = Exception("Failed to get system info")
